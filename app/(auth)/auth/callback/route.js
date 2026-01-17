@@ -63,7 +63,7 @@ export async function GET(request) {
       const supabase = await createClient()
       
       try {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        const { data: {session}, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
         
         if (exchangeError) {
           console.error('🔴 Exchange failed:', exchangeError.message)
@@ -80,28 +80,25 @@ export async function GET(request) {
         try {
           const { data: { user } } = await supabase.auth.getUser()
           
-          if (user) {
-            console.log('🟡 Syncing user to public.users table:', user.email)
-            
-            // Insert or update user in public.users
+          if (session) {
+            const user = session.user
+            const googleToken = session.provider_token
+            const googleRefreshToken = session.provider_refresh_token
+
+            console.log (" user and Youtube token tp users table")
+
             const { error: syncError } = await supabase
               .from('users')
               .upsert({
                 id: user.id,
                 email: user.email,
-                full_name: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
-                role: user.user_metadata?.role || 'client',
-                created_at: new Date().toISOString(),
+                full_name: user.user_metadata.full_name || user.user_metadata?.username || user.emailv || 'Anonymous',
+                google_access_token: googleToken,
+                google_refresh_token: googleRefreshToken,
                 updated_at: new Date().toISOString(),
-              }, {
-                onConflict: 'id'
-              })
-            
-            if (syncError) {
-              console.error('🟡 User sync warning (non-fatal):', syncError.message)
-            } else {
-              console.log('✅ User synced to public.users table')
-            }
+              }, { onConflict: 'id' })
+
+              if (syncError) console.error('Token synnc warning:', syncError.message)
           }
         } catch (syncErr) {
           console.error('🟡 User sync error (non-fatal):', syncErr.message)

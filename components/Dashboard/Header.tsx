@@ -146,6 +146,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
                   width={28}
                   height={28}
                   className="rounded-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="w-7 h-7 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center">

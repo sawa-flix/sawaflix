@@ -15,6 +15,9 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    // Allow private IPs for Supabase storage in development
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 }
 

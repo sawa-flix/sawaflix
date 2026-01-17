@@ -86,6 +86,7 @@ const MusicProfilePage = async () => {
                 width={160} 
                 height={160} 
                 className="object-cover w-full h-full"
+                unoptimized
               />
             </div>
           </div>

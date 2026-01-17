@@ -8,6 +8,7 @@ import {
   Download,
   FileText,
   Workflow,
+  Wallet,
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -55,6 +56,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicPage', badge: 'New' },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
     { name: 'Blogs', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
+    { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
   const smart =[
@@ -150,8 +152,10 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             ) : (
