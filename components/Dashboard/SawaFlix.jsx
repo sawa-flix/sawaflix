@@ -72,14 +72,10 @@ const SawaFlix = () => {
             The Ultimate Music And Movies Experience
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* <Link href="/dashboard/contentReels">
-            <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-200 cursor-pointer">
-              Watch Now
-            </button>  
-            </Link> */}
+
             <Link href="/dashboard/youtubeVids">
             <button className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-black px-8 py-3 rounded-full font-semibold transition-all duration-200 cursor-pointer">
-              Listen Now
+              Listen-Now
             </button>
             </Link>
           </div>
