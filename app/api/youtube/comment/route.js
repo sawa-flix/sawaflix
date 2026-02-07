@@ -1,9 +1,5 @@
 import { createClient } from '../../../../utils/supabase/server';
-<<<<<<< HEAD
 // import { getValidToken } from '@/utils/youtube/refresh-token';
-=======
-// import { getValidToken } from '../../../../utils/youtube/refresh-token';
->>>>>>> 5d67ac8f0200791c50ff630099d35bac6dcc575d
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
