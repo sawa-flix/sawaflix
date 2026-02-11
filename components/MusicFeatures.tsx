@@ -43,7 +43,7 @@ export function MusicFeatures({ playlists, recommendedSongs, favoriteSongs }: Mu
           <h3 className="text-xl font-semibold text-red-500">Playlists</h3>
           <button className="text-purple-600 hover:text-purple-700 font-medium">View all</button>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           {playlists.map((playlist) => (
             <div key={playlist.id} className="group cursor-pointer">
@@ -59,9 +59,9 @@ export function MusicFeatures({ playlists, recommendedSongs, favoriteSongs }: Mu
           ))}
         </div>
       </div>
-      
+
       {/* Recommended Songs Section */}
-      <div className="bg-gray-800 bg-opacity-10 rounded-lg shadow-sm p-6 mb-8">
+      <div className="bg-blue-800 bg-opacity-10 rounded-lg shadow-sm p-6 mb-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-red-500">Recommended Songs</h3>
           <button className="text-purple-600 hover:text-purple-700 font-medium">View all</button>

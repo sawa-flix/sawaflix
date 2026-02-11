@@ -1,11 +1,10 @@
 // @ts-check
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Heart, RotateCcw, Volume2, Download, Shuffle, Repeat } from 'lucide-react';
+import { useMusic } from '@/components/MusicContext';
 import musicData from '@/Data.json';
-
-
 
 const placeholderImages = [
   "/music4.jpg",
@@ -16,126 +15,53 @@ const placeholderImages = [
   "/music6.jpg"
 ];
 
-
 export default function MusicPage() {
-  const importedSongs = musicData.music_artists.flatMap((artist, artistIdx) =>
-    artist.songs.map((song, songIdx) => ({
-      id: 100 + (artistIdx * 100) + songIdx, // Unique ID to avoid collision with existing IDs
-      title: song.title,
-      artist: artist.name,
-      // Cycle through placeholder images using the loop index
-      image: placeholderImages[(artistIdx + songIdx) % placeholderImages.length],
-      src: song.url,
-      plays: "New",
-      trending: "new",
-      rank: 0,
-      duration: "3:00" // Placeholder
-    }))
-  );
+  const {
+    currentTrack: globalTrack,
+    isPlaying,
+    togglePlay,
+    playNext,
+    playPrev,
+    playTrack,
+    currentTime,
+    duration,
+    seekTo,
+    volume,
+    setVolume
+  } = useMusic();
 
-  const [playlist, setPlaylist] = useState(importedSongs);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.7);
+  // Local UI state
   const [isFavorite, setIsFavorite] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off');
 
-  /** @type {React.MutableRefObject<HTMLAudioElement | null>} */
-  const audioRef = useRef(null);
-  const currentTrack = playlist[currentTrackIndex];
-
-  const handleNextTrack = useCallback(() => {
-    if (isShuffled) {
-      let nextIndex;
-      do {
-        nextIndex = Math.floor(Math.random() * playlist.length);
-      } while (playlist.length > 1 && nextIndex === currentTrackIndex);
-      setCurrentTrackIndex(nextIndex);
-    } else {
-      setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-    }
-  }, [isShuffled, playlist.length, currentTrackIndex]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleTrackEnd = () => {
-      if (repeatMode === 'one') {
-        audio.currentTime = 0;
-        audio.play();
-      } else if (repeatMode === 'all') {
-        handleNextTrack();
-      } else {
-        setIsPlaying(false);
-      }
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleTrackEnd);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleTrackEnd);
-    };
-  }, [repeatMode, handleNextTrack]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume;
-    }
-  }, [volume]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && isPlaying) {
-      audio.play().catch((/** @type {unknown} */ error) => console.error("Error attempting to play audio:", error));
-    } else if (audio && !isPlaying) {
-      audio.pause();
-    }
-  }, [isPlaying, currentTrackIndex]);
-
-  const togglePlay = () => {
-    if (audioRef.current && !audioRef.current.src) {
-      audioRef.current.src = currentTrack.src;
-    }
-    setIsPlaying(!isPlaying);
+  // Fallback data if nothing is playing
+  const defaultTrack = {
+    id: 0,
+    title: "Select a Song",
+    artist: "Sawaflix Music",
+    image: "/music4.jpg",
+    src: "",
   };
 
-  const handlePrevTrack = () => {
-    setCurrentTrackIndex((prevIndex) =>
-      (prevIndex - 1 + playlist.length) % playlist.length
-    );
-  };
+  const currentTrack = globalTrack || defaultTrack;
 
-  const handleSeek = (/** @type {React.MouseEvent<HTMLDivElement>} */ e) => {
-    const audio = audioRef.current;
-    if (!audio || !duration) return;
+  const handleSeek = (e) => {
+    if (!duration) return;
     const progressContainer = e.currentTarget;
     const rect = progressContainer.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const newTime = (clickX / rect.width) * duration;
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
+    seekTo(newTime);
   };
 
   const handleReplay = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-    }
+    seekTo(0);
   };
 
-  const selectTrack = (/** @type {number} */ index) => {
-    setCurrentTrackIndex(index);
-    setIsPlaying(true);
+  const handleVolumeChange = (e) => {
+    const newVol = parseFloat(e.target.value);
+    setVolume(newVol);
   };
 
   const toggleFavorite = () => setIsFavorite(!isFavorite);
@@ -146,29 +72,41 @@ export default function MusicPage() {
   };
 
   const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = currentTrack.src;
-    link.download = `${currentTrack.title}_${currentTrack.artist}.mp3`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (!currentTrack.src) return;
+    // For YouTube links, direct download isn't simple without a backend service.
+    // We'll just open the link for now or disable if it's a stream.
+    window.open(currentTrack.src, '_blank');
   };
 
-  const formatTime = (/** @type {number} */ seconds) => {
+  const formatTime = (seconds) => {
     if (isNaN(seconds) || seconds === 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Separate lists for UI rendering
-  const popularAlbums = playlist.slice(0, 3);
-  const recentlyPlayed = playlist.slice(3, 9);
+  // Generate a list for "Trending Now" / "Recently Played" based on Data.json
+  const displayList = musicData.music_artists.flatMap((artist, artistIdx) =>
+    artist.songs.map((song, songIdx) => ({
+      id: `${artistIdx}-${songIdx}`, // Consistent ID format with other pages
+      title: song.title,
+      artist: artist.name,
+      image: placeholderImages[(artistIdx + songIdx) % placeholderImages.length],
+      src: song.url,
+      plays: "New",
+      trending: "new",
+      rank: 0,
+      duration: "3:00"
+    }))
+  );
+
+  const popularAlbums = displayList.slice(0, 3);
+  const recentlyPlayed = displayList.slice(3, 9);
 
   return (
     // General container with mobile-first padding
-    <div className="min-h-full bg-gray-900 text-white p-2 xs:p-3 sm:p-6 lg:p-8">
-      <audio ref={audioRef} />
+    <div className="min-h-full bg-gray-900 text-white p-2 xs:p-3 sm:p-6 lg:p-8 pb-32">
+      {/* Visualizer bars logic for background or header? Keeping separate */}
 
       {/* Header section with responsive layout */}
       <div className="mb-4 sm:mb-8">
@@ -221,7 +159,7 @@ export default function MusicPage() {
                   <button onClick={handleReplay} className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors" title="Replay">
                     <RotateCcw size={16} className="xs:w-5 xs:h-5" />
                   </button>
-                  <button onClick={handlePrevTrack} className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors" title="Previous">
+                  <button onClick={playPrev} className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors" title="Previous">
                     <SkipBack size={16} className="xs:w-5 xs:h-5" />
                   </button>
                   <button
@@ -230,7 +168,7 @@ export default function MusicPage() {
                   >
                     {isPlaying ? <Pause size={20} className="xs:w-6 xs:h-6" /> : <Play size={20} className="xs:w-6 xs:h-6" />}
                   </button>
-                  <button onClick={handleNextTrack} className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors" title="Next">
+                  <button onClick={playNext} className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors" title="Next">
                     <SkipForward size={16} className="xs:w-5 xs:h-5" />
                   </button>
                   <button
@@ -243,7 +181,7 @@ export default function MusicPage() {
                   <button
                     onClick={handleDownload}
                     className="p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-colors hidden xs:block"
-                    title="Download"
+                    title="Open on YouTube"
                   >
                     <Download size={16} className="xs:w-5 xs:h-5" />
                   </button>
@@ -275,7 +213,7 @@ export default function MusicPage() {
                       max="1"
                       step="0.01"
                       value={volume}
-                      onChange={(e) => setVolume(parseFloat(e.target.value))}
+                      onChange={handleVolumeChange}
                       className="flex-1 h-0.5 xs:h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
@@ -306,7 +244,7 @@ export default function MusicPage() {
             </div>
             <div className="space-y-2 xs:space-y-3 sm:space-y-4">
               {popularAlbums.map((album, index) => (
-                <div key={album.id} onClick={() => selectTrack(index)} className="flex items-center gap-2 xs:gap-3 sm:gap-4 p-2 xs:p-3 sm:p-4 hover:bg-gray-800/50 rounded-lg transition-colors cursor-pointer group">
+                <div key={album.id} onClick={() => playTrack(album)} className="flex items-center gap-2 xs:gap-3 sm:gap-4 p-2 xs:p-3 sm:p-4 hover:bg-gray-800/50 rounded-lg transition-colors cursor-pointer group">
                   <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 w-8 xs:w-10 sm:w-16 flex-shrink-0">
                     <span className={`text-xs xs:text-sm sm:text-lg font-bold ${album.trending === 'up' ? 'text-green-500' : 'text-red-500'}`}>
                       {album.rank}
@@ -330,7 +268,7 @@ export default function MusicPage() {
                     <p className="text-xs text-gray-500">This week</p>
                   </div>
                   <button className="opacity-0 group-hover:opacity-100 p-1.5 xs:p-2 hover:bg-white/10 rounded-full transition-all flex-shrink-0">
-                    {isPlaying && currentTrack.id === album.id ? <Pause size={14} className="xs:w-4 xs:h-4" /> : <Play size={14} className="xs:w-4 xs:h-4" />}
+                    {isPlaying && globalTrack?.id === album.id ? <Pause size={14} className="xs:w-4 xs:h-4" /> : <Play size={14} className="xs:w-4 xs:h-4" />}
                   </button>
                 </div>
               ))}
@@ -345,7 +283,7 @@ export default function MusicPage() {
             <h3 className="text-lg xs:text-xl font-bold mb-2 xs:mb-3">Recently Played</h3>
             <div className="space-y-2 xs:space-y-3">
               {recentlyPlayed.map((track, index) => (
-                <div key={track.id} onClick={() => selectTrack(playlist.findIndex(p => p.id === track.id))} className="flex items-center gap-2 xs:gap-3 p-2 xs:p-3 hover:bg-gray-800/50 rounded-lg transition-colors cursor-pointer group">
+                <div key={track.id} onClick={() => playTrack(track)} className="flex items-center gap-2 xs:gap-3 p-2 xs:p-3 hover:bg-gray-800/50 rounded-lg transition-colors cursor-pointer group">
                   <div className="relative w-8 h-8 xs:w-10 xs:h-10 flex-shrink-0">
                     <div
                       className="w-full h-full bg-gray-700 rounded-md xs:rounded-lg bg-cover bg-center"
@@ -359,14 +297,13 @@ export default function MusicPage() {
                   <div className="flex items-center gap-1.5 xs:gap-2 text-xs text-gray-500 flex-shrink-0">
                     <span className="hidden xs:inline">{track.duration}</span>
                     <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-full transition-all">
-                      {isPlaying && currentTrack.id === track.id ? <Pause size={12} /> : <Play size={12} />}
+                      {isPlaying && globalTrack?.id === track.id ? <Pause size={12} /> : <Play size={12} />}
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
 
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 xs:p-4">
             <h3 className="font-semibold mb-2 xs:mb-3 text-sm xs:text-base">Your Stats</h3>
