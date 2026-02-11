@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { createClient } from '../../utils/supabase/server';
 import { redirect } from 'next/navigation';
@@ -177,6 +177,7 @@ export async function signInWithGoogle() {
       provider: 'google',
       options: {
         redirectTo: `${origin}/auth/callback`,
+        // scopes: 'https://www.googleapis.com/auth/youtube.force-ssl',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

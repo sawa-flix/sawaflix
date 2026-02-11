@@ -10,6 +10,7 @@ type Profile = {
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
+  full_name: string | null;
 };
 
 // Initial state for the form
@@ -17,6 +18,7 @@ const initialState: Profile = {
   profile_image_url: null,
   cover_image_url: null,
   bio: '',
+  full_name: '',
 };
 
 const UserProfile = () => {
@@ -49,6 +51,7 @@ const UserProfile = () => {
             profile_image_url: userData.profile_image_url,
             cover_image_url: userData.cover_image_url,
             bio: userData.bio,
+            full_name: userData.full_name,
           });
         }
       }
@@ -82,6 +85,13 @@ const UserProfile = () => {
     setProfile((prev) => ({
       ...prev,
       bio: e.target.value,
+    }));
+  };
+
+    const handleFullNameChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setProfile((prev) => ({
+      ...prev,
+      full_name: e.target.value,
     }));
   };
 
@@ -162,8 +172,11 @@ const UserProfile = () => {
               <Image
                 src={profile.cover_image_url}
                 alt="Cover Image"
-                layout="fill"
-                objectFit="cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 600px"
+                className="object-cover"
+                priority={false}
+                unoptimized
               />
             ) : (
               <span className="text-gray-500">Click to upload cover image</span>
@@ -183,14 +196,28 @@ const UserProfile = () => {
               <Image
                 src={profile.profile_image_url}
                 alt="Profile Image"
-                layout="fill"
-                objectFit="cover"
+                fill
+                sizes="128px"
+                className="object-cover"
+                priority={false}
+                unoptimized
               />
             ) : (
               <span className="text-gray-500 text-sm">Click to upload</span>
             )}
           </div>
           <input type="file" hidden ref={profileImageRef} onChange={handleProfileImageChange} accept="image/*" />
+        </div>
+        {/* full name section */}
+        <div className="mb-6">
+          <label htmlFor="full_name" className="block text-gray-700 font-semibold mb-2">Full name</label>
+          <textarea
+            id="full_name"
+            value={profile.full_name ?? ''}
+            onChange={handleFullNameChange}
+            className="w-full h-20 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Update your user name."
+          ></textarea>
         </div>
 
         {/* Bio Section */}
