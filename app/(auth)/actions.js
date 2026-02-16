@@ -73,10 +73,10 @@ export async function signInWithPassword(formData) {
 
 export async function signUpWithPassword(formData) {
   try {
+    //getting tthe content from the incoming Data
     const email = formData.get('email');
     const password = formData.get('password');
     const username = formData.get('username');
-    const userType = formData.get('userType') || 'user';
     const category = formData.get('category');
 
     if (!email || !password) {
@@ -89,10 +89,9 @@ export async function signUpWithPassword(formData) {
 
     const supabase = await createClient();
 
-    // Prepare user metadata
+    // metadata that will be stored in the users.auth by supabase
     const userMetadata = {
       username: username || email.split('@')[0],
-      ...(userType && { user_type: userType }),
       ...(category && { category: category }),
     };
 
@@ -121,8 +120,15 @@ export async function signUpWithPassword(formData) {
       return { error: userMessage };
     }
 
-    // Insert user into public.users table (the auth trigger should also handle this)
+    // the data is uploaded to the users table hrere
     if (data.user) {
+      //client is the default role, if the user selected creator, we will set that instead
+      //an admin role will exist for those reviewing the creators which is set in the backend and not exposed to the client at all, only manually set in the database for specific users
+      let platformRole = 'client';
+
+      if (category === 'creator') {
+        platformRole = 'creator';
+      }
       try {
         // Insert into users table
         const { error: userError } = await supabase
@@ -131,7 +137,7 @@ export async function signUpWithPassword(formData) {
             id: data.user.id,
             email: email.toString(),
             full_name: userMetadata.username,
-            role: userType === 'artist' ? 'artist' : userType === 'producer' ? 'producer' : 'client',
+            platform_role: platformRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }, {
@@ -140,7 +146,6 @@ export async function signUpWithPassword(formData) {
 
         if (userError) {
           console.error('🔴 User profile creation error:', userError.message);
-          // Don't fail signup if profile creation fails - the trigger should have handled it
         } else {
           console.log('✅ User profile created in public.users table');
         }
@@ -152,7 +157,6 @@ export async function signUpWithPassword(formData) {
 
     console.log('🟢 Sign up successful for:', email);
     
-    // Don't redirect automatically - let client show success message
     return { 
       success: true, 
       message: data.session ? 'Sign up successful!' : 'Please check your email to confirm your account.',
@@ -162,52 +166,6 @@ export async function signUpWithPassword(formData) {
   } catch (error) {
     console.error('🔴 Unexpected sign up error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
-  }
-}
-
-export async function signInWithGoogle() {
-  try {
-    const supabase = await createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-    console.log('🟡 Starting Google OAuth flow...');
-    console.log('🟡 Redirect URL:', `${origin}/auth/callback`);
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-        // scopes: 'https://www.googleapis.com/auth/youtube.force-ssl',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) {
-      console.error('🔴 Google OAuth error:', error.message);
-      throw new Error(`Google OAuth failed: ${error.message}`);
-    }
-
-    // If Supabase returned a redirect URL, redirect the browser there
-    if (data?.url) {
-      console.log('🟢 Google OAuth URL generated, redirecting...');
-      redirect(data.url);
-    }
-
-    // If no URL, that's an error
-    throw new Error('Google OAuth service did not return a valid URL');
-  } catch (error) {
-    console.error('🔴 Google OAuth error:', error.message);
-    
-    // Let NEXT_REDIRECT errors propagate (from redirect() calls)
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
-    }
-    
-    // For other errors, redirect to login with error message
-    redirect(`/login?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
   }
 }
 
