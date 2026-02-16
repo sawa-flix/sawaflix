@@ -78,6 +78,7 @@ export async function signUpWithPassword(formData) {
     const password = formData.get('password');
     const username = formData.get('username');
     const category = formData.get('category');
+    const phone = formData.get('phone');
 
     if (!email || !password) {
       return { error: 'Email and password are required' };
@@ -93,6 +94,7 @@ export async function signUpWithPassword(formData) {
     const userMetadata = {
       username: username || email.split('@')[0],
       ...(category && { category: category }),
+      ...arguments(phone && { phone: phone}),
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -140,6 +142,7 @@ export async function signUpWithPassword(formData) {
             platform_role: platformRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            phone: phone ? phone.toString() : null,
           }, {
             onConflict: 'id'
           });
