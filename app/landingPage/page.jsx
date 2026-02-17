@@ -16,6 +16,10 @@ const LandingPage = () => {
     router.push('/creator/verify');
   };
 
+  const handleJoinAsUser = () => {
+    router.push('/login');
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     setError('');
@@ -98,7 +102,10 @@ const LandingPage = () => {
 
           <div className="space-y-4 mb-10">
             {/* Join as User */}
-            <button className="w-full group bg-red-600 hover:bg-red-700 p-5 rounded-2xl flex items-center justify-between transition-all duration-300 shadow-xl shadow-red-900/20 transform hover:scale-[1.02]">
+            <button
+              onClick={handleJoinAsUser}
+              className="w-full group bg-red-600 hover:bg-red-700 p-5 rounded-2xl flex items-center justify-between transition-all duration-300 shadow-xl shadow-red-900/20 transform hover:scale-[1.02]"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" /></svg>
