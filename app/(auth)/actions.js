@@ -91,10 +91,11 @@ export async function signUpWithPassword(formData) {
     const supabase = await createClient();
 
     // metadata that will be stored in the users.auth by supabase
+    const emailStr = email?.toString() || "";
     const userMetadata = {
-      username: username || email.split('@')[0],
+      username: username || emailStr.split('@')[0],
       ...(category && { category: category }),
-      ...arguments(phone && { phone: phone}),
+      ...(phone && { phone: phone}),
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -138,7 +139,7 @@ export async function signUpWithPassword(formData) {
           .upsert({
             id: data.user.id,
             email: email.toString(),
-            full_name: userMetadata.username,
+            username: userMetadata.username,
             platform_role: platformRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
