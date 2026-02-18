@@ -21,11 +21,7 @@ type UserProfileData = {
   profile_image_url: string | null;
 };
 
-interface LeftSidebarProps {
-  onNavigate?: () => void;
-}
-
-export default function LeftSidebar({ onNavigate }: LeftSidebarProps) {
+export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const [active, setActive] = useState('');
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
@@ -69,10 +65,8 @@ export default function LeftSidebar({ onNavigate }: LeftSidebarProps) {
 
   const handleItemClick = (itemId: string) => {
     setActive(itemId);
-    // Close sidebar on mobile after navigation
-    if (onNavigate) {
-      onNavigate();
-    }
+    // Close sidebar on mobile when navigating
+    onNavigate?.();
   };
 
   return (
@@ -151,15 +145,17 @@ export default function LeftSidebar({ onNavigate }: LeftSidebarProps) {
             </Link>
           );
         })}
-        <Link href="/dashboard/profile" onClick={onNavigate}>
+        <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
           <div className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-gray-800 mt-5 to-gray-750 hover:from-gray-750 hover:to-gray-700 transition-all cursor-pointer">
             {userProfile?.profile_image_url ? (
               <div className="w-10 h-10 rounded-full flex-shrink-0 relative overflow-hidden">
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             ) : (

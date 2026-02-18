@@ -155,7 +155,7 @@ const App = () => {
                     {/* Category Dropdown */}
                     <div className="relative" ref={dropdownRef}>
                         <label htmlFor="category" className="sr-only">Category</label>
-                        <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="relative block w-full appearance-none rounded-md border border-gray-700 px-3 py-4 text-gray-100 placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-gray-800 flex justify-between items-center cursor-pointer">
+                        <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="relative flex w-full appearance-none rounded-md border border-gray-700 px-3 py-4 text-gray-100 placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-gray-800 justify-between items-center cursor-pointer">
                             <span id="category-selected-text">{selectedCategory}</span>
                             <svg className={`h-5 w-5 text-gray-400 transform transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
