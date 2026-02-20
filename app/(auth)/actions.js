@@ -586,3 +586,54 @@ export async function syncUserToPublic() {
     return { error: error.message };
   }
 }
+
+// ─── Creator Role ───────────────────────────────────────────────────────────
+
+/**
+ * Saves the creator's selected role to the users table.
+ * Sets verification_status to 'unverified' on first-time role assignment.
+ *
+ * @param {string} creatorType - One of: musician | filmmaker | influencer | visual_artist | other
+ * @returns {Promise<{success: boolean}|{error: string}>}
+ */
+export async function saveCreatorRole(creatorType) {
+  try {
+    const VALID_TYPES = ['musician', 'filmmaker', 'influencer', 'visual_artist', 'other'];
+
+    if (!creatorType || !VALID_TYPES.includes(creatorType)) {
+      return { error: 'Please select a valid creator role.' };
+    }
+
+    const supabase = await createClient();
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: 'You must be logged in to select a role.' };
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        creator_type: creatorType,
+        verification_status: 'unverified',
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id',
+      });
+
+    if (updateError) {
+      console.error('🔴 saveCreatorRole error:', updateError.message);
+      return { error: 'Could not save your creator role. Please try again.' };
+    }
+
+    console.log(`✅ Creator role saved: ${creatorType} for user ${user.email}`);
+    return { success: true };
+
+  } catch (error) {
+    console.error('🔴 saveCreatorRole unexpected error:', error);
+    return { error: 'An unexpected error occurred. Please try again.' };
+  }
+}
