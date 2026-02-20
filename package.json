@@ -25,8 +25,8 @@
     "react-icons": "^5.5.0",
     "react-player": "^2.16.0",
     "supabase": "^2.34.3",
-    "twilio": "^5.12.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

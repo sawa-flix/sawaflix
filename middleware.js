@@ -5,6 +5,9 @@ export async function middleware(request) {
   const { supabase, response } = createClient(request)
 
   try {
+    // Refresh session if expired
+    await supabase.auth.getSession()
+
     const { data: { user } } = await supabase.auth.getUser()
 
     const { pathname } = request.nextUrl
