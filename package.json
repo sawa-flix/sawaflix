@@ -13,6 +13,8 @@
     "@react-oauth/google": "^0.12.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.55.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.2",
     "browser-image-compression": "^2.0.2",
     "framer-motion": "^12.33.0",
     "lottie-react": "^2.4.1",
@@ -23,6 +25,7 @@
     "react-icons": "^5.5.0",
     "react-player": "^2.16.0",
     "supabase": "^2.34.3",
+    "twilio": "^5.12.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/node": "^20.19.11",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.9.19",
     "daisyui": "^5.0.51",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
