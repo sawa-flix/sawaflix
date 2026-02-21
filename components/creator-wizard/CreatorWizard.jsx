@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { z } from 'zod';
 import ProgressBar from './ProgressBar';
 import Step1Category from './Step1Category';
 import Step2Identity from './Step2Identity';
@@ -29,6 +30,7 @@ const CreatorWizard = () => {
         documents: { id: null, endorsements: null }
     });
     const [isLoaded, setIsLoaded] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -58,10 +60,76 @@ const CreatorWizard = () => {
             ...prev,
             [key]: { ...prev[key], ...data }
         }));
+        setError(""); // Clear error when user changes anything
+    };
+
+    const handleStep1Update = (data) => {
+        setFormData(prev => ({ ...prev, ...data }));
+        setError(""); // Clear error
+    };
+
+    const validateStep = (step) => {
+        setError("");
+
+        if (step === 1) {
+            if (!formData.category) {
+                setError("Please fill in the field: Category is required");
+                return false;
+            }
+        } else if (step === 2) {
+            const result = z.object({
+                legalName: z.string().min(1, "Please fill in the field: Legal Name"),
+                creatorName: z.string().min(1, "Please fill in the field: Creator Name"),
+                ethnicGroup: z.string().min(1, "Please fill in the field: Ethnic Group"),
+                phone: z.string().min(1, "Please fill in the field: Phone Number"),
+                email: z.string().email("Please enter a valid email address")
+            }).safeParse(formData.identity || {});
+
+            if (!result.success) {
+                const message = result.error.issues?.[0]?.message || result.error.errors?.[0]?.message || "Please fill in all required fields";
+                setError(message);
+                return false;
+            }
+        } else if (step === 3) {
+            const result = z.object({
+                languages: z.string().min(1, "Please fill in the field: Languages"),
+                experienceTime: z.string().min(1, "Please fill in the field: Experience Time"),
+                bio: z.string().min(10, "Please fill in the field: Bio (min. 10 characters)")
+            }).safeParse(formData.professional || {});
+
+            if (!result.success) {
+                const message = result.error.issues?.[0]?.message || result.error.errors?.[0]?.message || "Please fill in all required fields";
+                setError(message);
+                return false;
+            }
+        } else if (step === 4) {
+            const recordings = formData.portfolio.recordings || [];
+            if (recordings.length < 3) {
+                setError("Please provide information for at least 3 sample recordings");
+                return false;
+            }
+
+            for (let i = 0; i < 3; i++) {
+                const rec = recordings[i] || {};
+                if (!rec.title || !rec.description || !rec.significance) {
+                    setError(`Please fill in the field: Sample Recording ${i + 1} is missing information`);
+                    return false;
+                }
+            }
+
+            if (!formData.documents.id) {
+                setError("Please fill in the field: Government ID is required");
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const handleNext = () => {
-        setCurrentStep(prev => Math.min(prev + 1, steps.length));
+        if (validateStep(currentStep)) {
+            setCurrentStep(prev => Math.min(prev + 1, steps.length));
+        }
     };
 
     const handleBack = () => {
@@ -114,7 +182,7 @@ const CreatorWizard = () => {
                         {currentStep === 1 && (
                             <Step1Category
                                 data={formData}
-                                updateData={(d) => setFormData(prev => ({ ...prev, ...d }))}
+                                updateData={handleStep1Update}
                             />
                         )}
                         {currentStep === 2 && (
@@ -145,29 +213,45 @@ const CreatorWizard = () => {
                         )}
 
                         {/* Navigation */}
-                        <div className="flex justify-between items-center mt-12 pt-10 border-t border-gray-800/50">
-                            <button
-                                onClick={handleBack}
-                                disabled={currentStep === 1}
-                                className={`px-8 py-3 rounded-2xl font-black transition-all uppercase tracking-widest text-sm ${currentStep === 1
+                        <div className="flex flex-col mt-12 pt-10 border-t border-gray-800/50">
+                            {error && (
+                                <div className="mb-8 p-6 bg-red-500 border border-red-600 rounded-[2rem] flex items-center gap-4 text-white text-sm font-black shadow-2xl animate-pulse">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 text-red-600">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="uppercase tracking-widest text-[10px] mb-1 opacity-80">Action Required</p>
+                                        <p className="text-lg">{error}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between items-center">
+                                <button
+                                    onClick={handleBack}
+                                    disabled={currentStep === 1}
+                                    className={`px-8 py-3 rounded-2xl font-black transition-all uppercase tracking-widest text-sm ${currentStep === 1
                                         ? 'opacity-0 pointer-events-none'
                                         : 'bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-400'
-                                    }`}
-                            >
-                                Back
-                            </button>
-
-                            {currentStep < 5 && (
-                                <button
-                                    onClick={handleNext}
-                                    className="flex items-center gap-3 px-10 py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-xl shadow-red-900/20 uppercase tracking-widest text-sm"
+                                        }`}
                                 >
-                                    Continue
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
+                                    Back
                                 </button>
-                            )}
+
+                                {currentStep < 5 && (
+                                    <button
+                                        onClick={handleNext}
+                                        className="flex items-center gap-3 px-10 py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-xl shadow-red-900/20 uppercase tracking-widest text-sm"
+                                    >
+                                        Continue
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 </AnimatePresence>
