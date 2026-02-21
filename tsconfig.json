@@ -28,7 +28,9 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -36,6 +38,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
+    "utils/supabase/server.js",
     "**/*.js",
     "**/*.jsx",
     "utils/supabase/server.ts",
