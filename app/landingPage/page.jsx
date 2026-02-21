@@ -4,7 +4,7 @@ import Image from 'next/image';
 const LandingPage = () => {
   return (
     <div className="min-h-screen lg:flex">
-      
+
       {/* Left Side - Only for Desktop */}
       <div className="hidden lg:flex w-1/2 h-[100vh] relative">
         <Image
@@ -31,7 +31,7 @@ const LandingPage = () => {
 
         {/* Mobile View */}
         <div className="lg:hidden min-h-screen relative overflow-hidden">
-          
+
           {/* Mobile Header and Buttons at Top */}
           <div className="absolute top-0 left-0 right-0 z-20 px-6 pt-12 pb-6">
             <div className="flex items-center mb-2">
@@ -43,30 +43,30 @@ const LandingPage = () => {
             <p className="text-gray-300 text-sm mb-6">Welcome to Cameroon's Premier Entertainment Hub</p>
             <p>Stream unlimited content and stay connected with Cameroon's dynamic entertainment scene.
 
-</p>
+            </p>
             {/* Buttons at top */}
             <div className="space-y-3">
               <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg">
                 Get Started
               </button>
-              
+
             </div>
           </div>
 
           {/* Mobile Content Area - Cards at Bottom */}
           <div className="px-6 pt-72 pb-6 min-h-screen flex flex-col">
-            
+
             {/* Trending Section */}
             <div className="flex-1">
               <h2 className="text-white text-xl font-bold mb-4">Trending</h2>
-              
+
               {/* Movie Posters */}
               <div>
                 {/* First Row */}
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-yellow-500 via-orange-500 to-red-600 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                     <Image
+                    <Image
                       src="/cameroon4.jpg"
                       alt="The Beekeeper"
                       fill
@@ -80,34 +80,34 @@ const LandingPage = () => {
                     <div className="text-center">
                       <div className="text-white text-lg font-bold mb-1">Breaking</div>
 
-              <Image
-              src="/pic1.jpeg"
-              alt="Breaking Bad"
-              layout="fill"
-              objectFit="cover"
-            />
-                      
+                      <Image
+                        src="/pic1.jpeg"
+                        alt="Breaking Bad"
+                        layout="fill"
+                        objectFit="cover"
+                      />
+
                       <div className="text-white text-lg font-bold">Bad</div>
-                      
+
                     </div>
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-purple-600 to-pink-500 rounded-lg overflow-hidden relative">
-                      <Image
-              src="/cameroon.jpg"
-              alt="Breaking Bad"
-              layout="fill"
-              objectFit="cover"
-            />
+                    <Image
+                      src="/cameroon.jpg"
+                      alt="Breaking Bad"
+                      layout="fill"
+                      objectFit="cover"
+                    />
                     <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-white text-center">
                         <div className="text-xs font-semibold">ANIME</div>
-                    <Image
-              src="/wed-image 1.jpg"
-              alt="Breaking Bad"
-              layout="fill"
-              objectFit="cover"
-            />
+                        <Image
+                          src="/wed-image 1.jpg"
+                          alt="Breaking Bad"
+                          layout="fill"
+                          objectFit="cover"
+                        />
                       </div>
                     </div>
                   </div>
@@ -117,7 +117,7 @@ const LandingPage = () => {
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-green-600 to-teal-700 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                     <Image
+                    <Image
                       src="/CeCe Winans.jpeg"
                       alt="The Beekeeper"
                       fill
@@ -126,7 +126,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                     <Image
+                    <Image
                       src="/cameroon.jpg"
                       alt="The Beekeeper"
                       fill
@@ -139,7 +139,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-                     <Image
+                    <Image
                       src="/cameroon2.jpg"
                       alt="The Beekeeper"
                       fill
@@ -152,7 +152,7 @@ const LandingPage = () => {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-red-800 to-black rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-red-900 bg-opacity-60"></div>
-                     <Image
+                    <Image
                       src="/cameroon3.jpg"
                       alt="The Beekeeper"
                       fill
@@ -161,7 +161,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-blue-800 to-teal-900 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
-                     <Image
+                    <Image
                       src="/pic2.jpeg"
                       alt="The Beekeeper"
                       fill
@@ -169,7 +169,7 @@ const LandingPage = () => {
                     />
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-green-700 to-yellow-600 rounded-lg overflow-hidden relative">
-                   <Image
+                    <Image
                       src="/pic4.jpeg"
                       alt="The Beekeeper"
                       fill
@@ -177,7 +177,7 @@ const LandingPage = () => {
                     />
                     <div className="absolute bottom-2 right-2">
                       <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-                      
+
                     </div>
                   </div>
                 </div>
@@ -197,14 +197,14 @@ const LandingPage = () => {
               <h2 className="text-5xl font-bold text-white mb-6">
                 Welcome to Cameroon's Premier Entertainment Hub
               </h2>
-            
+
               <div className="space-y-4 text-gray-200 leading-relaxed text-lg">
                 {/* <p>
                   Discover the rich tapestry of Cameroonian cinema and music all in one place. SAWAFLIX is your 
                   gateway to authentic local content, featuring blockbuster movies and chart-topping hits from 
                   your favorite Cameroonian artists.
                 </p> */}
-                
+
                 <p className=" text-white ">
                   Stream unlimited content and stay connected with Cameroon's dynamic entertainment scene.
                 </p>
