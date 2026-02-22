@@ -1,31 +1,24 @@
-import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
+import { createClient } from '@/utils/supabase/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-  
-  // 1. Bearer Token Verification
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Missing Bearer Token" }, { status: 401 });
-  }
+export async function GET() {
+    try {
+        const supabase = await createClient();
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+        const { data, error } = await supabase
+            .from('creator_verifications')
+            .select('id, full_name, category, status, submitted_at, user_id')
+            .in('status', ['pending', 'info_requested'])
+            .order('submitted_at', { ascending: false });
 
-  try {
-    // 2. Fetch the pending queue [cite: 183]
-    const { data, error } = await supabase
-      .from("verification_submissions")
-      .select("creator_id, creator_public_id, category, status, created_at, form_data")
-      .eq("status", "pending")
-      .order("created_at", { ascending: true }); // Oldest first [cite: 183]
+        if (error) {
+            console.error('Error fetching verifications:', error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
 
-    if (error) throw error;
-    return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+        return NextResponse.json({ data: data || [] });
+    } catch (err) {
+        console.error('Unexpected error:', err);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }
