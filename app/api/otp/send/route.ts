@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { redis, rateLimit } from "@/lib/redis";
+import { redis, rateLimit, otpVerifyRateLimit } from "@/lib/redis";
 
 export async function POST(req: Request) {
     try {
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
         const { success } = await rateLimit.limit(`otp_limit:${email}`)
         if (!success) {
             return NextResponse.json(
-                { error: "Too many requests. Try again in an hour." },
+                { error: "Too many requests. Try again in 15 minutes." },
                 { status: 429 }
             )
         }
@@ -20,6 +20,8 @@ export async function POST(req: Request) {
         
 
         return NextResponse.json({ message: "OTP sent successfully" })
+
+
 
     } catch (error) {
         console.log('Error sending OTP:', error)

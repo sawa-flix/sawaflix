@@ -8,5 +8,10 @@ export const redis = new Redis({
 
 export const rateLimit = new Ratelimit({
     redis: redis,
-    limiter: Ratelimit.slidingWindow(3, "1 h"),
-})
+    limiter: Ratelimit.slidingWindow(5, "15 m"),
+});
+
+export const otpVerifyRateLimit = new Ratelimit({
+    redis: redis,
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+});

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { redis } from '@/lib/redis'
+import { otpVerifyRateLimit, redis } from '@/lib/redis'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
@@ -10,11 +10,16 @@ const supabaseAdmin = createClient(
 export async function POST(req: Request) {
     try {
         const { email, code } = await req.json();
+
+        const { success } = await otpVerifyRateLimit.limit(`otp_verify:${email}`)
+        if (!success) {
+            return NextResponse.json({ error: "Too many OTP verification attempts. Please try again later." }, { status: 429 })
+        }
+        
         const storedOtp = await redis.get(`otp:${email}`)
-        console.log(`Verifying OTP for ${email} with code ${code}, storeddd OTP is ${storedOtp}`)
 
         if (!storedOtp) {
-            return NextResponse.json({error: `OTP exprired or invalid` }, { status: 400 }) 
+            return NextResponse.json({error: `OTP expired or invalid` }, { status: 400 }) 
         }
         if (String(storedOtp).trim() !== String(code).trim()) {
             return NextResponse.json({ error: `Invalid OTP` }, { status: 400 })
