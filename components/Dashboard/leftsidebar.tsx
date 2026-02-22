@@ -59,7 +59,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
-  const smart =[
+  const smart = [
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawaSmart', badge: null },
   ]
 
@@ -75,32 +75,30 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
-          
+
           return (
             <Link
               key={item.id}
               href={item.route}
               onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${
-                isActive
+              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${isActive
                   ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20'
                   : 'hover:bg-gray-800 text-gray-300 hover:text-white'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}
                 />
                 <span className="font-medium">{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  isActive 
-                    ? 'bg-white/20 text-white' 
+                <span className={`px-2 py-1 text-xs rounded-full font-medium ${isActive
+                    ? 'bg-white/20 text-white'
                     : 'bg-red-500/20 text-red-400'
-                }`}>
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -110,35 +108,33 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       </nav>
 
       <div className="p-4 border-t border-gray-800">
-      {smart.map((item) => {
+        {smart.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
-          
+
           return (
             <Link
               key={item.id}
               href={item.route}
               onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${
-                isActive
+              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${isActive
                   ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20'
                   : 'hover:bg-gray-800 text-gray-300 hover:text-white'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}
                 />
                 <span className="font-medium">{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  isActive 
-                    ? 'bg-white/20 text-white' 
+                <span className={`px-2 py-1 text-xs rounded-full font-medium ${isActive
+                    ? 'bg-white/20 text-white'
                     : 'bg-red-500/20 text-red-400'
-                }`}>
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -173,7 +169,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
             </div>
           </div>
         </Link>
-        
+
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
           <div className="bg-gray-800/50 rounded-lg p-2 text-center">
             <div className="text-red-400 font-bold">128</div>

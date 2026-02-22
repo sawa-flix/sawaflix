@@ -73,12 +73,11 @@ export async function signInWithPassword(formData) {
 
 export async function signUpWithPassword(formData) {
   try {
-    //getting tthe content from the incoming Data
     const email = formData.get('email');
     const password = formData.get('password');
     const username = formData.get('username');
+    const userType = formData.get('userType') || 'user';
     const category = formData.get('category');
-    const phone = formData.get('phone');
 
     if (!email || !password) {
       return { error: 'Email and password are required' };
@@ -90,12 +89,11 @@ export async function signUpWithPassword(formData) {
 
     const supabase = await createClient();
 
-    // metadata that will be stored in the users.auth by supabase
-    const emailStr = email?.toString() || "";
+    // Prepare user metadata
     const userMetadata = {
-      username: username || emailStr.split('@')[0],
+      username: username || email.split('@')[0],
+      ...(userType && { user_type: userType }),
       ...(category && { category: category }),
-      ...(phone && { phone: phone}),
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -123,15 +121,8 @@ export async function signUpWithPassword(formData) {
       return { error: userMessage };
     }
 
-    // the data is uploaded to the users table hrere
+    // Insert user into public.users table (the auth trigger should also handle this)
     if (data.user) {
-      //client is the default role, if the user selected creator, we will set that instead
-      //an admin role will exist for those reviewing the creators which is set in the backend and not exposed to the client at all, only manually set in the database for specific users
-      let platformRole = 'client';
-
-      if (category === 'creator') {
-        platformRole = 'creator';
-      }
       try {
         // Insert into users table
         const { error: userError } = await supabase
@@ -139,17 +130,17 @@ export async function signUpWithPassword(formData) {
           .upsert({
             id: data.user.id,
             email: email.toString(),
-            username: userMetadata.username,
-            platform_role: platformRole,
+            full_name: userMetadata.username,
+            role: userType === 'artist' ? 'artist' : userType === 'producer' ? 'producer' : 'client',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            phone: phone ? phone.toString() : null,
           }, {
             onConflict: 'id'
           });
 
         if (userError) {
           console.error('🔴 User profile creation error:', userError.message);
+          // Don't fail signup if profile creation fails - the trigger should have handled it
         } else {
           console.log('✅ User profile created in public.users table');
         }

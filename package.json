@@ -27,7 +27,9 @@
     "react-player": "^2.16.1",
     "supabase": "^2.34.3",
     "uuid": "^11.1.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "twilio": "^5.12.1"
+
   },
   "devDependencies": {
     "@eslint/eslintrc": "^0.1.0",
