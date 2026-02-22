@@ -1,8 +1,21 @@
 import React from 'react';
 
-const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments }) => {
+const FieldError = ({ message }) => message ? (
+    <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-medium flex items-center gap-1">
+        <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+        {message}
+    </p>
+) : null;
+
+const inputStyle = {
+    backgroundColor: '#0B0E14',
+    border: '1px solid rgba(255,255,255,0.07)',
+};
+
+const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, errors = {} }) => {
     const recordings = data.recordings || [{}, {}, {}];
-    const links = data.links || [''];
 
     const handleRecordingChange = (index, field, value) => {
         const newRecordings = [...recordings];
@@ -10,123 +23,138 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments }) =
         updatePortfolio({ recordings: newRecordings });
     };
 
-    const handleLinkChange = (index, value) => {
-        const newLinks = [...links];
-        newLinks[index] = value;
-        updatePortfolio({ links: newLinks });
-    };
-
     const handleFileChange = (field, e) => {
         const file = e.target.files[0];
-        if (file) {
-            updateDocuments({ [field]: file });
-        }
+        if (file) updateDocuments({ [field]: file });
     };
 
     return (
-        <div className="space-y-12">
-            <div className="text-center">
-                <h2 className="text-3xl lg:text-4xl font-black mb-2 tracking-tight">Show Us Your Voice. Tell Us Your Story</h2>
-                <p className="text-gray-500 font-medium">Submit at least 3 sample recordings. Your recordings help us understand your storytelling style, originality and impact.</p>
+        <div className="space-y-3">
+            {/* Header */}
+            <div>
+                <h2 className="text-base font-black text-white text-center leading-tight">Show Us Your Voice. Tell Us Your Story</h2>
+                <p className="text-white font-bold text-xs mt-1">Submit at least 3 sample recordings.</p>
+                <p className="text-red-400 text-[10px] italic font-medium">Your recordings help us understand your storytelling style, originality and impact.</p>
             </div>
 
-            {/* Recordings Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {recordings.map((rec, index) => (
-                    <div key={index} className="bg-[#0B0E14] border border-gray-800 rounded-[2rem] p-6 lg:p-8 relative group hover:border-red-900/50 transition-all shadow-xl">
-                        <div className="flex items-center justify-between mb-8">
-                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-widest">Sample Recording {index + 1}</h4>
-                            <div className="text-yellow-600">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            {/* Cards container */}
+            <div className="rounded-xl p-3 space-y-3" style={{ backgroundColor: '#10141c', border: '1px solid rgba(255,255,255,0.06)' }}>
+                {/* Three recording cards */}
+                <div className="grid grid-cols-3 gap-2">
+                    {[0, 1, 2].map((index) => {
+                        const rec = recordings[index] || {};
+                        return (
+                            <div key={index} className="rounded-xl p-3 flex flex-col gap-2" style={{ backgroundColor: '#1a1f2b', border: '1px solid rgba(255,255,255,0.07)' }}>
+                                {/* Card header */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-white font-bold text-[10px]">Sample Recording {index + 1}</span>
+                                    <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    </svg>
+                                </div>
+
+                                {/* Upload file button */}
+                                <div className="relative">
+                                    <label className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-full cursor-pointer text-[10px] font-bold text-white hover:opacity-80 transition-all" style={{ backgroundColor: '#2a3040', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        {rec.file ? rec.file.name.slice(0, 8) + '…' : 'Upload file'}
+                                        <input
+                                            type="file"
+                                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) handleRecordingChange(index, 'file', file);
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+
+                                {/* Title */}
+                                <div>
+                                    <label className="text-gray-500 text-[9px] font-bold">Title:</label>
+                                    <input
+                                        type="text"
+                                        value={rec.title || ''}
+                                        onChange={(e) => handleRecordingChange(index, 'title', e.target.value)}
+                                        className="w-full bg-transparent text-white text-[10px] font-medium focus:outline-none pb-px"
+                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div>
+                                    <label className="text-gray-500 text-[9px] font-bold block mb-0.5">Description:</label>
+                                    <textarea
+                                        value={rec.description || ''}
+                                        onChange={(e) => handleRecordingChange(index, 'description', e.target.value)}
+                                        placeholder="Tell us the story behind this recording. What inspired it?"
+                                        rows={2}
+                                        className="w-full text-white text-[9px] font-medium placeholder-gray-600 focus:outline-none resize-none rounded-lg p-1.5"
+                                        style={inputStyle}
+                                    />
+                                </div>
+
+                                {/* Significance */}
+                                <div>
+                                    <label className="text-gray-500 text-[9px] font-bold block mb-0.5">Significance:</label>
+                                    <textarea
+                                        value={rec.significance || ''}
+                                        onChange={(e) => handleRecordingChange(index, 'significance', e.target.value)}
+                                        placeholder="Why is this piece important?"
+                                        rows={2}
+                                        className="w-full text-white text-[9px] font-medium placeholder-gray-600 focus:outline-none resize-none rounded-lg p-1.5"
+                                        style={inputStyle}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Footer hint */}
+                <p className="text-center text-gray-600 text-[10px] font-medium">minimum 3 recordings required</p>
+            </div>
+
+            {/* Government ID – compact single row */}
+            <div>
+                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Verification Documents</p>
+                <div className="grid grid-cols-2 gap-2">
+                    {/* Required: Gov ID */}
+                    <div>
+                        <div
+                            className="relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden transition-all"
+                            style={{
+                                backgroundColor: errors.id ? 'rgba(127,0,0,0.15)' : '#141820',
+                                border: `1px solid ${errors.id ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.06)'}`,
+                            }}
+                        >
+                            <input type="file" onChange={(e) => handleFileChange('id', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                            <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-red-500" style={{ backgroundColor: 'rgba(220,38,38,0.1)' }}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                 </svg>
                             </div>
-                        </div>
-
-                        <button className="w-full py-6 mb-8 border-2 border-dashed border-gray-800 rounded-2xl text-gray-600 hover:text-red-500 hover:border-red-600/30 transition-all flex flex-col items-center gap-3 bg-gray-900/20 group">
-                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            <span className="text-xs font-black uppercase tracking-[0.2em]">Upload file</span>
-                        </button>
-
-                        <div className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Title:</label>
-                                <input
-                                    type="text"
-                                    value={rec.title || ''}
-                                    onChange={(e) => handleRecordingChange(index, 'title', e.target.value)}
-                                    className="w-full bg-transparent border-b border-gray-800 py-2 focus:border-red-600 outline-none transition-all font-bold text-white placeholder-gray-800"
-                                    placeholder="_______________________"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Description:</label>
-                                <textarea
-                                    value={rec.description || ''}
-                                    onChange={(e) => handleRecordingChange(index, 'description', e.target.value)}
-                                    className="w-full bg-[#151C25] border border-gray-800 rounded-xl p-4 text-sm h-24 resize-none focus:border-red-600 outline-none font-medium text-gray-300 placeholder-gray-700"
-                                    placeholder="Tell us the story behind this recording. What inspired it?"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Significance:</label>
-                                <textarea
-                                    value={rec.significance || ''}
-                                    onChange={(e) => handleRecordingChange(index, 'significance', e.target.value)}
-                                    className="w-full bg-[#151C25] border border-gray-800 rounded-xl p-4 text-sm h-24 resize-none focus:border-red-600 outline-none font-medium text-gray-300 placeholder-gray-700"
-                                    placeholder="Why is this piece important?"
-                                />
+                                <p className="text-white font-bold text-[9px]">{documents.id?.name ? documents.id.name.slice(0,14) + '…' : 'Government ID'}</p>
+                                <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Required</p>
                             </div>
                         </div>
+                        <FieldError message={errors.id} />
                     </div>
-                ))}
-            </div>
 
-            <p className="text-center text-gray-600 font-bold text-sm tracking-wide">minimum 3 recordings required</p>
-
-            {/* Documents Section */}
-            <div className="pt-12 border-t border-gray-800/50">
-                <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-900/10 rounded-xl flex items-center justify-center text-red-600">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    Documents Verification
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Government ID <span className="text-red-500">*</span></label>
-                        <div className="relative group bg-[#0B0E14] border-2 border-dashed border-gray-800 rounded-2xl p-8 transition-all hover:border-red-600/30 text-center cursor-pointer overflow-hidden">
-                            <input type="file" onChange={(e) => handleFileChange('id', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-gray-500 group-hover:text-red-500 transition-colors">
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                </div>
-                                <div>
-                                    <p className="text-white font-bold">{documents.id ? documents.id.name : 'Upload ID Document'}</p>
-                                    <p className="text-gray-500 text-xs mt-1">PDF, JPG, PNG up to 5MB</p>
-                                </div>
-                            </div>
+                    {/* Optional: Endorsements */}
+                    <div className="relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden" style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <input type="file" onChange={(e) => handleFileChange('endorsements', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                        <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-gray-500" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
                         </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Endorsements (Optional)</label>
-                        <div className="relative group bg-[#0B0E14] border-2 border-dashed border-gray-800 rounded-2xl p-8 transition-all hover:border-red-600/30 text-center cursor-pointer overflow-hidden">
-                            <input type="file" onChange={(e) => handleFileChange('endorsements', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-gray-500 group-hover:text-red-500 transition-colors">
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                </div>
-                                <div>
-                                    <p className="text-white font-bold">{documents.endorsements ? documents.endorsements.name : 'Upload Letters'}</p>
-                                    <p className="text-gray-500 text-xs mt-1">Proof of community standing</p>
-                                </div>
-                            </div>
+                        <div>
+                            <p className="text-white font-bold text-[9px]">{documents.endorsements?.name ? documents.endorsements.name.slice(0,14) + '…' : 'Endorsements'}</p>
+                            <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Optional</p>
                         </div>
                     </div>
                 </div>
