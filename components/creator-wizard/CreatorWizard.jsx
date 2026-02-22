@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { z } from 'zod';
 import ProgressBar from './ProgressBar';
 import Step1Category from './Step1Category';
 import Step2Identity from './Step2Identity';
@@ -30,7 +29,7 @@ const CreatorWizard = () => {
         documents: { id: null, endorsements: null }
     });
     const [isLoaded, setIsLoaded] = useState(false);
-    const [error, setError] = useState("");
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -60,70 +59,44 @@ const CreatorWizard = () => {
             ...prev,
             [key]: { ...prev[key], ...data }
         }));
-        setError(""); // Clear error when user changes anything
+        // Clear errors for changed fields
+        const changedFields = Object.keys(data);
+        setErrors(prev => {
+            const next = { ...prev };
+            changedFields.forEach(f => delete next[f]);
+            return next;
+        });
     };
 
     const handleStep1Update = (data) => {
         setFormData(prev => ({ ...prev, ...data }));
-        setError(""); // Clear error
+        if (data.category) setErrors(prev => { const n = { ...prev }; delete n.category; return n; });
     };
 
     const validateStep = (step) => {
-        setError("");
+        const newErrors = {};
 
         if (step === 1) {
-            if (!formData.category) {
-                setError("Please fill in the field: Category is required");
-                return false;
-            }
+            if (!formData.category) newErrors.category = "Please select a creator category to continue.";
         } else if (step === 2) {
-            const result = z.object({
-                legalName: z.string().min(1, "Please fill in the field: Legal Name"),
-                creatorName: z.string().min(1, "Please fill in the field: Creator Name"),
-                ethnicGroup: z.string().min(1, "Please fill in the field: Ethnic Group"),
-                phone: z.string().min(1, "Please fill in the field: Phone Number"),
-                email: z.string().email("Please enter a valid email address")
-            }).safeParse(formData.identity || {});
-
-            if (!result.success) {
-                const message = result.error.issues?.[0]?.message || result.error.errors?.[0]?.message || "Please fill in all required fields";
-                setError(message);
-                return false;
-            }
+            const id = formData.identity || {};
+            if (!id.legalName) newErrors.legalName = "Legal Name is required.";
+            if (!id.creatorName) newErrors.creatorName = "Creator Name is required.";
+            if (!id.ethnicGroup) newErrors.ethnicGroup = "Ethnic Group / Community is required.";
+            if (!id.phone) newErrors.phone = "Phone number is required.";
+            if (!id.email) newErrors.email = "Email is required.";
+            else if (!/\S+@\S+\.\S+/.test(id.email)) newErrors.email = "Please enter a valid email address.";
         } else if (step === 3) {
-            const result = z.object({
-                languages: z.string().min(1, "Please fill in the field: Languages"),
-                experienceTime: z.string().min(1, "Please fill in the field: Experience Time"),
-                bio: z.string().min(10, "Please fill in the field: Bio (min. 10 characters)")
-            }).safeParse(formData.professional || {});
-
-            if (!result.success) {
-                const message = result.error.issues?.[0]?.message || result.error.errors?.[0]?.message || "Please fill in all required fields";
-                setError(message);
-                return false;
-            }
+            const pro = formData.professional || {};
+            if (!pro.languages) newErrors.languages = "Languages is required.";
+            if (!pro.experienceTime) newErrors.experienceTime = "Experience is required.";
+            if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Bio must be at least 10 characters.";
         } else if (step === 4) {
-            const recordings = formData.portfolio.recordings || [];
-            if (recordings.length < 3) {
-                setError("Please provide information for at least 3 sample recordings");
-                return false;
-            }
-
-            for (let i = 0; i < 3; i++) {
-                const rec = recordings[i] || {};
-                if (!rec.title || !rec.description || !rec.significance) {
-                    setError(`Please fill in the field: Sample Recording ${i + 1} is missing information`);
-                    return false;
-                }
-            }
-
-            if (!formData.documents.id) {
-                setError("Please fill in the field: Government ID is required");
-                return false;
-            }
+            if (!formData.documents?.id) newErrors.id = "Please upload your Government ID to continue.";
         }
 
-        return true;
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleNext = () => {
@@ -134,6 +107,7 @@ const CreatorWizard = () => {
 
     const handleBack = () => {
         setCurrentStep(prev => Math.max(prev - 1, 1));
+        setErrors({});
     };
 
     const handleSubmit = async () => {
@@ -145,143 +119,167 @@ const CreatorWizard = () => {
     if (!isLoaded) return null;
 
     return (
-        <div className="min-h-screen bg-[#0B0E14] text-white py-12 px-4 sm:px-6 lg:px-8 font-inter font-inter">
-            {/* Header (Same for all steps) */}
-            <header className="text-center mb-12">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-red-900/10 border border-red-700/30 text-red-500 text-xs font-black uppercase tracking-widest"
-                >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
-                    Exclusive Creator Program
-                </motion.div>
-                <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">
-                    Share Your <span className="text-red-600">Cultural Story</span>
-                </h1>
-                <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-                    Join SawaFlix as a verified creator and preserve your cultural heritage for future generations while earning from your authentic content.
-                </p>
-            </header>
+        <div className="h-screen w-full flex flex-col overflow-hidden" style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#0B0E14' }}>
+            {/* Top Navigation */}
+            <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', backgroundColor: '#0B0E14' }} className="h-14 px-8 flex items-center justify-between flex-shrink-0 z-30">
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                        </svg>
+                    </div>
+                    <span className="text-lg font-black text-white tracking-tight">SawaFlix</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <button className="text-gray-400 hover:text-white font-semibold transition-colors text-sm">Login</button>
+                    <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full font-bold text-sm transition-colors">Get Started</button>
+                </div>
+            </nav>
 
-            <ProgressBar currentStep={currentStep} steps={steps} />
+            <div className="flex-1 flex overflow-hidden">
+                {/* ===== LEFT PANEL ===== */}
+                <div className="hidden lg:block w-[40%] flex-shrink-0 relative overflow-hidden">
+                    <img
+                        src="/images/image.png"
+                        alt="Creator Background"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.3) 100%)' }} />
+                    <div className="absolute inset-0" style={{ background: 'rgba(180,0,0,0.15)' }} />
 
-            <div className="mt-20 max-w-4xl mx-auto transition-all duration-500">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentStep}
-                        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.98, y: -10 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        className="bg-[#151C25] rounded-[3rem] border border-gray-800/50 shadow-2xl p-8 md:p-14 relative overflow-hidden"
-                    >
-                        {/* Glowing Accent */}
-                        <div className="absolute -top-32 -right-32 w-80 h-80 bg-red-600/5 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute inset-0 flex flex-col justify-start p-10 pt-12">
+                        <div className="space-y-4">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest" style={{ backgroundColor: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)', color: '#f87171' }}>
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg>
+                                Exclusive Creator Program
+                            </div>
+                            <h1 className="text-5xl font-black text-white leading-tight">
+                                Share Your <br />
+                                <span className="text-red-500">Cultural Story</span>
+                            </h1>
+                            <p className="text-gray-200 text-sm font-semibold leading-relaxed">
+                                Join SawaFlix as a verified creator and preserve your cultural heritage for future generations while earning from your authentic content.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-                        {currentStep === 1 && (
-                            <Step1Category
-                                data={formData}
-                                updateData={handleStep1Update}
-                            />
-                        )}
-                        {currentStep === 2 && (
-                            <Step2Identity
-                                data={formData.identity}
-                                updateData={(d) => updateFormData('identity', d)}
-                            />
-                        )}
-                        {currentStep === 3 && (
-                            <Step3Professional
-                                data={formData.professional}
-                                updateData={(d) => updateFormData('professional', d)}
-                            />
-                        )}
-                        {currentStep === 4 && (
-                            <Step4Portfolio
-                                data={formData.portfolio}
-                                documents={formData.documents}
-                                updatePortfolio={(d) => updateFormData('portfolio', d)}
-                                updateDocuments={(d) => updateFormData('documents', d)}
-                            />
-                        )}
-                        {currentStep === 5 && (
-                            <Step5Summary
-                                formData={formData}
-                                onSubmit={handleSubmit}
-                            />
-                        )}
+                {/* ===== RIGHT PANEL ===== */}
+                <div className="flex-1" style={{ backgroundColor: '#0B0E14' }}>
+                    <div className="h-full overflow-y-auto px-6 lg:px-10 py-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div className="max-w-lg mx-auto">
 
-                        {/* Navigation */}
-                        <div className="flex flex-col mt-12 pt-10 border-t border-gray-800/50">
-                            {error && (
-                                <div className="mb-8 p-6 bg-red-500 border border-red-600 rounded-[2rem] flex items-center gap-4 text-white text-sm font-black shadow-2xl animate-pulse">
-                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 text-red-600">
-                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
+                            {/* Progress Bar */}
+                            <div className="flex-shrink-0 mb-8">
+                                <ProgressBar currentStep={currentStep} steps={steps} />
+                            </div>
+
+                            {/* Step Content */}
+                            <div className="flex-1">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentStep}
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -12 }}
+                                        transition={{ duration: 0.25 }}
+                                    >
+                                        {currentStep === 1 && (
+                                            <Step1Category
+                                                data={formData}
+                                                updateData={handleStep1Update}
+                                                errors={errors}
+                                            />
+                                        )}
+                                        {currentStep === 2 && (
+                                            <Step2Identity
+                                                data={formData.identity}
+                                                updateData={(d) => updateFormData('identity', d)}
+                                                errors={errors}
+                                            />
+                                        )}
+                                        {currentStep === 3 && (
+                                            <Step3Professional
+                                                data={formData.professional}
+                                                updateData={(d) => updateFormData('professional', d)}
+                                                errors={errors}
+                                            />
+                                        )}
+                                        {currentStep === 4 && (
+                                            <Step4Portfolio
+                                                data={formData.portfolio}
+                                                documents={formData.documents}
+                                                updatePortfolio={(d) => updateFormData('portfolio', d)}
+                                                updateDocuments={(d) => updateFormData('documents', d)}
+                                                errors={errors}
+                                            />
+                                        )}
+                                        {currentStep === 5 && (
+                                            <Step5Summary
+                                                formData={formData}
+                                                onSubmit={handleSubmit}
+                                            />
+                                        )}
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Navigation Footer */}
+                            <div className="flex-shrink-0 mt-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    {currentStep > 1 ? (
+                                        <button
+                                            onClick={handleBack}
+                                            className="text-gray-500 hover:text-gray-300 font-semibold text-sm transition-colors uppercase tracking-widest"
+                                        >
+                                            ← Prev
+                                        </button>
+                                    ) : <div />}
+
+                                    {currentStep < 5 && (
+                                        <button
+                                            onClick={handleNext}
+                                            className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105"
+                                            style={{ backgroundColor: '#fff', color: '#DC2626' }}
+                                        >
+                                            Continue
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Bottom info cards */}
+                                <div className="grid grid-cols-2 gap-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                    <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(220,38,38,0.1)' }}>
+                                            <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm5.11 3.2c-1.3-.4-2.8-.6-4.1-.6-1.3 0-2.8.2-4.1.6C3.48 14.6 2 16.1 2 18v2h18v-2c0-1.9-1.48-3.4-3.11-4z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-bold text-xs">1k+ Creators</p>
+                                            <p className="text-gray-500 text-[10px] leading-tight mt-0.5">Join our growing community of verified cultural creators</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="uppercase tracking-widest text-[10px] mb-1 opacity-80">Action Required</p>
-                                        <p className="text-lg">{error}</p>
+                                    <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(251,146,60,0.1)' }}>
+                                            <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-bold text-xs">Premium Quality</p>
+                                            <p className="text-gray-500 text-[10px] leading-tight mt-0.5">Curated platform ensuring authentic cultural content</p>
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-
-                            <div className="flex justify-between items-center">
-                                <button
-                                    onClick={handleBack}
-                                    disabled={currentStep === 1}
-                                    className={`px-8 py-3 rounded-2xl font-black transition-all uppercase tracking-widest text-sm ${currentStep === 1
-                                        ? 'opacity-0 pointer-events-none'
-                                        : 'bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-400'
-                                        }`}
-                                >
-                                    Back
-                                </button>
-
-                                {currentStep < 5 && (
-                                    <button
-                                        onClick={handleNext}
-                                        className="flex items-center gap-3 px-10 py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-xl shadow-red-900/20 uppercase tracking-widest text-sm"
-                                    >
-                                        Continue
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                        </svg>
-                                    </button>
-                                )}
                             </div>
                         </div>
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-
-            {/* Footer Stats Cards (Desktop Only) */}
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                <div className="bg-gray-900/30 p-8 rounded-[2rem] border border-gray-800/50 flex items-center gap-6 group hover:bg-gray-900/50 transition-all">
-                    <div className="w-16 h-16 bg-red-900/10 rounded-2xl flex items-center justify-center text-red-600 group-hover:scale-110 transition-transform">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z" /></svg>
-                    </div>
-                    <div>
-                        <h4 className="font-black text-2xl mb-1 tracking-tight">1K+ Creators</h4>
-                        <p className="text-gray-500 font-medium leading-tight">Join our growing community of verified cultural creators</p>
-                    </div>
-                </div>
-                <div className="bg-gray-900/30 p-8 rounded-[2rem] border border-gray-800/50 flex items-center gap-6 group hover:bg-gray-900/50 transition-all">
-                    <div className="w-16 h-16 bg-yellow-900/10 rounded-2xl flex items-center justify-center text-yellow-600 group-hover:scale-110 transition-transform">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L9.27 8.64 1 9.33l6 5.21-1.41 8.19L12 18.25l7.41 4.48L18 14.54l6-5.21-8.27-.69L12 1z" /></svg>
-                    </div>
-                    <div>
-                        <h4 className="font-black text-2xl mb-1 tracking-tight">Premium Quality</h4>
-                        <p className="text-gray-500 font-medium leading-tight">Curated platform ensuring authentic cultural content</p>
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-            .font-inter { font-family: 'Inter', sans-serif; }
-        `}</style>
         </div>
     );
 };
