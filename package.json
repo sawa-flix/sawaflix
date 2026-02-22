@@ -30,15 +30,15 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^0.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.11",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.19",
     "daisyui": "^5.0.51",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.5",
+    "eslint": "^10.0.1",
+    "eslint-config-next": "^0.2.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
