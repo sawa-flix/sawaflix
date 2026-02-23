@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '12mb', // Set this higher than your 10MB check
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -26,5 +31,7 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 }
+export default nextConfig;
 
 module.exports = nextConfig
+
