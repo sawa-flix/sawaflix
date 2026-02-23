@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signInWithPassword, signInWithGoogle, resetPassword, checkAuth } from '../actions';
+import { signInWithPassword, resetPassword, checkAuth } from '../actions';
 
 const SubmitButton = ({ children, isLoading }) => {
   return (

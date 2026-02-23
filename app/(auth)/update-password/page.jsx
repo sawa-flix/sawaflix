@@ -26,25 +26,25 @@ function UpdatePasswordContent() {
         const token = searchParams.get('token');
         const type = searchParams.get('type');
         const fromCallback = searchParams.get('from_callback');
-        
-        console.log('🔵 UpdatePassword - URL parameters:', { 
+
+        console.log('🔵 UpdatePassword - URL parameters:', {
           code: code ? `present (${code.substring(0, 8)}...)` : 'missing',
           token: token ? 'present' : 'missing',
           type,
-          fromCallback 
+          fromCallback
         });
 
         // Check if we have authentication parameters
         if (!code && !token) {
           // Check if user already has a session (might have come from callback)
           const { data: { session } } = await supabase.auth.getSession();
-          
+
           if (session) {
             console.log('🟢 User already has a session, ready for password update');
             setIsVerifying(false);
             return;
           }
-          
+
           setError('❌ Invalid reset link. Please use the link from your password reset email.');
           setIsVerifying(false);
           return;
@@ -53,13 +53,13 @@ function UpdatePasswordContent() {
         // If we have a code, try to exchange it for a session
         if (code) {
           console.log('🟡 Attempting to exchange code for session...');
-          
+
           try {
             const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-            
+
             if (exchangeError) {
               console.error('🔴 Code exchange error:', exchangeError.message);
-              
+
               // Don't block the user - they can still try to update password
               console.log('⚠️ Proceeding without successful session exchange...');
             } else {
@@ -70,9 +70,9 @@ function UpdatePasswordContent() {
             // Continue anyway - some flows don't need session exchange
           }
         }
-        
+
         setIsVerifying(false);
-        
+
       } catch (err) {
         console.error('🔴 Verification error:', err);
         setError('An error occurred during verification.');
@@ -85,7 +85,7 @@ function UpdatePasswordContent() {
 
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (password !== confirmPassword) {
       setError('❌ Passwords do not match.');
@@ -100,62 +100,62 @@ function UpdatePasswordContent() {
     setIsLoading(true);
     setError('');
     setMessage('');
-    
+
     try {
       const supabase = createClient();
       const code = searchParams.get('code');
-      
+
       console.log('🟡 Starting password update process...');
-      
+
       // Update the password directly
       console.log('🟡 Calling supabase.auth.updateUser()...');
-      const { data, error: updateError } = await supabase.auth.updateUser({ 
-        password: password 
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        password: password
       });
 
       if (updateError) {
         console.error('🔴 Password update error:', updateError);
-        
+
         // Try alternative: If we have a code, try exchange then update
         if (code && updateError.message.includes('Auth session missing')) {
           console.log('🟡 Attempting code exchange first, then password update...');
-          
+
           // Try to exchange code first
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          
+
           if (exchangeError) {
             console.error('🔴 Exchange after failed update:', exchangeError);
             throw new Error('Reset link is invalid or expired. Please request a new one.');
           }
-          
+
           // Try password update again after exchange
-          const { error: retryError } = await supabase.auth.updateUser({ 
-            password: password 
+          const { error: retryError } = await supabase.auth.updateUser({
+            password: password
           });
-          
+
           if (retryError) {
             throw retryError;
           }
-          
+
           // Success on retry
           console.log('🟢 Password updated successfully after retry');
         } else {
           throw updateError;
         }
       }
-      
+
       console.log('✅ Password updated successfully!');
       setMessage('✅ Password updated successfully! Redirecting to login...');
-      
+
       // Sign out and redirect after successful update
       setTimeout(async () => {
         await supabase.auth.signOut();
         router.push('/login?message=password_updated_success');
       }, 2000);
-      
+
     } catch (err) {
       console.error('🔴 Password update process error:', err);
-      
+
       // User-friendly error messages
       if (err.message.includes('Auth session missing')) {
         setError('❌ Session expired. Please request a new password reset link.');
@@ -189,13 +189,13 @@ function UpdatePasswordContent() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="w-full max-w-md p-8 space-y-6 bg-black/40 backdrop-blur-md rounded-3xl text-white border border-gray-800">
         <h1 className="text-3xl font-bold text-center">Set New Password</h1>
-        
+
         {message && (
           <div className="bg-green-900/30 border border-green-700 rounded-xl p-4">
             <p className="text-green-500 text-center font-medium">{message}</p>
           </div>
         )}
-        
+
         {error && (
           <div className="bg-red-900/30 border border-red-700 rounded-xl p-4">
             <p className="text-red-500 text-center font-medium">{error}</p>
@@ -211,14 +211,14 @@ function UpdatePasswordContent() {
             ) : null}
           </div>
         )}
-        
+
         {/* Show form if no critical error */}
         {(!error || (!error.includes('expired') && !error.includes('invalid'))) && (
           <>
             <p className="text-gray-400 text-center text-sm">
               Enter your new password below. It must be at least 6 characters long.
             </p>
-            
+
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
               <div className="relative">
                 <input
@@ -240,7 +240,7 @@ function UpdatePasswordContent() {
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
-              
+
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -261,7 +261,7 @@ function UpdatePasswordContent() {
                   {showConfirmPassword ? "🙈" : "👁️"}
                 </button>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isLoading}
@@ -280,7 +280,7 @@ function UpdatePasswordContent() {
             </form>
           </>
         )}
-        
+
         {/* Always show back to login link */}
         <div className="text-center pt-4 border-t border-gray-800">
           <button

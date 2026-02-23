@@ -9,61 +9,100 @@ export async function middleware(request) {
     await supabase.auth.getSession()
 
     const { data: { user } } = await supabase.auth.getUser()
-
     const { pathname } = request.nextUrl
 
-    const protectedRoutes = ['/dashboard', '/profile']
-    const authRoutes = ['/login', '/sign-up', '/sign-in', '/']
-    const verifyRoute = '/verify-otp' //this route is still to be created, but will be the page where users enter their OTP to verify their account
-    
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-    const isAuthRoute = authRoutes.includes(pathname)
-    const isVerifyPage = pathname.startsWith(verifyRoute)
+    const publicRoutes = ['/', '/login', '/sign-up', '/sign-in']
+    const isPublicRoute = publicRoutes.includes(pathname)
 
-//when the user is not logged in, we want to redirect them to the login page if they try to access a protected route or the verify page. We also want to allow them to access the auth routes (login, sign-up) without being redirected.
+    // Unauthenticated users
     if (!user) {
-      if (isProtectedRoute || isVerifyPage) {
-        const redirectUrl = new URL('/login', request.url)
-        redirectUrl.searchParams.set('redirectedFrom', pathname)
-        return NextResponse.redirect(redirectUrl)
-      }
+      // Allow public routes and static assets
+      if (isPublicRoute) return response
+
+      // Everything else requires login
+      const redirectUrl = new URL('/login', request.url)
+      redirectUrl.searchParams.set('redirectedFrom', pathname)
+      return NextResponse.redirect(redirectUrl)
     }
 
-//when the user is looged in, we want to check if they are verified. If they are not verified, we want to redirect them to the verify page if they try to access a protected route or the auth routes. We also want to allow them to access the verify page without being redirected. If they are verified, we want to redirect them to the dashboard if they try to access the auth routes or the verify page.
-    if (user) {
-      let isVerified = false
-      
-      const { data: profile } = await supabase
-        .from('users')
-        .select('is_verified')
-        .eq('id', user.id)
-        .single()
-      
-      if (profile && profile.is_verified) {
-        isVerified = true
-      }
-//users that are not verified
-      if (!isVerified) {
-        if (isProtectedRoute) {
-          return NextResponse.redirect(new URL('/verify-otp', request.url))
-        }
+    // Authenticated users — fetch profile 
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('id, role, verification_status, is_verified')
+      .eq('id', user.id)
+      .single()
 
-        if (isAuthRoute) {
-          return NextResponse.redirect(new URL('/verify-otp', request.url))
-        }
-        // If they are already on /verify-otp, let them pass
-        if (isVerifyPage) {
-          return response
-        }
+    if (profileError || !profile) {
+      console.error('Middleware: profile fetch error:', profileError)
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // ── Creator routes (/creator/*) 
+    if (pathname.startsWith('/creator')) {
+      // Non-creators are not allowed here at all
+      if (profile.role !== 'creator') {
+        return NextResponse.redirect(new URL('/', request.url))
       }
 
-      //Verified Users
-      if (isVerified) {
-        if (isVerifyPage) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
+      // Creators at any verification state can access their verification portal
+      if (pathname === '/creator/verify') {
+        return response
+      }
+
+      // Any other /creator/* page requires approved status
+      if (profile.verification_status !== 'approved') {
+        return NextResponse.redirect(new URL('/creator/verify', request.url))
+      }
+
+      return response
+    }
+
+    // Admin routes (/admin/*)
+    if (pathname.startsWith('/admin')) {
+      if (profile.role !== 'admin') {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+      return response
+    }
+
+    //Dashboard / protected routes 
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
+      if (!profile.is_verified || profile.verification_status !== 'approved') {
+        return NextResponse.redirect(new URL('/verify-otp', request.url))
+      }
+      return response
+    }
+
+    // OTP verify page
+    if (pathname.startsWith('/verify-otp')) {
+      // Already verified users don't need to be here
+      if (profile.is_verified && profile.verification_status === 'approved') {
+        if (profile.role === 'admin') {
+          return NextResponse.redirect(new URL('/admin', request.url))
         }
-        if (isAuthRoute) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
+        if (profile.role === 'creator') {
+          return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+        }
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      return response
+    }
+
+    //Auth pages (login / sign-up) — redirect already-logged-in users
+    if (isPublicRoute && user) {
+      if (profile.role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url))
+      }
+      if (profile.role === 'creator' && profile.verification_status === 'approved') {
+        return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+      }
+      if (profile.is_verified && profile.verification_status === 'approved') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      // Creator/viewer not yet verified → send to OTP page
+      if (['/', '/login', '/sign-up', '/sign-in'].includes(pathname)) {
+        if (!profile.is_verified) {
+          return NextResponse.redirect(new URL('/verify-otp', request.url))
         }
       }
     }
@@ -71,13 +110,13 @@ export async function middleware(request) {
     return response
 
   } catch (error) {
-    console.error('Middleware auth error:', error)
+    console.error('Middleware error:', error)
     return response
   }
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
