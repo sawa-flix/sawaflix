@@ -8,7 +8,7 @@ export const metadata = {
 export default function CreatorVerifyPage() {
     return (
         <main className="min-h-screen bg-[#0B0E14]">
-            <CreatsorWizard />
+            <CreatorWizard />
         </main>
     );
 }

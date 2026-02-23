@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 import React, { useState, useEffect, useRef } from 'react';
 
 import Image from 'next/image';
@@ -40,12 +40,12 @@ const App = () => {
         setTimeout(() => {
             setIsLoading(false); // Set loading state to false
             setMessage("Successfully signed up as an artist!"); // Set success message
-            
+
             // Hide the message after 3 seconds
             setTimeout(() => {
                 setMessage('');
             }, 3000);
-            
+
             // In a real application, you would handle successful sign-up here, 
             // e.g., redirecting the user or clearing the form.
         }, 2000); // Simulate a 2-second network request
@@ -74,9 +74,9 @@ const App = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
     };
-    
-    
-    
+
+
+
 
     return (
         // The main container is now more responsive with fluid padding (p-4) on small screens,
@@ -84,7 +84,7 @@ const App = () => {
         <div className="flex items-center justify-center min-h-screen p-4 sm:p-8 md:p-10" style={backgroundStyle}>
             {/* Background image overlay */}
             <div className="absolute inset-0 bg-black opacity-70"></div>
-            
+
             {/* Sign-up Form Container */}
             <div className="relative z-10 w-full max-w-lg p-8 bg-gray-900 bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-lg">
 
@@ -110,6 +110,12 @@ const App = () => {
                     <div>
                         <label htmlFor="email-address" className="sr-only">Email address</label>
                         <input id="email-address" name="email" type="email" autoComplete="email" required className="relative block w-full appearance-none rounded-md border border-gray-700 px-3 py-4 text-gray-100 placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-gray-800" placeholder="Email address" />
+                    </div>
+
+                    {/* Phone Number Input */}
+                    <div>
+                        <label htmlFor="phone" className="sr-only">Phone Number</label>
+                        <input id="phone" name="phone" type="tel" required className="relative block w-full appearance-none rounded-md border border-gray-700 px-3 py-4 text-gray-100 placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm bg-gray-800" placeholder="Phone Number" />
                     </div>
 
                     {/* Password Input with Toggle */}

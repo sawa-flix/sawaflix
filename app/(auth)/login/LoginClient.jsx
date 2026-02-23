@@ -291,6 +291,15 @@ export default function LoginPage() {
                       autoComplete="email"
                     />
                   </div>
+                  <div>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Phone Number"
+                      className="w-full px-5 py-3 sm:py-4 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
+                      disabled={isLoading || isGoogleLoading}
+                    />
+                  </div>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
