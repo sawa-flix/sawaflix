@@ -35,7 +35,7 @@ const Step4Documents = ({ data, errors, updateData }) => {
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-white font-bold">{data.idDocument ? data.idDocument.name : 'Upload Identity Document'}</p>
+                                <p className="text-white font-bold">{data.idDocument?.name || 'Upload Identity Document'}</p>
                                 <p className="text-gray-500 text-sm mt-1">PDF, JPG or PNG (max 5MB)</p>
                             </div>
                             {data.idDocument && (
@@ -68,7 +68,7 @@ const Step4Documents = ({ data, errors, updateData }) => {
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-white font-bold">{data.endorsements ? data.endorsements.name : 'Upload Endorsements'}</p>
+                                <p className="text-white font-bold">{data.endorsements?.name || 'Upload Endorsements'}</p>
                                 <p className="text-gray-500 text-sm mt-1">Submit letters of recommendation or proof of community standing</p>
                             </div>
                         </div>
