@@ -13,6 +13,8 @@
     "@react-oauth/google": "^0.12.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.55.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.2",
     "browser-image-compression": "^2.0.2",
     "file-type": "^21.3.0",
     "framer-motion": "^12.33.0",
