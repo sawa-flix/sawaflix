@@ -115,6 +115,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
 
                 {/* Footer hint */}
                 <p className="text-center text-gray-600 text-[10px] font-medium">minimum 3 recordings required</p>
+                <FieldError message={errors.recordings} />
             </div>
 
             {/* Government ID – compact single row */}
