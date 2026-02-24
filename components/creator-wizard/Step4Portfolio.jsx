@@ -59,7 +59,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                         </svg>
-                                        {rec.file ? rec.file.name.slice(0, 8) + '…' : 'Upload file'}
+                                        {rec.file?.name ? rec.file.name.slice(0, 8) + '…' : 'Upload file'}
                                         <input
                                             type="file"
                                             className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
@@ -115,6 +115,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
 
                 {/* Footer hint */}
                 <p className="text-center text-gray-600 text-[10px] font-medium">minimum 3 recordings required</p>
+                <FieldError message={errors.recordings} />
             </div>
 
             {/* Government ID – compact single row */}
@@ -137,7 +138,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                                 </svg>
                             </div>
                             <div>
-                                <p className="text-white font-bold text-[9px]">{documents.id?.name ? documents.id.name.slice(0,14) + '…' : 'Government ID'}</p>
+                                <p className="text-white font-bold text-[9px]">{documents.id?.name ? documents.id.name.slice(0, 14) + '…' : 'Government ID'}</p>
                                 <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Required</p>
                             </div>
                         </div>
@@ -153,7 +154,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                             </svg>
                         </div>
                         <div>
-                            <p className="text-white font-bold text-[9px]">{documents.endorsements?.name ? documents.endorsements.name.slice(0,14) + '…' : 'Endorsements'}</p>
+                            <p className="text-white font-bold text-[9px]">{documents.endorsements?.name ? documents.endorsements.name.slice(0, 14) + '…' : 'Endorsements'}</p>
                             <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Optional</p>
                         </div>
                     </div>

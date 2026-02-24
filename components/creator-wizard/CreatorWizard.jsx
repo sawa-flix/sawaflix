@@ -93,6 +93,15 @@ const CreatorWizard = () => {
             if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Bio must be at least 10 characters.";
         } else if (step === 4) {
             if (!formData.documents?.id) newErrors.id = "Please upload your Government ID to continue.";
+            
+            const portfolio = formData.portfolio || {};
+            const recordings = portfolio.recordings || [];
+            
+            // Check if we have at least 3 recordings
+            const validRecordings = recordings.filter(r => r.file && r.title && r.description);
+            if (validRecordings.length < 3) {
+                newErrors.recordings = "Please provide at least 3 sample recordings with titles and descriptions.";
+            }
         }
 
         setErrors(newErrors);
