@@ -68,13 +68,13 @@ export async function middleware(request) {
     //Dashboard / protected routes 
     if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
       if (!profile.is_verified || profile.verification_status !== 'approved') {
-        return NextResponse.redirect(new URL('/verify-otp', request.url))
+        return NextResponse.redirect(new URL('/login', request.url))
       }
       return response
     }
 
     // OTP verify page
-    if (pathname.startsWith('/verify-otp')) {
+    if (pathname.startsWith('/login')) {
       // Already verified users don't need to be here
       if (profile.is_verified && profile.verification_status === 'approved') {
         if (profile.role === 'admin') {
@@ -102,7 +102,7 @@ export async function middleware(request) {
       // Creator/viewer not yet verified → send to OTP page
       if (['/', '/login', '/sign-up', '/sign-in'].includes(pathname)) {
         if (!profile.is_verified) {
-          return NextResponse.redirect(new URL('/verify-otp', request.url))
+          return NextResponse.redirect(new URL('/login', request.url))
         }
       }
     }
