@@ -139,10 +139,6 @@ const CreatorWizard = () => {
                     </div>
                     <span className="text-lg font-black text-white tracking-tight">SawaFlix</span>
                 </div>
-                <div className="flex items-center gap-4">
-                    <button className="text-gray-400 hover:text-white font-semibold transition-colors text-sm">Login</button>
-                    <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full font-bold text-sm transition-colors">Get Started</button>
-                </div>
             </nav>
 
             <div className="flex-1 flex overflow-hidden">
