@@ -13,7 +13,6 @@ import FestivalBanner from "@/components/FestivalBanner";
 import Footer from "@/components/Footer";
 
 export default function Home() {
-<<<<<<< HEAD
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
 
@@ -38,8 +37,6 @@ export default function Home() {
             </div>
         );
     }
-=======
->>>>>>> a35d02ef303ba81291424c7ae8d4a6ffdde25a86
 
     return (
         <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">
