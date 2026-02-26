@@ -14,7 +14,7 @@ export async function middleware(request) {
 
     const protectedRoutes = ['/dashboard', '/profile']
     const authRoutes = ['/login', '/sign-up', '/sign-in', '/']
-    const verifyRoute = '/verify-otp' //this route is still to be created, but will be the page where users enter their OTP to verify their account
+    const verifyRoute = '/verify-otp' 
     
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
     const isAuthRoute = authRoutes.includes(pathname)
