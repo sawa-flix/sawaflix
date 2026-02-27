@@ -12,7 +12,9 @@ export async function middleware(request) {
     const { pathname } = request.nextUrl
 
     const publicRoutes = ['/', '/login', '/sign-up', '/sign-in']
+    const authRoutes = ['/login', '/sign-up', '/sign-in']
     const isPublicRoute = publicRoutes.includes(pathname)
+    const isAuthRoute = authRoutes.includes(pathname)
 
     // Unauthenticated users
     if (!user) {
@@ -88,8 +90,9 @@ export async function middleware(request) {
       return response
     }
 
-    //Auth pages (login / sign-up) — redirect already-logged-in users
-    if (isPublicRoute && user) {
+    // Auth pages (login / sign-up) — redirect already-logged-in users
+    // We allow root (/) to be accessible even if logged in
+    if (isAuthRoute && user) {
       if (profile.role === 'admin') {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
@@ -100,10 +103,8 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
       // Creator/viewer not yet verified → send to OTP page
-      if (['/', '/login', '/sign-up', '/sign-in'].includes(pathname)) {
-        if (!profile.is_verified) {
-          return NextResponse.redirect(new URL('/verify-otp', request.url))
-        }
+      if (!profile.is_verified) {
+        return NextResponse.redirect(new URL('/verify-otp', request.url))
       }
     }
 
