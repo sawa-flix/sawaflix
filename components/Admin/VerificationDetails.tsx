@@ -87,7 +87,7 @@ export default function VerificationDetails({ id }: { id: string }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/verifications/${id}`);
+                const res = await fetch(`/api/admin/creators/${id}`);
                 if (!res.ok) throw new Error('Failed to fetch verification details');
                 const result = await res.json();
                 setData(result.data);
@@ -111,17 +111,21 @@ export default function VerificationDetails({ id }: { id: string }) {
 
         setActionLoading(true);
         try {
-            // Map internal modal type to the correct endpoint segment
-            const endpointMap = {
-                approve: 'approve',
-                reject: 'reject',
-                info: 'request-info',
+            // Map internal modal type to backend status strings
+            const statusMap: Record<string, string> = {
+                approve: 'approved',
+                reject: 'rejected',
+                info: 'info_requested',
             };
 
-            const res = await fetch(`/api/admin/verifications/${id}/${endpointMap[type]}`, {
-                method: 'POST',
+            const res = await fetch(`/api/admin/verify`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feedback: feedback.trim() }),
+                body: JSON.stringify({
+                    userId: id,
+                    status: statusMap[type],
+                    feedback: feedback.trim(),
+                }),
             });
 
             if (!res.ok) {
@@ -490,8 +494,8 @@ export default function VerificationDetails({ id }: { id: string }) {
                                     onClick={() => handleAction(actionModal)}
                                     disabled={actionLoading}
                                     className={`px-6 py-2 rounded-lg text-white font-medium flex items-center gap-2 transition-colors ${actionModal === 'approve' ? 'bg-green-600 hover:bg-green-700' :
-                                            actionModal === 'reject' ? 'bg-red-600 hover:bg-red-700' :
-                                                'bg-blue-600 hover:bg-blue-700'
+                                        actionModal === 'reject' ? 'bg-red-600 hover:bg-red-700' :
+                                            'bg-blue-600 hover:bg-blue-700'
                                         } disabled:opacity-60 disabled:cursor-not-allowed`}
                                 >
                                     {actionLoading && <Loader2 className="animate-spin" size={16} />}
