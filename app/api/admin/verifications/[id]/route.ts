@@ -6,7 +6,7 @@ function transformRow(row: Record<string, unknown>) {
   const fd = (row.form_data as Record<string, unknown>) ?? {};
 
   return {
-    id: row.id,
+    id: row.creator_id,
     status: row.status,
     identity: {
       fullName: row.full_name ?? fd.full_name ?? '',
@@ -55,9 +55,9 @@ export async function GET(
     const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('creator_verifications')
+      .from('verification_submissions')
       .select('*')
-      .eq('id', id)
+      .eq('creator_id', id)
       .single();
 
     if (error || !data) {

@@ -26,16 +26,16 @@ export async function POST(
         };
 
         const { error } = await supabase
-            .from('creator_verifications')
+            .from('verification_submissions')
             .update(updatePayload)
-            .eq('id', id);
+            .eq('creator_id', id);
 
         if (error) {
             if (error.message?.includes('column')) {
                 const { error: retryError } = await supabase
-                    .from('creator_verifications')
+                    .from('verification_submissions')
                     .update({ status: 'rejected' })
-                    .eq('id', id);
+                    .eq('creator_id', id);
                 if (retryError) {
                     console.error('Reject retry error:', retryError);
                     return NextResponse.json({ message: retryError.message }, { status: 500 });

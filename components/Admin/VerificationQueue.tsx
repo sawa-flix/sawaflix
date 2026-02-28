@@ -104,23 +104,36 @@ export default function VerificationQueue() {
                 {
                     event: '*', // INSERT, UPDATE, DELETE
                     schema: 'public',
-                    table: 'creator_verifications',
+                    table: 'verification_submissions', // Correct table name
                 },
                 (payload) => {
+                    const row = payload.new as Record<string, any>;
+                    const oldRow = payload.old as Record<string, any>;
+
+                    const mapRow = (r: Record<string, any>): VerificationItem => {
+                        const fd = (r.form_data as Record<string, any>) ?? {};
+                        return {
+                            id: r.creator_id,
+                            full_name: fd.full_name ?? 'Unknown Creator',
+                            category: r.category,
+                            status: r.status,
+                            submitted_at: r.created_at,
+                            avatar_url: fd.avatar_url ?? '',
+                        };
+                    };
+
                     if (payload.eventType === 'INSERT') {
-                        const newItem = payload.new as VerificationItem;
-                        setItems((prev) => [newItem, ...prev]);
+                        setItems((prev) => [mapRow(row), ...prev]);
                     } else if (payload.eventType === 'UPDATE') {
-                        const updated = payload.new as VerificationItem;
-                        if (updated.status === 'approved' || updated.status === 'rejected') {
-                            setItems((prev) => prev.filter((item) => item.id !== updated.id));
+                        if (row.status === 'approved' || row.status === 'rejected') {
+                            setItems((prev) => prev.filter((item) => item.id !== row.creator_id));
                         } else {
                             setItems((prev) =>
-                                prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item))
+                                prev.map((item) => (item.id === row.creator_id ? mapRow(row) : item))
                             );
                         }
                     } else if (payload.eventType === 'DELETE') {
-                        setItems((prev) => prev.filter((item) => item.id !== (payload.old as VerificationItem).id));
+                        setItems((prev) => prev.filter((item) => item.id !== oldRow.creator_id));
                     }
                 }
             )
