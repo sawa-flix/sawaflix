@@ -73,7 +73,7 @@ export default function VerificationQueue() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/admin/verifications');
+            const res = await fetch('/api/admin/creators');
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.data || []);
