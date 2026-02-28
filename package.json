@@ -16,6 +16,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
     "browser-image-compression": "^2.0.2",
+    "dotenv": "^17.3.1",
     "file-type": "21.3.0",
     "framer-motion": "^12.33.0",
     "jwt-decode": "4.0.0",

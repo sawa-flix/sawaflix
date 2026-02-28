@@ -574,7 +574,7 @@ export async function syncUserToPublic() {
       .upsert({
         id: user.id,
         email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
+        username: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
         role: user.user_metadata?.role || 'client',
         created_at: new Date(user.created_at).toISOString(),
         updated_at: new Date().toISOString(),

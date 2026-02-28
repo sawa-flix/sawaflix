@@ -2,6 +2,12 @@ import { createClient } from "@/utils/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
+import { createHash } from 'crypto';
+
+function stringToUuid(str: string) {
+  const hash = createHash('sha256').update(str).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${((parseInt(hash.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
 
 export async function POST(req: Request) {
   console.log("🚀 POST /submit - Finalizing Submission");
@@ -44,7 +50,7 @@ export async function POST(req: Request) {
     } else {
       const visitorId = req.headers.get("x-visitor-id");
       if (visitorId) {
-        userId = `anon-${visitorId}`;
+        userId = stringToUuid(`anon-${visitorId}`);
         console.log(`🚀 Anonymous Submission: ${userId}`);
       } else {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

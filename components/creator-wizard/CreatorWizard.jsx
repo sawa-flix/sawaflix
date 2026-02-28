@@ -9,6 +9,7 @@ import Step3Professional from './Step3Professional';
 import Step4Portfolio from './Step4Portfolio';
 import Step5Summary from './Step5Summary';
 import { getDraft, saveDraft, submitVerification } from '../../lib/verification';
+import { useRouter } from 'next/navigation';
 
 const steps = [
     { id: 1, name: 'Category' },
@@ -103,14 +104,15 @@ const CreatorWizard = () => {
         } else if (step === 4) {
             if (!formData.documents?.id_url) newErrors.id = "Please upload your Government ID to continue.";
             
+            // Recording requirement removed as per user request
+            /*
             const portfolio = formData.portfolio || {};
             const recordings = portfolio.recordings || [];
-            
-            // Check if we have at least 3 recordings with uploaded files
             const validRecordings = recordings.filter(r => r.file_url && r.title && r.description);
             if (validRecordings.length < 3) {
                 newErrors.recordings = "Please provide at least 3 sample recordings with titles and descriptions.";
             }
+            */
         }
 
         setErrors(newErrors);
@@ -132,6 +134,8 @@ const CreatorWizard = () => {
         setErrors({});
     };
 
+    const router = useRouter();
+
     const handleSubmit = async () => {
         try {
             console.log("Submitting:", formData);
@@ -139,8 +143,8 @@ const CreatorWizard = () => {
                 category: formData.category,
                 form_data: formData
             });
-            alert("Verification submitted successfully!");
-            // Success logic here
+            // success logic: redirect to admin dashboard to see the "pending exactly" page
+            router.push('/admin/dashboard');
         } catch (error) {
             console.error("Submission failed", error);
             alert("Failed to submit verification. Please try again.");

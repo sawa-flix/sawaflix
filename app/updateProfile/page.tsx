@@ -10,7 +10,7 @@ type Profile = {
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
-  full_name: string | null;
+  username: string | null;
 };
 
 // Initial state for the form
@@ -18,7 +18,7 @@ const initialState: Profile = {
   profile_image_url: null,
   cover_image_url: null,
   bio: '',
-  full_name: '',
+  username: '',
 };
 
 const UserProfile = () => {
@@ -42,7 +42,7 @@ const UserProfile = () => {
         // Fetch the existing user profile data
         const { data: userData } = await supabase
           .from('users')
-          .select('full_name, profile_image_url, cover_image_url, bio')
+          .select('username, profile_image_url, cover_image_url, bio')
           .eq('id', user.id)
           .single();
 
@@ -51,7 +51,7 @@ const UserProfile = () => {
             profile_image_url: userData.profile_image_url,
             cover_image_url: userData.cover_image_url,
             bio: userData.bio,
-            full_name: userData.full_name,
+            username: userData.username,
           });
         }
       }
@@ -91,7 +91,7 @@ const UserProfile = () => {
     const handleFullNameChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setProfile((prev) => ({
       ...prev,
-      full_name: e.target.value,
+      username: e.target.value,
     }));
   };
 
@@ -142,6 +142,7 @@ const UserProfile = () => {
         .update({
           profile_image_url: profileImageUrl,
           cover_image_url: coverImageUrl,
+          username: profile.username,
           bio: profile.bio,
         })
         .eq('id', user.id);
@@ -210,10 +211,10 @@ const UserProfile = () => {
         </div>
         {/* full name section */}
         <div className="mb-6">
-          <label htmlFor="full_name" className="block text-gray-700 font-semibold mb-2">Full name</label>
+          <label htmlFor="username" className="block text-gray-700 font-semibold mb-2">User name</label>
           <textarea
-            id="full_name"
-            value={profile.full_name ?? ''}
+            id="username"
+            value={profile.username ?? ''}
             onChange={handleFullNameChange}
             className="w-full h-20 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Update your user name."

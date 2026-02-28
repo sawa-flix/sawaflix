@@ -5,16 +5,21 @@ export async function POST(req: Request) {
     try {
         const { email } = await req.json();
 
-        const { success } = await rateLimit.limit(`otp_limit:${email}`)
-        if (!success) {
-            return NextResponse.json(
-                { error: "Too many requests. Try again in an hour." },
-                { status: 429 }
-            )
+        if (rateLimit) {
+            const { success } = await rateLimit.limit(`otp_limit:${email}`)
+            if (!success) {
+                return NextResponse.json(
+                    { error: "Too many requests. Try again in an hour." },
+                    { status: 429 }
+                )
+            }
         }
+
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        await redis.set(`otp:${email}`, otp, { ex: 300})
+        if (redis) {
+            await redis.set(`otp:${email}`, otp, { ex: 300})
+        }
 
         console.log(`sending otp to ${email} with code ${otp}`)
         

@@ -31,8 +31,13 @@ export async function middleware(request) {
 
 //when the user is looged in, we want to check if they are verified. If they are not verified, we want to redirect them to the verify page if they try to access a protected route or the auth routes. We also want to allow them to access the verify page without being redirected. If they are verified, we want to redirect them to the dashboard if they try to access the auth routes or the verify page.
     if (user) {
+      // Allow access to /dashboard for all logged-in users 
+      // so they can see their Pending/Rejected/None status.
+      if (pathname.startsWith('/dashboard')) {
+        return response
+      }
+
       let isVerified = false
-      
       const { data: profile } = await supabase
         .from('users')
         .select('is_verified')
@@ -42,27 +47,21 @@ export async function middleware(request) {
       if (profile && profile.is_verified) {
         isVerified = true
       }
-//users that are not verified
+
+      // If not verified, they can't access other protected routes like /profile (if it exists separately)
       if (!isVerified) {
-        if (isProtectedRoute) {
+        if (pathname === '/profile') {
           return NextResponse.redirect(new URL('/verify-otp', request.url))
         }
 
         if (isAuthRoute) {
           return NextResponse.redirect(new URL('/verify-otp', request.url))
-        }
-        // If they are already on /verify-otp, let them pass
-        if (isVerifyPage) {
-          return response
         }
       }
 
-      //Verified Users
+      // Verified Users
       if (isVerified) {
-        if (isVerifyPage) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-        if (isAuthRoute) {
+        if (isVerifyPage || isAuthRoute) {
           return NextResponse.redirect(new URL('/dashboard', request.url))
         }
       }

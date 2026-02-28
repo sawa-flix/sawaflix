@@ -50,8 +50,8 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
             {/* Header */}
             <div>
                 <h2 className="text-base font-black text-white text-center leading-tight">Show Us Your Voice. Tell Us Your Story</h2>
-                <p className="text-white font-bold text-xs mt-1">Submit at least 3 sample recordings.</p>
-                <p className="text-red-400 text-[10px] italic font-medium">Your recordings help us understand your storytelling style, originality and impact.</p>
+                <p className="text-white font-bold text-xs mt-1">You may submit sample recordings of your craft.</p>
+                <p className="text-gray-500 text-[10px] italic font-medium tracking-tight">Optional: Your recordings help us understand your storytelling style, originality and impact.</p>
             </div>
 
             {/* Cards container */}
@@ -137,7 +137,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                 </div>
 
                 {/* Footer hint */}
-                <p className="text-center text-gray-600 text-[10px] font-medium">minimum 3 recordings required</p>
+                <p className="text-center text-gray-500 text-[10px] font-bold uppercase tracking-wider">Samples are optional</p>
                 <FieldError message={errors.recordings} />
             </div>
 

@@ -1,5 +1,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { createHash } from 'crypto';
+
+function stringToUuid(str: string) {
+  const hash = createHash('sha256').update(str).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${((parseInt(hash.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
 
 export async function GET(req: Request) {
   console.log("🔍 GET /api/verification/form - Retrieving Draft");
@@ -15,7 +21,7 @@ export async function GET(req: Request) {
       const visitorId = req.headers.get("x-visitor-id");
       
       if (visitorId) {
-        creator_id = `anon-${visitorId}`;
+        creator_id = stringToUuid(`anon-${visitorId}`);
       } else {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
