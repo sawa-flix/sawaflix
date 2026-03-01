@@ -1,16 +1,12 @@
 import { createClient } from '@/utils/supabase/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
-        const searchParams = req.nextUrl.searchParams;
-        const statusStr = searchParams.get('status') || 'pending';
-        const statuses = statusStr.split(',');
-
         // ─────────────────────────────────────────────────────────────────
-        // TODO: Backend Proxy for GET /api/admin/creators
+        // TODO: Backend Proxy for GET /api/admin/verification
         //
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/creators?status=${statusStr}`, {
+        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verification`, {
         //      method: 'GET',
         //      headers: { 'Authorization': `Bearer ${adminJwt}` },
         //  });
@@ -22,27 +18,15 @@ export async function GET(req: NextRequest) {
         const { data, error } = await supabase
             .from('verification_submissions')
             .select('creator_id, category, status, created_at, form_data')
-            .in('status', statuses)
+            .in('status', ['pending', 'info_requested'])
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Error fetching creators:', error);
+            console.error('Error fetching verification queue:', error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        const mappedData = (data || []).map((row) => {
-            const fd = (row.form_data as Record<string, unknown>) ?? {};
-            return {
-                id: row.creator_id,
-                full_name: fd.full_name ?? 'Unknown Creator',
-                category: row.category,
-                status: row.status,
-                submitted_at: row.created_at,
-                avatar_url: fd.avatar_url ?? '',
-            };
-        });
-
-        return NextResponse.json({ data: mappedData });
+        return NextResponse.json(data || []);
     } catch (err) {
         console.error('Unexpected error:', err);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
