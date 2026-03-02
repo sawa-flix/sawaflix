@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { LogOut, User } from 'lucide-react';
+import { handleSignOut } from '@/app/(auth)/actions';
 
 const AdminSidebar = ({ creators, selectedId, onSelect }) => {
     // Helper function for date formatting since date-fns is not installed
@@ -56,10 +57,12 @@ const AdminSidebar = ({ creators, selectedId, onSelect }) => {
 
             {/* Logout */}
             <div className="p-6 mt-auto border-t border-white/5">
-                <button className="flex items-center gap-3 px-6 py-2 bg-white text-red-600 rounded-full font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all shadow-xl">
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                </button>
+                <form action={handleSignOut}>
+                    <button type="submit" className="flex w-full justify-center items-center gap-3 px-6 py-2 bg-white text-red-600 rounded-full font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all shadow-xl">
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
     );
