@@ -36,7 +36,17 @@ const CreatorWizard = () => {
             try {
                 const draft = await getDraft();
                 if (draft && draft.data) {
-                    const { category, formData: savedData } = draft.data;
+                    const { category, status, formData: savedData } = draft.data;
+                    
+                    // Redirect if already submitted or processed
+                    if (status === 'pending') {
+                        router.push('/creator/pending');
+                        return;
+                    } else if (status === 'approved' || status === 'rejected') {
+                        router.push('/dashboard');
+                        return;
+                    }
+
                     if (savedData) {
                         setFormData(prev => ({ ...prev, ...savedData }));
                         setCurrentStep(savedData.step || 1);
