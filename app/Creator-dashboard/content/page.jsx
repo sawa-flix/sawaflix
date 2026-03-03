@@ -1,5 +1,5 @@
 import { getUserProfile } from "@/lib/getUserProfile";
-import { getCreatorContent } from "@/utils/getCreatorContent"; // you'll create this
+import { getCreatorContent } from "@/lib/getCreatorContent"; // you'll create this
 import Link from "next/link";
 
 export default async function CreatorContentPage() {

@@ -20,7 +20,7 @@ export async function middleware(request) {
       if (isPublicRoute) return response
 
       // Everything else requires login
-      const redirectUrl = new URL('/login', request.url)
+      const redirectUrl = new URL('/Creator-dashboard', request.url)
       redirectUrl.searchParams.set('redirectedFrom', pathname)
       return NextResponse.redirect(redirectUrl)
     }

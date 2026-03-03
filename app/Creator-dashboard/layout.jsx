@@ -1,93 +1,120 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserProfile } from "@/lib/getUserProfile";
+import {
+  LayoutDashboard,
+  FileVideo,
+  Upload,
+  BarChart3,
+  DollarSign,
+  Settings,
+  HelpCircle
+} from "lucide-react";
 
 export default async function CreatorLayout({ children }) {
   const profile = await getUserProfile();
 
-  // 🔐 Protect route
-  if (!profile) {
-    redirect("/login");
-  }
-
-  if (profile.category !== "creator") {
-    redirect("/dashboard");
-  }
-
-  if (profile.verificationStatus !== "approved") {
-    redirect("/creator"); // let status page handle them
+  if (!profile) redirect("/login");
+  if (profile.category !== "creator") redirect("/dashboard");
+  if (profile.verificationStatus !== "approved") redirect("/creator");
+  function SidebarItem({ icon, href, children }) {
+    return (
+      <Link
+        href={href}
+        className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-[#1A2335] transition"
+      >
+        {icon}
+        {children}
+      </Link>
+    );
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0B0E14] text-white">
+    <div className="h-screen flex bg-gray-800 text-white overflow-hidden">
 
-      {/* ===== Sidebar ===== */}
-      <aside className="w-64 bg-black border-r border-gray-800 flex flex-col p-6 space-y-8">
+      {/* ===== SIDEBAR ===== */}
+      <aside className="w-64 bg-gray-900 border-r border-gray-800">
 
-        <div>
-          <h2 className="text-2xl font-bold text-red-500">
-            Creator Panel
-          </h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Welcome, {profile.username}
+        {/* Logo */}
+        <div className="mb-10">
+          <h1 className="text-2xl font-bold">
+            SAWA<span className="text-red-500">FLIX</span>
+          </h1>
+          <p className="text-xs text-gray-400 mt-1">
+            Creator Studio
           </p>
         </div>
 
-        <nav className="flex flex-col space-y-4 text-sm">
+        {/* Navigation */}
+        <nav className="flex flex-col gap-3 text-sm ">
 
-          <Link
-            href="/creator"
-            className="hover:text-red-400 transition-colors"
-          >
-            Overview
-          </Link>
+          <SidebarItem icon={<LayoutDashboard size={18} />} href="/creator">
+            Dashboard
+          </SidebarItem>
 
-          <Link
-            href="/creator/post"
-            className="hover:text-red-400 transition-colors"
-          >
-            Post Content
-          </Link>
-
-          <Link
-            href="/creator/content"
-            className="hover:text-red-400 transition-colors"
-          >
+          <SidebarItem icon={<FileVideo size={18} />} href="/creator/content">
             My Content
-          </Link>
+          </SidebarItem>
+
+          <SidebarItem icon={<Upload size={18} />} href="/creator/post">
+            Upload New
+          </SidebarItem>
+
+          <SidebarItem icon={<BarChart3 size={18} />} href="/creator/analytics">
+            Analytics
+          </SidebarItem>
+
+          <SidebarItem icon={<DollarSign size={18} />} href="/creator/earnings">
+            Earnings
+          </SidebarItem>
+
+          <SidebarItem icon={<Settings size={18} />} href="/creator/settings">
+            Settings
+          </SidebarItem>
+
+          <SidebarItem icon={<HelpCircle size={18} />} href="#">
+            Help
+          </SidebarItem>
 
         </nav>
 
-        <div className="mt-auto text-xs text-gray-500">
-          SawaFlix Creator Dashboard
+
+        {/* User Card */}
+        <div className="mt-auto pt-30 border-t border-gray-800">
+          <p className="text-sm">{profile.username}</p>
+          <Link href="/logout" className="text-xs text-gray-400 hover:text-red-400">
+            Log Out
+          </Link>
         </div>
 
       </aside>
 
-      {/* ===== Main Content Area ===== */}
-      <div className="flex-1 flex flex-col">
+      {/* ===== MAIN AREA ===== */}
+      <div className="flex-1 p-4 overflow-hidden">
 
-        {/* Top Header */}
-        <header className="h-16 border-b border-gray-800 flex items-center justify-between px-8 bg-[#0F131B]">
-          <h1 className="text-lg font-semibold">
-            Creator Dashboard
-          </h1>
+        {/* Top Navbar */}
+        <header className="h-16 bg-[#0E1628] border-b border-gray-800 px-8 flex items-center justify-between">
 
-          <Link
-            href="/"
-            className="text-sm text-gray-400 hover:text-red-400 transition-colors"
-          >
-            Back to Home
-          </Link>
+          <h2 className="text-lg font-semibold">Dashboard</h2>
+
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="bg-[#1A2335] px-4 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-red-500"
+            />
+
+            <div className="w-8 h-8 rounded-full bg-gray-600" />
+          </div>
+
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 p-8 overflow-y-auto">
+        {/* Content */}
+        <main className="flex-1 p-8 bg-gradient-to-b from-[#0A0F1C] to-[#0F1A2E]">
           {children}
         </main>
 
       </div>
-
     </div>
   );
 }

@@ -1,71 +1,64 @@
-import Link from "next/link";
-import { getUserProfile } from "@/lib/getUserProfile";
+import PerformanceChart from "@/components/Dashboard/PerformanceChart";
+import ContentTable from "@/components/Dashboard/ContentTable";
 
-export default async function CreatorOverviewPage() {
-  const profile = await getUserProfile();
+export default function CreatorDashboardPage() {
+
+  // 🔹 Mock dashboard stats
+  const stats = [
+    { title: "Total Views", value: "1.2M", growth: "+8%" },
+    { title: "Watch Time", value: "4.5K hrs", growth: "+12%" },
+    { title: "Total Uploads", value: "135", growth: "+5%" },
+    { title: "Followers", value: "28.4K", growth: "+9%" },
+    { title: "Earnings", value: "$5,230", growth: "+15%" },
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="h-full flex flex-col gap-4 overflow-hidden">
 
-      {/* ===== Welcome Section ===== */}
+      {/* ===== Page Header ===== */}
       <div>
-        <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.username || "Creator"} 👋
-        </h1>
-        <p className="text-gray-400 mt-2">
-          Manage your content, track performance, and share your cultural story.
+        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+        <p className="text-gray-400 text-sm mt-1">
+          Track your performance and manage your content.
         </p>
       </div>
 
-      {/* ===== Stats Cards ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ===== Stats Section ===== */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {stats.map((stat, index) => (
+          <div
+            key={index}
+            className="bg-[#111827] border border-gray-800 rounded-xl p-4 
+                       shadow-lg shadow-red-500/5 
+                       hover:shadow-red-500/10 
+                       transition"
+          >
+            <p className="text-xs text-gray-400">{stat.title}</p>
 
-        <div className="bg-[#11151F] border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-400">Total Posts</h3>
-          <p className="text-2xl font-semibold mt-2">0</p>
-        </div>
-
-        <div className="bg-[#11151F] border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-400">Pending Review</h3>
-          <p className="text-2xl font-semibold mt-2">0</p>
-        </div>
-
-        <div className="bg-[#11151F] border border-gray-800 rounded-xl p-6">
-          <h3 className="text-sm text-gray-400">Approved Content</h3>
-          <p className="text-2xl font-semibold mt-2">0</p>
-        </div>
-
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xl font-bold">{stat.value}</p>
+              <span className="text-green-400 text-xs">
+                {stat.growth}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ===== Quick Action Section ===== */}
-      <div className="bg-[#11151F] border border-gray-800 rounded-xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-
-        <div>
-          <h2 className="text-xl font-semibold">
-            Ready to share something new?
-          </h2>
-          <p className="text-gray-400 mt-2">
-            Post a traditional story, music, or a cultural recipe.
-          </p>
-        </div>
-
-        <Link
-          href="/creator/post"
-          className="bg-red-600 hover:bg-red-700 transition-colors px-6 py-3 rounded-lg font-medium"
-        >
-          Post New Content
-        </Link>
-
+      {/* ===== Chart Section (Flexible) ===== */}
+      <div className="flex-1 bg-[#1A1A1A] rounded-2xl p-4 overflow-hidden">
+        <PerformanceChart />
       </div>
 
-      {/* ===== Activity Placeholder ===== */}
-      <div className="bg-[#11151F] border border-gray-800 rounded-xl p-8">
-        <h2 className="text-lg font-semibold mb-4">
-          Recent Activity
+      {/* ===== Table Section (Only Scrollable Area) ===== */}
+      <div className="h-64 bg-[#1A1A1A] rounded-2xl p-4 flex flex-col">
+        <h2 className="mb-3 text-sm font-semibold text-gray-300">
+          Recent Content
         </h2>
-        <p className="text-gray-500 text-sm">
-          You haven't posted any content yet. Once you do, activity will appear here.
-        </p>
+
+        <div className="flex-1 overflow-y-auto">
+          <ContentTable />
+        </div>
       </div>
 
     </div>
