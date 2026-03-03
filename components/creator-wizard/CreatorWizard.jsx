@@ -143,8 +143,8 @@ const CreatorWizard = () => {
                 category: formData.category,
                 form_data: formData
             });
-            // success logic: redirect to admin dashboard to see the "pending exactly" page
-            router.push('/admin/dashboard');
+            // success logic: redirect to creator pending dashboard
+            router.push('/creator/pending');
         } catch (error) {
             console.error("Submission failed", error);
             alert("Failed to submit verification. Please try again.");
