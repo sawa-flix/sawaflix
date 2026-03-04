@@ -28,6 +28,7 @@ const mockContent = [
     date: "Apr 8, 2024",
   },
 ];
+
 export default function ContentTable() {
   const [filter, setFilter] = useState("All");
 
@@ -37,15 +38,17 @@ export default function ContentTable() {
       : mockContent.filter((c) => c.status === filter);
 
   return (
-    <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+    <div className="bg-[#111827] border border-gray-800 rounded-xl p-2">
 
       {/* Tabs */}
-      <div className="flex gap-6 mb-6 text-sm">
+      <div className="flex gap-4 mb-3 text-xs">
         {["All", "Published", "Draft", "Under Review"].map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`${filter === tab ? "text-red-500" : "text-gray-400"
+            className={`transition ${filter === tab
+              ? "text-red-500"
+              : "text-gray-400 hover:text-gray-200"
               }`}
           >
             {tab}
@@ -54,24 +57,28 @@ export default function ContentTable() {
       </div>
 
       {/* Table */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         {filtered.map((item) => (
           <div
             key={item.id}
-            className="flex justify-between items-center p-4 bg-[#1A2335] rounded-lg"
+            className="flex justify-between items-center px-3 py-2 bg-gray-800 rounded-md text-sm"
           >
             <div>
-              <p className="font-medium">{item.title}</p>
-              <p className="text-xs text-gray-400">{item.category}</p>
+              <p className="font-medium text-sm">{item.title}</p>
+              <p className="text-[11px] text-gray-400">
+                {item.category}
+              </p>
             </div>
 
-            <div className="text-sm text-gray-400">
+            <div className="text-xs text-gray-400">
               {item.views.toLocaleString()} views
             </div>
 
-            <div className="text-sm">{item.date}</div>
+            <div className="text-xs text-gray-400">
+              {item.date}
+            </div>
 
-            <span className="px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400">
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-green-500/20 text-green-400">
               {item.status}
             </span>
           </div>

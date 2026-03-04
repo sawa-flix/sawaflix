@@ -22,24 +22,31 @@ const data = [
 
 export default function PerformanceChart() {
   return (
-    <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+    <div className="bg-[#111827] border border-gray-800 rounded-xl p-3">
 
-      <h3 className="text-lg font-semibold mb-4">
+      <h3 className="text-sm font-semibold mb-2">
         Performance Over Time
       </h3>
 
-      <div className="h-64">
+      <div className="h-32">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid stroke="#1f2937" />
-            <XAxis dataKey="day" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
+            <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
+            <XAxis
+              dataKey="day"
+              stroke="#9ca3af"
+              tick={{ fontSize: 10 }}
+            />
+            <YAxis
+              stroke="#9ca3af"
+              tick={{ fontSize: 10 }}
+            />
             <Tooltip />
             <Line
               type="monotone"
               dataKey="views"
               stroke="#ef4444"
-              strokeWidth={3}
+              strokeWidth={2}
               dot={false}
             />
           </LineChart>
