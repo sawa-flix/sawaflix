@@ -17,8 +17,10 @@ export async function POST(req: Request) {
         }
 
         // Rate limiting — 5 OTP sends per 15 minutes per email
-        const { success } = await otpSendRateLimit.limit(`otp_send:${email}`);
-        if (!success) {
+        const rateLimitResult = await otpSendRateLimit.limit(`otp_send:${email}`);
+        console.log(`[Rate Limit] Email: ${email}, Success: ${rateLimitResult.success}, Remaining: ${rateLimitResult.remaining}`);
+
+        if (!rateLimitResult.success) {
             return NextResponse.json(
                 { error: "Too many OTP requests. Try again in 15 minutes." },
                 { status: 429 }
@@ -32,7 +34,8 @@ export async function POST(req: Request) {
         await redis.set(`otp:${email}`, otp, { ex: 300 });
 
         // Send via SendGrid
-        await sgMail.send({
+        console.log(`[SendGrid] Attempting to send OTP to ${email} from ${process.env.SENDGRID_FROM_EMAIL}`);
+        const [sgResponse] = await sgMail.send({
             to: email,
             from: process.env.SENDGRID_FROM_EMAIL!,
             subject: "🔐 Your SawaFlix Verification Code",
@@ -52,6 +55,8 @@ export async function POST(req: Request) {
         </div>
       `,
         });
+
+        console.log(`[SendGrid Response] Status: ${sgResponse.statusCode}`);
 
         // Audit log, not exposing the otp
         console.log(

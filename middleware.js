@@ -30,10 +30,9 @@ export async function middleware(request) {
     // Authenticated users — fetch profile 
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .select('id, role, verification_status, is_verified')
+      .select('id, role, verification_status')
       .eq('id', user.id)
       .single()
-
     if (profileError || !profile) {
       console.error('Middleware: profile fetch error:', profileError)
       return NextResponse.redirect(new URL('/login', request.url))
@@ -69,7 +68,7 @@ export async function middleware(request) {
 
     //Dashboard / protected routes 
     if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
-      if (!profile.is_verified || profile.verification_status !== 'approved') {
+      if (profile.verification_status !== 'approved') {
         return NextResponse.redirect(new URL('/verify-otp', request.url))
       }
       return response
@@ -78,7 +77,7 @@ export async function middleware(request) {
     // OTP verify page
     if (pathname.startsWith('/verify-otp')) {
       // Already verified users don't need to be here
-      if (profile.is_verified && profile.verification_status === 'approved') {
+      if (profile.verification_status === 'approved') {
         if (profile.role === 'admin') {
           return NextResponse.redirect(new URL('/admin', request.url))
         }
@@ -99,11 +98,11 @@ export async function middleware(request) {
       if (profile.role === 'creator' && profile.verification_status === 'approved') {
         return NextResponse.redirect(new URL('/creator/dashboard', request.url))
       }
-      if (profile.is_verified && profile.verification_status === 'approved') {
+      if (profile.verification_status === 'approved') {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
       // Creator/viewer not yet verified → send to OTP page
-      if (!profile.is_verified) {
+      if (profile.verification_status !== 'approved') {
         return NextResponse.redirect(new URL('/verify-otp', request.url))
       }
     }
