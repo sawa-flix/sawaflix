@@ -1,9 +1,26 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getUserProfile } from "@/lib/getUserProfile";
 
-export default function PostSelectorPage() {
+export default async function PostSelectorPage() {
+  const profile = await getUserProfile();
+
+  if (!profile) redirect("/login");
+
+  // Auto-redirect to their specific niche if they are approved
+  // Mappings from Step1Category.jsx IDs
+  const category = profile.category?.toLowerCase();
+
+  if (category === 'lifestyle') redirect('/Creator-dashboard/post/food');
+  if (category === 'music') redirect('/Creator-dashboard/post/music');
+  if (category === 'storyteller') redirect('/Creator-dashboard/post/story');
+
+  // Fallbacks for flexibility
+  if (category === 'food') redirect('/Creator-dashboard/post/food');
+  if (category === 'stories' || category === 'storytelling') redirect('/Creator-dashboard/post/story');
+
   return (
     <div className="space-y-10">
-
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold">
@@ -19,15 +36,13 @@ export default function PostSelectorPage() {
 
         {/* ===== Story Card ===== */}
         <Link
-          href="/creator/post/story"
+          href="/Creator-dashboard/post/story"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">📖</div>
-
           <h2 className="text-xl font-semibold group-hover:text-red-400 transition-colors">
             Traditional Story
           </h2>
-
           <p className="text-gray-400 mt-3 text-sm">
             Share written folklore or upload an audio narration of a traditional story.
           </p>
@@ -35,15 +50,13 @@ export default function PostSelectorPage() {
 
         {/* ===== Music Card ===== */}
         <Link
-          href="/creator/post/music"
+          href="/Creator-dashboard/post/music"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">🎵</div>
-
           <h2 className="text-xl font-semibold group-hover:text-red-400 transition-colors">
             Music
           </h2>
-
           <p className="text-gray-400 mt-3 text-sm">
             Upload traditional or modern cultural music with cover artwork.
           </p>
@@ -51,22 +64,19 @@ export default function PostSelectorPage() {
 
         {/* ===== Food Card ===== */}
         <Link
-          href="/creator/post/food"
+          href="/Creator-dashboard/post/food"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">🍲</div>
-
           <h2 className="text-xl font-semibold group-hover:text-red-400 transition-colors">
             Food / Recipe
           </h2>
-
           <p className="text-gray-400 mt-3 text-sm">
             Share traditional dishes, ingredients, preparation steps, and images.
           </p>
         </Link>
 
       </div>
-
     </div>
   );
 }

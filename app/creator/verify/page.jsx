@@ -20,9 +20,19 @@ export default async function CreatorVerifyPage() {
         redirect("/dashboard");
     }
 
-    // 🚫 Already submitted verification
+    // 🚫 Already submitted, but pending
+    if (profile.verificationStatus === "pending") {
+        redirect("/creator/pending");
+    }
+
+    // 🚫 Already approved
+    if (profile.verificationStatus === "approved") {
+        redirect("/Creator-dashboard");
+    }
+
+    // 🚫 Not unverified (sanity check)
     if (profile.verificationStatus !== "unverified") {
-        redirect("/creator");
+        redirect("/dashboard");
     }
 
     return (

@@ -37,12 +37,15 @@ const CreatorWizard = () => {
                 const draft = await getDraft();
                 if (draft && draft.data) {
                     const { category, status, formData: savedData } = draft.data;
-                    
+
                     // Redirect if already submitted or processed
                     if (status === 'pending') {
                         router.push('/creator/pending');
                         return;
-                    } else if (status === 'approved' || status === 'rejected') {
+                    } else if (status === 'approved') {
+                        router.push('/Creator-dashboard');
+                        return;
+                    } else if (status === 'rejected') {
                         router.push('/dashboard');
                         return;
                     }
@@ -113,7 +116,7 @@ const CreatorWizard = () => {
             if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Bio must be at least 10 characters.";
         } else if (step === 4) {
             if (!formData.documents?.id_url) newErrors.id = "Please upload your Government ID to continue.";
-            
+
             // Recording requirement removed as per user request
             /*
             const portfolio = formData.portfolio || {};
