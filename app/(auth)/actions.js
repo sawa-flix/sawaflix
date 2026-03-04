@@ -97,7 +97,7 @@ export async function signUpWithPassword(formData) {
     const userMetadata = {
       username: username || emailStr.split('@')[0],
       ...(category && { category: category }),
-      ...(phone && { phone: phone}),
+      ...(phone && { phone: phone }),
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -141,8 +141,9 @@ export async function signUpWithPassword(formData) {
           .upsert({
             id: data.user.id,
             email: email.toString(),
-            username: userMetadata.username,
-            platform_role: platformRole,
+            username: userMetadata.username || email.toString().split('@')[0],
+            role: platformRole === 'creator' ? 'creator' : 'viewer',
+            platform_role: platformRole === 'creator' ? 'artist' : 'client',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             phone: phone ? phone.toString() : null,
@@ -424,7 +425,7 @@ export async function handleSignOut() {
   revalidatePath('/login');
 
   console.log('✅ User signed out successfully');
-  return redirect('/landingPage?message=signed_out');
+  return redirect('/');
 }
 
 export async function getCurrentUser() {
@@ -571,13 +572,16 @@ export async function syncUserToPublic() {
 
     console.log('🟡 Syncing user to public.users:', user.email);
 
+    const platformRole = user.user_metadata?.category || user.user_metadata?.role || 'client';
+
     const { error: syncError } = await supabase
       .from('users')
       .upsert({
         id: user.id,
         email: user.email,
         username: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
-        role: user.user_metadata?.role || 'client',
+        role: platformRole === 'creator' ? 'creator' : 'viewer',
+        platform_role: platformRole === 'creator' ? 'artist' : 'client',
         created_at: new Date(user.created_at).toISOString(),
         updated_at: new Date().toISOString(),
       }, {

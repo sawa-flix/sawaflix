@@ -63,8 +63,8 @@ export async function GET(request) {
       const supabase = await createClient()
 
       try {
-        const { data: {session}, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-        
+        const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
         if (exchangeError) {
           console.error('🔴 Exchange failed:', exchangeError.message)
 
@@ -79,13 +79,15 @@ export async function GET(request) {
         // After successful auth, ensure user exists in public.users table
         try {
           const { data: { user } } = await supabase.auth.getUser()
-          
+
           if (session) {
             const user = session.user
             const googleToken = session.provider_token
             const googleRefreshToken = session.provider_refresh_token
 
-            console.log (" user and Youtube token tp users table")
+            console.log(" user and Youtube token tp users table")
+
+            const platformRole = user.user_metadata?.category || user.user_metadata?.role || 'client';
 
             const { error: syncError } = await supabase
               .from('users')
@@ -93,12 +95,14 @@ export async function GET(request) {
                 id: user.id,
                 email: user.email,
                 username: user.user_metadata.full_name || user.user_metadata?.username || user.email || 'Anonymous',
+                role: platformRole === 'creator' ? 'creator' : 'viewer',
+                platform_role: platformRole === 'creator' ? 'artist' : 'client',
                 google_access_token: googleToken,
                 google_refresh_token: googleRefreshToken,
                 updated_at: new Date().toISOString(),
               }, { onConflict: 'id' })
 
-              if (syncError) console.error('Token synnc warning:', syncError.message)
+            if (syncError) console.error('Token synnc warning:', syncError.message)
           }
         } catch (syncErr) {
           console.error('🟡 User sync error (non-fatal):', syncErr.message)

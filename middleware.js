@@ -32,9 +32,17 @@ export async function middleware(request) {
       .from('users')
       .select('id, role, verification_status')
       .eq('id', user.id)
-      .single()
-    if (profileError || !profile) {
+      .maybeSingle()
+
+    if (profileError) {
       console.error('Middleware: profile fetch error:', profileError)
+    }
+
+    if (!profile) {
+      // If no profile exists, only redirect if NOT already on a public/auth route
+      if (isPublicRoute || isAuthRoute) {
+        return response
+      }
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -82,7 +90,7 @@ export async function middleware(request) {
           return NextResponse.redirect(new URL('/admin', request.url))
         }
         if (profile.role === 'creator') {
-          return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+          return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
         }
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
@@ -96,7 +104,7 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
       if (profile.role === 'creator' && profile.verification_status === 'approved') {
-        return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+        return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
       }
       if (profile.verification_status === 'approved') {
         return NextResponse.redirect(new URL('/dashboard', request.url))

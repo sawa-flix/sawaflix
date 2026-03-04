@@ -56,7 +56,6 @@ export async function POST(req: Request) {
     } else {
       const {
         data: { user },
-        error: authError,
       } = await supabase.auth.getUser();
 
       if (user) {
@@ -104,7 +103,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const storageClient = serviceKey 
+    const storageClient = serviceKey
       ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
       : supabase;
 
@@ -120,18 +119,18 @@ export async function POST(req: Request) {
 
     if (uploadError) {
       console.error("❌ Storage Upload Error:", uploadError.message);
-      
+
       // Provide a friendlier explanation for RLS violations without the service key
       if (uploadError.message.includes("row-level security") && !serviceKey) {
         return NextResponse.json(
-          { 
-            error: "Configuration Error", 
+          {
+            error: "Configuration Error",
             details: "Anonymous uploads require SUPABASE_SERVICE_ROLE_KEY to be set in the backend environment. Please add it to your .env file."
-          }, 
+          },
           { status: 500 }
         );
       }
-      
+
       throw uploadError;
     }
 
@@ -149,10 +148,11 @@ export async function POST(req: Request) {
       url: publicUrl,
       file_path: data.path,
     });
-  } catch (err: any) {
-    console.error("❌ Critical Error:", err.message);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("❌ Critical Error:", errorMessage);
     return NextResponse.json(
-      { error: "Internal Server Error", details: err.message },
+      { error: "Internal Server Error", details: errorMessage },
       { status: 500 },
     );
   }
