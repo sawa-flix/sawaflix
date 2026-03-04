@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { fileTypeFromBuffer } from "file-type";
 import { z } from "zod";
@@ -11,37 +10,43 @@ const UploadSchema = z.object({
     "selfie",
     "endorsement_letter",
     "content_sample",
+    "id",
+    "endorsements",
+    "recording",
   ]),
 });
 
 export async function POST(req: Request) {
-  const cookieStore = await cookies();
-  const authHeader = req.headers.get("Authorization");
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to regular user client.");
+  }
 
-  /**
-   * 1. Initialize the Supabase Client (SSR compatible)
-   */
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // This can be ignored if middleware is handling session refreshes
-          }
-        },
-      },
+  let supabase;
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+  const isServiceRole = serviceKey && token === serviceKey;
+
+  if (token) {
+    if (isServiceRole) {
+      supabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceKey,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+    } else {
+      // Fallback: Use provided user token with anon client
+      supabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
     }
-  );
+  } else {
+    supabase = await createClient();
+  }
+
+
 
   try {
     let creator_id: string;
@@ -55,20 +60,32 @@ export async function POST(req: Request) {
     if (isServiceRole) {
       creator_id = "admin-tester";
     } else {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: "Unauthorized", details: authError?.message || "No user found" },
-          { status: 401 }
-        );
+      if (user) {
+        creator_id = user.id;
+      } else {
+        const visitorId = req.headers.get("x-visitor-id");
+        if (visitorId) {
+          creator_id = `anonymous/${visitorId}`;
+          console.log(`👤 Anonymous Upload: ${creator_id}`);
+        } else {
+          console.error("❌ Auth Error: No user or visitor ID found");
+          return NextResponse.json(
+            {
+              error: "Unauthorized",
+              details: "No active session or visitor ID found",
+            },
+            { status: 401 },
+          );
+        }
       }
-      creator_id = user.id;
     }
 
-    /**
-     * 3. Form Data & Validation
-     */
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const categoryInput = formData.get("category");
@@ -76,9 +93,10 @@ export async function POST(req: Request) {
     const validation = UploadSchema.safeParse({ category: categoryInput });
 
     if (!file || !validation.success) {
+      console.error("❌ Validation Error:", validation.success ? "Missing file" : validation.error.message);
       return NextResponse.json(
-        { error: "Invalid file or category", details: validation.error?.format() },
-        { status: 400 }
+        { error: "Invalid file or category", details: validation.success ? "File is missing" : validation.error.format() },
+        { status: 400 },
       );
     }
 
@@ -89,43 +107,65 @@ export async function POST(req: Request) {
     const type = await fileTypeFromBuffer(buffer);
 
     if (!type) {
+      console.error("❌ File Type Error: Could not determine file type");
       return NextResponse.json(
         { error: "Could not determine file type" },
         { status: 400 }
       );
     }
 
-    /**
-     * 5. Upload to Storage via Admin Client
-     * (We use the Service Role client here to bypass RLS for verification docs)
-     */
-    const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const storageClient = serviceKey 
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
+      : supabase;
 
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${type.ext}`;
     const filePath = `${creator_id}/${validation.data.category}/${fileName}`;
 
-    const { data, error: uploadError } = await adminClient.storage
-      .from("verification-docs")
-      .upload(filePath, buffer, {
-        contentType: type.mime,
-        upsert: false
-      });
+    console.log(`📤 Uploading: ${filePath} (${type.mime}) using ${serviceKey ? 'Admin' : 'User'} Client`);
 
-    if (uploadError) throw uploadError;
+    const { data, error: uploadError } = await storageClient.storage
+      .from("verification-docs")
+      .upload(filePath, buffer, { contentType: type.mime });
+
+
+    if (uploadError) {
+      console.error("❌ Storage Upload Error:", uploadError.message);
+      
+      // Provide a friendlier explanation for RLS violations without the service key
+      if (uploadError.message.includes("row-level security") && !serviceKey) {
+        return NextResponse.json(
+          { 
+            error: "Configuration Error", 
+            details: "Anonymous uploads require SUPABASE_SERVICE_ROLE_KEY to be set in the backend environment. Please add it to your .env file."
+          }, 
+          { status: 500 }
+        );
+      }
+      
+      throw uploadError;
+    }
+
+
+    // Get Public URL
+    const { data: { publicUrl } } = storageClient.storage
+      .from("verification-docs")
+      .getPublicUrl(filePath);
+
+
+    console.log("✅ Upload Success:", publicUrl);
 
     return NextResponse.json({
       message: "Success!",
-      storagePath: data.path,
+      url: publicUrl,
+      file_path: data.path,
     });
 
   } catch (err: any) {
-    console.error("Critical Error:", err.message);
+    console.error("❌ Critical Error:", err.message);
     return NextResponse.json(
       { error: "Internal Server Error", details: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+

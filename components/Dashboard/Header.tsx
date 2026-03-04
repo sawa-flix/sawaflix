@@ -10,7 +10,7 @@ import { handleSignOut } from '../../app/(auth)/actions'; // Import the server a
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
-  full_name: string | null;
+  username: string | null;
   email: string | null;
   profile_image_url: string | null; // Changed from avatar_url
 };
@@ -36,7 +36,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
       if (user) {
         const { data: profileData, error } = await supabase
           .from('users')
-          .select('full_name, email, profile_image_url') // Changed from avatar_url
+          .select('username, email, profile_image_url') // Changed from full_name
           .eq('id', user.id)
           .single<UserProfileData>();
 
@@ -154,7 +154,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
                 </div>
               )}
               <span className="hidden sm:block text-sm font-medium">
-                {userProfile?.full_name || currentUser?.email || 'Guest'}
+                {userProfile?.username || currentUser?.email || 'Guest'}
               </span>
               <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
             </button>
@@ -163,7 +163,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
                 <div className="px-4 py-2 border-b border-gray-700">
-                  <p className="text-sm font-medium text-white">{userProfile?.full_name || 'Guest'}</p>
+                  <p className="text-sm font-medium text-white">{userProfile?.username || 'Guest'}</p>
                   <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
                 </div>
                 <Link href="/updateProfile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">

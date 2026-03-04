@@ -10,7 +10,7 @@ import { MusicFeatures } from '../../../../components/MusicFeatures';
 
 // Define a type for the user profile data
 type UserProfileData = {
-  full_name: string | null;
+  username: string | null;
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
@@ -34,7 +34,7 @@ const MusicProfilePage = async () => {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('full_name, profile_image_url, cover_image_url, bio')
+    .select('username, profile_image_url, cover_image_url, bio')
     .eq('id', user.id)
     .single<UserProfileData>();
 
@@ -95,7 +95,7 @@ const MusicProfilePage = async () => {
         {/* User Info Section */}
         <div className="pl-6 md:pl-8 mt-20">
           <h2 className="text-3xl md:text-xl font-bold mb-2 text-white">
-            {profile?.full_name || 'Anonymous User'}
+            {profile?.username || 'Anonymous User'}
           </h2>
           <p className="text-purple-50 max-w-2xl">
             {profile?.bio || DEFAULT_BIO}

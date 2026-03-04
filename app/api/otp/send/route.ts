@@ -8,6 +8,7 @@ export async function POST(req: Request) {
     try {
         const { email } = await req.json();
 
+<<<<<<< HEAD
         // Input validation
         if (!email) {
             return NextResponse.json(
@@ -17,8 +18,10 @@ export async function POST(req: Request) {
         }
 
         // Rate limiting — 5 OTP sends per 15 minutes per email
-        const { success } = await otpSendRateLimit.limit(`otp_send:${email}`);
-        if (!success) {
+        const rateLimitResult = await otpSendRateLimit.limit(`otp_send:${email}`);
+        console.log(`[Rate Limit] Email: ${email}, Success: ${rateLimitResult.success}, Remaining: ${rateLimitResult.remaining}`);
+
+        if (!rateLimitResult.success) {
             return NextResponse.json(
                 { error: "Too many OTP requests. Try again in 15 minutes." },
                 { status: 429 }
@@ -30,9 +33,27 @@ export async function POST(req: Request) {
 
         // Store in Redis with 5-minute expiration
         await redis.set(`otp:${email}`, otp, { ex: 300 });
+=======
+        if (rateLimit) {
+            const { success } = await rateLimit.limit(`otp_limit:${email}`)
+            if (!success) {
+                return NextResponse.json(
+                    { error: "Too many requests. Try again in an hour." },
+                    { status: 429 }
+                )
+            }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        if (redis) {
+            await redis.set(`otp:${email}`, otp, { ex: 300})
+        }
+>>>>>>> 82d1c9168819be76a06979fc555fa3d2d3adeb9b
 
         // Send via SendGrid
-        await sgMail.send({
+        console.log(`[SendGrid] Attempting to send OTP to ${email} from ${process.env.SENDGRID_FROM_EMAIL}`);
+        const [sgResponse] = await sgMail.send({
             to: email,
             from: process.env.SENDGRID_FROM_EMAIL!,
             subject: "🔐 Your SawaFlix Verification Code",
@@ -52,6 +73,8 @@ export async function POST(req: Request) {
         </div>
       `,
         });
+
+        console.log(`[SendGrid Response] Status: ${sgResponse.statusCode}`);
 
         // Audit log, not exposing the otp
         console.log(

@@ -73,7 +73,7 @@ export default function VerificationQueue() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/admin/verifications');
+            const res = await fetch('/api/admin/creators');
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.data || []);
@@ -104,26 +104,36 @@ export default function VerificationQueue() {
                 {
                     event: '*', // INSERT, UPDATE, DELETE
                     schema: 'public',
-                    table: 'creator_verifications',
+                    table: 'verification_submissions', // Correct table name
                 },
                 (payload) => {
+                    const row = payload.new as Record<string, any>;
+                    const oldRow = payload.old as Record<string, any>;
+
+                    const mapRow = (r: Record<string, any>): VerificationItem => {
+                        const fd = (r.form_data as Record<string, any>) ?? {};
+                        return {
+                            id: r.creator_id,
+                            full_name: fd.full_name ?? 'Unknown Creator',
+                            category: r.category,
+                            status: r.status,
+                            submitted_at: r.created_at,
+                            avatar_url: fd.avatar_url ?? '',
+                        };
+                    };
+
                     if (payload.eventType === 'INSERT') {
-                        // New submission → prepend to queue
-                        const newItem = payload.new as VerificationItem;
-                        setItems((prev) => [newItem, ...prev]);
+                        setItems((prev) => [mapRow(row), ...prev]);
                     } else if (payload.eventType === 'UPDATE') {
-                        const updated = payload.new as VerificationItem;
-                        if (updated.status === 'approved' || updated.status === 'rejected') {
-                            // Remove from queue once approved/rejected
-                            setItems((prev) => prev.filter((item) => item.id !== updated.id));
+                        if (row.status === 'approved' || row.status === 'rejected') {
+                            setItems((prev) => prev.filter((item) => item.id !== row.creator_id));
                         } else {
-                            // Update in place (e.g. status → info_requested)
                             setItems((prev) =>
-                                prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item))
+                                prev.map((item) => (item.id === row.creator_id ? mapRow(row) : item))
                             );
                         }
                     } else if (payload.eventType === 'DELETE') {
-                        setItems((prev) => prev.filter((item) => item.id !== (payload.old as VerificationItem).id));
+                        setItems((prev) => prev.filter((item) => item.id !== oldRow.creator_id));
                     }
                 }
             )
@@ -174,9 +184,10 @@ export default function VerificationQueue() {
                     <button
                         key={cat}
                         onClick={() => setFilterCategory(cat)}
-                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${filterCategory === cat
-                                ? 'bg-red-600 text-white shadow-lg shadow-red-900/20'
-                                : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'
+                        // Added cursor-pointer and select-none below
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer select-none active:scale-95 ${filterCategory === cat
+                            ? 'bg-red-600 text-white shadow-lg shadow-red-900/20'
+                            : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'
                             }`}
                     >
                         {cat === 'All' ? 'All Requests' : cat}
@@ -187,7 +198,6 @@ export default function VerificationQueue() {
             {/* Table Card */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden shadow-xl min-h-[400px] flex flex-col">
                 {loading ? (
-                    /* Skeleton rows */
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
@@ -213,7 +223,6 @@ export default function VerificationQueue() {
                         </table>
                     </div>
                 ) : items.length === 0 ? (
-                    /* Global Empty State */
                     <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
                         <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4">
                             <Inbox size={32} className="text-gray-500" />

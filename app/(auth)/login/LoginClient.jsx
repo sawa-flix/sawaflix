@@ -99,8 +99,12 @@ export default function LoginPage() {
         // Show the error message
         setError(result.error);
       } else if (result?.success) {
-        // Login successful - redirect to dashboard
-        console.log('🟢 Login successful, redirecting to dashboard');
+        // Login successful - token may be included
+        console.log('🟢 Login successful', result);
+        if (result.access_token) {
+          console.log('📝 access_token:', result.access_token);
+          alert('Copy this access token from console for testing');
+        }
         setIsRedirecting(true);
         hasRedirected.current = true;
 

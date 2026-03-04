@@ -1,43 +1,61 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 export async function PUT(req: Request) {
   console.log("💾 PUT /draft - Start");
   const authHeader = req.headers.get("Authorization");
-  const cookieStore = await cookies();
   
-  let supabase: SupabaseClient;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to regular user client.");
+  }
+
+  let supabase;
   let finalUserId: string;
 
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
   // 1. AUTHENTICATION HANDLING
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.substring(7);
+  if (token) {
     try {
       const decoded: any = jwtDecode(token);
       
-      if (decoded.role === "service_role") {
+      if (serviceKey && token === serviceKey) {
         // IMPORTANT: Use your actual User UID from Supabase Auth for testing
         finalUserId = "b21d3e41-f405-46bc-b144-319669ec3e0d"; 
+        supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
       } else {
         finalUserId = decoded.sub;
+        supabase = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { global: { headers: { Authorization: authHeader } } }
+        );
       }
-
-      supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
     } catch (e) {
+      console.error("❌ Token Decode Error:", e);
       return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
     }
   } else {
-    supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    finalUserId = user.id;
+    
+    if (user) {
+      finalUserId = user.id;
+    } else {
+      const visitorId = req.headers.get("x-visitor-id");
+      if (visitorId) {
+        finalUserId = `anon-${visitorId}`; // Use a prefix to distinguish in DB if needed
+        console.log(`💾 Anonymous Draft: ${finalUserId}`);
+      } else {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    }
   }
+
+
 
   try {
     const body = await req.json();

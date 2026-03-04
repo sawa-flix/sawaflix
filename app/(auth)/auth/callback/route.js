@@ -92,7 +92,7 @@ export async function GET(request) {
               .upsert({
                 id: user.id,
                 email: user.email,
-                full_name: user.user_metadata.full_name || user.user_metadata?.username || user.emailv || 'Anonymous',
+                username: user.user_metadata.full_name || user.user_metadata?.username || user.email || 'Anonymous',
                 google_access_token: googleToken,
                 google_refresh_token: googleRefreshToken,
                 updated_at: new Date().toISOString(),

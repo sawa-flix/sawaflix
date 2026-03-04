@@ -12,14 +12,19 @@
     "@lottiefiles/dotlottie-react": "^0.15.2",
     "@react-oauth/google": "^0.12.2",
     "@sendgrid/mail": "^8.1.6",
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.98.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
     "browser-image-compression": "^2.0.2",
-    "file-type": "^21.3.0",
+    "dotenv": "^17.3.1",
+<<<<<<< HEAD
+=======
+    "file-type": "21.3.0",
+>>>>>>> 82d1c9168819be76a06979fc555fa3d2d3adeb9b
     "framer-motion": "^12.33.0",
-    "jwt-decode": "^4.0.0",
+    "jwt-decode": "4.0.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.537.0",
     "next": "^16.1.6",
