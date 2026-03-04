@@ -17,37 +17,43 @@ export async function GET(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  try {
-    // 2. Fetch creators joined with their verification data 
-    // We select the profile info from 'users' and application info from 'verification_submissions'
-    const { data, error, count } = await supabase
-  .from("users")
-  .select(`
-    id,
-    email,
-    role,
-    verification_status,
-    created_at,
-    verification_submissions!verification_submissions_creator_id_fkey (
+ try {
+  // 1. Get the profiles first
+  const { data: profiles, error: profileError, count } = await supabase
+    .from("creator_profiles")
+    .select(`
+      creator_id,
+      legal_name,
       category,
-      form_data,
-      status
-    )
-  `, { count: 'exact' })
-  .eq("verification_status", status)
-  .range(rangeStart, rangeEnd);
+      status,
+      users ( email, username )
+    `, { count: 'exact' })
+    .eq("status", status)
+    .range(rangeStart, rangeEnd);
 
-    if (error) throw error;
+  if (profileError) throw profileError;
 
-    // 3. Return paginated response to the frontend [cite: 58, 66]
-    return NextResponse.json({
-      creators: data,
-      totalCount: count,
-      currentPage: page,
-      totalPages: Math.ceil((count || 0) / limit)
-    });
+  // 2. Get the submission data for these specific creators
+  const creatorIds = profiles.map(p => p.creator_id);
+  const { data: submissions } = await supabase
+    .from("verification_submissions")
+    .select("creator_id, form_data")
+    .in("creator_id", creatorIds);
 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
+  // 3. Manually merge them so the frontend gets one clean object
+  const combinedData = profiles.map(profile => ({
+    ...profile,
+    submissions: submissions?.filter(s => s.creator_id === profile.creator_id) || []
+  }));
+
+  return NextResponse.json({
+    creators: combinedData,
+    totalCount: count,
+    currentPage: page,
+    totalPages: Math.ceil((count || 0) / limit)
+  });
+
+} catch (err: any) {
+  return NextResponse.json({ error: err.message }, { status: 500 });
+}
 }

@@ -5,8 +5,8 @@ import { z } from "zod";
 
 const VerifySchema = z.object({
   target_creator_id: z.string().uuid(),
-  status: z.enum(['approved', 'rejected']),
-  notes: z.string().optional(),
+  status: z.enum(['approved', 'rejected', 'pending', 'info_requested']), 
+  notes: z.string().min(1, "Please provide a reason or instructions for the creator"),
 });
 
 export async function PUT(req: Request) {
@@ -19,8 +19,12 @@ export async function PUT(req: Request) {
   try {
     let adminId = "system";
     if (authHeader?.startsWith("Bearer ")) {
-      const decoded: any = jwtDecode(authHeader.substring(7));
-      adminId = decoded.sub;
+      try {
+        const decoded: any = jwtDecode(authHeader.substring(7));
+        adminId = decoded.sub;
+      } catch (e) {
+        // Silent catch as requested (no console.log)
+      }
     }
 
     const body = await req.json();
@@ -30,69 +34,60 @@ export async function PUT(req: Request) {
     }
 
     const { target_creator_id, status, notes } = result.data;
+    const isApproved = status === 'approved';
 
-    console.log(`Checking submission for Creator ID: ${target_creator_id}`);
+    // A. Update Creator Profile
+    const { error: profileError } = await supabase
+      .from('creator_profiles')
+      .update({ status, is_verified: isApproved })
+      .eq('creator_id', target_creator_id);
+    if (profileError) throw profileError;
 
-    // 1. Fetch submission using creator_id instead of 'id'
-    const { data: submissions, error: fetchError } = await supabase
-      .from("verification_submissions")
-      .select("creator_id, status") // Removed 'id' here
-      .eq("creator_id", target_creator_id);
-
-    if (fetchError) {
-      console.error("Supabase Fetch Error:", fetchError);
-      throw fetchError;
-    }
-
-    const pendingSub = submissions?.find(s => s.status === 'pending');
-
-    if (!pendingSub) {
-      return NextResponse.json({ 
-        error: "No pending submission found.",
-        details: submissions?.length 
-          ? `Status is currently: ${submissions[0].status}`
-          : "No record exists for this creator."
-      }, { status: 404 });
-    }
-
-    // 2. Update Submissions Table using creator_id as the key
+    // B. Update Verification Submission
     const { error: subError } = await supabase
-      .from("verification_submissions")
+      .from('verification_submissions')
       .update({ 
-        status: status,
-        admin_notes: notes || `Handled by admin: ${adminId}`,
+        status,
+        admin_notes: notes,
         reviewed_at: new Date().toISOString()
       })
-      .eq("creator_id", target_creator_id);
-
+      .eq('creator_id', target_creator_id);
     if (subError) throw subError;
 
-    // 3. Update the 'users' table
+    // C. Update Users Table
     const { error: userTableError } = await supabase
-      .from("users")
+      .from('users')
       .update({ 
-        is_verified: status === 'approved',
+        is_verified: isApproved,
         verification_status: status 
       })
-      .eq("id", target_creator_id);
-
+      .eq('id', target_creator_id);
     if (userTableError) throw userTableError;
 
-    // 4. Audit Log - Use target_creator_id as the reference
-    await supabase.from("admin_actions").insert({
-      admin_id: adminId,
-      submission_id: target_creator_id, 
-      action_type: status,
-      notes: notes || "No additional notes"
-    });
+    // 4. Update Admin Action (Upsert logic to prevent duplicates)
+    const { error: auditError } = await supabase
+      .from("admin_actions")
+      .upsert(
+        {
+          admin_id: adminId,
+          submission_id: target_creator_id, 
+          action_type: status,
+          notes: notes || `Admin action: ${status}`
+        }, 
+        { onConflict: 'submission_id' } // Tells Supabase to update if submission_id exists
+      );
+
+    if (auditError) throw new Error(`Audit log failed: ${auditError.message}`);
 
     return NextResponse.json({ 
-      message: `Creator successfully ${status}`,
+      message: `Success: Status synced to '${status}'`,
       new_status: status
     });
 
   } catch (err: any) {
-
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to sync status across tables", 
+      details: err.message 
+    }, { status: 500 });
   }
 }

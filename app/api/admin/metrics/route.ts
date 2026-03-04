@@ -8,39 +8,39 @@ export async function GET() {
   );
 
   try {
-    // 1. Fetch count of pending creators
-    const { count: pendingCount, error: pendingError } = await supabase
-      .from("users")
-      .select("*", { count: 'exact', head: true })
-      .eq("verification_status", "pending");
+    // Run all counts at the same time for better performance
+    const [pending, approved, rejected, infoRequested] = await Promise.all([
+      supabase.from("verification_submissions").select("*", { count: 'exact', head: true }).eq("status", "pending"),
+      supabase.from("verification_submissions").select("*", { count: 'exact', head: true }).eq("status", "approved"),
+      supabase.from("verification_submissions").select("*", { count: 'exact', head: true }).eq("status", "rejected"),
+      supabase.from("verification_submissions").select("*", { count: 'exact', head: true }).eq("status", "info_requested")
+    ]);
 
-    if (pendingError) throw pendingError;
+    // Check if any of the essential counts failed
+    if (pending.error) throw pending.error;
+    if (approved.error) throw approved.error;
 
-    // 2. Fetch count of approved creators
-    const { count: approvedCount, error: approvedError } = await supabase
-      .from("users")
-      .select("*", { count: 'exact', head: true })
-      .eq("verification_status", "approved");
-
-    if (approvedError) throw approvedError;
-
-    // 3. Fetch count of rejected applications (optional but helpful)
-    const { count: rejectedCount } = await supabase
-      .from("users")
-      .select("*", { count: 'exact', head: true })
-      .eq("verification_status", "rejected");
+    const pCount = pending.count || 0;
+    const aCount = approved.count || 0;
+    const rCount = rejected.count || 0;
+    const iCount = infoRequested.count || 0;
 
     return NextResponse.json({
       metrics: {
-        total_pending: pendingCount || 0,
-        total_approved: approvedCount || 0,
-        total_rejected: rejectedCount || 0,
-        total_users_tracked: (pendingCount || 0) + (approvedCount || 0) + (rejectedCount || 0)
+        total_pending: pCount,
+        total_approved: aCount,
+        total_rejected: rCount,
+        total_info_requested: iCount,
+        total_submissions: pCount + aCount + rCount + iCount
       },
       timestamp: new Date().toISOString()
     });
 
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Return the actual error object or a string if message is empty
+    return NextResponse.json({ 
+      error: err.message || "An unknown database error occurred",
+      details: err 
+    }, { status: 500 });
   }
 }
