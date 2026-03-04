@@ -1,17 +1,11 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
-// Sprint 2: Maps a raw Supabase row into the nested shape requested by spec
-function transformRow(row: Record<string, unknown>) {
-    return {
-        id: row.creator_id,
-        full_name: row.full_name || (row.form_data as any)?.full_name || 'Unknown',
-        verification_submissions: {
-            form_data: (row.form_data as Record<string, unknown>) ?? {}
-        }
-    };
-}
-
+/**
+ * GET /api/admin/verifications/[id]
+ * Detail Review — Fetches the full submission data for a specific creator ID,
+ * including the JSONB form details and storage URLs for documents.
+ */
 export async function GET(
     _req: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -20,9 +14,8 @@ export async function GET(
         const { id } = await params;
 
         // ─────────────────────────────────────────────────────────────────
-        // TODO: Backend Proxy for GET /api/admin/creators/[id]
-        //
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/creators/${id}`, {
+        // TODO: Backend Proxy
+        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verifications/${id}`, {
         //      method: 'GET',
         //      headers: { 'Authorization': `Bearer ${adminJwt}` },
         //  });
@@ -31,6 +24,7 @@ export async function GET(
         // ─────────────────────────────────────────────────────────────────
 
         const supabase = await createClient();
+
         const { data, error } = await supabase
             .from('verification_submissions')
             .select('*')
@@ -38,10 +32,30 @@ export async function GET(
             .single();
 
         if (error || !data) {
-            return NextResponse.json({ error: 'Creator not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Verification not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ data: transformRow(data) });
+        // Return the full row including form_data JSONB and storage URLs
+        const fd = (data.form_data as Record<string, unknown>) ?? {};
+
+        return NextResponse.json({
+            data: {
+                id: data.creator_id,
+                category: data.category,
+                status: data.status,
+                created_at: data.created_at,
+                form_data: fd,
+                documents: {
+                    id_url: fd.id_url ?? null,
+                    selfie_url: fd.selfie_url ?? null,
+                    endorsement_url: fd.endorsement_url ?? null,
+                    verification_video_url: fd.verification_video_url ?? null,
+                    distributor_proof_url: fd.distributor_proof_url ?? null,
+                    production_proof_url: fd.production_proof_url ?? null,
+                    food_license_url: fd.food_license_url ?? null,
+                },
+            },
+        });
     } catch (err) {
         console.error('Unexpected error:', err);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
