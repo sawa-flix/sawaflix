@@ -52,6 +52,8 @@ export async function signInWithPassword(formData) {
       success: true,
       message: 'Login successful',
       user: data.user,
+      access_token: data.session?.access_token,
+      refresh_token: data.session?.refresh_token,
       redirectTo: '/dashboard'
     };
 

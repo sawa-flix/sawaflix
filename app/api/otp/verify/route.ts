@@ -57,6 +57,7 @@ export async function POST(req: Request) {
             .select("verification_status, role")
             .eq("email", email)
             .single();
+        console.log(`${user.verification_status} ${user.role}`);
 
         if (fetchError || !user) {
             console.error("Error fetching user:", fetchError);
