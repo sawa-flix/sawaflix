@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +41,8 @@ export default function Home() {
         );
     }
 >>>>>>> 89c67160f2cda8cb7ddb4eab395fe200b75cb759
+=======
+>>>>>>> db2f4b06e0888003a9398e6f4bd2fa398cc3ac28
 
     return (
         <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">

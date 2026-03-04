@@ -22,7 +22,7 @@ export async function middleware(request) {
       if (isPublicRoute) return response
 
       // Everything else requires login
-      const redirectUrl = new URL('/login', request.url)
+      const redirectUrl = new URL('/Creator-dashboard', request.url)
       redirectUrl.searchParams.set('redirectedFrom', pathname)
       return NextResponse.redirect(redirectUrl)
     }
@@ -75,7 +75,7 @@ export async function middleware(request) {
     }
 
     // OTP verify page
-    if (pathname.startsWith('/verify-otp')) {
+    if (pathname.startsWith('/login')) {
       // Already verified users don't need to be here
       if (profile.verification_status === 'approved') {
         if (profile.role === 'admin') {

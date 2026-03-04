@@ -4,13 +4,14 @@ import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithPassword, resetPassword, checkAuth } from '../actions';
+import { signInWithGoogle } from '../actions';
 
 const SubmitButton = ({ children, isLoading }) => {
   return (
     <button
       type="submit"
       disabled={isLoading}
-      className="w-full flex items-center justify-center bg-red-700 hover:bg-red-600 disabled:bg-red-900 text-white font-bold py-3 sm:py-4 px-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-500/70 active:scale-95 disabled:transform-none disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center bg-red-700 hover:bg-red-600 disabled:bg-red-900 text-white font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-500/70 active:scale-95 disabled:transform-none disabled:cursor-not-allowed"
     >
       {isLoading ? (
         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -218,7 +219,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden font-inter">
+    <div className="h-screen w-full relative overflow-hidden font-inter">
       <Image
         src="/hero-bg.png"
         alt="Background"
@@ -233,7 +234,7 @@ export default function LoginPage() {
       />
       <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
-      <div className="relative z-20 flex items-center justify-center min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+      <div className="relative z-20 flex items-center justify-center h-screen px-4 py-4 sm:px-6 lg:px-8">
         <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl shadow-red-500/50">
           <div className="absolute inset-0 z-0 animate-spin-border-gradient" style={{
             background: 'conic-gradient(from var(--angle), #000000 0%, #ff0000 10%, #8b0000 20%, #000000 30%, #000000 100%)',
@@ -244,8 +245,8 @@ export default function LoginPage() {
             WebkitMaskComposite: 'exclude'
           }}></div>
 
-          <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-3xl p-8 sm:p-10 md:p-12 w-full border border-gray-800">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white text-center mb-8 tracking-wide drop-shadow-[0_0_8px_rgba(255,0,0,0.7)]">
+          <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-3xl p-6 sm:p-8 w-full border border-gray-800">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-4 tracking-wide drop-shadow-[0_0_8px_rgba(255,0,0,0.7)]">
               Sign In
             </h1>
 
@@ -281,7 +282,7 @@ export default function LoginPage() {
 
             {!isRedirecting && (
               <>
-                <form onSubmit={handleFormSubmit} className="space-y-6 sm:space-y-8">
+                <form onSubmit={handleFormSubmit} className="space-y-2 sm:space-y-3">
                   <div>
                     <input
                       type="email"
@@ -289,18 +290,19 @@ export default function LoginPage() {
                       placeholder="Email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-5 py-3 sm:py-4 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
+                      className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
                       required
                       disabled={isLoading || isGoogleLoading}
                       autoComplete="email"
                     />
                   </div>
+
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
                       placeholder="Password"
-                      className="w-full px-5 py-3 sm:py-4 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950 pr-12"
+                      className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950 pr-12"
                       required
                       disabled={isLoading || isGoogleLoading}
                       autoComplete="current-password"
@@ -324,7 +326,7 @@ export default function LoginPage() {
                       )}
                     </button>
                   </div>
-                  <div className="flex items-center justify-between text-sm sm:text-base">
+                  <div className="flex items-center justify-between text-xs sm:text-sm">
                     <label className="flex items-center text-gray-300 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -349,7 +351,7 @@ export default function LoginPage() {
                   </SubmitButton>
                 </form>
 
-                <div className="relative my-8">
+                <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-700"></div>
                   </div>
@@ -363,7 +365,7 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={isGoogleLoading || isLoading || isRedirecting}
-                      className="w-full flex items-center justify-center px-5 py-3 sm:py-4 bg-gray-900 border border-gray-700 rounded-xl text-white hover:bg-gray-800 disabled:bg-gray-800 transition-all duration-200 shadow-md hover:shadow-red-500/30 disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-center px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white hover:bg-gray-800 disabled:bg-gray-800 transition-all duration-200 shadow-md hover:shadow-red-500/30 disabled:cursor-not-allowed"
                     >
                       {isGoogleLoading ? (
                         <svg className="animate-spin h-5 w-5 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -385,19 +387,18 @@ export default function LoginPage() {
                   </form>
                 </div>
 
-                <div className="text-gray-400 text-center mt-8 text-sm sm:text-base">
-                  Are you new to SawaFlix?{' '}
-                  <Link
-                    href="/sign-up"
-                    className="text-red-500 hover:underline hover:text-red-400 transition-colors font-medium"
-                    onClick={(e) => {
-                      if (isLoading || isGoogleLoading || isRedirecting) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    Sign up
-                  </Link>
+                <div className="text-gray-400 text-center mt-4 text-sm sm:text-base space-y-1">
+                  <p>
+                    Are you new to SawaFlix?{" "}
+                    <Link
+                      href="/sign-up"
+                      className="text-red-500 hover:underline hover:text-red-400 transition-colors font-medium"
+                    >
+                      Sign up
+                    </Link>
+                  </p>
+
+
                 </div>
               </>
             )}
