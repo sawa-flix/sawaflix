@@ -8,6 +8,7 @@ export async function POST(req: Request) {
     try {
         const { email } = await req.json();
 
+<<<<<<< HEAD
         // Input validation
         if (!email) {
             return NextResponse.json(
@@ -30,6 +31,23 @@ export async function POST(req: Request) {
 
         // Store in Redis with 5-minute expiration
         await redis.set(`otp:${email}`, otp, { ex: 300 });
+=======
+        if (rateLimit) {
+            const { success } = await rateLimit.limit(`otp_limit:${email}`)
+            if (!success) {
+                return NextResponse.json(
+                    { error: "Too many requests. Try again in an hour." },
+                    { status: 429 }
+                )
+            }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        if (redis) {
+            await redis.set(`otp:${email}`, otp, { ex: 300})
+        }
+>>>>>>> 82d1c9168819be76a06979fc555fa3d2d3adeb9b
 
         // Send via SendGrid
         await sgMail.send({

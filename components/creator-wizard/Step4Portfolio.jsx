@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { uploadFile } from '../../lib/verification';
 
 const FieldError = ({ message }) => message ? (
     <p className="text-red-400 text-[10px] mt-0.5 ml-1 font-medium flex items-center gap-1">
@@ -16,6 +17,7 @@ const inputStyle = {
 
 const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, errors = {} }) => {
     const recordings = data.recordings || [{}, {}, {}];
+    const [uploading, setUploading] = useState({}); // { 'rec0': true, 'id': true }
 
     const handleRecordingChange = (index, field, value) => {
         const newRecordings = [...recordings];
@@ -23,9 +25,24 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
         updatePortfolio({ recordings: newRecordings });
     };
 
-    const handleFileChange = (field, e) => {
-        const file = e.target.files[0];
-        if (file) updateDocuments({ [field]: file });
+    const handleFileUpload = async (type, file, index = null) => {
+        const key = index !== null ? `rec${index}` : type;
+        setUploading(prev => ({ ...prev, [key]: true }));
+        try {
+            const { url } = await uploadFile(file, index !== null ? 'recording' : type);
+            if (index !== null) {
+                handleRecordingChange(index, 'file_url', url);
+                handleRecordingChange(index, 'file_name', file.name);
+            } else {
+                updateDocuments({ [`${type}_url`]: url, [`${type}_name`]: file.name });
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert(`Upload failed: ${error.message}`);
+        } finally {
+
+            setUploading(prev => ({ ...prev, [key]: false }));
+        }
     };
 
     return (
@@ -33,8 +50,8 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
             {/* Header */}
             <div>
                 <h2 className="text-base font-black text-white text-center leading-tight">Show Us Your Voice. Tell Us Your Story</h2>
-                <p className="text-white font-bold text-xs mt-1">Submit at least 3 sample recordings.</p>
-                <p className="text-red-400 text-[10px] italic font-medium">Your recordings help us understand your storytelling style, originality and impact.</p>
+                <p className="text-white font-bold text-xs mt-1">You may submit sample recordings of your craft.</p>
+                <p className="text-gray-500 text-[10px] italic font-medium tracking-tight">Optional: Your recordings help us understand your storytelling style, originality and impact.</p>
             </div>
 
             {/* Cards container */}
@@ -43,6 +60,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                 <div className="grid grid-cols-3 gap-2">
                     {[0, 1, 2].map((index) => {
                         const rec = recordings[index] || {};
+                        const isUploading = uploading[`rec${index}`];
                         return (
                             <div key={index} className="rounded-xl p-3 flex flex-col gap-2" style={{ backgroundColor: '#1a1f2b', border: '1px solid rgba(255,255,255,0.07)' }}>
                                 {/* Card header */}
@@ -55,17 +73,22 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
 
                                 {/* Upload file button */}
                                 <div className="relative">
-                                    <label className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-full cursor-pointer text-[10px] font-bold text-white hover:opacity-80 transition-all" style={{ backgroundColor: '#2a3040', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                        </svg>
-                                        {rec.file ? rec.file.name.slice(0, 8) + '…' : 'Upload file'}
+                                    <label className={`flex items-center justify-center gap-1.5 w-full py-1.5 rounded-full cursor-pointer text-[10px] font-bold text-white hover:opacity-80 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ backgroundColor: '#2a3040', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        {isUploading ? (
+                                            <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full" />
+                                        ) : (
+                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                            </svg>
+                                        )}
+                                        {rec.file_name ? rec.file_name.slice(0, 8) + '…' : (isUploading ? 'Uploading...' : 'Upload file')}
                                         <input
                                             type="file"
-                                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                                            disabled={isUploading}
+                                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer disabled:cursor-not-allowed"
                                             onChange={(e) => {
                                                 const file = e.target.files[0];
-                                                if (file) handleRecordingChange(index, 'file', file);
+                                                if (file) handleFileUpload('recording', file, index);
                                             }}
                                         />
                                     </label>
@@ -114,7 +137,8 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                 </div>
 
                 {/* Footer hint */}
-                <p className="text-center text-gray-600 text-[10px] font-medium">minimum 3 recordings required</p>
+                <p className="text-center text-gray-500 text-[10px] font-bold uppercase tracking-wider">Samples are optional</p>
+                <FieldError message={errors.recordings} />
             </div>
 
             {/* Government ID – compact single row */}
@@ -124,20 +148,32 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                     {/* Required: Gov ID */}
                     <div>
                         <div
-                            className="relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden transition-all"
+                            className={`relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden transition-all ${uploading.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                             style={{
                                 backgroundColor: errors.id ? 'rgba(127,0,0,0.15)' : '#141820',
                                 border: `1px solid ${errors.id ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.06)'}`,
                             }}
                         >
-                            <input type="file" onChange={(e) => handleFileChange('id', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                            <input 
+                                type="file" 
+                                disabled={uploading.id}
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) handleFileUpload('id', file);
+                                }} 
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
+                            />
                             <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-red-500" style={{ backgroundColor: 'rgba(220,38,38,0.1)' }}>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
+                                {uploading.id ? (
+                                    <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent animate-spin rounded-full" />
+                                ) : (
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                )}
                             </div>
                             <div>
-                                <p className="text-white font-bold text-[9px]">{documents.id?.name ? documents.id.name.slice(0,14) + '…' : 'Government ID'}</p>
+                                <p className="text-white font-bold text-[9px]">{documents.id_name ? documents.id_name.slice(0, 14) + '…' : (uploading.id ? 'Uploading...' : 'Government ID')}</p>
                                 <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Required</p>
                             </div>
                         </div>
@@ -145,15 +181,27 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                     </div>
 
                     {/* Optional: Endorsements */}
-                    <div className="relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden" style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <input type="file" onChange={(e) => handleFileChange('endorsements', e)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                    <div className={`relative rounded-xl p-2.5 flex items-center gap-2 cursor-pointer overflow-hidden ${uploading.endorsements ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <input 
+                            type="file" 
+                            disabled={uploading.endorsements}
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) handleFileUpload('endorsements', file);
+                            }} 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
+                        />
                         <div className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-gray-500" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
-                            </svg>
+                            {uploading.endorsements ? (
+                                <div className="w-3.5 h-3.5 border-2 border-gray-500 border-t-transparent animate-spin rounded-full" />
+                            ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                            )}
                         </div>
                         <div>
-                            <p className="text-white font-bold text-[9px]">{documents.endorsements?.name ? documents.endorsements.name.slice(0,14) + '…' : 'Endorsements'}</p>
+                            <p className="text-white font-bold text-[9px]">{documents.endorsements_name ? documents.endorsements_name.slice(0, 14) + '…' : (uploading.endorsements ? 'Uploading...' : 'Endorsements')}</p>
                             <p className="text-gray-600 text-[8px] font-bold uppercase tracking-wider">Optional</p>
                         </div>
                     </div>
@@ -164,3 +212,4 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
 };
 
 export default Step4Portfolio;
+

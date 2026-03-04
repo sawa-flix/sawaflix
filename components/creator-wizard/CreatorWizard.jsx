@@ -8,8 +8,8 @@ import Step2Identity from './Step2Identity';
 import Step3Professional from './Step3Professional';
 import Step4Portfolio from './Step4Portfolio';
 import Step5Summary from './Step5Summary';
-
-const STORAGE_KEY = 'sawaflix_creator_wizard_draft_v2';
+import { getDraft, saveDraft, submitVerification } from '../../lib/verification';
+import { useRouter } from 'next/navigation';
 
 const steps = [
     { id: 1, name: 'Category' },
@@ -26,33 +26,53 @@ const CreatorWizard = () => {
         identity: {},
         professional: {},
         portfolio: { recordings: [], links: [] },
-        documents: { id: null, endorsements: null }
+        documents: { id_url: null, id_name: null, endorsements_url: null, endorsements_name: null }
     });
     const [isLoaded, setIsLoaded] = useState(false);
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
+        const loadDraft = async () => {
             try {
-                const { step, data } = JSON.parse(saved);
-                setCurrentStep(step || 1);
-                setFormData(data || formData);
+                const draft = await getDraft();
+                if (draft && draft.data) {
+                    const { category, status, formData: savedData } = draft.data;
+                    
+                    // Redirect if already submitted or processed
+                    if (status === 'pending') {
+                        router.push('/creator/pending');
+                        return;
+                    } else if (status === 'approved' || status === 'rejected') {
+                        router.push('/dashboard');
+                        return;
+                    }
+
+                    if (savedData) {
+                        setFormData(prev => ({ ...prev, ...savedData }));
+                        setCurrentStep(savedData.step || 1);
+                    } else if (category) {
+                        setFormData(prev => ({ ...prev, category }));
+                    }
+                }
             } catch (e) {
                 console.error("Failed to load draft", e);
+            } finally {
+                setIsLoaded(true);
             }
-        }
-        setIsLoaded(true);
+        };
+        loadDraft();
     }, []);
 
-    useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                step: currentStep,
-                data: formData
-            }));
+    const persistDraft = async (step, data) => {
+        try {
+            await saveDraft({
+                category: data.category || 'unspecified',
+                form_data: { ...data, step }
+            });
+        } catch (e) {
+            console.error("Failed to save draft", e);
         }
-    }, [currentStep, formData, isLoaded]);
+    };
 
     const updateFormData = (key, data) => {
         setFormData(prev => ({
@@ -92,35 +112,59 @@ const CreatorWizard = () => {
             if (!pro.experienceTime) newErrors.experienceTime = "Experience is required.";
             if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Bio must be at least 10 characters.";
         } else if (step === 4) {
-            if (!formData.documents?.id) newErrors.id = "Please upload your Government ID to continue.";
+            if (!formData.documents?.id_url) newErrors.id = "Please upload your Government ID to continue.";
+            
+            // Recording requirement removed as per user request
+            /*
+            const portfolio = formData.portfolio || {};
+            const recordings = portfolio.recordings || [];
+            const validRecordings = recordings.filter(r => r.file_url && r.title && r.description);
+            if (validRecordings.length < 3) {
+                newErrors.recordings = "Please provide at least 3 sample recordings with titles and descriptions.";
+            }
+            */
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (validateStep(currentStep)) {
-            setCurrentStep(prev => Math.min(prev + 1, steps.length));
+            const nextStep = Math.min(currentStep + 1, steps.length);
+            setCurrentStep(nextStep);
+            await persistDraft(nextStep, formData);
         }
     };
 
-    const handleBack = () => {
-        setCurrentStep(prev => Math.max(prev - 1, 1));
+    const handleBack = async () => {
+        const prevStep = Math.max(currentStep - 1, 1);
+        setCurrentStep(prevStep);
+        await persistDraft(prevStep, formData);
         setErrors({});
     };
 
+    const router = useRouter();
+
     const handleSubmit = async () => {
-        console.log("Submitting:", formData);
-        alert("Verification submitted successfully!");
-        localStorage.removeItem(STORAGE_KEY);
+        try {
+            console.log("Submitting:", formData);
+            await submitVerification({
+                category: formData.category,
+                form_data: formData
+            });
+            // success logic: redirect to creator pending dashboard
+            router.push('/creator/pending');
+        } catch (error) {
+            console.error("Submission failed", error);
+            alert("Failed to submit verification. Please try again.");
+        }
     };
 
     if (!isLoaded) return null;
 
     return (
         <div className="h-screen w-full flex flex-col overflow-hidden" style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#0B0E14' }}>
-            {/* Top Navigation */}
             <nav style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', backgroundColor: '#0B0E14' }} className="h-14 px-8 flex items-center justify-between flex-shrink-0 z-30">
                 <div className="flex items-center gap-2">
                     <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
@@ -130,14 +174,9 @@ const CreatorWizard = () => {
                     </div>
                     <span className="text-lg font-black text-white tracking-tight">SawaFlix</span>
                 </div>
-                <div className="flex items-center gap-4">
-                    <button className="text-gray-400 hover:text-white font-semibold transition-colors text-sm">Login</button>
-                    <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-full font-bold text-sm transition-colors">Get Started</button>
-                </div>
             </nav>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* ===== LEFT PANEL ===== */}
                 <div className="hidden lg:block w-[40%] flex-shrink-0 relative overflow-hidden">
                     <img
                         src="/images/image.png"
@@ -164,17 +203,13 @@ const CreatorWizard = () => {
                     </div>
                 </div>
 
-                {/* ===== RIGHT PANEL ===== */}
                 <div className="flex-1" style={{ backgroundColor: '#0B0E14' }}>
                     <div className="h-full overflow-y-auto px-6 lg:px-10 py-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         <div className="max-w-lg mx-auto">
-
-                            {/* Progress Bar */}
                             <div className="flex-shrink-0 mb-8">
                                 <ProgressBar currentStep={currentStep} steps={steps} />
                             </div>
 
-                            {/* Step Content */}
                             <div className="flex-1">
                                 <AnimatePresence mode="wait">
                                     <motion.div
@@ -224,7 +259,6 @@ const CreatorWizard = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Navigation Footer */}
                             <div className="flex-shrink-0 mt-6">
                                 <div className="flex justify-between items-center mb-6">
                                     {currentStep > 1 ? (
@@ -250,7 +284,6 @@ const CreatorWizard = () => {
                                     )}
                                 </div>
 
-                                {/* Bottom info cards */}
                                 <div className="grid grid-cols-2 gap-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                                     <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ backgroundColor: '#141820', border: '1px solid rgba(255,255,255,0.05)' }}>
                                         <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(220,38,38,0.1)' }}>

@@ -2,6 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import Header from './Header';
 import LeftSidebar from './leftsidebar';
+import CreatorSidebar from './CreatorSidebar';
 import RightSidebar from './rightsidebar';
 
 import { MusicProvider } from '../MusicContext';
@@ -9,6 +10,30 @@ import BottomPlayer from '../BottomPlayer';
 
 const DashboardWrapper = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
+  React.useEffect(() => {
+    const checkCreatorStatus = async () => {
+        try {
+            const visitorId = localStorage.getItem('sawaflix_visitor_id');
+            const res = await fetch('/api/creator/profile', {
+                headers: visitorId ? { 'x-visitor-id': visitorId } : {}
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUserProfile(data);
+                // If they have any status other than 'none', treat them as a creator for the sidebar
+                if (data.verificationStatus && data.verificationStatus !== 'none') {
+                    setIsCreator(true);
+                }
+            }
+        } catch (err) {
+            console.error("Error checking creator status:", err);
+        }
+    };
+    checkCreatorStatus();
+  }, []);
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -20,11 +45,11 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <MusicProvider>
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#0B0E14]">
         {/* Header */}
-        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+        {!isCreator && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        <div className="flex pt-16"> {/* pt-16 to account for fixed header */}
+        <div className={`flex ${isCreator ? 'pt-0' : 'pt-16'}`}> {/* pt-16 to account for fixed header, pt-0 for creator */}
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -42,29 +67,35 @@ const DashboardWrapper = ({ children }) => {
           {/* Left Sidebar */}
           <aside
             className={`
-              fixed lg:sticky top-16 left-0 z-50 lg:z-auto
-              w-64 h-[calc(100vh-4rem)] bg-gray-900
+              fixed lg:sticky top-0 left-0 z-50 lg:z-auto
+              w-64 ${isCreator ? 'h-screen' : 'h-[calc(100vh-4rem)]'} bg-[#0B0E14]
               transform transition-transform duration-300 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0 lg:block
               overflow-y-auto scrollbar-none
-              border-r border-gray-800
+              border-r border-white/5
             `}
           >
-            <LeftSidebar onNavigate={closeSidebar} />
+            {isCreator ? (
+                <CreatorSidebar userProfile={userProfile} />
+            ) : (
+                <LeftSidebar onNavigate={closeSidebar} />
+            )}
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1 min-h-[calc(100vh-4rem)] overflow-auto bg-[#0f1729] rounded-tl-2xl rounded-bl-2xl">
+          <main className={`flex-1 ${isCreator ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0f1729] rounded-tl-3xl rounded-bl-3xl`}>
             <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> {/* Added pb-32 for bottom player space */}
               {children}
             </div>
           </main>
 
           {/* Right Sidebar */}
-          <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-gray-800">
-            <RightSidebar />
-          </aside>
+          {!isCreator && (
+            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-gray-800">
+                <RightSidebar />
+            </aside>
+          )}
         </div>
 
         {/* Persistent Player */}
