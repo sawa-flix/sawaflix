@@ -4,14 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signInWithPassword, resetPassword, checkAuth, signInWithGoogle } from '@/app/(auth)/actions';
+import { signInWithPassword, resetPassword, checkAuth } from '@/app/(auth)/actions';
 
 import { Suspense } from 'react';
 
-/**
- * SubmitButton Component
- * Handles the loading state and styling for auth buttons
- */
 const AuthButton = ({ children, isLoading, variant = 'primary', className = '', ...props }) => {
   const baseStyles = "w-full flex items-center justify-center font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:transform-none disabled:cursor-not-allowed shadow-lg";
 
@@ -45,7 +41,6 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
