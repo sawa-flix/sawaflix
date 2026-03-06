@@ -117,9 +117,13 @@ const VerifyOtpPage = () => {
       if (res.ok) {
         setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting...' });
 
-        // Auto redirect to dashboard after a short delay
+        // Auto redirect after a short delay
         setTimeout(() => {
-          router.push('/dashboard');
+          if (data.pendingReview) {
+            router.push('/creator/pending');
+          } else {
+            router.push('/dashboard');
+          }
         }, 2000);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });

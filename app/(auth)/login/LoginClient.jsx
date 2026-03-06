@@ -111,8 +111,22 @@ function LoginContent() {
         setIsLoading(false);
       } else if (result?.success) {
         setIsRedirecting(true);
-        // Result contains redirectTo from actions.js
-        const destination = result.redirectTo || '/dashboard';
+
+        // Use user metadata for intelligent redirection
+        const user = result.user;
+        const role = user?.user_metadata?.category || user?.user_metadata?.role || 'client';
+        // Note: actions.js signInWithPassword doesn't fetch profile, but sign-up does set verification_status in metadata usually
+        // However, middleware handles the granular status usually. We can do a best-effort here or rely on result.redirectTo
+
+        let destination = result.redirectTo || '/dashboard';
+
+        if (role === 'admin') {
+          destination = '/admin';
+        } else if (role === 'creator') {
+          // Default for creators if not specified
+          destination = '/Creator-dashboard';
+        }
+
         router.push(destination);
       }
     } catch (err) {
@@ -295,16 +309,6 @@ function LoginContent() {
                   </AuthButton>
                 </form>
 
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-700"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-black/85 text-gray-400 font-medium">or</span>
-                  </div>
-                </div>
-
-
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base">
                   <p>
                     Are you new to SawaFlix?{" "}
@@ -339,16 +343,9 @@ function LoginContent() {
           font-family: 'Inter', sans-serif;
         }
 
-        @property --angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-
         @keyframes rotate-gradient {
-          to {
-            --angle: 360deg;
-          }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         @keyframes fadeIn {
@@ -364,6 +361,7 @@ function LoginContent() {
 
         .animate-spin-border-gradient {
           animation: rotate-gradient 8s linear infinite;
+          transform-origin: center;
         }
 
         .animate-fadeIn {
