@@ -11,7 +11,7 @@ export async function middleware(request) {
     const { data: { user } } = await supabase.auth.getUser()
     const { pathname } = request.nextUrl
 
-    const publicRoutes = ['/', '/login', '/sign-up', '/sign-in']
+    const publicRoutes = ['/', '/login', '/sign-up', '/sign-in', '/verify-otp']
     const authRoutes = ['/login', '/sign-up', '/sign-in']
     const isPublicRoute = publicRoutes.includes(pathname)
     const isAuthRoute = authRoutes.includes(pathname)
@@ -22,7 +22,7 @@ export async function middleware(request) {
       if (isPublicRoute) return response
 
       // Everything else requires login
-      const redirectUrl = new URL('/Creator-dashboard', request.url)
+      const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectedFrom', pathname)
       return NextResponse.redirect(redirectUrl)
     }
