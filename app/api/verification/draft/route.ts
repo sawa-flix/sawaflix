@@ -1,69 +1,69 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js"; // Add this for testing support
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
+
+export const dynamic = "force-dynamic";
 
 export async function PUT(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-  const cookieStore = await cookies();
-  
-  let supabase: SupabaseClient;
-  let finalUserId: string | null = null;
+  try {
+    const authHeader = req.headers.get("Authorization");
+    const cookieStore = await cookies(); // FIX 1: Added await
+    let supabase;
 
-  // 1. DYNAMIC AUTHENTICATION
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.substring(7);
-    try {
-      const decoded: any = jwtDecode(token);
-      // Ensure we have a valid ID. Fallback to your test ID only if it's the service role.
-      finalUserId = decoded.sub || (decoded.role === "service_role" ? "b21d3e41-f405-46bc-b144-319669ec3e0d" : null);
-
+    // FIX 2: Support for both Browser and Insomnia/Service Role testing
+    if (authHeader?.startsWith("Bearer ")) {
       supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY! // Admin access for backend ops
+        process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use Service Role for backend overrides
+        { global: { headers: { Authorization: authHeader } } }
       );
-    } catch (e) {
-      return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
+    } else {
+      supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     }
-  } else {
-    // Standard Browser Session
-    supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) finalUserId = user.id;
-  }
 
-  if (!finalUserId) {
-    return NextResponse.json({ error: "Unauthorized: No User ID found" }, { status: 401 });
-  }
+    // 1. Authenticate user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  try {
+    if (!user || authError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const creatorId = user.id;
+
+    // 2. Parse request body safely
     const body = await req.json().catch(() => ({}));
 
-    // 2. PRODUCTION GUARD: Prevent overwriting a 'pending' or 'approved' submission
-    // We only want to 'upsert' if the current status is 'draft' or 'info_requested'
-    const { data: existing } = await supabase
+    const category = body.category || "General";
+    const formData = body.form_data || body.formData || {};
+
+    // 3. Check existing submission status
+    const { data: existingSubmission } = await supabase
       .from("verification_submissions")
       .select("status")
-      .eq("creator_id", finalUserId)
-      .single();
+      .eq("creator_id", creatorId)
+      .maybeSingle();
 
-    if (existing && (existing.status === 'pending' || existing.status === 'approved')) {
-      return NextResponse.json({ 
-        error: "Forbidden", 
-        details: "Cannot edit a submission that is currently under review or already approved." 
-      }, { status: 403 });
+    // 4. Prevent editing locked submissions (Security Guard)
+    if (existingSubmission && (existingSubmission.status === "pending" || existingSubmission.status === "approved")) {
+      return NextResponse.json(
+        { 
+          error: "Submission locked", 
+          message: "Cannot edit a submission that is pending review or already approved." 
+        }, 
+        { status: 403 }
+      );
     }
 
-    // 3. THE UPSERT
+    // 5. Upsert draft (Create or Update)
     const { data, error } = await supabase
       .from("verification_submissions")
       .upsert(
         {
-          creator_id: finalUserId,
-          category: body.category || "General",
-          form_data: body.form_data || body.formData || {}, 
-          status: 'draft', // Reset to draft if they were in 'info_requested' mode
+          creator_id: creatorId,
+          category: category,
+          form_data: formData,
+          status: "draft",
           updated_at: new Date().toISOString(),
         },
         { onConflict: "creator_id" }
@@ -73,18 +73,16 @@ export async function PUT(req: Request) {
 
     if (error) throw error;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: "Draft saved successfully", 
-      userId: finalUserId,
-      data 
+      message: "Draft saved successfully",
+      data,
     });
-
   } catch (err: any) {
     console.error("Draft Save Error:", err);
-    return NextResponse.json({ 
-      error: "Database error", 
-      details: err.message 
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error", details: err.message },
+      { status: 500 }
+    );
   }
 }
