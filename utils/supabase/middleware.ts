@@ -3,9 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export const createClient = (request: NextRequest) => {
   const response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request,
   })
 
   const supabase = createServerClient(

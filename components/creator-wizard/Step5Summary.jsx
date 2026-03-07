@@ -63,6 +63,7 @@ const Step5Summary = ({ formData, onSubmit }) => {
                             <div key={i} className="bg-black/20 p-2 rounded-lg border border-white/5">
                                 <p className="text-[8px] font-black text-red-600 mb-0.5 uppercase">Entry {i + 1}</p>
                                 <p className="font-bold text-gray-300 text-[9px] truncate">{rec.title || 'Untitled'}</p>
+                                {rec.file_name && <p className="text-gray-500 text-[8px] truncate">{rec.file_name}</p>}
                             </div>
                         ))}
                     </div>
@@ -72,13 +73,13 @@ const Step5Summary = ({ formData, onSubmit }) => {
                             <div className="w-5 h-5 bg-green-900/20 text-green-500 rounded flex items-center justify-center border border-green-800/20">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                             </div>
-                            <span className="text-gray-300 font-bold text-[9px] truncate">{documents.id?.name || 'ID Uploaded'}</span>
+                            <span className="text-gray-300 font-bold text-[9px] truncate">{documents.id_name || 'ID Uploaded'}</span>
                         </div>
                         <div className="flex items-center gap-2 bg-black/20 p-2 rounded-lg border border-white/5">
                             <div className="w-5 h-5 bg-blue-900/20 text-blue-500 rounded flex items-center justify-center border border-blue-800/20">
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <span className="text-gray-300 font-bold text-[9px] truncate">{documents.endorsements?.name || 'No Endorsements'}</span>
+                            <span className="text-gray-300 font-bold text-[9px] truncate">{documents.endorsements_name || 'No Endorsements'}</span>
                         </div>
                     </div>
                 </div>

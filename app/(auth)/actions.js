@@ -52,6 +52,8 @@ export async function signInWithPassword(formData) {
       success: true,
       message: 'Login successful',
       user: data.user,
+      access_token: data.session?.access_token,
+      refresh_token: data.session?.refresh_token,
       redirectTo: '/dashboard'
     };
 
@@ -72,30 +74,29 @@ export async function signInWithPassword(formData) {
 }
 
 export async function signUpWithPassword(formData) {
+  const email = formData.get('email');
+  const password = formData.get('password');
+  const username = formData.get('username');
+  const category = formData.get('category');
+  const phone = formData.get('phone');
+
+  // 1. Basic Validation
+  if (!email || !password) {
+    return { error: 'Email and password are required' };
+  }
+
+  if (password.length < 6) {
+    return { error: 'Password must be at least 6 characters long' };
+  }
+
   try {
-    //getting tthe content from the incoming Data
-    const email = formData.get('email');
-    const password = formData.get('password');
-    const username = formData.get('username');
-    const category = formData.get('category');
-    const phone = formData.get('phone');
-
-    if (!email || !password) {
-      return { error: 'Email and password are required' };
-    }
-
-    if (password.length < 6) {
-      return { error: 'Password must be at least 6 characters long' };
-    }
-
     const supabase = await createClient();
 
-    // metadata that will be stored in the users.auth by supabase
     const emailStr = email?.toString() || "";
     const userMetadata = {
       username: username || emailStr.split('@')[0],
-      ...(category && { category: category }),
-      ...(phone && { phone: phone}),
+      category: category || 'client',
+      phone: phone || null,
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -103,121 +104,30 @@ export async function signUpWithPassword(formData) {
       password: password.toString(),
       options: {
         data: userMetadata,
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
       },
     });
 
     if (error) {
       console.error('🔴 Sign up error:', error.message);
-
-      // User-friendly error messages
       let userMessage = error.message;
+
       if (error.message.includes('already registered')) {
         userMessage = 'This email is already registered. Please sign in instead.';
       } else if (error.message.includes('invalid email')) {
         userMessage = 'Please enter a valid email address.';
-      } else if (error.message.includes('password')) {
-        userMessage = 'Password must be at least 6 characters.';
       }
-
       return { error: userMessage };
     }
 
-    // the data is uploaded to the users table hrere
-    if (data.user) {
-      //client is the default role, if the user selected creator, we will set that instead
-      //an admin role will exist for those reviewing the creators which is set in the backend and not exposed to the client at all, only manually set in the database for specific users
-      let platformRole = 'client';
-
-      if (category === 'creator') {
-        platformRole = 'creator';
-      }
-      try {
-        // Insert into users table
-        const { error: userError } = await supabase
-          .from('users')
-          .upsert({
-            id: data.user.id,
-            email: email.toString(),
-            username: userMetadata.username,
-            platform_role: platformRole,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            phone: phone ? phone.toString() : null,
-          }, {
-            onConflict: 'id'
-          });
-
-        if (userError) {
-          console.error('🔴 User profile creation error:', userError.message);
-        } else {
-          console.log('✅ User profile created in public.users table');
-        }
-      } catch (userErr) {
-        console.error('🔴 Error creating user profile:', userErr);
-        // Continue without profile creation - the auth trigger should have handled it
-      }
-    }
-
-    console.log('🟢 Sign up successful for:', email);
-
-    // Don't redirect automatically - let client show success message
-    return {
-      success: true,
-      message: data.session ? 'Sign up successful!' : 'Please check your email to confirm your account.',
-      requiresEmailConfirmation: !data.session
-    };
+    console.log('🟢 Auth account created for:', email);
+    console.log('ℹ️ Public profile creation is being handled by SQL Trigger.');
 
   } catch (error) {
     console.error('🔴 Unexpected sign up error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
   }
-}
 
-export async function signInWithGoogle() {
-  try {
-    const supabase = await createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-    console.log('🟡 Starting Google OAuth flow...');
-    console.log('🟡 Redirect URL:', `${origin}/auth/callback`);
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-        // scopes: 'https://www.googleapis.com/auth/youtube.force-ssl',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) {
-      console.error('🔴 Google OAuth error:', error.message);
-      throw new Error(`Google OAuth failed: ${error.message}`);
-    }
-
-    // If Supabase returned a redirect URL, redirect the browser there
-    if (data?.url) {
-      console.log('🟢 Google OAuth URL generated, redirecting...');
-      redirect(data.url);
-    }
-
-    // If no URL, that's an error
-    throw new Error('Google OAuth service did not return a valid URL');
-  } catch (error) {
-    console.error('🔴 Google OAuth error:', error.message);
-
-    // Let NEXT_REDIRECT errors propagate (from redirect() calls)
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
-    }
-
-    // For other errors, redirect to login with error message
-    redirect(`/login?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
-  }
+  redirect(`/verify-otp?email=${encodeURIComponent(email.toString())}`);
 }
 
 export async function resetPassword(formData) {
@@ -422,7 +332,7 @@ export async function handleSignOut() {
   revalidatePath('/login');
 
   console.log('✅ User signed out successfully');
-  return redirect('/landingPage?message=signed_out');
+  return redirect('/');
 }
 
 export async function getCurrentUser() {
@@ -569,13 +479,16 @@ export async function syncUserToPublic() {
 
     console.log('🟡 Syncing user to public.users:', user.email);
 
+    const platformRole = user.user_metadata?.category || user.user_metadata?.role || 'client';
+
     const { error: syncError } = await supabase
       .from('users')
       .upsert({
         id: user.id,
         email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
-        role: user.user_metadata?.role || 'client',
+        username: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
+        role: platformRole === 'creator' ? 'creator' : 'viewer',
+        platform_role: platformRole === 'creator' ? 'artist' : 'client',
         created_at: new Date(user.created_at).toISOString(),
         updated_at: new Date().toISOString(),
       }, {
