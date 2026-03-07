@@ -1,4 +1,3 @@
-import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
 /**
@@ -18,64 +17,10 @@ export async function GET() {
         //  return NextResponse.json(await res.json());
         // ─────────────────────────────────────────────────────────────────
 
-        const supabase = await createClient();
-
-        // Total creators
-        const { count: totalCreators, error: totalErr } = await supabase
-            .from('verification_submissions')
-            .select('*', { count: 'exact', head: true });
-
-        // Pending applications
-        const { count: pendingCount, error: pendingErr } = await supabase
-            .from('verification_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pending');
-
-        // Approved users
-        const { count: approvedCount, error: approvedErr } = await supabase
-            .from('verification_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'approved');
-
-        // Rejected
-        const { count: rejectedCount, error: rejectedErr } = await supabase
-            .from('verification_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'rejected');
-
-        // Info requested
-        const { count: infoRequestedCount, error: infoErr } = await supabase
-            .from('verification_submissions')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'info_requested');
-
-        if (totalErr || pendingErr || approvedErr || rejectedErr || infoErr) {
-            console.error('Error fetching metrics:', { totalErr, pendingErr, approvedErr, rejectedErr, infoErr });
-            return NextResponse.json({ error: 'Failed to fetch metrics' }, { status: 500 });
-        }
-
-        // Approved by category
-        const { data: categoryData, error: catErr } = await supabase
-            .from('verification_submissions')
-            .select('category')
-            .eq('status', 'approved');
-
-        const byRole: Record<string, number> = {};
-        if (!catErr && categoryData) {
-            for (const row of categoryData) {
-                const cat = (row.category as string) || 'uncategorized';
-                byRole[cat] = (byRole[cat] || 0) + 1;
-            }
-        }
-
-        return NextResponse.json({
-            total_creators: totalCreators ?? 0,
-            pending: pendingCount ?? 0,
-            approved: approvedCount ?? 0,
-            rejected: rejectedCount ?? 0,
-            info_requested: infoRequestedCount ?? 0,
-            approved_by_role: byRole,
-        });
+        return NextResponse.json(
+            { message: 'Backend not yet available. Please try again once Wohking\'s API is live.' },
+            { status: 503 }
+        );
     } catch (err) {
         console.error('Unexpected error:', err);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
