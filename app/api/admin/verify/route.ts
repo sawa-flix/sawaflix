@@ -5,89 +5,112 @@ import { z } from "zod";
 
 const VerifySchema = z.object({
   target_creator_id: z.string().uuid(),
-  status: z.enum(['approved', 'rejected', 'pending', 'info_requested']), 
-  notes: z.string().min(1, "Please provide a reason or instructions for the creator"),
+  status: z.enum(['approved', 'rejected', 'info_requested']),
+  notes: z.string().min(1, "Please provide admin notes")
 });
 
 export async function PUT(req: Request) {
   const authHeader = req.headers.get("Authorization");
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // Essential for Admin overrides
   );
 
   try {
-    let adminId = "system";
+    // 1. Determine which Admin is performing the action
+    let adminId = "system_admin";
     if (authHeader?.startsWith("Bearer ")) {
       try {
-        const decoded: any = jwtDecode(authHeader.substring(7));
-        adminId = decoded.sub;
+        const token = authHeader.substring(7);
+        const decoded: any = jwtDecode(token);
+        adminId = decoded.sub || "service_role";
       } catch (e) {
-        // Silent catch as requested (no console.log)
+        adminId = "token_auth"; 
       }
     }
 
     const body = await req.json();
     const result = VerifySchema.safeParse(body);
+
     if (!result.success) {
-      return NextResponse.json({ error: result.error.format() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Validation failed", details: result.error.format() },
+        { status: 400 }
+      );
     }
 
     const { target_creator_id, status, notes } = result.data;
-    const isApproved = status === 'approved';
+    const isApproved = status === "approved";
 
-    // A. Update Creator Profile
+    // 2. Check if the submission exists first
+    const { data: submission, error: fetchError } = await supabase
+      .from("verification_submissions")
+      .select("id")
+      .eq("creator_id", target_creator_id)
+      .single();
+
+    if (fetchError || !submission) {
+      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+    }
+
+    // 3. Update creator_profiles
     const { error: profileError } = await supabase
-      .from('creator_profiles')
-      .update({ status, is_verified: isApproved })
-      .eq('creator_id', target_creator_id);
+      .from("creator_profiles")
+      .update({
+        is_verified: isApproved
+      })
+      .eq("creator_id", target_creator_id);
+
     if (profileError) throw profileError;
 
-    // B. Update Verification Submission
+    // 4. Update verification_submissions
     const { error: subError } = await supabase
-      .from('verification_submissions')
-      .update({ 
+      .from("verification_submissions")
+      .update({
         status,
         admin_notes: notes,
-        reviewed_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
-      .eq('creator_id', target_creator_id);
+      .eq("creator_id", target_creator_id);
+
     if (subError) throw subError;
 
-    // C. Update Users Table
-    const { error: userTableError } = await supabase
-      .from('users')
-      .update({ 
-        is_verified: isApproved,
-        verification_status: status 
+    // 5. Update global users table
+    const { error: userError } = await supabase
+      .from("users")
+      .update({
+        verification_status: status,
+        is_verified: isApproved
       })
-      .eq('id', target_creator_id);
-    if (userTableError) throw userTableError;
+      .eq("id", target_creator_id);
 
-    // 4. Update Admin Action (Upsert logic to prevent duplicates)
-    const { error: auditError } = await supabase
-      .from("admin_actions")
-      .upsert(
-        {
-          admin_id: adminId,
-          submission_id: target_creator_id, 
-          action_type: status,
-          notes: notes || `Admin action: ${status}`
-        }, 
-        { onConflict: 'submission_id' } // Tells Supabase to update if submission_id exists
-      );
+    if (userError) console.error("Global users table update failed:", userError.message);
 
-    if (auditError) throw new Error(`Audit log failed: ${auditError.message}`);
+    // 6. Audit Log (Recording Boyema's action)
+    // Wrap in a try/catch so if the audit table doesn't exist yet, it doesn't break the verification
+    try {
+      await supabase.from("admin_actions").insert({
+        admin_id: adminId,
+        submission_id: submission.id,
+        action_type: status,
+        notes: notes
+      });
+    } catch (auditErr) {
+      console.warn("Audit logging skipped - Check if admin_actions table exists.");
+    }
 
-    return NextResponse.json({ 
-      message: `Success: Status synced to '${status}'`,
-      new_status: status
+    return NextResponse.json({
+      success: true,
+      message: `Creator status updated to ${status}`,
+      status
     });
 
   } catch (err: any) {
-    return NextResponse.json({ 
-      error: "Failed to sync status across tables", 
-      details: err.message 
-    }, { status: 500 });
+    console.error("Master Verify Endpoint Error:", err.message);
+    return NextResponse.json(
+      { error: "Verification processing failed", details: err.message },
+      { status: 500 }
+    );
   }
 }

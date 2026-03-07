@@ -1,12 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // 1. Extract the ID from the URL params
-  const { id } = await params;
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  // Default to pending, but allows filtering by 'approved' or 'rejected'
+  const status = searchParams.get("status") || "pending";
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,37 +14,31 @@ export async function GET(
   );
 
   try {
-    // 2. Fetch the specific submission 
-    // We join 'creator_profiles' to see the user's public info alongside their private evidence
     const { data, error } = await supabase
       .from("verification_submissions")
       .select(`
-        *,
+        creator_id,
+        category,
+        status,
+        created_at,
         creator_profiles (
-          full_name,
+          legal_name,
           stage_name,
-          bio,
-          avatar_url
+          profile_picture_url
         )
       `)
-      .eq("creator_id", id) // Use creator_id as the unique key
-      .single();
+      .eq("status", status)
+      .order("created_at", { ascending: false });
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json({ error: "Verification record not found" }, { status: 404 });
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    // 3. Return the payload for the Review Screen
-    return NextResponse.json({ 
-        success: true,
-        data 
+    return NextResponse.json({
+      success: true,
+      count: data?.length || 0,
+      data
     });
 
   } catch (err: any) {
-    console.error('Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

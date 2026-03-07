@@ -1,37 +1,59 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
-export async function POST(req: Request) {
-  const authHeader = req.headers.get("Authorization");
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> } // FIX: Params is a Promise
+) {
+  // FIX: Await the params
+  const { id: creatorId } = await params;
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   try {
-    const { target_creator_id, notes } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const notes = body.notes || body.message;
 
-    if (!target_creator_id || !notes) {
-      return NextResponse.json({ error: "ID and message are required" }, { status: 400 });
+    // Validation: Admin must tell the creator what to fix
+    if (!notes || notes.length < 5) {
+      return NextResponse.json(
+        { error: "A clear explanation (minimum 5 characters) is required so the creator knows what to fix." },
+        { status: 400 }
+      );
     }
 
-    let adminId = "system";
-    if (authHeader?.startsWith("Bearer ")) {
-      const decoded: any = jwtDecode(authHeader.substring(7));
-      adminId = decoded.sub;
-    }
+    // Update the Submission Status
+    const { error: subError } = await supabase
+      .from("verification_submissions")
+      .update({
+        status: "info_requested",
+        admin_notes: notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq("creator_id", creatorId);
 
-    await supabase.from("verification_submissions").update({ 
-      admin_notes: `INFO REQUESTED: ${notes}`,
-      reviewed_at: new Date().toISOString() 
-    }).eq("creator_id", target_creator_id);
+    if (subError) throw subError;
 
-    await supabase.from("admin_actions").insert({
-      admin_id: adminId,
-      submission_id: target_creator_id,
-      action_type: 'info_requested',
-      notes
+    // Optional: Update global user status if you are tracking it there
+    await supabase
+      .from("users")
+      .update({ verification_status: "info_requested" })
+      .eq("id", creatorId);
+
+    return NextResponse.json({
+      success: true,
+      message: "Status updated to 'Info Requested'. The creator can now edit their submission.",
+      status: "info_requested"
     });
 
-    return NextResponse.json({ message: "INFO REQUESTED: Creator prompted" });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Request Info Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }

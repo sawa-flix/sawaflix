@@ -1,14 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  
-  // 1. Extract query parameters for filtering and pagination [cite: 59]
-  const status = searchParams.get("status") || "pending"; 
+
+  // 1. Pagination & Filtering Logic
+  const status = searchParams.get("status") || "pending";
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
-  
+
   const rangeStart = (page - 1) * limit;
   const rangeEnd = rangeStart + limit - 1;
 
@@ -17,43 +19,65 @@ export async function GET(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
- try {
-  // 1. Get the profiles first
-  const { data: profiles, error: profileError, count } = await supabase
-    .from("creator_profiles")
-    .select(`
-      creator_id,
-      legal_name,
-      category,
-      status,
-      users ( email, username )
-    `, { count: 'exact' })
-    .eq("status", status)
-    .range(rangeStart, rangeEnd);
+  try {
+    // 2. Fetch from the Submissions table (since that's where status lives)
+    // We join 'creator_profiles' and 'users' inside this one query
+    const { data: submissions, error, count } = await supabase
+      .from("verification_submissions")
+      .select(`
+        creator_id,
+        status,
+        category,
+        created_at,
+        form_data,
+        creator_profiles (
+          legal_name,
+          stage_name,
+          profile_picture_url
+        ),
+        users (
+          email,
+          username
+        )
+      `, { count: "exact" })
+      .eq("status", status)
+      .order("created_at", { ascending: false })
+      .range(rangeStart, rangeEnd);
 
-  if (profileError) throw profileError;
+    if (error) throw error;
 
-  // 2. Get the submission data for these specific creators
-  const creatorIds = profiles.map(p => p.creator_id);
-  const { data: submissions } = await supabase
-    .from("verification_submissions")
-    .select("creator_id, form_data")
-    .in("creator_id", creatorIds);
+    if (!submissions || submissions.length === 0) {
+      return NextResponse.json({
+        creators: [],
+        totalCount: 0,
+        currentPage: page,
+        totalPages: 0
+      });
+    }
 
-  // 3. Manually merge them so the frontend gets one clean object
-  const combinedData = profiles.map(profile => ({
-    ...profile,
-    submissions: submissions?.filter(s => s.creator_id === profile.creator_id) || []
-  }));
+    // 3. Clean up the response structure for the frontend
+    const formattedData = submissions.map(sub => ({
+      id: sub.creator_id,
+      status: sub.status,
+      category: sub.category,
+      appliedAt: sub.created_at,
+      formData: sub.form_data,
+      profile: sub.creator_profiles,
+      user: sub.users
+    }));
 
-  return NextResponse.json({
-    creators: combinedData,
-    totalCount: count,
-    currentPage: page,
-    totalPages: Math.ceil((count || 0) / limit)
-  });
+    return NextResponse.json({
+      creators: formattedData,
+      totalCount: count,
+      currentPage: page,
+      totalPages: Math.ceil((count || 0) / limit)
+    });
 
-} catch (err: any) {
-  return NextResponse.json({ error: err.message }, { status: 500 });
-}
+  } catch (err: any) {
+    console.error("Creators List Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
+  }
 }

@@ -1,89 +1,72 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
 
 export async function POST(
-  req: Request, 
-  { params }: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
 ) {
-  const authHeader = req.headers.get("Authorization");
+  // FIX 2: Await the params
+  const { id: creatorId } = await params;
+
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Extract ID from the URL [id]
-  const target_creator_id = params.id;
-
   try {
     const body = await req.json().catch(() => ({}));
-    const { notes } = body;
+    const notes = body.notes || body.reason; // Supports both 'notes' or 'reason' keys
 
-    // Requirement: Rejection MUST have a reason
-    if (!notes || notes.trim().length < 5) {
-      return NextResponse.json({ 
-        error: "Constructive feedback (notes) is mandatory for rejection." 
-      }, { status: 400 });
+    // Validation: Admin MUST provide a reason for rejection
+    if (!notes || notes.length < 5) {
+      return NextResponse.json(
+        { error: "A valid rejection reason (minimum 5 characters) is required." },
+        { status: 400 }
+      );
     }
 
-    let adminId = "system";
-    if (authHeader?.startsWith("Bearer ")) {
-      try {
-        const decoded: any = jwtDecode(authHeader.substring(7));
-        adminId = decoded.sub;
-      } catch (e) {
-        // Fallback to system if decode fails
-      }
-    }
-
-    // 1. Update Verification Submission
+    // 1. Update the Submission Status to 'rejected'
     const { error: subError } = await supabase
       .from("verification_submissions")
-      .update({ 
-        status: 'rejected', 
+      .update({
+        status: "rejected",
         admin_notes: notes,
-        reviewed_at: new Date().toISOString() 
+        updated_at: new Date().toISOString()
       })
-      .eq("creator_id", target_creator_id);
+      .eq("creator_id", creatorId);
+
     if (subError) throw subError;
 
-    // 2. Update Creator Profile (Sync status)
+    // 2. Ensure Creator Profile is NOT verified
     const { error: profileError } = await supabase
       .from("creator_profiles")
-      .update({ 
-        status: 'rejected',
-        is_verified: false 
+      .update({
+        is_verified: false
       })
-      .eq("creator_id", target_creator_id);
+      .eq("creator_id", creatorId);
+
     if (profileError) throw profileError;
 
-    // 3. Update Users Master Table
-    const { error: userError } = await supabase
-      .from("users")
-      .update({ 
-        verification_status: 'rejected',
-        is_verified: false 
+    // 3. Update Global User Record (Security measure)
+    await supabase
+      .from("users") 
+      .update({
+        is_verified: false,
+        verification_status: "rejected"
       })
-      .eq("id", target_creator_id);
-    if (userError) throw userError;
+      .eq("id", creatorId);
 
-    // 4. Log to Audit Table
-    await supabase.from("admin_actions").insert({
-      admin_id: adminId,
-      submission_id: target_creator_id,
-      action_type: 'rejected',
-      notes: notes
-    });
-
-    return NextResponse.json({ 
-      message: `REJECTED: Feedback logged for creator ${target_creator_id}`,
+    return NextResponse.json({
+      success: true,
+      message: "Creator application rejected successfully.",
       status: "rejected"
     });
 
   } catch (err: any) {
-    return NextResponse.json({ 
-      error: "Rejection process failed", 
-      details: err.message 
-    }, { status: 500 });
+    console.error("Rejection Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
