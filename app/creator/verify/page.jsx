@@ -8,22 +8,22 @@ export const metadata = {
 };
 
 export default async function CreatorVerifyPage() {
-    const profile = await getUserProfile();
+    // const profile = await getUserProfile();
 
-    // 🚫 Not logged in
-    if (!profile) {
-        redirect("/sign-in");
-    }
+    // // 🚫 Not logged in
+    // if (!profile) {
+    //     redirect("/sign-up");
+    // }
 
-    // 🚫 Not a creator
-    if (profile.category !== "creator") {
-        redirect("/dashboard");
-    }
+    // // 🚫 Not a creator
+    // if (profile.category !== "creator") {
+    //     redirect("/dashboard");
+    // }
 
-    // 🚫 Already submitted verification
-    if (profile.verificationStatus !== "unverified") {
-        redirect("/creator");
-    }
+    // // 🚫 Already submitted verification
+    // if (profile.verificationStatus !== "unverified") {
+    //     redirect("/creator");
+    // }
 
     return (
         <main className="min-h-screen bg-[#0B0E14]">
