@@ -1,9 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { username: string } }) {
+export async function GET(req: Request, context: { params: Promise<{ username: string }> } ) {
     try {
-        const username = params.username.replace(/-/g, ' '); // Decode username Slug
+        const { username } = await context.params // Decode username Slug
         const supabase = await createClient();
 
         // 1. Fetch user profile by name-slug (this is a simple implementation)
