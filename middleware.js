@@ -11,7 +11,7 @@ export async function middleware(request) {
     const { data: { user } } = await supabase.auth.getUser()
     const { pathname } = request.nextUrl
 
-    const publicRoutes = ['/', '/login', '/sign-up', '/sign-in']
+    const publicRoutes = ['/', '/login', '/sign-up', '/sign-in', '/verify-otp']
     const authRoutes = ['/login', '/sign-up', '/sign-in']
     const isPublicRoute = publicRoutes.includes(pathname)
     const isAuthRoute = authRoutes.includes(pathname)
@@ -22,7 +22,7 @@ export async function middleware(request) {
       if (isPublicRoute) return response
 
       // Everything else requires login
-      const redirectUrl = new URL('/Creator-dashboard', request.url)
+      const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectedFrom', pathname)
       return NextResponse.redirect(redirectUrl)
     }
@@ -32,9 +32,17 @@ export async function middleware(request) {
       .from('users')
       .select('id, role, verification_status')
       .eq('id', user.id)
-      .single()
-    if (profileError || !profile) {
+      .maybeSingle()
+
+    if (profileError) {
       console.error('Middleware: profile fetch error:', profileError)
+    }
+
+    if (!profile) {
+      // If no profile exists, only redirect if NOT already on a public/auth route
+      if (isPublicRoute || isAuthRoute) {
+        return response
+      }
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -66,43 +74,42 @@ export async function middleware(request) {
       return response
     }
 
-    //Dashboard / protected routes 
+    // Dashboard / protected routes
     if (pathname.startsWith('/dashboard') || pathname.startsWith('/profile')) {
+      // If not approved and not an admin/creator who is pending
       if (profile.verification_status !== 'approved') {
+        if (profile.role === 'creator' && profile.verification_status === 'pending') {
+          return NextResponse.redirect(new URL('/creator/pending', request.url))
+        }
         return NextResponse.redirect(new URL('/verify-otp', request.url))
       }
       return response
     }
 
-    // OTP verify page
-    if (pathname.startsWith('/login')) {
-      // Already verified users don't need to be here
-      if (profile.verification_status === 'approved') {
-        if (profile.role === 'admin') {
-          return NextResponse.redirect(new URL('/admin', request.url))
-        }
-        if (profile.role === 'creator') {
-          return NextResponse.redirect(new URL('/creator/dashboard', request.url))
-        }
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      return response
-    }
-
-    // Auth pages (login / sign-up) — redirect already-logged-in users
-    // We allow root (/) to be accessible even if logged in
-    if (isAuthRoute && user) {
+    // Auth pages (login / sign-up / verify-otp) — redirect already-logged-in users
+    if ((isAuthRoute || pathname === '/verify-otp') && user) {
       if (profile.role === 'admin') {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
-      if (profile.role === 'creator' && profile.verification_status === 'approved') {
-        return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+
+      if (profile.role === 'creator') {
+        if (profile.verification_status === 'approved') {
+          return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
+        } else if (profile.verification_status === 'pending') {
+          return NextResponse.redirect(new URL('/creator/pending', request.url))
+        } else {
+          // unverified creator -> allowed to stay on verify-otp or go to creator/verify
+          if (pathname === '/verify-otp' || pathname === '/creator/verify') return response
+          return NextResponse.redirect(new URL('/verify-otp', request.url))
+        }
       }
+
       if (profile.verification_status === 'approved') {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
-      // Creator/viewer not yet verified → send to OTP page
-      if (profile.verification_status !== 'approved') {
+
+      // Viewer not yet verified → send to OTP page
+      if (pathname !== '/verify-otp') {
         return NextResponse.redirect(new URL('/verify-otp', request.url))
       }
     }

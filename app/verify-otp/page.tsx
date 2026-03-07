@@ -15,17 +15,6 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
-/**
- * SawaFlix Verify OTP Page
- *
- * Logic Highlights:
- * - Two-step flow: Email Input -> OTP Verification
- * - 6-digit split OTP input with keyboard navigation
- * - Resend OTP timer (30s)
- * - Error/Success feedback with icons
- * - Next.js 15 (App Router) compliant
- */
-
 const RESEND_TIMER_SECONDS = 30;
 
 const VerifyOtpPage = () => {
@@ -118,9 +107,13 @@ const VerifyOtpPage = () => {
       if (res.ok) {
         setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting...' });
 
-        // Auto redirect to dashboard after a short delay
+        // Auto redirect after a short delay
         setTimeout(() => {
-          router.push('/dashboard');
+          if (data.pendingReview) {
+            router.push('/creator/pending');
+          } else {
+            router.push('/dashboard');
+          }
         }, 2000);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });

@@ -1,9 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, context: { params: Promise<{ username: string }> } ) {
+export async function GET(req: Request, { params }: { params: Promise<{ username: string }> }) {
     try {
-        const { username } = await context.params // Decode username Slug
+        const { username: rawUsername } = await params;
+        const username = rawUsername.replace(/-/g, ' '); // Decode username Slug
         const supabase = await createClient();
 
         // 1. Fetch user profile by name-slug (this is a simple implementation)
@@ -42,7 +43,8 @@ export async function GET(req: Request, context: { params: Promise<{ username: s
             createdAt: new Date().toISOString(), // Mocked
         });
 
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
