@@ -6,7 +6,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signUpWithPassword } from '@/app/(auth)/actions';
 
-import { Suspense } from 'react';
+// import { Suspense } from 'react';
 const AuthButton = ({ children, isLoading, variant = 'primary', className = '', ...props }) => {
   const baseStyles = "w-full flex items-center justify-center font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:transform-none disabled:cursor-not-allowed shadow-lg";
 
