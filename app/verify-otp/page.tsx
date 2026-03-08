@@ -15,11 +15,13 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
+import { createClient } from '@/utils/supabase/client';
+
 const RESEND_TIMER_SECONDS = 30;
 
 const VerifyOtpPage = () => {
   const router = useRouter();
-  
+
   // --- State Management ---
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);
@@ -156,7 +158,7 @@ const VerifyOtpPage = () => {
         {/* --- LEFT PANEL: Cultural Branding --- */}
         <div className="hidden lg:flex w-[45%] relative overflow-hidden flex-shrink-0">
           <Image
-            src="/otp-bg.jpg" 
+            src="/otp-bg.jpg"
             alt="Cultural Storytelling"
             fill
             className="object-cover object-top"
@@ -188,7 +190,7 @@ const VerifyOtpPage = () => {
             className="w-full max-w-md"
           >
             <div className="bg-[#111827]/80 backdrop-blur-2xl border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
-              
+
               <AnimatePresence mode="wait">
                 {step === 'email' ? (
                   /* --- EMAIL STEP --- */
@@ -318,11 +320,10 @@ const VerifyOtpPage = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className={`mt-6 p-4 rounded-2xl border flex items-center gap-3 ${
-                      message.type === 'success' 
-                        ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+                    className={`mt-6 p-4 rounded-2xl border flex items-center gap-3 ${message.type === 'success'
+                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
                         : 'bg-red-500/10 border-red-500/20 text-red-400'
-                    }`}
+                      }`}
                   >
                     {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
                     <p className="text-xs font-bold leading-tight">{message.text}</p>
@@ -330,7 +331,7 @@ const VerifyOtpPage = () => {
                 )}
               </AnimatePresence>
             </div>
-            
+
             <p className="text-center text-gray-600 text-[10px] mt-10 uppercase tracking-[0.2em] font-bold opacity-60">
               Protected by Sawaflix Identity Guard
             </p>

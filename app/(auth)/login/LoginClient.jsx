@@ -48,15 +48,14 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const hasAttemptedRedirect = useRef(false);
 
-  // Check if user is already logged in
+  // Removed auto-redirect to allow users to see the login page even if logged in
+  // Check if user is already logged in (optional check, but don't force redirect now)
   useEffect(() => {
     async function checkIfLoggedIn() {
       try {
         const result = await checkAuth();
-        if (result.authenticated && !hasAttemptedRedirect.current) {
-          console.log('🟢 User already logged in, redirecting to dashboard');
-          hasAttemptedRedirect.current = true;
-          router.push('/dashboard');
+        if (result.authenticated) {
+          console.log('User is already logged in');
         }
       } catch (err) {
         console.log('Not logged in');
@@ -123,8 +122,14 @@ function LoginContent() {
         if (role === 'admin') {
           destination = '/admin';
         } else if (role === 'creator') {
-          // Default for creators if not specified
-          destination = '/Creator-dashboard';
+          const status = user?.user_metadata?.verification_status || 'unverified';
+          if (status === 'pending') {
+            destination = '/creator/pending';
+          } else if (status === 'approved') {
+            destination = '/Creator-dashboard';
+          } else {
+            destination = '/creator/verify';
+          }
         }
 
         router.push(destination);

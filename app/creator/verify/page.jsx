@@ -20,10 +20,16 @@ export default async function CreatorVerifyPage() {
     //     redirect("/dashboard");
     // }
 
-    // // 🚫 Already submitted verification
-    // if (profile.verificationStatus !== "unverified") {
-    //     redirect("/creator");
-    // }
+    // 🚫 Already submitted or approved
+    if (profile.verificationStatus === "pending") {
+        redirect("/creator/pending");
+    }
+    if (profile.verificationStatus === "approved") {
+        redirect("/Creator-dashboard");
+    }
+    if (profile.verificationStatus === "rejected") {
+        redirect("/dashboard");
+    }
 
     return (
         <main className="min-h-screen bg-[#0B0E14]">
