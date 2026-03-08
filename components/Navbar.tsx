@@ -56,9 +56,9 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-4">
             <Link href="/login" className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors">
-              Log In
+              Login
             </Link>
-            <Link href="/sign-up" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
+            <Link href="/dashboard" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
               Get Started
             </Link>
           </div>
@@ -102,7 +102,7 @@ export default function Navbar() {
                 Log In
               </Link>
               <Link
-                href="/sign-up"
+                href="/dashboard"
                 className="w-full text-center bg-red-600 text-white px-3 py-2 rounded-md font-medium"
                 onClick={() => setIsOpen(false)}
               >

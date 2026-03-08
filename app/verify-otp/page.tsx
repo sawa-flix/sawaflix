@@ -14,10 +14,32 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
+import { createClient } from '@/utils/supabase/client';
+
 const RESEND_TIMER_SECONDS = 30;
 
 const VerifyOtpPage = () => {
   const router = useRouter();
+  const supabase = createClient();
+
+  // Check if user is already verified on mount
+  useEffect(() => {
+    async function checkUserStatus() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role, verification_status')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && profile.verification_status === 'approved') {
+          router.replace(profile.role === 'creator' ? '/Creator-dashboard' : '/dashboard');
+        }
+      }
+    }
+    checkUserStatus();
+  }, [router, supabase]);
   // Flow state
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);

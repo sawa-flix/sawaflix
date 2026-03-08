@@ -40,7 +40,7 @@ export default function Hero() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
-                            href="/sign-up"
+                            href="/dashboard"
                             className="px-8 py-3.5 bg-red-600 text-white rounded-full font-semibold text-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
                         >
                             Get Started
