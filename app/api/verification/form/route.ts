@@ -1,6 +1,5 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -8,12 +7,11 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
-    const cookieStore = await cookies();
     let supabase;
 
     // Create Supabase client (supports browser or Insomnia testing)
     if (authHeader?.startsWith("Bearer ")) {
-      supabase = createClient(
+      supabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -23,7 +21,7 @@ export async function GET(req: Request) {
         }
       );
     } else {
-      supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      supabase = await createClient();
     }
 
     // Get authenticated user
@@ -69,8 +67,9 @@ export async function GET(req: Request) {
         lastUpdated: data.updated_at,
       },
     });
-  } catch (err: any) {
-    console.error("Fetch Draft Error:", err.message);
+  } catch (err) {
+    const error = err as Error;
+    console.error("Fetch Draft Error:", error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },
