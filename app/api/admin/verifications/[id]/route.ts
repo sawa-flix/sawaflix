@@ -1,63 +1,55 @@
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-/**
- * GET /api/admin/verifications/[id]
- * Detail Review — Fetches the full submission data for a specific creator ID,
- * including the JSONB form details and storage URLs for documents.
- */
 export async function GET(
-    _req: Request,
-    { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> } // FIX 1: Define params as a Promise
 ) {
-    try {
-        const { id } = await params;
+  // FIX 2: Await the params to get the creatorId
+  const { id: creatorId } = await params;
 
-        // ─────────────────────────────────────────────────────────────────
-        // TODO: Backend Proxy
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verifications/${id}`, {
-        //      method: 'GET',
-        //      headers: { 'Authorization': `Bearer ${adminJwt}` },
-        //  });
-        //  if (!res.ok) return NextResponse.json({ error: 'Not found' }, { status: res.status });
-        //  return NextResponse.json(await res.json());
-        // ─────────────────────────────────────────────────────────────────
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-        const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("verification_submissions")
+      .select(`
+        creator_id,
+        category,
+        status,
+        form_data,
+        admin_notes,
+        created_at,
+        creator_profiles (
+          legal_name, 
+          stage_name,
+          bio,
+          profile_picture_url
+        )
+      `) // FIX 3: Changed full_name to legal_name
+      .eq("creator_id", creatorId)
+      .single();
 
-        const { data, error } = await supabase
-            .from('verification_submissions')
-            .select('*')
-            .eq('creator_id', id)
-            .single();
-
-        if (error || !data) {
-            return NextResponse.json({ error: 'Verification not found' }, { status: 404 });
-        }
-
-        // Return the full row including form_data JSONB and storage URLs
-        const fd = (data.form_data as Record<string, unknown>) ?? {};
-
-        return NextResponse.json({
-            data: {
-                id: data.creator_id,
-                category: data.category,
-                status: data.status,
-                created_at: data.created_at,
-                form_data: fd,
-                documents: {
-                    id_url: fd.id_url ?? null,
-                    selfie_url: fd.selfie_url ?? null,
-                    endorsement_url: fd.endorsement_url ?? null,
-                    verification_video_url: fd.verification_video_url ?? null,
-                    distributor_proof_url: fd.distributor_proof_url ?? null,
-                    production_proof_url: fd.production_proof_url ?? null,
-                    food_license_url: fd.food_license_url ?? null,
-                },
-            },
-        });
-    } catch (err) {
-        console.error('Unexpected error:', err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: "No submission record found for this ID" }, { status: 404 });
+      }
+      throw error;
     }
+
+    return NextResponse.json({
+      success: true,
+      data
+    });
+
+  } catch (err: any) {
+    console.error("Admin Fetch Detail Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
+  }
 }

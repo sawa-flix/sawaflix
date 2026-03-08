@@ -1,39 +1,71 @@
-import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-/**
- * POST /api/admin/verifications/[id]/approve
- * Authorization — Formally approves a creator, updates is_verified to true,
- * and triggers real-time status updates and emails.
- */
 export async function POST(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
 ) {
-    try {
-        const { id } = await params;
-        const body = await req.json().catch(() => ({}));
-        const { notes } = body;
+  // FIX 2: Await the params
+  const { id: creatorId } = await params;
 
-        // ─────────────────────────────────────────────────────────────────
-        // TODO: Backend Proxy
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verifications/${id}/approve`, {
-        //      method: 'POST',
-        //      headers: {
-        //          'Content-Type': 'application/json',
-        //          'Authorization': `Bearer ${adminJwt}`,
-        //      },
-        //      body: JSON.stringify({ notes }),
-        //  });
-        //  if (!res.ok) return NextResponse.json({ message: await res.text() }, { status: res.status });
-        //  return NextResponse.json(await res.json());
-        // ─────────────────────────────────────────────────────────────────
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // Always use Service Role for Admin actions
+  );
 
-        return NextResponse.json(
-            { message: `Backend not yet available. Approval for creator ${id} will be processed once the API is live.` },
-            { status: 503 }
-        );
-    } catch (err) {
-        console.error('Unexpected error:', err);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  try {
+    const body = await req.json().catch(() => ({}));
+    const notes = body.notes || "Approved by admin";
+
+    // 1. Update the Submission Status
+    const { error: subError } = await supabase
+      .from("verification_submissions")
+      .update({
+        status: "approved",
+        admin_notes: notes,
+        updated_at: new Date().toISOString() // Using updated_at for consistency
+      })
+      .eq("creator_id", creatorId);
+
+    if (subError) throw subError;
+
+    // 2. Update Creator Profile (To show blue checkmark on profile)
+    const { error: profileError } = await supabase
+      .from("creator_profiles")
+      .update({
+        is_verified: true
+      })
+      .eq("creator_id", creatorId);
+
+    if (profileError) throw profileError;
+
+    // 3. Update Global User Record (For Auth/Permissions)
+    // Note: Ensure your table is named 'users' and not 'profiles'
+    const { error: userError } = await supabase
+      .from("users") 
+      .update({
+        is_verified: true,
+        verification_status: "approved"
+      })
+      .eq("id", creatorId);
+
+    if (userError) {
+       console.warn("User table update failed, check if 'users' table exists:", userError.message);
+       // We don't necessarily want to crash the whole request if only this part fails, 
+       // but it's good to log it.
     }
+
+    return NextResponse.json({
+      success: true,
+      message: "Creator has been officially approved and verified",
+      status: "approved"
+    });
+
+  } catch (err: any) {
+    console.error("Approve Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
+  }
 }

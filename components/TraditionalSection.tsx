@@ -6,7 +6,7 @@ import SectionHeader from "./SectionHeader";
 
 export default function TraditionalSection() {
     return (
-        <section className="py-20 bg-[#0F1218]" id="traditions">
+        <section className="py-20 bg-[#0F1218] scroll-mt-20" id="traditions">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <SectionHeader
                     title="Traditional Music"

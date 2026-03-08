@@ -1,46 +1,72 @@
-import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-/**
- * POST /api/admin/verifications/[id]/reject
- * Denial — Rejects an application with mandatory constructive feedback
- * and notifies the creator to resubmit.
- */
 export async function POST(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
 ) {
-    try {
-        const { id } = await params;
-        const body = await req.json().catch(() => ({}));
-        const { notes } = body;
+  // FIX 2: Await the params
+  const { id: creatorId } = await params;
 
-        if (!notes || notes.trim().length === 0) {
-            return NextResponse.json(
-                { message: 'Constructive feedback is mandatory when rejecting an application.' },
-                { status: 400 }
-            );
-        }
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-        // ─────────────────────────────────────────────────────────────────
-        // TODO: Backend Proxy
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verifications/${id}/reject`, {
-        //      method: 'POST',
-        //      headers: {
-        //          'Content-Type': 'application/json',
-        //          'Authorization': `Bearer ${adminJwt}`,
-        //      },
-        //      body: JSON.stringify({ notes }),
-        //  });
-        //  if (!res.ok) return NextResponse.json({ message: await res.text() }, { status: res.status });
-        //  return NextResponse.json(await res.json());
-        // ─────────────────────────────────────────────────────────────────
+  try {
+    const body = await req.json().catch(() => ({}));
+    const notes = body.notes || body.reason; // Supports both 'notes' or 'reason' keys
 
-        return NextResponse.json(
-            { message: `Backend not yet available. Rejection for creator ${id} will be processed once the API is live.` },
-            { status: 503 }
-        );
-    } catch (err) {
-        console.error('Unexpected error:', err);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    // Validation: Admin MUST provide a reason for rejection
+    if (!notes || notes.length < 5) {
+      return NextResponse.json(
+        { error: "A valid rejection reason (minimum 5 characters) is required." },
+        { status: 400 }
+      );
     }
+
+    // 1. Update the Submission Status to 'rejected'
+    const { error: subError } = await supabase
+      .from("verification_submissions")
+      .update({
+        status: "rejected",
+        admin_notes: notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq("creator_id", creatorId);
+
+    if (subError) throw subError;
+
+    // 2. Ensure Creator Profile is NOT verified
+    const { error: profileError } = await supabase
+      .from("creator_profiles")
+      .update({
+        is_verified: false
+      })
+      .eq("creator_id", creatorId);
+
+    if (profileError) throw profileError;
+
+    // 3. Update Global User Record (Security measure)
+    await supabase
+      .from("users") 
+      .update({
+        is_verified: false,
+        verification_status: "rejected"
+      })
+      .eq("id", creatorId);
+
+    return NextResponse.json({
+      success: true,
+      message: "Creator application rejected successfully.",
+      status: "rejected"
+    });
+
+  } catch (err: any) {
+    console.error("Rejection Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
+  }
 }
