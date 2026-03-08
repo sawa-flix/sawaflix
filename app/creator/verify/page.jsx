@@ -8,17 +8,17 @@ export const metadata = {
 };
 
 export default async function CreatorVerifyPage() {
-    // const profile = await getUserProfile();
+    const profile = await getUserProfile();
 
-    // // 🚫 Not logged in
-    // if (!profile) {
-    //     redirect("/sign-up");
-    // }
+    // 🚫 Not logged in
+    if (!profile) {
+        redirect("/login");
+    }
 
-    // // 🚫 Not a creator
-    // if (profile.category !== "creator") {
-    //     redirect("/dashboard");
-    // }
+    // 🚫 Not a creator
+    if (profile.category !== "creator") {
+        redirect("/dashboard");
+    }
 
     // 🚫 Already submitted or approved
     if (profile.verificationStatus === "pending") {
