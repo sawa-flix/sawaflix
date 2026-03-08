@@ -1,46 +1,35 @@
 import { NextResponse } from 'next/server';
 
 /**
- * PUT /api/admin/verify
- * Status Toggle — A direct endpoint to manually adjust a user's
- * verification_status between unverified, pending, approved, or rejected.
+ * POST /api/admin/verifications/[id]/request-info
+ * Clarification — Notifies the creator that additional materials are needed
+ * without fully rejecting the application.
  */
-export async function PUT(req: Request) {
+export async function POST(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
     try {
+        const { id } = await params;
         const body = await req.json().catch(() => ({}));
-        const { target_creator_id, status, notes } = body;
-
-        if (!target_creator_id) {
-            return NextResponse.json({ message: 'target_creator_id is required.' }, { status: 400 });
-        }
-        if (!status) {
-            return NextResponse.json({ message: 'status is required.' }, { status: 400 });
-        }
-
-        const validStatuses = ['unverified', 'pending', 'approved', 'rejected'];
-        if (!validStatuses.includes(status)) {
-            return NextResponse.json(
-                { message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
-                { status: 400 }
-            );
-        }
+        const { notes } = body;
 
         // ─────────────────────────────────────────────────────────────────
         // TODO: Backend Proxy
-        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verify`, {
-        //      method: 'PUT',
+        //  const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/verifications/${id}/request-info`, {
+        //      method: 'POST',
         //      headers: {
         //          'Content-Type': 'application/json',
         //          'Authorization': `Bearer ${adminJwt}`,
         //      },
-        //      body: JSON.stringify({ target_creator_id, status, notes }),
+        //      body: JSON.stringify({ notes }),
         //  });
         //  if (!res.ok) return NextResponse.json({ message: await res.text() }, { status: res.status });
         //  return NextResponse.json(await res.json());
         // ─────────────────────────────────────────────────────────────────
 
         return NextResponse.json(
-            { message: 'Backend not yet available. Please try again once the API is live.' },
+            { message: `Backend not yet available. Info request for creator ${id} will be sent once the API is live.` },
             { status: 503 }
         );
     } catch (err) {

@@ -82,12 +82,28 @@ export default function VerificationDetails({ id }: { id: string }) {
     const [feedback, setFeedback] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'other' } | null>(null);
+
+    const getYouTubeEmbedUrl = (url: string) => {
+        try {
+            const urlObj = new URL(url);
+            let videoId = '';
+            if (urlObj.hostname.includes('youtube.com')) {
+                videoId = urlObj.searchParams.get('v') || '';
+            } else if (urlObj.hostname.includes('youtu.be')) {
+                videoId = urlObj.pathname.slice(1);
+            }
+            return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
+        } catch {
+            return url;
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/creators/${id}`);
+                const res = await fetch(`/api/admin/verifications/${id}`);
                 if (!res.ok) throw new Error('Failed to fetch verification details');
                 const result = await res.json();
                 setData(result.data);
@@ -334,15 +350,15 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Submitted Videos</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {data.portfolio.videos.map((video, i) => (
-                                        <a key={i} href={video.url} target="_blank" rel="noopener noreferrer"
-                                            className="group relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 block">
+                                        <button key={i} onClick={() => setViewerMedia({ url: video.url, type: 'youtube' })}
+                                            className="group relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 block w-full text-left">
                                             <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                                                 <Play size={32} className="text-gray-600 group-hover:text-red-500 transition-colors" />
                                             </div>
                                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
                                                 <p className="text-white text-sm font-medium truncate">{video.title}</p>
                                             </div>
-                                        </a>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -360,7 +376,9 @@ export default function VerificationDetails({ id }: { id: string }) {
                             {data.documents.idCardUrl && (
                                 <div className="space-y-2">
                                     <label className="text-sm text-gray-400 font-medium">National ID / Passport</label>
-                                    <div className="relative aspect-[3/2] bg-gray-800 rounded-lg overflow-hidden border border-gray-700 group cursor-pointer">
+                                    <div
+                                        onClick={() => setViewerMedia({ url: data.documents.idCardUrl, type: 'image' })}
+                                        className="relative aspect-[3/2] bg-gray-800 rounded-lg overflow-hidden border border-gray-700 group cursor-pointer">
                                         <img src={data.documents.idCardUrl} alt="ID Card" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <Eye className="text-white" />
@@ -372,7 +390,9 @@ export default function VerificationDetails({ id }: { id: string }) {
                             {data.documents.selfieUrl && (
                                 <div className="space-y-2">
                                     <label className="text-sm text-gray-400 font-medium">Selfie with ID</label>
-                                    <div className="relative aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 group cursor-pointer max-w-[200px]">
+                                    <div
+                                        onClick={() => setViewerMedia({ url: data.documents.selfieUrl!, type: 'image' })}
+                                        className="relative aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 group cursor-pointer max-w-[200px]">
                                         <img src={data.documents.selfieUrl} alt="Selfie" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <Eye className="text-white" />
@@ -388,15 +408,16 @@ export default function VerificationDetails({ id }: { id: string }) {
                                         <label className="text-sm text-gray-400 font-medium capitalize">
                                             {key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}
                                         </label>
-                                        <a href={url} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-colors">
+                                        <button
+                                            onClick={() => setViewerMedia({ url, type: url.includes('youtube') || url.includes('youtu.be') ? 'youtube' : 'image' })}
+                                            className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-colors w-full text-left">
                                             <div className="p-2 bg-red-500/10 rounded text-red-500"><FileText size={20} /></div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-white truncate">Document File</p>
                                                 <p className="text-xs text-gray-500">Click to view</p>
                                             </div>
                                             <ExternalLink size={16} className="text-gray-500" />
-                                        </a>
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -504,6 +525,41 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Media Viewer Modal */}
+            {viewerMedia && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" onClick={() => setViewerMedia(null)}>
+                    <button
+                        onClick={() => setViewerMedia(null)}
+                        className="absolute top-6 right-6 p-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full transition-colors z-[70]"
+                    >
+                        <XCircle size={28} />
+                    </button>
+
+                    <div
+                        className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {viewerMedia.type === 'image' && (
+                            <img
+                                src={viewerMedia.url}
+                                alt="Media preview"
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            />
+                        )}
+                        {viewerMedia.type === 'youtube' && (
+                            <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border border-gray-800">
+                                <iframe
+                                    src={getYouTubeEmbedUrl(viewerMedia.url)}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
