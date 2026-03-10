@@ -83,10 +83,16 @@ const LandingPage = () => {
               </div>
             </div>
             <div className="space-y-4">
-              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+              <button 
+                onClick={() => router.push('/login')}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+              >
                 Login
               </button>
-              <button className="w-full bg-white hover:bg-white/10 text-black cursor-pointer font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+              <button 
+                onClick={() => router.push('/sign-up')}
+                className="w-full bg-white hover:bg-white/10 text-black cursor-pointer font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+              >
                 Sign Up
               </button>
             </div>
@@ -130,7 +136,10 @@ const LandingPage = () => {
 
             {/* Buttons at top */}
             <div className="space-y-3">
-              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg">
+              <button 
+                onClick={() => router.push('/dashboard')}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+              >
                 Get Started
               </button>
 

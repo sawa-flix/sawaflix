@@ -12,7 +12,7 @@ export default async function CreatorVerifyPage() {
 
     // 🚫 Not logged in
     if (!profile) {
-        redirect("/sign-in");
+        redirect("/login");
     }
 
     // 🚫 Not a creator
@@ -20,18 +20,14 @@ export default async function CreatorVerifyPage() {
         redirect("/dashboard");
     }
 
-    // 🚫 Already submitted, but pending
+    // 🚫 Already submitted or approved
     if (profile.verificationStatus === "pending") {
         redirect("/creator/pending");
     }
-
-    // 🚫 Already approved
     if (profile.verificationStatus === "approved") {
         redirect("/Creator-dashboard");
     }
-
-    // 🚫 Not unverified (sanity check)
-    if (profile.verificationStatus !== "unverified") {
+    if (profile.verificationStatus === "rejected") {
         redirect("/dashboard");
     }
 

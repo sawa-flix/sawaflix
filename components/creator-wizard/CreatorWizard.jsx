@@ -42,11 +42,8 @@ const CreatorWizard = () => {
                     if (status === 'pending') {
                         router.push('/creator/pending');
                         return;
-                    } else if (status === 'approved') {
+                    } else if (status === 'approved' || status === 'rejected') {
                         router.push('/Creator-dashboard');
-                        return;
-                    } else if (status === 'rejected') {
-                        router.push('/dashboard');
                         return;
                     }
 

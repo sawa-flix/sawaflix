@@ -1,90 +1,87 @@
 import { createClient } from "@/utils/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"; // Add this for testing support
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
+
+export const dynamic = "force-dynamic";
 
 export async function PUT(req: Request) {
-  console.log("💾 PUT /draft - Start");
-  const authHeader = req.headers.get("Authorization");
-  
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) {
-    console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to regular user client.");
-  }
-
-  let supabase;
-  let finalUserId: string;
-
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-
-  // 1. AUTHENTICATION HANDLING
-  if (token) {
-    try {
-      const decoded: any = jwtDecode(token);
-      
-      if (serviceKey && token === serviceKey) {
-        // IMPORTANT: Use your actual User UID from Supabase Auth for testing
-        finalUserId = "b21d3e41-f405-46bc-b144-319669ec3e0d"; 
-        supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
-      } else {
-        finalUserId = decoded.sub;
-        supabase = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: authHeader } } }
-        );
-      }
-    } catch (e) {
-      console.error("❌ Token Decode Error:", e);
-      return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
-    }
-  } else {
-    supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      finalUserId = user.id;
-    } else {
-      const visitorId = req.headers.get("x-visitor-id");
-      if (visitorId) {
-        finalUserId = `anon-${visitorId}`; // Use a prefix to distinguish in DB if needed
-        console.log(`💾 Anonymous Draft: ${finalUserId}`);
-      } else {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    }
-  }
-
-
-
   try {
-    const body = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    let supabase;
 
-    // 2. THE UPSERT WITH STATUS CONTROL
+    // FIX 2: Support for both Browser and Insomnia/Service Role testing
+    if (authHeader?.startsWith("Bearer ")) {
+      supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use Service Role for backend overrides
+        { global: { headers: { Authorization: authHeader } } }
+      );
+    } else {
+      supabase = await createClient();
+    }
+
+    // 1. Authenticate user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (!user || authError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const creatorId = user.id;
+
+    // 2. Parse request body safely
+    const body = await req.json().catch(() => ({}));
+
+    const category = body.category || "General";
+    const formData = body.form_data || body.formData || {};
+
+    // 3. Check existing submission status
+    const { data: existingSubmission } = await supabase
+      .from("verification_submissions")
+      .select("status")
+      .eq("creator_id", creatorId)
+      .maybeSingle();
+
+    // 4. Prevent editing locked submissions (Security Guard)
+    if (existingSubmission && (existingSubmission.status === "pending" || existingSubmission.status === "approved")) {
+      return NextResponse.json(
+        {
+          error: "Submission locked",
+          message: "Cannot edit a submission that is pending review or already approved."
+        },
+        { status: 403 }
+      );
+    }
+
+    // 5. Upsert draft (Create or Update)
     const { data, error } = await supabase
       .from("verification_submissions")
       .upsert(
         {
-          creator_id: finalUserId,
-          category: body.category,
-          form_data: body.form_data,
-          // FIX: Explicitly set status to 'unverified' so it is NOT 'pending'
-          status: 'unverified', 
+          creator_id: creatorId,
+          category: category,
+          form_data: formData,
+          status: "draft",
           updated_at: new Date().toISOString(),
         },
         { onConflict: "creator_id" }
       )
-      .select();
+      .select()
+      .single();
 
-    if (error) {
-      console.error("❌ DB Error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    console.log("✅ Success: Draft saved as 'unverified'");
-    return NextResponse.json({ message: "Draft saved successfully", data });
-
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      message: "Draft saved successfully",
+      data,
+    });
+  } catch (err) {
+    const error = err as Error;
+    console.error("Draft Save Error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: err.message },
+      { status: 500 }
+    );
   }
 }

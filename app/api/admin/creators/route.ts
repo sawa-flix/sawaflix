@@ -1,54 +1,83 @@
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL;
+export const dynamic = "force-dynamic";
 
-export async function GET() {
-    try {
-        // ─────────────────────────────────────────────────────────────────
-        // TODO: When Wohking's backend is live, uncomment this block
-        //       and remove the Supabase fallback below.
-        //
-        //  const res = await fetch(`${BACKEND_API_URL}/api/admin/creators`, {
-        //      method: 'GET',
-        //      headers: { 'Authorization': `Bearer ${adminJwt}` },
-        //      cache: 'no-store',
-        //  });
-        //  if (!res.ok) return NextResponse.json({ error: 'Failed to fetch' }, { status: res.status });
-        //  const json = await res.json();
-        //  return NextResponse.json({ data: json.data ?? json });
-        // ─────────────────────────────────────────────────────────────────
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
 
-        // Temporary: read from Supabase (anon key read is allowed by RLS)
-        const supabase = await createClient();
-        const { data, error } = await supabase
-            .from('verification_submissions')
-            .select('creator_id, category, status, created_at, form_data')
-            .in('status', ['pending', 'info_requested'])
-            .order('created_at', { ascending: false });
+  // 1. Pagination & Filtering Logic
+  const status = searchParams.get("status") || "pending";
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
 
-        if (error) {
-            console.error('Error fetching verifications:', error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
-        }
+  const rangeStart = (page - 1) * limit;
+  const rangeEnd = rangeStart + limit - 1;
 
-        let mappedData = (data || []).map((row) => {
-            const fd = (row.form_data as Record<string, unknown>) ?? {};
-            return {
-                id: row.creator_id,
-                full_name: fd.full_name ?? 'Unknown Creator',
-                category: row.category,
-                status: row.status,
-                submitted_at: row.created_at,
-                avatar_url: fd.avatar_url ?? '',
-            };
-        });
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
+  try {
+    // 2. Fetch from the Submissions table (since that's where status lives)
+    // We join 'creator_profiles' and 'users' inside this one query
+    const { data: submissions, error, count } = await supabase
+      .from("verification_submissions")
+      .select(`
+        creator_id,
+        status,
+        category,
+        created_at,
+        form_data,
+        creator_profiles (
+          legal_name,
+          stage_name,
+          profile_picture_url
+        ),
+        users (
+          email,
+          username
+        )
+      `, { count: "exact" })
+      .eq("status", status)
+      .order("created_at", { ascending: false })
+      .range(rangeStart, rangeEnd);
 
+    if (error) throw error;
 
-        return NextResponse.json({ data: mappedData });
-    } catch (err) {
-        console.error('Unexpected error:', err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (!submissions || submissions.length === 0) {
+      return NextResponse.json({
+        creators: [],
+        totalCount: 0,
+        currentPage: page,
+        totalPages: 0
+      });
     }
+
+    // 3. Clean up the response structure for the frontend
+    const formattedData = submissions.map(sub => ({
+      id: sub.creator_id,
+      status: sub.status,
+      category: sub.category,
+      appliedAt: sub.created_at,
+      formData: sub.form_data,
+      profile: sub.creator_profiles,
+      user: sub.users
+    }));
+
+    return NextResponse.json({
+      creators: formattedData,
+      totalCount: count,
+      currentPage: page,
+      totalPages: Math.ceil((count || 0) / limit)
+    });
+
+  } catch (err: any) {
+    console.error("Creators List Error:", err.message);
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
+  }
 }

@@ -13,18 +13,17 @@ import FestivalBanner from "@/components/FestivalBanner";
 import Footer from "@/components/Footer";
 
 export default function Home() {
-
-    return (
-        <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">
-            <Navbar />
-            <Hero />
-            <GenreSection />
-            <MoviesSection />
-            <TraditionalSection />
-            <LivingTraditions />
-            <AISection />
-            <FestivalBanner />
-            <Footer />
-        </main>
-    );
+  return (
+    <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">
+      <Navbar />
+      <Hero />
+      <GenreSection />
+      <MoviesSection />
+      <TraditionalSection />
+      <LivingTraditions />
+      <AISection />
+      <FestivalBanner />
+      <Footer />
+    </main>
+  );
 }

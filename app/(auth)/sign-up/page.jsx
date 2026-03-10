@@ -86,7 +86,7 @@ function SignUpContent() {
         } else {
           setSuccessMessage('Sign up successful! Redirecting...');
           setTimeout(() => {
-            if (role === 'creator') {
+            if (category === 'creator') {
               router.push('/creator/verify');
             } else {
               router.push('/dashboard');
