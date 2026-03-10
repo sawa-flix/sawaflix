@@ -81,7 +81,7 @@ export async function middleware(request) {
         if (profile.role === 'creator' && profile.verification_status === 'pending') {
           return NextResponse.redirect(new URL('/creator/pending', request.url))
         }
-        return NextResponse.redirect(new URL('/verify-otp', request.url))
+        return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
       }
       return response
     }
@@ -100,7 +100,7 @@ export async function middleware(request) {
         } else {
           // unverified creator -> allowed to stay on verify-otp or go to creator/verify
           if (pathname === '/verify-otp' || pathname === '/creator/verify') return response
-          return NextResponse.redirect(new URL('/verify-otp', request.url))
+          return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
         }
       }
 
@@ -110,7 +110,7 @@ export async function middleware(request) {
 
       // Viewer not yet verified → send to OTP page
       if (pathname !== '/verify-otp') {
-        return NextResponse.redirect(new URL('/verify-otp', request.url))
+        return NextResponse.redirect(new URL('/Creator-dashboard', request.url))
       }
     }
 
