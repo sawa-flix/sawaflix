@@ -13,6 +13,18 @@ import {
   HelpCircle
 } from "lucide-react";
 
+function SidebarItem({ icon, href, children }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-[#1A2335] transition text-sm"
+    >
+      {icon}
+      {children}
+    </Link>
+  );
+}
+
 export default async function CreatorLayout({ children }) {
   const profile = await getUserProfile();
 
@@ -20,17 +32,12 @@ export default async function CreatorLayout({ children }) {
   if (profile.category !== "creator") redirect("/dashboard");
   if (profile.verificationStatus !== "approved") redirect("/creator");
 
-  function SidebarItem({ icon, href, children }) {
-    return (
-      <Link
-        href={href}
-        className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-[#1A2335] transition text-sm"
-      >
-        {icon}
-        {children}
-      </Link>
-    );
-  }
+  // Determine the correct upload link based on their approved niche
+  const cat = profile.category?.toLowerCase() || 'lifestyle';
+  let postHref = "/Creator-dashboard/post";
+  if (cat === 'music') postHref = "/Creator-dashboard/post/music";
+  else if (cat === 'lifestyle' || cat === 'food') postHref = "/Creator-dashboard/post/food";
+  else if (cat === 'storyteller') postHref = "/Creator-dashboard/post/story";
 
   return (
     <div className="min-h-screen flex bg-gray-800 text-white">
@@ -61,7 +68,7 @@ export default async function CreatorLayout({ children }) {
             My Content
           </SidebarItem>
 
-          <SidebarItem icon={<Upload size={18} />} href="/Creator-dashboard/post">
+          <SidebarItem icon={<Upload size={18} />} href={postHref}>
             Post Content
           </SidebarItem>
 
@@ -69,11 +76,11 @@ export default async function CreatorLayout({ children }) {
             Analytics
           </SidebarItem>
 
-          <SidebarItem icon={<DollarSign size={18} />} href="/Creator-dashboards/earnings">
+          <SidebarItem icon={<DollarSign size={18} />} href="/Creator-dashboard/earnings">
             Earnings
           </SidebarItem>
 
-          <SidebarItem icon={<Settings size={18} />} href={`/creator/${profile.username}`}>
+          <SidebarItem icon={<Settings size={18} />} href="/Creator-dashboard/settings">
             Settings
           </SidebarItem>
 
@@ -142,3 +149,4 @@ export default async function CreatorLayout({ children }) {
     </div>
   );
 }
+
