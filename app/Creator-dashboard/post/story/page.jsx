@@ -47,16 +47,16 @@ const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemov
     };
 
     return (
-        <div className="flex flex-col items-center gap-3 w-full">
-            <p className="text-gray-200 font-bold text-lg mb-1">{title}</p>
+        <div className="flex flex-col items-center gap-4 w-full">
+            <p className="text-gray-100 font-bold text-lg">{title}</p>
             <div
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => inputRef.current?.click()}
-                className={`w-full aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-2xl transition-all cursor-pointer group relative overflow-hidden
-          ${file ? 'border-red-500/50 bg-red-500/5' : 'border-gray-700 bg-black/20 hover:border-red-500/40 hover:bg-red-500/5'}
+                className={`w-full aspect-square flex flex-col items-center justify-center border border-dashed rounded-3xl transition-all cursor-pointer group relative overflow-hidden
+          ${file ? 'border-red-500/50 bg-red-500/5' : 'border-gray-700 bg-black/10 hover:border-gray-500/40 hover:bg-white/5'}
           ${isDragging ? 'border-red-500 bg-red-500/10 scale-[1.02]' : ''}
         `}
             >
@@ -73,24 +73,24 @@ const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemov
                         <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-2">
                             <Icon className="text-red-500" size={24} />
                         </div>
-                        <p className="text-xs font-medium text-white line-clamp-1 px-4 w-full">{file.name}</p>
+                        <p className="text-xs font-semibold text-white line-clamp-1 px-4 w-full">{file.name}</p>
                         <p className="text-[10px] text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                         <button
                             onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors z-10"
+                            className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white hover:bg-red-500 transition-colors z-10"
                         >
                             <X size={14} />
                         </button>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center text-center p-6">
-                        <div className="w-14 h-14 rounded-2xl bg-gray-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <Icon className="text-gray-400 group-hover:text-red-500 transition-colors" size={28} />
+                        <div className="w-16 h-16 rounded-2xl bg-[#111827] flex items-center justify-center mb-6 border border-gray-800 group-hover:scale-110 transition-transform shadow-inner">
+                            <Icon className="text-gray-500 group-hover:text-red-500 transition-colors" size={28} />
                         </div>
-                        <p className="text-xs text-gray-500 mb-4 px-8 leading-relaxed">
-                            Drag and drop or click to <br /> <span className="text-gray-300 font-bold">browse {title.toLowerCase()}</span>
+                        <p className="text-[11px] text-gray-500 mb-6 px-4 leading-relaxed tracking-tight">
+                            Drag and drop or click to <br /> <span className="text-gray-400 font-medium">browse image</span>
                         </p>
-                        <div className="px-6 py-2 bg-white text-black text-[10px] font-black uppercase tracking-tighter rounded-full">
+                        <div className="px-6 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-wide rounded-full shadow-lg group-hover:bg-gray-100 transition-colors">
                             Browse file
                         </div>
                     </div>
@@ -161,21 +161,15 @@ export default function PostStoryPage() {
             payload.append('title', formData.title);
             payload.append('community_group', formData.ethnicGroup);
 
-            // Combine description and significance for the stories API
             const fullContent = `DESCRIPTION:\n${formData.description}\n\nSIGNIFICANCE:\n${formData.significance}`;
             payload.append('content_text', fullContent);
 
-            // Determine content type: audio if audio file is present, otherwise text
             const contentType = mediaFiles.audio ? 'audio' : 'text';
             payload.append('content_type', contentType);
-
-            // Languages (required by API)
             payload.append('languages', 'English');
 
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.audio) payload.append('media', mediaFiles.audio);
-            // If there's a text file, it could be handled by a different endpoint or added to content_text
-            // For now, we follow the story upload route which uses content_text or media (audio/video)
 
             const res = await fetch('/api/content/stories/upload', {
                 method: 'POST',
@@ -199,11 +193,11 @@ export default function PostStoryPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+        <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
 
             {/* Header Section */}
-            <div className="flex items-center justify-center mb-12">
-                <h1 className="text-4xl font-black text-white tracking-tight">Upload <span className="text-red-600">Content</span></h1>
+            <div className="flex items-center justify-center pt-4">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Upload Content</h1>
             </div>
 
             <div className="space-y-12">
@@ -211,44 +205,33 @@ export default function PostStoryPage() {
                 {/* DESCRIPTIONS SECTION */}
                 <section>
                     <div className="flex items-center gap-4 mb-6">
-                        <h2 className="text-2xl font-black text-white italic tracking-widest uppercase text-sm opacity-50">Descriptions</h2>
-                        <div className="h-[1px] flex-1 bg-gray-800/50" />
+                        <h2 className="text-xl font-bold text-gray-200">Descriptions</h2>
+                        <div className="h-[1px] flex-1 bg-gray-800" />
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="bg-[#0F172A]/40 border border-gray-800/50 rounded-[2.5rem] p-10 space-y-8 backdrop-blur-sm">
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Title*</label>
+                    <div className="bg-[#0E1628]/40 border border-gray-800/60 rounded-3xl p-8 backdrop-blur-md">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+                            {/* Title */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-300 ml-1">Title*</label>
                                 <input
                                     name="title"
                                     value={formData.title}
                                     onChange={handleInputChange}
                                     placeholder="Enter your title"
-                                    className="w-full bg-black/20 border border-gray-800 rounded-2xl py-4 px-6 text-sm text-white focus:border-red-500/50 focus:bg-black/40 outline-none transition-all placeholder:text-gray-700 font-medium"
+                                    className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600"
                                 />
                             </div>
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Description*</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                    rows={6}
-                                    placeholder="Enter the description"
-                                    className="w-full bg-black/20 border border-gray-800 rounded-[2rem] py-4 px-6 text-sm text-white focus:border-red-500/50 focus:bg-black/40 outline-none transition-all placeholder:text-gray-700 resize-none font-medium leading-relaxed"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="bg-[#0F172A]/40 border border-gray-800/50 rounded-[2.5rem] p-10 space-y-8 backdrop-blur-sm">
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Ethnic Group*</label>
+                            {/* Ethnic Group */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-300 ml-1">Ethnic Group*</label>
                                 <div className="relative group">
                                     <select
                                         name="ethnicGroup"
                                         value={formData.ethnicGroup}
                                         onChange={handleInputChange}
-                                        className="w-full bg-black/20 border border-gray-800 rounded-2xl py-4 px-6 text-sm text-white focus:border-red-500/50 focus:bg-black/40 outline-none transition-all appearance-none cursor-pointer font-medium"
+                                        className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all appearance-none cursor-pointer"
                                     >
                                         <option value="" className="bg-[#0F172A]">Choose your ethnic group</option>
                                         <option value="Sawa" className="bg-[#0F172A]">Sawa (Coastals)</option>
@@ -256,20 +239,35 @@ export default function PostStoryPage() {
                                         <option value="Fang-Beti" className="bg-[#0F172A]">Fang-Beti</option>
                                         <option value="Sudano-Sahelian" className="bg-[#0F172A]">Sudano-Sahelian</option>
                                     </select>
-                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600 group-focus-within:text-red-500 transition-colors">
-                                        <Upload size={14} className="rotate-180" />
+                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 group-focus-within:text-red-500 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                                     </div>
                                 </div>
                             </div>
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Significance*</label>
+
+                            {/* Description */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-300 ml-1">Description*</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={5}
+                                    placeholder="Enter the description"
+                                    className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600 resize-none leading-relaxed"
+                                />
+                            </div>
+
+                            {/* Significance */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-300 ml-1">Significance*</label>
                                 <textarea
                                     name="significance"
                                     value={formData.significance}
                                     onChange={handleInputChange}
-                                    rows={6}
-                                    placeholder="Enter the significance"
-                                    className="w-full bg-black/20 border border-gray-800 rounded-[2rem] py-4 px-6 text-sm text-white focus:border-red-500/50 focus:bg-black/40 outline-none transition-all placeholder:text-gray-700 resize-none font-medium leading-relaxed"
+                                    rows={5}
+                                    placeholder="Enter the description"
+                                    className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600 resize-none leading-relaxed"
                                 />
                             </div>
                         </div>
@@ -279,12 +277,12 @@ export default function PostStoryPage() {
                 {/* PROPERTIES SECTION */}
                 <section>
                     <div className="flex items-center gap-4 mb-6">
-                        <h2 className="text-2xl font-black text-white italic tracking-widest uppercase text-sm opacity-50">Properties</h2>
-                        <div className="h-[1px] flex-1 bg-gray-800/50" />
+                        <h2 className="text-xl font-bold text-gray-200">Properties</h2>
+                        <div className="h-[1px] flex-1 bg-gray-800" />
                     </div>
 
-                    <div className="bg-[#0F172A]/40 border border-gray-800/50 rounded-[3rem] p-10 md:p-16 backdrop-blur-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24">
+                    <div className="bg-[#0E1628]/40 border border-gray-800/60 rounded-3xl p-8 md:p-12 backdrop-blur-md">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <FileUploadZone
                                 title="Cover Image"
                                 icon={ImageIcon}
@@ -314,20 +312,20 @@ export default function PostStoryPage() {
                 </section>
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-6 pt-10">
+                <div className="flex items-center gap-4 pt-6">
                     <button
                         onClick={saveDraft}
                         disabled={loading || isDrafting}
-                        className="px-10 h-16 bg-white hover:bg-gray-100 text-red-600 font-black rounded-2xl transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                        className="flex-1 max-w-[200px] h-12 bg-white hover:bg-gray-100 text-black font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
                     >
-                        {isDrafting ? <Loader2 className="animate-spin" size={20} /> : <><Save size={18} /> Save As Draft</>}
+                        {isDrafting ? <Loader2 className="animate-spin" size={18} /> : "Save As Draft"}
                     </button>
                     <button
                         onClick={handleUpload}
                         disabled={loading}
-                        className="px-12 h-16 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl transition-all shadow-2xl shadow-red-600/30 active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                        className="flex-1 max-w-[200px] h-12 bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm shadow-lg shadow-red-500/20"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : <><Upload size={18} /> Upload Story</>}
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : "Upload"}
                     </button>
                 </div>
 
@@ -340,20 +338,17 @@ export default function PostStoryPage() {
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className={`fixed bottom-10 right-10 z-[100] p-6 rounded-[2rem] border-2 flex items-center gap-5 shadow-3xl backdrop-blur-2xl ${message.type === 'success'
+                        className={`fixed bottom-10 right-10 z-[100] p-6 rounded-2xl border flex items-center gap-4 shadow-2xl backdrop-blur-xl ${message.type === 'success'
                             ? 'bg-green-500/10 border-green-500/20 text-green-400'
                             : 'bg-red-500/10 border-red-500/20 text-red-400'
                             }`}
                     >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${message.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                            {message.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${message.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                            {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
                         </div>
-                        <div className="flex flex-col pr-4">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">{message.type === 'success' ? 'Successful' : 'Alert'}</p>
-                            <p className="text-sm font-bold leading-tight">{message.text}</p>
-                        </div>
-                        <button onClick={() => setMessage(null)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                            <X size={18} />
+                        <p className="text-sm font-medium">{message.text}</p>
+                        <button onClick={() => setMessage(null)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors ml-4">
+                            <X size={16} />
                         </button>
                     </motion.div>
                 )}
