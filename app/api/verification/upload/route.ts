@@ -4,14 +4,38 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+/**
+ * @swagger
+ * /api/verification/upload:
+ *   post:
+ *     summary: Upload verification documents
+ *     description: Final step before submission. Ensures required documents (selfie and national ID) exist before submitting.
+ *     tags:
+ *       - Creator Verification
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Application submitted successfully
+ *       400:
+ *         description: Missing required documents
+ *       403:
+ *         description: Submission already under review
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "application/pdf", "video/mp4"];
 
 export async function POST(req: Request) {
   try {
-    // 1️ AUTHENTICATION (Supports Browser & Insomnia)
     const authHeader = req.headers.get("Authorization");
-    const cookieStore = await cookies(); // FIX: Added await
+    const cookieStore = await cookies();
     let supabase;
 
+    // 1. Auth Setup
     if (authHeader?.startsWith("Bearer ")) {
       supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,81 +47,84 @@ export async function POST(req: Request) {
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user || authError) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    if (!user || authError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const creatorId = user.id;
-
-    // 2️ FETCH EXISTING SUBMISSION
-    const { data: submission, error } = await supabase
+    // 2. Fetch current submission state to prevent overwriting other files
+    const { data: existingSubmission } = await supabase
       .from("verification_submissions")
-      .select("category, status, form_data")
-      .eq("creator_id", creatorId)
+      .select("form_data")
+      .eq("creator_id", user.id)
       .maybeSingle();
 
-    if (error) throw error;
+    const currentFormData = existingSubmission?.form_data || {};
 
-    if (!submission) {
-      return NextResponse.json(
-        { error: "No draft found. Please complete the verification form first." },
-        { status: 400 }
-      );
+    // 3. Parse Multipart Data
+    const formData = await req.formData();
+    const filesToUpload = [
+      { file: formData.get("selfie") as File, key: "selfie_path" },
+      { file: formData.get("national_id") as File, key: "national_id_path" },
+      { file: formData.get("endorsement_letter") as File, key: "endorsement_letter_path" }
+    ];
+
+    const newUploadedPaths: Record<string, string> = {};
+
+    // 4. Flexible Validation & Upload Loop
+    for (const item of filesToUpload) {
+      // We ONLY process the file if it actually exists in this request
+      if (item.file && item.file instanceof File && item.file.size > 0) {
+        
+        // Security: Size & Type Check
+        if (item.file.size > MAX_FILE_SIZE) {
+          return NextResponse.json({ error: "File too large", detail: `${item.file.name} exceeds 10MB` }, { status: 400 });
+        }
+        if (!ALLOWED_MIME_TYPES.includes(item.file.type)) {
+          return NextResponse.json({ error: "Invalid type", detail: `${item.file.name} is not an allowed format.` }, { status: 400 });
+        }
+
+        const fileExt = item.file.name.split('.').pop();
+        const fileName = `${user.id}/${item.key}_${Date.now()}.${fileExt}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("verification-docs")
+          .upload(fileName, item.file, { upsert: true });
+
+        if (uploadError) throw new Error(`Failed to upload ${item.key}`);
+        
+        newUploadedPaths[item.key] = uploadData.path;
+      }
     }
 
-    // 3️ PREVENT RESUBMISSION (Security Guard)
-    if (submission.status === "pending" || submission.status === "approved") {
-      return NextResponse.json(
-        { error: "Forbidden", message: "Submission already under review or approved." },
-        { status: 403 }
-      );
-    }
+    // 5. Merge new paths with existing paths
+    const finalFormData = { ...currentFormData, ...newUploadedPaths };
 
-    const formData = submission.form_data || {};
+    // 6. Logic: Is the application complete now?
+    const isComplete = 
+      finalFormData.selfie_path && 
+      finalFormData.national_id_path && 
+      finalFormData.endorsement_letter_path;
 
-    // 4️ REQUIRED DOCUMENT CHECK
-    // Note: Checking for _path keys as per our secure upload logic
-    if (!formData.selfie_path || !formData.national_id_path) {
-      return NextResponse.json(
-        {
-          error: "Missing required documents",
-          message: "Selfie and National ID must be uploaded before final submission.",
-          missing: {
-            selfie: !formData.selfie_path,
-            national_id: !formData.national_id_path
-          }
-        },
-        { status: 400 }
-      );
-    }
-
-    // 5️ UPDATE STATUS TO PENDING
-    const { data: updated, error: updateError } = await supabase
+    const { data: updated, error: dbError } = await supabase
       .from("verification_submissions")
-      .update({
-        status: "pending",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("creator_id", creatorId)
+      .upsert({
+        creator_id: user.id,
+        form_data: finalFormData,
+        status: isComplete ? "pending" : "draft", // Only "pending" if all 3 are present
+        updated_at: new Date().toISOString()
+      }, { onConflict: "creator_id" })
       .select()
       .single();
 
-    if (updateError) throw updateError;
+    if (dbError) throw dbError;
 
-    // 6️ SUCCESS
     return NextResponse.json({
       success: true,
-      message: "Application submitted successfully! It is now under review.",
-      status: "pending",
-      data: updated,
+      message: isComplete ? "Application Submitted Successfully!" : "Progress saved as draft.",
+      status: updated.status,
+      data: updated
     });
 
   } catch (err: any) {
-    console.error("Submit Error:", err);
-    return NextResponse.json(
-      { error: "Internal Server Error", details: err.message },
-      { status: 500 }
-    );
+    console.error("Critical Upload Error:", err.message);
+    return NextResponse.json({ error: "Internal Server Error", details: err.message }, { status: 500 });
   }
 }

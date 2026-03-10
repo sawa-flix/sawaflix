@@ -1,6 +1,32 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/admin/verifications/{id}:
+ *   get:
+ *     summary: Get verification submission details
+ *     description: Fetch full verification submission details for a specific creator.
+ *     tags:
+ *       - Admin Verification
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Creator ID
+ *         schema:
+ *           type: string
+ *           example: 123e4567-e89b
+ *     responses:
+ *       200:
+ *         description: Submission details retrieved successfully
+ *       404:
+ *         description: No submission record found
+ *       500:
+ *         description: Server error
+ */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> } // FIX 1: Define params as a Promise
