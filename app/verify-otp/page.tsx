@@ -16,13 +16,53 @@ import {
 } from 'lucide-react';
 
 import { createClient } from '@/utils/supabase/client';
+import { useSearchParams } from 'next/navigation';
 
 const RESEND_TIMER_SECONDS = 30;
 
 const VerifyOtpPage = () => {
   const router = useRouter();
+  const supabase = createClient();
+  const searchParams = useSearchParams();
 
-  // --- State Management ---
+  // Check if user is already verified on mount
+  useEffect(() => {
+    async function checkUserStatus() {
+      try {
+        // Use backend API (service role) since anon client is blocked by RLS
+        const res = await fetch('/api/auth/profile-status');
+        if (res.ok) {
+          const { verified, role } = await res.json();
+          if (verified) {
+            // Hard redirect — bypass Next.js router cache
+            window.location.href = role === 'creator' ? '/Creator-dashboard' : '/dashboard';
+            return;
+          }
+        }
+      } catch {
+        // Silently fail — user stays on OTP page
+      }
+      // Pre-fill email from auth session
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && !email) {
+        setEmail(user.email || '');
+      }
+    }
+    checkUserStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-fill from URL if provided
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+      // If we have an email, maybe we can skip the email entry step?
+      // For now let's just pre-fill.
+    }
+  }, [searchParams]);
+
+  // Flow state
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -99,10 +139,14 @@ const VerifyOtpPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage({ type: 'success', text: data.message || 'Account verified! Redirecting...' });
-        setTimeout(() => {
-          data.pendingReview ? router.push('/creator/pending') : router.push('/dashboard');
-        }, 2000);
+        setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting...' });
+
+        // Hard redirect to bypass Next.js router cache (which may have cached /dashboard → /verify-otp)
+        if (data.pendingReview) {
+          window.location.href = '/creator/pending';
+        } else {
+          window.location.href = '/dashboard';
+        }
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });
       }

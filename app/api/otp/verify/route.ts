@@ -9,7 +9,9 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
     try {
-        const { email, code } = await req.json();
+        const body = await req.json();
+        const email = body.email?.toLowerCase().trim();
+        const code = body.code?.trim();
 
         // Input validation
         if (!email || !code) {
@@ -32,6 +34,8 @@ export async function POST(req: Request) {
 
         // Lookup stored OTP
         const storedOtp = await redis.get(`otp:${email}`);
+        console.log(`Verifying OTP for ${email}. Stored: ${storedOtp}, Provided: ${code}`);
+
         if (!storedOtp) {
             return NextResponse.json(
                 { error: "OTP expired or not found. Request a new code." },
@@ -54,10 +58,11 @@ export async function POST(req: Request) {
         // Fetch current user status AND role to decide what transition to make
         const { data: user, error: fetchError } = await supabaseAdmin
             .from("users")
-            .select("verification_status, role")
-            .eq("email", email)
-            .single();
-        console.log(`${user.verification_status} ${user.role}`);
+            .select("id, verification_status, role")
+            .ilike("email", email)
+            .maybeSingle();
+        
+        console.log(`User query result for ${email}:`, user);
 
         if (fetchError || !user) {
             console.error("Error fetching user:", fetchError);
@@ -83,7 +88,7 @@ export async function POST(req: Request) {
             const { error: step1Error } = await supabaseAdmin
                 .from("users")
                 .update({ verification_status: "pending" })
-                .eq("email", email);
+                .eq("id", user.id);
 
             if (step1Error) {
                 console.error("Error transitioning to pending:", step1Error);
@@ -111,7 +116,7 @@ export async function POST(req: Request) {
         const { error: step2Error } = await supabaseAdmin
             .from("users")
             .update({ verification_status: "approved" })
-            .eq("email", email);
+            .eq("id", user.id);
 
         if (step2Error) {
             console.error("Error transitioning to approved:", step2Error);

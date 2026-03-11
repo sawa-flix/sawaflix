@@ -111,28 +111,26 @@ function LoginContent() {
       } else if (result?.success) {
         setIsRedirecting(true);
 
-        // Use user metadata for intelligent redirection
-        const user = result.user;
-        const role = user?.user_metadata?.category || user?.user_metadata?.role || 'client';
-        // Note: actions.js signInWithPassword doesn't fetch profile, but sign-up does set verification_status in metadata usually
-        // However, middleware handles the granular status usually. We can do a best-effort here or rely on result.redirectTo
-
-        let destination = result.redirectTo || '/dashboard';
-
-        if (role === 'admin') {
-          destination = '/admin';
-        } else if (role === 'creator') {
-          const status = user?.user_metadata?.verification_status || 'unverified';
-          if (status === 'pending') {
-            destination = '/creator/pending';
-          } else if (status === 'approved') {
-            destination = '/Creator-dashboard';
-          } else {
-            destination = '/creator/verify';
+        // Fetch real role from the backend (uses service role key, bypasses RLS)
+        let destination = '/dashboard'; // safe default
+        try {
+          const profileRes = await fetch('/api/auth/profile-status');
+          if (profileRes.ok) {
+            const { role } = await profileRes.json();
+            if (role === 'creator') {
+              destination = '/creator/pending';
+            } else if (role === 'admin') {
+              destination = '/admin';
+            } else {
+              destination = '/dashboard';
+            }
           }
+        } catch {
+          // Fall back to /dashboard on error
         }
 
-        router.push(destination);
+        // Hard redirect — bypasses Next.js router cache entirely
+        window.location.href = destination;
       }
     } catch (err) {
       // Handle Next.js redirect errors correctly

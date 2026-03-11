@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "./utils/supabase/middleware";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+// Admin client bypasses Row Level Security (RLS) for profile lookups
+function createAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
+}
 
 export async function middleware(request) {
   const { supabase, response } = createClient(request);
@@ -29,8 +38,9 @@ export async function middleware(request) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Authenticated users — fetch profile
-    const { data: profile, error: profileError } = await supabase
+    // Authenticated users — fetch profile using admin client to bypass RLS
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
       .from("users")
       .select("id, role, verification_status")
       .eq("id", user.id)
@@ -48,21 +58,53 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
+    const isVerified = profile.verification_status === "approved";
+    const isCreator = profile.role === "creator";
+    const isAdmin = profile.role === "admin";
+
+    // ── OTP verification page
+    if (pathname === "/verify-otp") {
+      // Already verified? Skip OTP and send to the right dashboard
+      if (isVerified) {
+        if (isCreator) {
+          return NextResponse.redirect(
+            new URL("/Creator-dashboard", request.url),
+          );
+        }
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+      // Not verified yet — allow them to stay on OTP page
+      return response;
+    }
+
+    // ── Auth pages (login / sign-up)
+    if (isAuthRoute) {
+      // Let logged-in users visit auth pages without forced redirect
+      return response;
+    }
+
+    // ── Admin routes (/admin/*)
+    if (pathname.startsWith("/admin")) {
+      if (!isAdmin) {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
+      return response;
+    }
+
     // ── Creator routes (/creator/*)
     if (pathname.startsWith("/creator")) {
       // Non-creators are not allowed here at all
-      if (profile.role !== "creator") {
+      if (!isCreator) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // Creators at any verification state can access their verification portal
       if (pathname === "/creator/verify") {
         if (profile.verification_status === "pending") {
           return NextResponse.redirect(
             new URL("/creator/pending", request.url),
           );
         }
-        if (profile.verification_status === "approved") {
+        if (isVerified) {
           return NextResponse.redirect(
             new URL("/Creator-dashboard", request.url),
           );
@@ -70,9 +112,8 @@ export async function middleware(request) {
         return response;
       }
 
-      // /creator/pending access
       if (pathname === "/creator/pending") {
-        if (profile.verification_status === "approved") {
+        if (isVerified) {
           return NextResponse.redirect(
             new URL("/Creator-dashboard", request.url),
           );
@@ -84,30 +125,31 @@ export async function middleware(request) {
       }
 
       // Any other /creator/* page requires approved status
-      if (profile.verification_status !== "approved") {
+      if (!isVerified) {
         return NextResponse.redirect(new URL("/creator/verify", request.url));
       }
 
       return response;
     }
 
-    // Admin routes (/admin/*)
-    if (pathname.startsWith("/admin")) {
-      if (profile.role !== "admin") {
+    // ── Creator Dashboard (/Creator-dashboard/*)
+    if (pathname.startsWith("/Creator-dashboard")) {
+      if (!isCreator || !isVerified) {
         return NextResponse.redirect(new URL("/", request.url));
       }
       return response;
     }
 
-    // Dashboard / protected routes
+    // ── Viewer Dashboard and profile (/dashboard/*, /profile/*)
     if (pathname.startsWith("/dashboard") || pathname.startsWith("/profile")) {
-      if (profile.role === "creator") {
+      if (isCreator) {
+        // Creators should be in their own dashboard
         if (profile.verification_status === "pending") {
           return NextResponse.redirect(
             new URL("/creator/pending", request.url),
           );
         }
-        if (profile.verification_status === "approved") {
+        if (isVerified) {
           return NextResponse.redirect(
             new URL("/Creator-dashboard", request.url),
           );
@@ -115,28 +157,6 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL("/creator/verify", request.url));
       }
 
-      // Standard users need verification (OTP)
-      if (profile.verification_status !== "approved") {
-        return NextResponse.redirect(new URL("/verify-otp", request.url));
-      }
-      return response;
-    }
-
-    // Auth pages (login / sign-up) — allow viewing even if logged in
-    if (isAuthRoute) {
-      return response;
-    }
-
-    // OTP verification page — redirect already verified users
-    if (pathname === "/verify-otp") {
-      if (profile.verification_status === "approved") {
-        if (profile.role === "creator") {
-          return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
-          );
-        }
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
       return response;
     }
 

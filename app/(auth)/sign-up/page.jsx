@@ -87,9 +87,9 @@ function SignUpContent() {
           setSuccessMessage('Sign up successful! Redirecting...');
           setTimeout(() => {
             if (category === 'creator') {
-              router.push('/creator/verify');
+              window.location.href = '/creator/verify';
             } else {
-              router.push('/dashboard');
+              window.location.href = '/dashboard';
             }
           }, 1500);
         }
