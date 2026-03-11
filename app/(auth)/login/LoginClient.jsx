@@ -121,7 +121,7 @@ function LoginContent() {
             } else if (role === 'creator') {
               destination = verified ? '/creator-dashboard' : '/creator/pending';
             } else {
-              destination = '/dashboard';
+              destination = '/home';
             }
           }
         } catch {

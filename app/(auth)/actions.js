@@ -53,8 +53,8 @@ export async function signInWithPassword(formData) {
       };
     }
 
-    // Revalidate the dashboard path
-    revalidatePath('/dashboard');
+    // Revalidate the home path
+    revalidatePath('/home');
 
     // Return success - let the client handle the redirect
     return {
@@ -63,7 +63,7 @@ export async function signInWithPassword(formData) {
       user: data.user,
       access_token: data.session?.access_token,
       refresh_token: data.session?.refresh_token,
-      redirectTo: '/dashboard'
+      redirectTo: '/home'
     };
 
   } catch (error) {

@@ -35,7 +35,7 @@ const VerifyOtpPage = () => {
           const { verified, role } = await res.json();
           if (verified) {
             // Hard redirect — bypass Next.js router cache
-            window.location.href = role === 'creator' ? '/Creator-dashboard' : '/dashboard';
+            window.location.href = role === 'creator' ? '/Creator-dashboard' : '/home';
             return;
           }
         }
@@ -143,7 +143,7 @@ const VerifyOtpPage = () => {
         
         setTimeout(() => {
           // Hard redirect to bypass Next.js router cache
-          window.location.href = data.redirectTo ? data.redirectTo : (data.pendingReview ? '/creator/pending' : '/dashboard');
+          window.location.href = data.redirectTo ? data.redirectTo : (data.pendingReview ? '/creator/pending' : '/home');
         }, 2000);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });

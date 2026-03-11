@@ -113,7 +113,7 @@ export async function middleware(request) {
     if (!isCreator && !isAdmin) {
       // 1. Users must NOT access creator dashboard or creator verification pages
       if (pathname.startsWith("/creator-dashboard") || pathname.startsWith("/creator")) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        return NextResponse.redirect(new URL("/home", request.url));
       }
 
       // 2. Dashboard access

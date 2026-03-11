@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 export default function Hero() {
-  const [dashboardLink, setDashboardLink] = useState("/dashboard");
+  const [dashboardLink, setDashboardLink] = useState("/home");
 
   useEffect(() => {
     async function loadUser() {
