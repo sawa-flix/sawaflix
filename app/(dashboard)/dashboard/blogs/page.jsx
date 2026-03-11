@@ -86,7 +86,7 @@ export default function BlogsPage() {
             {/* Top Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Image
+                <Image unoptimized
                   src={blog.thumbnail}
                   alt={blog.title}
                   width={60}
@@ -98,7 +98,7 @@ export default function BlogsPage() {
                   <p className="text-gray-400 text-sm">by {blog.author}</p>
                 </div>
               </div>
-              <Image
+              <Image unoptimized
                 src={blog.profilePic}
                 alt={blog.author}
                 width={40}
@@ -169,7 +169,7 @@ export default function BlogsPage() {
 
             {/* Blog details */}
             <div className="flex items-center gap-4 mb-4">
-              <Image
+              <Image unoptimized
                 src={selectedBlog.thumbnail}
                 alt={selectedBlog.title}
                 width={60}

@@ -20,7 +20,7 @@ export async function GET(req: Request) {
         // 1. Fetch user basic info
         const { data: userData, error: userError } = await supabase
             .from('users')
-            .select('username, profile_image_url, cover_image_url, bio, social_links')
+            .select('username, profile_image_url, cover_image_url, bio')
             .eq('id', user.id)
             .single();
 
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
             bio: userData?.bio || '',
             profileImage: userData?.profile_image_url || '',
             bannerImage: userData?.cover_image_url || '',
-            socialLinks: userData?.social_links || [],
+            socialLinks: [],
             category: submission?.category || '',
             verificationStatus: submission?.status || 'none', // pending, approved, rejected, none
             rejectionFeedback: submission?.rejection_feedback || '',
@@ -93,8 +93,7 @@ export async function PUT(req: Request) {
                 username: displayName,
                 bio,
                 profile_image_url: profileImage,
-                cover_image_url: bannerImage,
-                social_links: socialLinks
+                cover_image_url: bannerImage
             })
             .eq('id', user.id);
 

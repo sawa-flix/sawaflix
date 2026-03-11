@@ -62,7 +62,7 @@ export default function AISection() {
                         className="flex-1 relative"
                     >
                         <div className="relative aspect-square rounded-3xl overflow-hidden border border-gray-800 shadow-2xl bg-[#151C25]">
-                            <Image
+                            <Image unoptimized
                                 src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&auto=format&fit=crop"
                                 alt="AI Interface"
                                 fill

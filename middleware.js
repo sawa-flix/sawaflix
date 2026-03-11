@@ -13,17 +13,15 @@ export async function middleware(request) {
     } = await supabase.auth.getUser();
     const { pathname } = request.nextUrl;
 
-    const publicRoutes = ["/", "/login", "/sign-up", "/sign-in", "/verify-otp"];
-    const authRoutes = ["/login", "/sign-up", "/sign-in"];
+    const publicRoutes = ["/", "/login", "/sign-up"];
+    const authRoutes = ["/login", "/sign-up"];
     const isPublicRoute = publicRoutes.includes(pathname);
     const isAuthRoute = authRoutes.includes(pathname);
 
     // Unauthenticated users
     if (!user) {
-      // Allow public routes and static assets
       if (isPublicRoute) return response;
-
-      // Everything else requires login
+      
       const redirectUrl = new URL("/login", request.url);
       redirectUrl.searchParams.set("redirectedFrom", pathname);
       return NextResponse.redirect(redirectUrl);
@@ -41,103 +39,79 @@ export async function middleware(request) {
     }
 
     if (!profile) {
-      // If no profile exists, only redirect if NOT already on a public/auth route
       if (isPublicRoute || isAuthRoute) {
         return response;
       }
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // ── Creator routes (/creator/*)
-    if (pathname.startsWith("/creator")) {
-      // Non-creators are not allowed here at all
-      if (profile.role !== "creator") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
+    const isCreator = profile.role === "creator";
+    const isAdmin = profile.role === "admin";
+    const status = profile.verification_status || "unverified";
+    const isApproved = status === "approved";
+    const isPending = status === "pending";
 
-      // Creators at any verification state can access their verification portal
-      if (pathname === "/creator/verify") {
-        if (profile.verification_status === "pending") {
-          return NextResponse.redirect(
-            new URL("/creator/pending", request.url),
-          );
-        }
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
-          );
-        }
-        return response;
-      }
-
-      // /creator/pending access
-      if (pathname === "/creator/pending") {
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
-          );
-        }
-        if (profile.verification_status === "unverified") {
-          return NextResponse.redirect(new URL("/creator/verify", request.url));
-        }
-        return response;
-      }
-
-      // Any other /creator/* page requires approved status
-      if (profile.verification_status !== "approved") {
-        return NextResponse.redirect(new URL("/creator/verify", request.url));
-      }
-
-      return response;
-    }
-
-    // Admin routes (/admin/*)
+    // ── Admin routes (/admin/*)
     if (pathname.startsWith("/admin")) {
-      if (profile.role !== "admin") {
+      if (!isAdmin) {
         return NextResponse.redirect(new URL("/", request.url));
       }
       return response;
     }
 
-    // Dashboard / protected routes
-    if (pathname.startsWith("/dashboard") || pathname.startsWith("/profile")) {
-      if (profile.role === "creator") {
-        if (profile.verification_status === "pending") {
-          return NextResponse.redirect(
-            new URL("/creator/pending", request.url),
-          );
-        }
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
-          );
-        }
-        return NextResponse.redirect(new URL("/creator/verify", request.url));
-      }
-
-      // Standard users need verification (OTP)
-      if (profile.verification_status !== "approved") {
-        return NextResponse.redirect(new URL("/verify-otp", request.url));
-      }
-      return response;
+    // ── Landing Page
+    if (pathname === "/") {
+      return response; // Allow authenticated users to see the landing page
     }
 
-    // Auth pages (login / sign-up) — allow viewing even if logged in
+    // ── Auth Pages
     if (isAuthRoute) {
       return response;
     }
 
-    // OTP verification page — redirect already verified users
-    if (pathname === "/verify-otp") {
-      if (profile.verification_status === "approved") {
-        if (profile.role === "creator") {
-          return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
-          );
-        }
+    // ── CREATOR ROUTING LOGIC
+    if (isCreator) {
+      // 1. Creators must NOT access standard dashboard
+      if (pathname.startsWith("/dashboard")) {
+        if (isApproved) return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+        if (isPending) return NextResponse.redirect(new URL("/creator/pending", request.url));
+        return NextResponse.redirect(new URL("/creator/verify", request.url));
+      }
+
+      // 2. Creator Dashboard access
+      if (pathname.startsWith("/creator-dashboard") || pathname === "/creator") {
+        if (isApproved) return response;
+        if (isPending) return NextResponse.redirect(new URL("/creator/pending", request.url));
+        return NextResponse.redirect(new URL("/creator/verify", request.url));
+      }
+
+      // 3. Creator Verification Pages
+      if (pathname === "/creator/verify") {
+        if (isApproved) return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+        if (isPending) return NextResponse.redirect(new URL("/creator/pending", request.url));
+        return response; // Allow unverified creators to see verify
+      }
+
+      if (pathname === "/creator/pending") {
+        if (isApproved) return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+        if (status === "unverified") return NextResponse.redirect(new URL("/creator/verify", request.url));
+        return response; // Allow pending creators to see pending
+      }
+    }
+
+    // ── STANDARD USER (NON-CREATOR) ROUTING LOGIC
+    if (!isCreator && !isAdmin) {
+      // 1. Users must NOT access creator dashboard or creator verification pages
+      if (pathname.startsWith("/creator-dashboard") || pathname.startsWith("/creator")) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
-      return response;
+
+      // 2. Dashboard access
+      if (pathname.startsWith("/dashboard")) {
+        return response; // Allow users to see the dashboard
+      }
+      
+      // Keep them away from verify-otp unless specifically allowed (if needed, omitting strict block here depending on app flow)
     }
 
     return response;

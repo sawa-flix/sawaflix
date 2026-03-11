@@ -25,7 +25,7 @@ export default async function CreatorVerifyPage() {
         redirect("/creator/pending");
     }
     if (profile.verificationStatus === "approved") {
-        redirect("/Creator-dashboard");
+        redirect("/creator-dashboard");
     }
     if (profile.verificationStatus === "rejected") {
         redirect("/dashboard");

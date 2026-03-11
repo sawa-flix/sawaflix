@@ -39,7 +39,7 @@ const ArtistPage = () => {
       </Head>
 
       <header className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
-        <Image
+        <Image unoptimized
           src="/hero-bg.png"
           alt="Header background"
           layout="fill"
@@ -78,7 +78,7 @@ const ArtistPage = () => {
                 className="bg-[#2C2C3D] rounded-lg p-4 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <div className="w-24 h-24 relative mb-4">
-                  <Image
+                  <Image unoptimized
                     src={artist.avatar}
                     alt={artist.name}
                     layout="fill"
@@ -111,7 +111,7 @@ const ArtistPage = () => {
                 className="bg-[#2C2C3D] rounded-lg p-4 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <div className="w-24 h-24 relative mb-4">
-                  <Image
+                  <Image unoptimized
                     src={artist.avatar}
                     alt={artist.name}
                     layout="fill"

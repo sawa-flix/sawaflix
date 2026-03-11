@@ -7,10 +7,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ username
         const username = rawUsername.replace(/-/g, ' '); // Decode username Slug
         const supabase = await createClient();
 
-        // 1. Fetch user profile by name-slug (this is a simple implementation)
         const { data: userData, error: userError } = await supabase
             .from('users')
-            .select('id, username, profile_image_url, cover_image_url, bio, social_links')
+            .select('id, username, profile_image_url, cover_image_url, bio')
             .ilike('username', username)
             .single();
 
@@ -39,7 +38,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ username
             bio: userData.bio || '',
             profileImage: userData.profile_image_url || '',
             bannerImage: userData.cover_image_url || '',
-            socialLinks: userData.social_links || [],
+            socialLinks: [],
             createdAt: new Date().toISOString(), // Mocked
         });
 

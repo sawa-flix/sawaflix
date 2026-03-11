@@ -78,8 +78,9 @@ export async function POST(req: Request) {
             });
         }
 
-        // Step 1: If 'unverified', move to 'pending' first (required by DB state machine)
-        if (currentStatus === "unverified") {
+        // Step 1: If 'unverified', transition viewers to 'pending' (then auto-approve below).
+        // Creators stay 'unverified' until they complete the onboarding wizard.
+        if (currentStatus === "unverified" && userRole !== "creator") {
             const { error: step1Error } = await supabaseAdmin
                 .from("users")
                 .update({ verification_status: "pending" })
@@ -97,12 +98,13 @@ export async function POST(req: Request) {
         // Step 2: Role-based decision
         if (userRole === "creator") {
             console.log(
-                `[OTP Verified - Pending Admin Review] Email: ${email}, Role: creator`
+                `[OTP Verified - Creator Onboarding] Email: ${email}, Role: creator`
             );
             return NextResponse.json({
-                message: "Email verified. Your creator account is pending admin approval.",
-                verified: false,
-                pendingReview: true,
+                message: "Email verified! Complete your creator profile to submit your application.",
+                verified: true,
+                pendingReview: false,
+                redirectTo: "/creator/verify",
             });
         }
 

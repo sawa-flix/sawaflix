@@ -126,7 +126,7 @@ function LoginContent() {
           if (status === 'pending') {
             destination = '/creator/pending';
           } else if (status === 'approved') {
-            destination = '/Creator-dashboard';
+            destination = '/creator-dashboard';
           } else {
             destination = '/creator/verify';
           }
@@ -185,7 +185,7 @@ function LoginContent() {
 
   return (
     <div className="h-screen w-full relative overflow-hidden font-inter">
-      <Image
+      <Image unoptimized
         src="/hero-bg.png"
         alt="Background"
         fill

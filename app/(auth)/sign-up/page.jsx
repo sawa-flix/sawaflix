@@ -103,7 +103,7 @@ function SignUpContent() {
 
   return (
     <div className="h-screen w-full relative overflow-hidden font-inter">
-      <Image
+      <Image unoptimized
         src="/hero-bg.png"
         alt="Background"
         fill

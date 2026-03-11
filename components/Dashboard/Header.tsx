@@ -13,6 +13,7 @@ type UserProfileData = {
   username: string | null;
   email: string | null;
   profile_image_url: string | null; // Changed from avatar_url
+  role: string | null;
 };
 
 // const handleUserSignOut = async () => {
@@ -36,7 +37,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
       if (user) {
         const { data: profileData, error } = await supabase
           .from('users')
-          .select('username, email, profile_image_url') // Changed from full_name
+          .select('username, email, profile_image_url, role') // Changed from full_name
           .eq('id', user.id)
           .single<UserProfileData>();
 
@@ -75,7 +76,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
 
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <Link href="/dashboard">
+            <Link href={userProfile?.role === 'creator' ? '/creator-dashboard' : '/dashboard'}>
             <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">SF</span>
             </div>

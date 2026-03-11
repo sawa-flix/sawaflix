@@ -60,7 +60,7 @@ export default function MoviesSection() {
                 transition={{ delay: index * 0.2 }}
               >
                 <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
-                  <Image
+                  <Image unoptimized
                     src={movie.image}
                     alt={movie.title}
                     fill

@@ -44,6 +44,15 @@ export async function signInWithPassword(formData) {
 
     console.log('🟢 Login successful for user:', data.user.email);
 
+    // Enrich user with role from public.users table in case metadata is missing
+    const { data: profile } = await supabase.from('users').select('role, platform_role').eq('id', data.user.id).maybeSingle();
+    if (profile) {
+      data.user.user_metadata = {
+        ...data.user.user_metadata,
+        category: data.user.user_metadata?.category || (profile.role === 'creator' || profile.platform_role === 'artist' ? 'creator' : 'client')
+      };
+    }
+
     // Revalidate the dashboard path
     revalidatePath('/dashboard');
 
