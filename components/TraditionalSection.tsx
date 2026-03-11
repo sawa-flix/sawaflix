@@ -64,7 +64,7 @@ export default function TraditionalSection() {
                         transition={{ duration: 0.6 }}
                         className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl"
                     >
-                        <Image
+                        <Image unoptimized
                             src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&auto=format&fit=crop"
                             alt="Traditional Drummer"
                             fill

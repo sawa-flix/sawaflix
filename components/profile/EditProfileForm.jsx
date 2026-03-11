@@ -77,7 +77,7 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                     <img src={formData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
                 ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                        <ImageIcon className="w-10 h-10 mb-2" />
+                        <Image unoptimizedIcon className="w-10 h-10 mb-2" />
                         <span className="text-sm font-bold uppercase tracking-widest">Upload Banner Image</span>
                     </div>
                 )}

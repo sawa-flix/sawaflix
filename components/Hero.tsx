@@ -3,8 +3,25 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Play } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Hero() {
+  const [dashboardLink, setDashboardLink] = useState("/dashboard");
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+        if (data?.role === 'creator') {
+          setDashboardLink("/creator-dashboard");
+        }
+      }
+    }
+    loadUser();
+  }, []);
   return (
     <section
       id="home"
@@ -47,7 +64,7 @@ export default function Hero() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/sign-up"
+              href={dashboardLink}
               className="px-8 py-3.5 bg-red-600 text-white rounded-full font-semibold text-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
             >
               Get Started

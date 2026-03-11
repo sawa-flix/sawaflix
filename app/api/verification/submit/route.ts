@@ -91,6 +91,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Also update the user's verification_status to 'pending' in the users table
+    const supabaseAdminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { error: userUpdateError } = await supabaseAdminClient
+      .from("users")
+      .update({ verification_status: "pending" })
+      .eq("id", userId);
+
+    if (userUpdateError) {
+      console.error("❌ User status update error:", userUpdateError.message);
+      // Don't fail the whole request — the submission was saved successfully
+    }
+
     console.log("✅ SUCCESS: Creator is now PENDING review");
     return NextResponse.json({ 
       message: "Application submitted successfully!", 

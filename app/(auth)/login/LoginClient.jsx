@@ -111,16 +111,15 @@ function LoginContent() {
       } else if (result?.success) {
         setIsRedirecting(true);
 
-        // Fetch real role from the backend (uses service role key, bypasses RLS)
-        let destination = '/dashboard'; // safe default
+        let destination = result.redirectTo || '/dashboard';
         try {
           const profileRes = await fetch('/api/auth/profile-status');
           if (profileRes.ok) {
-            const { role } = await profileRes.json();
-            if (role === 'creator') {
-              destination = '/creator/pending';
-            } else if (role === 'admin') {
+            const { role, verified } = await profileRes.json();
+            if (role === 'admin') {
               destination = '/admin';
+            } else if (role === 'creator') {
+              destination = verified ? '/creator-dashboard' : '/creator/pending';
             } else {
               destination = '/dashboard';
             }
@@ -183,7 +182,7 @@ function LoginContent() {
 
   return (
     <div className="h-screen w-full relative overflow-hidden font-inter">
-      <Image
+      <Image unoptimized
         src="/hero-bg.png"
         alt="Background"
         fill

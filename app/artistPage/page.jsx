@@ -17,7 +17,7 @@ export default function ArtistPage() {
     <div className="bg-[#0f172a] text-white min-h-screen">
       {/* Hero Section */}
       <div className="relative w-full h-72">
-        <Image
+        <Image unoptimized
           src="/Benylee.jpg"
           alt="Benylee"
           fill
@@ -101,7 +101,7 @@ export default function ArtistPage() {
               key={i}
               className="bg-[#1e293b] p-2 rounded-lg lg:flex lg:items-center lg:gap-4"
             >
-              <Image
+              <Image unoptimized
                 src={album.img}
                 alt={album.title}
                 width={200}
@@ -161,7 +161,7 @@ export default function ArtistPage() {
             { name: "Billie Eilish", img: "/pic4.jpeg" },
           ].map((artist, i) => (
             <div key={i} className="flex-shrink-0 w-28 text-center">
-              <Image
+              <Image unoptimized
                 src={artist.img}
                 alt={artist.name}
                 width={112}

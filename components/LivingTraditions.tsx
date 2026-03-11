@@ -31,7 +31,7 @@ export default function LivingTraditions() {
               className="flex flex-col items-center group cursor-pointer"
             >
               <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-gray-800 group-hover:border-red-600 transition-colors shadow-lg">
-                <Image
+                <Image unoptimized
                   src={item.image}
                   alt={item.name}
                   fill

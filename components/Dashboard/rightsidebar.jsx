@@ -28,7 +28,7 @@ const RightSidebar = () => {
           {trendingMusic.title}
         </h2>
         <div className="relative w-full h-44 rounded-xl overflow-hidden shadow-inner">
-          <Image
+          <Image unoptimized
             src={trendingMusic.image}
             alt="Trending Music"
             fill
@@ -69,7 +69,7 @@ const RightSidebar = () => {
               className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
             >
               <div className="relative w-full h-24">
-                <Image
+                <Image unoptimized
                   src={rec.image}
                   alt={rec.title}
                   fill

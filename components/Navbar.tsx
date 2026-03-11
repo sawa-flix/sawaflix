@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   motion,
@@ -9,11 +9,28 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { checkAuth } from "@/app/(auth)/actions";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
   const [isOpen, setIsOpen] = useState(false);
+  const [dashboardLink, setDashboardLink] = useState("/dashboard");
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+        if (data?.role === 'creator') {
+          setDashboardLink("/creator-dashboard");
+        }
+      }
+    }
+    loadUser();
+  }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -70,7 +87,7 @@ export default function Navbar() {
             <Link href="/login" className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors">
               Login
             </Link>
-            <Link href="/dashboard" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
+            <Link href={dashboardLink} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
               Get Started
             </Link>
           </div>
@@ -120,7 +137,7 @@ export default function Navbar() {
                   Log In
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href={dashboardLink}
                   className="w-full text-center bg-red-600 text-white px-3 py-2 rounded-md font-medium"
                   onClick={() => setIsOpen(false)}
                 >

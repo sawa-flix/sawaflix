@@ -51,7 +51,7 @@ const LandingPage = () => {
 
       {/* Left Side - Only for Desktop */}
       <div className="hidden lg:flex w-1/2 h-[100vh] relative">
-        <Image
+        <Image unoptimized
           src="/cameroon.jpg"
           alt="Cameroon Entertainment - Music and Movies"
           fill
@@ -90,10 +90,10 @@ const LandingPage = () => {
                 Login
               </button>
               <button 
-                onClick={() => router.push('/sign-up')}
+                onClick={() => router.push('/creator/verify')}
                 className="w-full bg-white hover:bg-white/10 text-black cursor-pointer font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
               >
-                Sign Up
+                Sign up as Creator
               </button>
             </div>
             <div className="mt-12 text-center">
@@ -159,7 +159,7 @@ const LandingPage = () => {
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-yellow-500 via-orange-500 to-red-600 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                    <Image
+                    <Image unoptimized
                       src="/cameroon4.jpg"
                       alt="The Beekeeper"
                       fill
@@ -173,7 +173,7 @@ const LandingPage = () => {
                     <div className="text-center">
                       <div className="text-white text-lg font-bold mb-1">Breaking</div>
 
-                      <Image
+                      <Image unoptimized
                         src="/pic1.jpeg"
                         alt="Breaking Bad"
                         fill
@@ -185,7 +185,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-purple-600 to-pink-500 rounded-lg overflow-hidden relative">
-                    <Image
+                    <Image unoptimized
                       src="/cameroon.jpg"
                       alt="Breaking Bad"
                       fill
@@ -195,7 +195,7 @@ const LandingPage = () => {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-white text-center">
                         <div className="text-xs font-semibold">ANIME</div>
-                        <Image
+                        <Image unoptimized
                           src="/wed-image 1.jpg"
                           alt="Breaking Bad"
                           fill
@@ -210,7 +210,7 @@ const LandingPage = () => {
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-green-600 to-teal-700 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-                    <Image
+                    <Image unoptimized
                       src="/CeCe Winans.jpeg"
                       alt="The Beekeeper"
                       fill
@@ -219,7 +219,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                    <Image
+                    <Image unoptimized
                       src="/cameroon.jpg"
                       alt="The Beekeeper"
                       fill
@@ -232,7 +232,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-                    <Image
+                    <Image unoptimized
                       src="/cameroon2.jpg"
                       alt="The Beekeeper"
                       fill
@@ -245,7 +245,7 @@ const LandingPage = () => {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-red-800 to-black rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-red-900 bg-opacity-60"></div>
-                    <Image
+                    <Image unoptimized
                       src="/cameroon3.jpg"
                       alt="The Beekeeper"
                       fill
@@ -254,7 +254,7 @@ const LandingPage = () => {
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-blue-800 to-teal-900 rounded-lg overflow-hidden relative">
                     <div className="absolute inset-0 bg-blue-900 bg-opacity-40"></div>
-                    <Image
+                    <Image unoptimized
                       src="/pic2.jpeg"
                       alt="The Beekeeper"
                       fill
@@ -262,7 +262,7 @@ const LandingPage = () => {
                     />
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-green-700 to-yellow-600 rounded-lg overflow-hidden relative">
-                    <Image
+                    <Image unoptimized
                       src="/pic4.jpeg"
                       alt="The Beekeeper"
                       fill

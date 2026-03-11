@@ -48,7 +48,7 @@ export function MusicFeatures({ playlists, recommendedSongs, favoriteSongs }: Mu
           {playlists.map((playlist) => (
             <div key={playlist.id} className="group cursor-pointer">
               <div className="relative mb-3 rounded-lg overflow-hidden">
-                <Image src={playlist.cover} alt={playlist.name} width={300} height={300} className="object-cover w-full aspect-square" />
+                <Image unoptimized src={playlist.cover} alt={playlist.name} width={300} height={300} className="object-cover w-full aspect-square" />
                 <div className="absolute inset-0 bg-orange-500/0 group-hover:bg-orange-500/30 transition-all duration-200 flex items-center justify-center">
                   <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
@@ -69,7 +69,7 @@ export function MusicFeatures({ playlists, recommendedSongs, favoriteSongs }: Mu
         <div className="space-y-4 mb-8">
           {recommendedSongs.map((song) => (
             <div key={song.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-orange-500/20 cursor-pointer group transition-colors">
-              <Image src={song.cover} alt={song.title} width={60} height={60} className="rounded-lg object-cover" />
+              <Image unoptimized src={song.cover} alt={song.title} width={60} height={60} className="rounded-lg object-cover" />
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-white truncate">{song.title}</h4>
                 <p className="text-sm text-gray-300 truncate">{song.artist}</p>
@@ -97,7 +97,7 @@ export function MusicFeatures({ playlists, recommendedSongs, favoriteSongs }: Mu
         <div className="space-y-4 mb-8">
           {favoriteSongs.map((song) => (
             <div key={song.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-orange-500/20 cursor-pointer group transition-colors">
-              <Image src={song.cover} alt={song.title} width={60} height={60} className="rounded-lg object-cover" />
+              <Image unoptimized src={song.cover} alt={song.title} width={60} height={60} className="rounded-lg object-cover" />
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-white truncate">{song.title}</h4>
                 <p className="text-sm text-gray-300 truncate">{song.artist}</p>

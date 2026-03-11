@@ -140,13 +140,11 @@ const VerifyOtpPage = () => {
 
       if (res.ok) {
         setMessage({ type: 'success', text: data.message || 'Account verified successfully! Redirecting...' });
-
-        // Hard redirect to bypass Next.js router cache (which may have cached /dashboard → /verify-otp)
-        if (data.pendingReview) {
-          window.location.href = '/creator/pending';
-        } else {
-          window.location.href = '/dashboard';
-        }
+        
+        setTimeout(() => {
+          // Hard redirect to bypass Next.js router cache
+          window.location.href = data.redirectTo ? data.redirectTo : (data.pendingReview ? '/creator/pending' : '/dashboard');
+        }, 2000);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });
       }
@@ -201,7 +199,7 @@ const VerifyOtpPage = () => {
       <main className="flex flex-1 pt-14 min-h-screen">
         {/* --- LEFT PANEL: Cultural Branding --- */}
         <div className="hidden lg:flex w-[45%] relative overflow-hidden flex-shrink-0">
-          <Image
+          <Image unoptimized
             src="/otp-bg.jpg"
             alt="Cultural Storytelling"
             fill

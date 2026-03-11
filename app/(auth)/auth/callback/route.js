@@ -57,7 +57,7 @@ export async function GET(request) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // STEP 4: Regular OAuth/sign-in flows (has type but not recovery)
+    // STEP 4: Regular OAuth/login flows (has type but not recovery)
     if (code && type && type !== 'recovery') {
       console.log('🟢 REGULAR AUTH FLOW - Exchanging code')
       const supabase = await createClient()

@@ -69,7 +69,7 @@ export default function GenreSection() {
                 whileHover={{ scale: 1.05 }}
                 className="relative group cursor-pointer overflow-hidden rounded-xl h-40"
               >
-                <Image
+                <Image unoptimized
                   src={genre.image}
                   alt={genre.name}
                   fill
