@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
     // Get image source - directly use the path from JSON
     const getImageSrc = (reel) => {
-        if (!reel || !reel.image) {
+        if (!reel || !reel.image || imageErrors[reel.id]) {
             return '/movie.jpg';
         }
         return reel.image;
@@ -214,7 +214,7 @@ export default function DashboardPage() {
         <div className="w-full min-h-screen px-4 py-8 animate-in fade-in duration-700 bg-gray-900">
             {/* Reels/Shorts - YouTube Style */}
             <div className="mb-16 max-w-7xl mx-auto">
-                <h2 className="text-4xl font-bold mb-2 text-white">Shorts</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">Shorts</h2>
                 <p className="text-gray-400 mb-8 text-sm">Discover short-form content from creators worldwide</p>
                 
                 {/* YouTube Shorts - Horizontal Scroll */}
@@ -227,23 +227,16 @@ export default function DashboardPage() {
                                 onClick={() => handleCardClick(reel)}
                             >
                                 {/* Compact YouTube Shorts Card */}
-                                <div className="relative flex-shrink-0 w-40 sm:w-48 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-500 transition-all duration-300 shadow-md hover:shadow-xl">
-                                    {/* Thumbnail Image - Smaller */}
-                                    <div className="relative w-full h-full aspect-[9/16] overflow-hidden">
+                                <div className="relative shrink-0 w-40 sm:w-48 h-64 rounded-xl overflow-hidden border border-gray-700 hover:border-gray-500 transition-all duration-300 shadow-md hover:shadow-xl">
+                                    {/* Thumbnail Image Container */}
+                                    <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
                                         <img 
-                                            src={getImageSrc(reel)} 
+                                            src={reel.image || '/movie.jpg'}
                                             alt={reel.title}
-                                            loading="eager"
-                                            decoding="async"
-                                            onError={(e) => {
-                                                handleImageError(reel.id);
-                                                e.currentTarget.src = '/movie.jpg';
-                                            }}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                            className="w-full h-full object-fit group-hover:scale-110 transition-transform duration-300"
                                         />
-                                        
                                         {/* Overlay */}
-                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300" />
+                                        <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300" />
                                         
                                         {/* Play Icon Center */}
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -279,7 +272,7 @@ export default function DashboardPage() {
                                     </div>
 
                                     {/* Compact Info Section */}
-                                    <div className="p-2 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black via-black/80 to-transparent">
                                         <h3 className="text-white text-xs font-semibold line-clamp-1 mb-1">
                                             {reel.title}
                                         </h3>
@@ -294,7 +287,7 @@ export default function DashboardPage() {
 
             {/* Content Tabs Section - YouTube Style Cards */}
             <div className="mb-16 max-w-full">
-                <h2 className="text-4xl font-bold mb-2 text-white max-w-7xl mx-auto px-4">Explore by Category</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white max-w-7xl mx-auto px-4">Explore by Category</h2>
                 <p className="text-gray-400 mb-8 text-sm max-w-7xl mx-auto px-4">Browse content by your interests</p>
                 
                 {/* Tab Navigation */}
@@ -324,22 +317,17 @@ export default function DashboardPage() {
                         >
                             {/* YouTube Style Card */}
                             <div className="space-y-3">
-                                {/* Thumbnail */}
                                 <div className="relative rounded-xl overflow-hidden aspect-video">
-                                    <img 
-                                        src={getImageSrc(reel)} 
-                                        alt={reel.title}
-                                        loading="eager"
-                                        decoding="async"
-                                        onError={(e) => {
-                                            handleImageError(reel.id);
-                                            e.currentTarget.src = '/movie.jpg';
-                                        }}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
+                                    <div className="absolute inset-0 w-full h-full bg-gray-800">
+                                        <img 
+                                            src={reel.image || '/movie.jpg'}
+                                            alt={reel.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                    </div>
                                     
                                     {/* Hover Overlay */}
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
                                         <div className="bg-white rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M8 5v14l11-7z" />
@@ -467,32 +455,18 @@ export default function DashboardPage() {
                                     // Video Player
                                     <div className="rounded-xl overflow-hidden">
                                         <div className="relative w-full aspect-video">
-                                            <img 
-                                                src={getImageSrc(selectedReel)}
-                                                alt={selectedReel.title}
-                                                loading="eager"
-                                                decoding="async"
-                                                onError={(e) => {
-                                                    handleImageError(selectedReel.id);
-                                                    e.currentTarget.src = '/movie.jpg';
-                                                }}
-                                                className="w-full h-full object-cover"
+                                            <div 
+                                                className="w-full h-full object-cover bg-cover bg-center rounded-xl overflow-hidden"
+                                                style={{ backgroundImage: `url(${getImageSrc(selectedReel)})` }}
                                             />
                                         </div>
                                     </div>
                                 ) : selectedReel.contentType === 'storytelling' ? (
                                     // Storytelling/Story Display
                                     <div className="rounded-xl overflow-hidden border border-gray-700">
-                                        <img 
-                                            src={getImageSrc(selectedReel)}
-                                            alt={selectedReel.title}
-                                            loading="eager"
-                                            decoding="async"
-                                            onError={(e) => {
-                                                handleImageError(selectedReel.id);
-                                                e.currentTarget.src = '/movie.jpg';
-                                            }}
-                                            className="w-full h-auto object-cover"
+                                        <div 
+                                            className="w-full aspect-[16/9] object-cover bg-cover bg-center"
+                                            style={{ backgroundImage: `url(${getImageSrc(selectedReel)})` }}
                                         />
                                         <div className="p-4 bg-black">
                                             <p className="text-white text-sm font-semibold mb-2">📖 Story</p>
