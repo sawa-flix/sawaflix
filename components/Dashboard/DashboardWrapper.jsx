@@ -68,7 +68,7 @@ const DashboardWrapper = ({ children }) => {
           <aside
             className={`
               fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-              w-64 ${isCreator ? 'h-screen' : 'h-[calc(100vh-4rem)]'} bg-[#0B0E14]
+              w-64 ${isCreator ? 'h-screen' : 'h-[calc(100vh-4rem)]'} bg-gray-900
               transform transition-transform duration-300 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0 lg:block
@@ -92,7 +92,7 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Right Sidebar */}
           {!isCreator && (
-            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-gray-800">
+            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-white/5">
                 <RightSidebar />
             </aside>
           )}

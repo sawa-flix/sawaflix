@@ -31,7 +31,7 @@ const CreatorSidebar = ({ userProfile }) => {
     return (
         <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5 w-64">
             {/* Logo */}
-            <div className="p-6 pb-2">
+            <div className="p-6 pb-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                     <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -41,11 +41,9 @@ const CreatorSidebar = ({ userProfile }) => {
                     <span className="text-lg font-black text-white tracking-tight">Sawa<span className="text-red-600">Flix</span></span>
                 </div>
             </div>
-
-            {/* User Profile */}
-            <div className="p-6">
+            <div className="p-6 border-b border-white/5">
                 <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-red-600/20 mb-3 shadow-[0_0_20px_rgba(220,38,38,0.15)]">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-red-600 mb-3">
                         <img 
                             src={userProfile?.profileImage || "/0.jpg"} 
                             alt="Profile" 
@@ -58,42 +56,42 @@ const CreatorSidebar = ({ userProfile }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-4 py-6 space-y-2">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
                         <Link 
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                                 isActive 
-                                ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' 
+                                ? 'bg-red-600 text-white' 
                                 : 'text-gray-500 hover:text-white hover:bg-white/5'
                             }`}
                         >
-                            <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'group-hover:text-white'}`} />
-                            <span className="font-bold text-sm">{item.name}</span>
+                            <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                            <span className="font-semibold text-sm">{item.name}</span>
                         </Link>
                     );
                 })}
             </nav>
 
             {/* Footer Actions */}
-            <div className="p-4 space-y-1 border-t border-white/5">
+            <div className="p-4 space-y-2 border-t border-white/5">
                 <Link 
                     href="/dashboard/edit-profile"
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all group"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all group"
                 >
                     <Settings className="w-5 h-5 group-hover:text-white" />
-                    <span className="font-bold text-sm">Settings</span>
+                    <span className="font-semibold text-sm">Settings</span>
                 </Link>
                 <form action={handleSignOut}>
                     <button 
                         type="submit"
-                        className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-red-500/70 hover:text-red-500 hover:bg-red-500/5 transition-all group"
+                        className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-500/70 hover:text-red-500 hover:bg-red-500/5 transition-all group"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="font-bold text-sm">Logout</span>
+                        <span className="font-semibold text-sm">Logout</span>
                     </button>
                 </form>
             </div>
