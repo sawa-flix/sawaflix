@@ -1,7 +1,8 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import {createRouteHandlerClient} from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       // Use standard createClient for Swagger/Postman
-      supabase = createClient(
+      supabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -83,9 +84,9 @@ export async function GET(req: Request) {
         lastUpdated: data.updated_at,
       },
     });
-
-  } catch (err: any) {
-    console.error("Fetch Draft Error:", err.message);
+  } catch (err) {
+    const error = err as Error;
+    console.error("Fetch Draft Error:", error);
 
     return NextResponse.json(
       { error: "Internal Server Error" },

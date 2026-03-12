@@ -2,24 +2,38 @@
 
 import React, { useEffect, useState } from 'react';
 import ProfileView from '@/components/profile/ProfileView';
-import { Loader2, AlertCircle } from 'lucide-react';
+import EditProfileForm from '@/components/profile/EditProfileForm';
+import { Loader2, AlertCircle, Edit3, Eye } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function PublicProfilePage({ params }) {
     const [profile, setProfile] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const router = useRouter();
+    const supabase = createClient();
 
     useEffect(() => {
-        const fetchPublicProfile = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`/api/creator/${params.username}`);
-                if (!res.ok) {
-                    const data = await res.json();
+                // Fetch public profile
+                const profileRes = await fetch(`/api/creator/${params.username}`);
+                if (!profileRes.ok) {
+                    const data = await profileRes.json();
                     throw new Error(data.error || 'Failed to fetch creator profile');
                 }
-                const data = await res.json();
-                setProfile(data);
+                const profileData = await profileRes.json();
+                setProfile(profileData);
+
+                // Fetch current user session
+                const { data: { user } } = await supabase.auth.getUser();
+                setCurrentUser(user);
+
             } catch (err) {
                 console.error(err);
                 setError(err.message);
@@ -29,9 +43,32 @@ export default function PublicProfilePage({ params }) {
         };
 
         if (params.username) {
-            fetchPublicProfile();
+            fetchData();
         }
-    }, [params.username]);
+    }, [params.username, supabase.auth]);
+
+    const handleSave = async (updatedData) => {
+        setSaving(true);
+        try {
+            const res = await fetch('/api/creator/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (!res.ok) throw new Error('Failed to save profile');
+
+            const newData = await res.json();
+            setProfile(newData.data || updatedData);
+            setIsEditing(false);
+            router.refresh(); // Refresh to update layout data if needed
+        } catch (err) {
+            console.error(err);
+            alert('Error saving profile: ' + err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -53,14 +90,14 @@ export default function PublicProfilePage({ params }) {
                     "{error}"
                 </p>
                 <div className="flex gap-4">
-                    <Link 
+                    <Link
                         href="/"
                         className="px-8 py-3 border border-gray-800 text-white rounded-full font-bold text-sm tracking-widest uppercase hover:bg-white/5 transition-all"
                     >
                         Return Home
                     </Link>
-                    <Link 
-                        href="/dashboard"
+                    <Link
+                        href="/login"
                         className="px-8 py-3 bg-red-600 text-white rounded-full font-bold text-sm tracking-widest uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20"
                     >
                         Creator Login
@@ -70,5 +107,46 @@ export default function PublicProfilePage({ params }) {
         );
     }
 
-    return <ProfileView profile={profile} />;
+    const isOwner = currentUser && (profile?.id === currentUser.id || profile?.userId === currentUser.id);
+
+    return (
+        <div className="relative">
+            {isOwner && (
+                <div className="fixed bottom-10 right-10 z-[100]">
+                    <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="flex items-center gap-3 px-8 py-4 bg-white text-black rounded-full font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl group"
+                    >
+                        {isEditing ? (
+                            <>
+                                <Eye className="w-5 h-5 text-red-600" />
+                                <span>Preview Profile</span>
+                            </>
+                        ) : (
+                            <>
+                                <Edit3 className="w-5 h-5 text-red-600" />
+                                <span>Edit My Profile</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+
+            {isEditing ? (
+                <div className="max-w-6xl mx-auto px-6 py-20">
+                    <div className="mb-12">
+                        <h2 className="text-4xl font-black text-white tracking-tight">Edit Your <span className="text-red-500">Creator Hub</span></h2>
+                        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Craft your public persona and social presence</p>
+                    </div>
+                    <EditProfileForm
+                        initialData={profile}
+                        onSave={handleSave}
+                        isSaving={saving}
+                    />
+                </div>
+            ) : (
+                <ProfileView profile={profile} />
+            )}
+        </div>
+    );
 }

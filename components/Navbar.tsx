@@ -30,11 +30,10 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        isScrolled
-          ? "bg-[#0B0E14]/90 backdrop-blur-md shadow-lg"
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${isScrolled
+        ? "bg-[#0B0E14]/90 backdrop-blur-md shadow-lg"
+        : "bg-transparent"
+        }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -68,16 +67,10 @@ export default function Navbar() {
 
           {/* Right Side Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
-            >
-              Log In
+            <Link href="/login" className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors">
+              Login
             </Link>
-            <Link
-              href="/sign-up"
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm"
-            >
+            <Link href="/dashboard" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
               Get Started
             </Link>
           </div>
@@ -98,11 +91,11 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu with AnimatePresence for smooth entry/exit */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="md:hidden bg-[#0B0E14] border-b border-gray-800 overflow-hidden"
+            className="md:hidden bg-[#0B0E14] border-b border-gray-800"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -113,23 +106,23 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                  onClick={() => setIsOpen(false)} // Closes menu after selection
+                  onClick={() => setIsOpen(false)}
                 >
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 mt-4 pb-4">
+              <div className="flex flex-col gap-2 mt-4">
                 <Link
                   href="/login"
+                  className="w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-300 px-3 py-2"
                 >
                   Log In
                 </Link>
                 <Link
-                  href="/sign-up"
+                  href="/dashboard"
+                  className="w-full text-center bg-red-600 text-white px-3 py-2 rounded-md font-medium"
                   onClick={() => setIsOpen(false)}
-                  className="bg-red-600 text-white text-center px-3 py-2 rounded-md"
                 >
                   Get Started
                 </Link>

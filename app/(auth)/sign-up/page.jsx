@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signUpWithPassword } from '@/app/(auth)/actions';
 
-import { Suspense } from 'react';
+// import { Suspense } from 'react';
 const AuthButton = ({ children, isLoading, variant = 'primary', className = '', ...props }) => {
   const baseStyles = "w-full flex items-center justify-center font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:transform-none disabled:cursor-not-allowed shadow-lg";
 
@@ -86,7 +86,7 @@ function SignUpContent() {
         } else {
           setSuccessMessage('Sign up successful! Redirecting...');
           setTimeout(() => {
-            if (role === 'creator') {
+            if (category === 'creator') {
               router.push('/creator/verify');
             } else {
               router.push('/dashboard');
@@ -111,21 +111,14 @@ function SignUpContent() {
         className="z-0 object-cover"
         priority
       />
+
       <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
       <div className="relative z-20 flex items-center justify-center h-screen px-4 py-4">
         <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl shadow-red-500/50">
-          <div className="absolute inset-0 z-0 animate-spin-border-gradient" style={{
-            background: 'conic-gradient(from var(--angle), #000000 0%, #ff0000 10%, #8b0000 20%, #000000 30%, #000000 100%)',
-            borderRadius: '1.5rem',
-            padding: '2px',
-            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-            maskComposite: 'exclude',
-            WebkitMaskComposite: 'exclude'
-          }}></div>
-
           <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-3xl p-6 sm:p-8 w-full border border-gray-800">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-4 tracking-wide drop-shadow-[0_0_8px_rgba(255,0,0,0.7)]">
+
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-4">
               {role === 'creator' ? 'Creator Sign Up' : 'Sign Up'}
             </h1>
 

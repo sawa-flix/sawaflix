@@ -17,7 +17,7 @@ export default function CreatorDashboardPage() {
 
       {/* ===== Page Header ===== */}
       <div>
-        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+        {/* <h1 className="text-2xl font-bold">Dashboard Overview</h1> */}
         <p className="text-gray-400 text-sm mt-1">
           Track your performance and manage your content.
         </p>

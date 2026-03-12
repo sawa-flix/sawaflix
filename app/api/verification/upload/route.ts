@@ -1,7 +1,7 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 /**
@@ -37,13 +37,13 @@ export async function POST(req: Request) {
 
     // 1. Auth Setup
     if (authHeader?.startsWith("Bearer ")) {
-      supabase = createClient(
+      supabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         { global: { headers: { Authorization: authHeader } } }
       );
     } else {
-      supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      supabase = await createClient();
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -123,8 +123,12 @@ export async function POST(req: Request) {
       data: updated
     });
 
-  } catch (err: any) {
-    console.error("Critical Upload Error:", err.message);
-    return NextResponse.json({ error: "Internal Server Error", details: err.message }, { status: 500 });
+  } catch (err) {
+    const error = err as Error;
+    console.error("Submit Error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
+    );
   }
 }

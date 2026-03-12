@@ -1,6 +1,5 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { createClient } from "@supabase/supabase-js"; // Add this for testing support
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"; // Add this for testing support
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -42,17 +41,16 @@ export const dynamic = "force-dynamic";
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
-    const cookieStore = await cookies(); 
     let supabase;
 
     if (authHeader?.startsWith("Bearer ")) {
-      supabase = createClient(
+      supabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
         { global: { headers: { Authorization: authHeader } } }
       );
     } else {
-      supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      supabase = await createClient();
     }
 
     // 1. Authenticate user
@@ -102,10 +100,10 @@ export async function PUT(req: Request) {
 
     if (existingSubmission && (existingSubmission.status === "pending" || existingSubmission.status === "approved")) {
       return NextResponse.json(
-        { 
-          error: "Submission locked", 
-          message: "Cannot edit a submission that is pending review or already approved." 
-        }, 
+        {
+          error: "Submission locked",
+          message: "Cannot edit a submission that is pending review or already approved."
+        },
         { status: 403 }
       );
     }
@@ -133,8 +131,9 @@ export async function PUT(req: Request) {
       message: "Draft saved successfully",
       data,
     });
-  } catch (err: any) {
-    console.error("Draft Save Error:", err.message);
+  } catch (err) {
+    const error = err as Error;
+    console.error("Draft Save Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error", details: err.message },
       { status: 500 }

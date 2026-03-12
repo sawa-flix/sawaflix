@@ -51,6 +51,12 @@ export async function POST(req: Request) {
   try {
     let creator_id: string;
 
+    /**
+     * 2. Authentication Check
+     * Priority: Service Role Key (for testing/admin) -> User Session (for users)
+     */
+    const isServiceRole = authHeader === `Bearer ${serviceKey}`;
+
     if (isServiceRole) {
       creator_id = "admin-tester";
     } else {
@@ -84,6 +90,7 @@ export async function POST(req: Request) {
     const categoryInput = formData.get("category");
 
     const validation = UploadSchema.safeParse({ category: categoryInput });
+
     if (!file || !validation.success) {
       console.error("❌ Validation Error:", validation.success ? "Missing file" : validation.error.message);
       return NextResponse.json(
@@ -92,6 +99,9 @@ export async function POST(req: Request) {
       );
     }
 
+    /**
+     * 4. File Type Detection
+     */
     const buffer = Buffer.from(await file.arrayBuffer());
     const type = await fileTypeFromBuffer(buffer);
 
@@ -99,7 +109,7 @@ export async function POST(req: Request) {
       console.error("❌ File Type Error: Could not determine file type");
       return NextResponse.json(
         { error: "Could not determine file type" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
