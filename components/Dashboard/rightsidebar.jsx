@@ -24,7 +24,7 @@ const RightSidebar = () => {
     <div className="w-full h-full p-6 flex flex-col space-y-6 bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 overflow-y-auto scrollbar-none border-l border-white/5">
       {/* Trending Music Section */}
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all duration-300 group">
-        <h2 className="text-lg font-bold mb-4 text-red-600">
+        <h2 className="text-lg font-bold mb-4 text-white">
           {trendingMusic.title}
         </h2>
         <div className="relative w-full h-44 rounded-xl overflow-hidden shadow-inner">
