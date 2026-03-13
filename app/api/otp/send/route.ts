@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { redis, otpSendRateLimit } from "@/lib/redis";
+import { redis, otpSendRateLimit, rateLimit } from "@/lib/redis";
 import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);

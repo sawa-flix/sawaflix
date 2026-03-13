@@ -16,7 +16,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
-  full_name: string | null;
+  username: string | null;
   email: string | null;
   profile_image_url: string | null;
 };
@@ -36,7 +36,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       if (user) {
         const { data: profileData, error } = await supabase
           .from('users')
-          .select('full_name, email, profile_image_url')
+          .select('username, email, profile_image_url')
           .eq('id', user.id)
           .single<UserProfileData>();
 
@@ -165,7 +165,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
             )}
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm text-white truncate">
-                {userProfile?.full_name || 'Guest'}
+                {userProfile?.username || 'Guest'}
               </p>
               <p className="text-xs text-gray-400 truncate">
                 {userProfile?.email || 'N/A'}
