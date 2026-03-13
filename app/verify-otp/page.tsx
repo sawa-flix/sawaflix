@@ -172,9 +172,9 @@ const VerifyOtpPage = () => {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 6).split('');
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('');
     const newOtp = [...otp];
-    pastedData.forEach((char, idx) => { if (/^\d$/.test(char)) newOtp[idx] = char; });
+    pastedData.forEach((char, idx) => { newOtp[idx] = char; });
     setOtp(newOtp);
     const nextIdx = Math.min(pastedData.length, 5);
     inputRefs.current[nextIdx]?.focus();
@@ -301,7 +301,7 @@ const VerifyOtpPage = () => {
 
                     <div className="text-center mb-6">
                       <p className="text-gray-500 text-xs font-mono uppercase tracking-tighter">
-                        Expires in <span className="text-red-600 font-bold tabular-nums">
+                        Resend Available in <span className="text-red-600 font-bold tabular-nums">
                           {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
                         </span>
                       </p>
@@ -363,8 +363,8 @@ const VerifyOtpPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     className={`mt-6 p-4 rounded-2xl border flex items-center gap-3 ${message.type === 'success'
-                        ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                      ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                      : 'bg-red-500/10 border-red-500/20 text-red-400'
                       }`}
                   >
                     {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}

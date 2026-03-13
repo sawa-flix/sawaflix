@@ -1,23 +1,30 @@
-import { createClient } from "@/utils/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/utils/supabase/server";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+interface VerificationFormData {
+  selfie_path?: string;
+  national_id_path?: string;
+  [key: string]: string | undefined;
+}
+
 
 export async function POST(req: Request) {
   try {
     // 1️ AUTHENTICATION (Supports Browser & Insomnia)
     const authHeader = req.headers.get("Authorization");
-    let supabase;
+    let supabase: SupabaseClient;
 
     if (authHeader?.startsWith("Bearer ")) {
-      supabase = createSupabaseClient(
+      supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         { global: { headers: { Authorization: authHeader } } }
       );
     } else {
-      supabase = await createClient();
+      supabase = await createServerClient();
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -52,7 +59,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const formData = submission.form_data || {};
+    const formData = (submission.form_data as VerificationFormData) || {};
 
     // 4️ REQUIRED DOCUMENT CHECK
     // Note: Checking for _path keys as per our secure upload logic
@@ -91,11 +98,13 @@ export async function POST(req: Request) {
       data: updated,
     });
 
-  } catch (err) {
-    const error = err as Error;
-    console.error("Submit Error:", error);
+  } catch (err: unknown) {
+    console.error("Submit Error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      {
+        error: "Internal Server Error",
+        details: err instanceof Error ? err.message : String(err)
+      },
       { status: 500 }
     );
   }
