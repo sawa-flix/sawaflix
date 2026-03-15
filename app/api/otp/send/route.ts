@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import { redis, otpSendRateLimit, rateLimit } from "@/lib/redis";
 import sgMail from "@sendgrid/mail";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+// Validate SendGrid configuration
+if (!process.env.SENDGRID_API_KEY) {
+    throw new Error("SENDGRID_API_KEY is not configured in environment variables");
+}
+if (!process.env.SENDGRID_FROM_EMAIL) {
+    throw new Error("SENDGRID_FROM_EMAIL is not configured in environment variables");
+}
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export async function POST(req: Request) {
     try {
@@ -66,11 +74,21 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error("Error sending OTP:", error);
 
-        if (error instanceof Error && error.message.includes("Invalid email")) {
-            return NextResponse.json(
-                { error: "Invalid email address" },
-                { status: 400 }
-            );
+        // Handle SendGrid authentication errors
+        if (error instanceof Error) {
+            if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+                console.error("SendGrid authentication failed. Check SENDGRID_API_KEY in environment variables.");
+                return NextResponse.json(
+                    { error: "Email service configuration error. Please contact support." },
+                    { status: 500 }
+                );
+            }
+            if (error.message.includes("Invalid email")) {
+                return NextResponse.json(
+                    { error: "Invalid email address" },
+                    { status: 400 }
+                );
+            }
         }
 
         return NextResponse.json(

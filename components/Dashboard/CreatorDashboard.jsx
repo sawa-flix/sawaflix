@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
     Users, 
     Heart, 
@@ -46,8 +47,10 @@ const ContentItem = ({ title, status, views, date, image }) => {
     return (
         <div className="flex items-center justify-between p-4 bg-[#141820]/50 border border-white/5 rounded-2xl hover:bg-[#141820] transition-all group">
             <div className="flex items-center gap-4">
-                <div className="w-24 h-16 rounded-xl overflow-hidden bg-gray-800 border border-white/5 relative">
-                    <img src={image || "/vid.jpg"} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div 
+                    className="w-24 h-16 rounded-xl overflow-hidden bg-gray-800 border border-white/5 relative bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500"
+                    style={{ backgroundImage: `url(${image || '/vid.jpg'})` }}
+                >
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Play className="w-6 h-6 text-white fill-current" />
                     </div>

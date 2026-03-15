@@ -136,7 +136,7 @@ export async function signUpWithPassword(formData) {
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 
-  redirect(`/verify-otp?email=${encodeURIComponent(email.toString())}`);
+  redirect(`/verify-otp?email=${encodeURIComponent(email.toString().trim())}`);
 }
 
 export async function resetPassword(formData) {

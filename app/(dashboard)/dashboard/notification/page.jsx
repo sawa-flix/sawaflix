@@ -91,7 +91,7 @@ const notification = () => {
       <div className="flex-shrink-0 mr-3">
         <div className="relative cursor-pointer" onClick={() => handlePlayVideo(notification.id)}>
           <img 
-            src={notification.thumbnail} 
+            src={typeof notification.thumbnail === 'string' ? notification.thumbnail : notification.thumbnail.src} 
             alt={notification.title}
             className="w-16 h-12 sm:w-20 sm:h-14 md:w-24 md:h-16 rounded object-cover"
           />
