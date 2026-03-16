@@ -70,11 +70,11 @@ const SawaFlix = () => {
           <p className="text-lg sm:text-xl text-gray-200 mb-6 max-w-2xl">
             The Ultimate Music And Movies Experience
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full font-semibold transition-colors duration-200 cursor-pointer">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto px-4 sm:px-0">
+            <button className="w-full sm:w-auto bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full font-semibold transition-colors duration-200 cursor-pointer">
               Watch Now
             </button>
-            <button className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-black px-8 py-3 rounded-full font-semibold transition-all duration-200 cursor-pointer">
+            <button className="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white hover:text-black active:bg-gray-200 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full font-semibold transition-all duration-200 cursor-pointer">
               Listen Now
             </button>
           </div>
