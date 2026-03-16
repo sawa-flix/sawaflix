@@ -8,7 +8,9 @@ import {
     Clock,
     CheckCircle2,
     XCircle,
-    Inbox // Icon for empty state
+    Inbox,
+    Loader2,
+    CheckSquare
 } from 'lucide-react';
 
 interface VerificationItem {
@@ -34,6 +36,8 @@ export default function VerificationQueue() {
     const [filterCategory, setFilterCategory] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bulkLoading, setBulkLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -65,6 +69,52 @@ export default function VerificationQueue() {
         return matchesCategory && matchesSearch;
     });
 
+    const pendingFilteredItems = filteredItems.filter(i => i.status === 'pending');
+    const allSelected = pendingFilteredItems.length > 0 && pendingFilteredItems.every(i => selectedIds.has(i.id));
+
+    const toggleSelectAll = () => {
+        if (allSelected) {
+            setSelectedIds(new Set());
+        } else {
+            const newSet = new Set(selectedIds);
+            pendingFilteredItems.forEach(i => newSet.add(i.id));
+            setSelectedIds(newSet);
+        }
+    };
+
+    const toggleSelect = (id: string, isPending: boolean) => {
+        if (!isPending) return;
+        const newSet = new Set(selectedIds);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setSelectedIds(newSet);
+    };
+
+    const handleBulkApprove = async () => {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Are you sure you want to approve ${selectedIds.size} creators?`)) return;
+        
+        setBulkLoading(true);
+        try {
+            const promises = Array.from(selectedIds).map(id => 
+                fetch(`/api/admin/verify`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_creator_id: id, status: 'approved', notes: 'Bulk Approved by Admin' }),
+                })
+            );
+            await Promise.all(promises);
+            setSelectedIds(new Set());
+            // Need to reload window or re-fetch in real app
+            window.location.reload();
+        } catch (error) {
+            console.error("Bulk approve failed", error);
+            alert("Some approvals failed. Please check the queue.");
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20';
@@ -90,6 +140,28 @@ export default function VerificationQueue() {
                 <div>
                     <h1 className="text-2xl font-bold text-white">Verification Queue</h1>
                     <p className="text-gray-400 text-sm mt-1">Review pending creator applications</p>
+                    
+                    {selectedIds.size > 0 && (
+                        <div className="mt-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                            <span className="text-sm font-medium text-white bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                                {selectedIds.size} selected
+                            </span>
+                            <button
+                                onClick={handleBulkApprove}
+                                disabled={bulkLoading}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-green-900/20 disabled:opacity-50"
+                            >
+                                {bulkLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckSquare size={16} />}
+                                Bulk Approve
+                            </button>
+                            <button
+                                onClick={() => setSelectedIds(new Set())}
+                                className="text-sm text-gray-400 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -140,6 +212,15 @@ export default function VerificationQueue() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-gray-800/50 border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+                                    <th className="px-6 py-4 w-12">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={allSelected}
+                                            onChange={toggleSelectAll}
+                                            disabled={pendingFilteredItems.length === 0}
+                                            className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" 
+                                        />
+                                    </th>
                                     <th className="px-6 py-4 font-medium">Creator</th>
                                     <th className="px-6 py-4 font-medium">Category</th>
                                     <th className="px-6 py-4 font-medium">Submitted</th>
@@ -148,10 +229,10 @@ export default function VerificationQueue() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
-                                {loading ? (
-                                    // Skeleton Loader
+                                {loading && (
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i} className="animate-pulse">
+                                            <td className="px-6 py-4"><div className="h-4 w-4 bg-gray-800 rounded"></div></td>
                                             <td className="px-6 py-4"><div className="h-10 w-40 bg-gray-800 rounded"></div></td>
                                             <td className="px-6 py-4"><div className="h-6 w-24 bg-gray-800 rounded"></div></td>
                                             <td className="px-6 py-4"><div className="h-6 w-32 bg-gray-800 rounded"></div></td>
@@ -159,13 +240,28 @@ export default function VerificationQueue() {
                                             <td className="px-6 py-4"></td>
                                         </tr>
                                     ))
-                                ) : filteredItems.length > 0 ? (
-                                    filteredItems.map((item) => (
-                                        <tr key={item.id} className="group hover:bg-gray-800/50 transition-colors">
-                                            <td className="px-6 py-4">
+                                )}
+                                
+                                {!loading && filteredItems.length > 0 && filteredItems.map((item) => {
+                                    const isPending = item.status === 'pending';
+                                    const isSelected = selectedIds.has(item.id);
+                                    return (
+                                        <tr key={item.id} className={`group transition-colors ${isSelected ? 'bg-red-500/5' : 'hover:bg-gray-800/50'}`}>
+                                            <td className="px-6 py-4" onClick={(e) => { e.stopPropagation(); toggleSelect(item.id, isPending); }}>
+                                                {isPending ? (
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={isSelected}
+                                                        onChange={() => toggleSelect(item.id, isPending)}
+                                                        className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer" 
+                                                    />
+                                                ) : (
+                                                    <span className="w-4 h-4 block" />
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 cursor-pointer" onClick={() => toggleSelect(item.id, isPending)}>
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden relative border border-gray-700">
-                                                        {/* In real app, use next/image */}
                                                         <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${item.full_name}`} alt={item.full_name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <div>
@@ -203,11 +299,12 @@ export default function VerificationQueue() {
                                                 </Link>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    // Empty Filter result (Separate from overall empty state)
+                                    );
+                                })}
+
+                                {!loading && filteredItems.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                                             No creators found matching "{searchTerm}" or "{filterCategory}".
                                         </td>
                                     </tr>
