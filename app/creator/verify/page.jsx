@@ -1,6 +1,6 @@
 import CreatorWizard from '@/components/creator-wizard/CreatorWizard';
 import { redirect } from "next/navigation";
-import { getUserProfile } from "@/lib/getUserProfile"; // adjust path if needed
+import { getUserProfile } from "@/lib/getUserProfile"; 
 
 export const metadata = {
     title: 'Creator Verification | SawaFlix',
@@ -15,19 +15,18 @@ export default async function CreatorVerifyPage() {
         redirect("/login");
     }
 
-    // 🚫 Not a creator
-    if (profile.category !== "creator") {
-        redirect("/dashboard");
-    }
-
-    // 🚫 Already submitted or approved
-    if (profile.verificationStatus === "pending") {
+    // 🚫 Already a pending creator
+    if (profile.role === "creator" && profile.verificationStatus === "pending") {
         redirect("/creator/pending");
     }
-    if (profile.verificationStatus === "approved") {
+
+    // 🚫 Already an approved creator
+    if (profile.role === "creator" && profile.verificationStatus === "approved") {
         redirect("/Creator-dashboard");
     }
-    if (profile.verificationStatus === "rejected") {
+
+    // 🚫 Rejected creator
+    if (profile.role === "creator" && profile.verificationStatus === "rejected") {
         redirect("/dashboard");
     }
 
