@@ -1,15 +1,71 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import PerformanceChart from "@/components/Dashboard/PerformanceChart";
 import ContentTable from "@/components/Dashboard/ContentTable";
+import { Loader2 } from "lucide-react";
 
 export default function CreatorDashboardPage() {
+  const [content, setContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 🔹 Mock dashboard stats
-  const stats = [
-    { title: "Total Views", value: "1.2M", growth: "+8%" },
-    { title: "Watch Time", value: "4.5K hrs", growth: "+12%" },
-    { title: "Total Uploads", value: "135", growth: "+5%" },
-    { title: "Followers", value: "28.4K", growth: "+9%" },
-    { title: "Earnings", value: "$5,230", growth: "+15%" },
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/creator/content");
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch content");
+        }
+
+        const data = await res.json();
+        setContent(data);
+      } catch (err) {
+        console.error("Dashboard Load Error:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center gap-4 py-20">
+        <Loader2 className="w-10 h-10 text-red-600 animate-spin" />
+        <p className="text-gray-400 font-medium animate-pulse">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
+          <span className="text-red-500 text-2xl font-bold">!</span>
+        </div>
+        <h2 className="text-xl font-bold text-white">Something went wrong</h2>
+        <p className="text-gray-400 max-w-md">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 px-6 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  const generatedStats = [
+    { title: "Total Uploads", value: content.length, growth: "+0%" },
+    { title: "Stories", value: content.filter(c => c.type === 'story').length, growth: "+0%" },
+    { title: "Food", value: content.filter(c => c.type === 'food').length, growth: "+0%" },
+    { title: "Music", value: content.filter(c => c.type === 'music').length, growth: "+0%" },
+    { title: "Views", value: 0, growth: "+10%" }
   ];
 
   return (
@@ -17,7 +73,6 @@ export default function CreatorDashboardPage() {
 
       {/* ===== Page Header ===== */}
       <div>
-        {/* <h1 className="text-2xl font-bold">Dashboard Overview</h1> */}
         <p className="text-gray-400 text-sm mt-1">
           Track your performance and manage your content.
         </p>
@@ -25,7 +80,7 @@ export default function CreatorDashboardPage() {
 
       {/* ===== Stats Section ===== */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {stats.map((stat, index) => (
+        {generatedStats.map((stat, index) => (
           <div
             key={index}
             className="bg-[#111827] border border-gray-800 rounded-xl p-4 
@@ -57,7 +112,7 @@ export default function CreatorDashboardPage() {
         </h2>
 
         <div className="flex-1 overflow-y-auto">
-          <ContentTable />
+          <ContentTable contents={content} />
         </div>
       </div>
 
