@@ -1,6 +1,43 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-
+/**
+ * @swagger
+ * /api/admin/verifications/{id}/request-info:
+ *   post:
+ *     summary: Request additional information
+ *     description: Requests more information from the creator before verification can proceed.
+ *     tags:
+ *       - Admin Verification
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Creator ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               notes:
+ *                 type: string
+ *                 example: Please upload a clearer photo of your ID
+ *               message:
+ *                 type: string
+ *                 example: Your selfie is too dark, please upload a new one
+ *     responses:
+ *       200:
+ *         description: Information request sent to creator
+ *       400:
+ *         description: Explanation required
+ *       500:
+ *         description: Server error
+ */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> } // FIX: Params is a Promise

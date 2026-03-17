@@ -29,6 +29,12 @@ export async function middleware(request) {
       .eq("id", user.id)
       .maybeSingle();
 
+    const {data: creator_profile, error: creator_profileError } = await supabase
+      .from("creator_profiles")
+      .select("creator_id, status")
+      .eq("creator_id", user.id)
+      .maybeSingle();
+
     if (profileError) console.error("Middleware: profile fetch error:", profileError);
 
     if (pathname === "/creator/verify") {
@@ -56,13 +62,16 @@ export async function middleware(request) {
       }
 
       if (pathname === "/creator/pending") {
-        if (profile.verification_status === "approved") {
+        if (!creator_profile || creator_profile.status ==="unverified"){
+          return NextResponse.redirect(new URL("/creator/verify", request.url))
+        }
+        if (creator_profile.status === "approved") {
           return NextResponse.redirect(new URL("/Creator-dashboard", request.url));
         }
         return response;
       }
 
-      if (profile.verification_status !== "approved") {
+      if (creator_profiles?.status !== "approved") {
         return NextResponse.redirect(new URL("/creator/verify", request.url));
       }
       return response;

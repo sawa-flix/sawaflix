@@ -1,8 +1,42 @@
+
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-
+/**
+ * @swagger
+ * /api/admin/creators:
+ *   get:
+ *     summary: Get all creator verification submissions
+ *     description: Returns a paginated list of creators filtered by status.
+ *     tags:
+ *       - Admin Management
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *           default: pending
+ *         description: Filter creators by status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of creators
+ *       500:
+ *         description: Internal server error
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -35,7 +69,7 @@ export async function GET(req: Request) {
           stage_name,
           profile_picture_url
         ),
-        users (
+        users!verification_submissions_creator_id_fkey (
           email,
           username
         )
