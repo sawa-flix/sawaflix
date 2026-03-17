@@ -56,7 +56,7 @@ export default function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto px-10 py-3.5 md:py-4 bg-white text-red-600 rounded-md font-bold text-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xl"
+              className="px-8 py-3.5 bg-white text-red-600 rounded-full font-semibold text-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition-all cursor-pointer shadow-lg shadow-white/30"
             >
               <Play className="w-5 h-5 fill-red-600 text-red-600" />
               Watch Demo

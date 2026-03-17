@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint"
   },
@@ -23,9 +23,10 @@
     "jwt-decode": "4.0.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.537.0",
-    "next": "^15.1.6",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "next": "^16.1.6",
+    "next-swagger-doc": "^0.4.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-icons": "^5.5.0",
     "react-player": "^2.16.1",
     "recharts": "^3.8.0",
