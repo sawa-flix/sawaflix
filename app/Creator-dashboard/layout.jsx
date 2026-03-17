@@ -29,15 +29,15 @@ export default async function CreatorLayout({ children }) {
   const profile = await getUserProfile();
 
   if (!profile) redirect("/login");
-  if (profile.category !== "creator") redirect("/dashboard");
-  if (profile.verificationStatus !== "approved") redirect("/creator");
+  if (profile.role !== "creator") redirect("/dashboard");
+  if (profile.verification_status !== "approved") redirect("/creator");
 
   // Determine the correct upload link based on their approved niche
   const cat = profile.category?.toLowerCase() || 'lifestyle';
-  let postHref = "/Creator-dashboard/post";
-  if (cat === 'music') postHref = "/Creator-dashboard/post/music";
-  else if (cat === 'lifestyle' || cat === 'food') postHref = "/Creator-dashboard/post/food";
-  else if (cat === 'storyteller') postHref = "/Creator-dashboard/post/story";
+  let postHref = "/creator-dashboard/post";
+  if (cat === 'music') postHref = "/creator-dashboard/post/music";
+  else if (cat === 'lifestyle' || cat === 'food') postHref = "/creator-dashboard/post/food";
+  else if (cat === 'storyteller') postHref = "/creator-dashboard/post/story";
 
   return (
     <div className="min-h-screen flex bg-gray-800 text-white">
@@ -57,13 +57,13 @@ export default async function CreatorLayout({ children }) {
 
         {/* Navigation */}
         <nav className="flex flex-col gap-3 text-sm flex-1">
-          <SidebarItem icon={<LayoutDashboard size={18} />} href="/Creator-dashboard">
+          <SidebarItem icon={<LayoutDashboard size={18} />} href="/creator-dashboard">
             Dashboard
           </SidebarItem>
 
           <SidebarItem
             icon={<FileVideo size={18} />}
-            href="/Creator-dashboard/content"
+            href="/creator-dashboard/content"
           >
             My Content
           </SidebarItem>
@@ -72,15 +72,15 @@ export default async function CreatorLayout({ children }) {
             Post Content
           </SidebarItem>
 
-          <SidebarItem icon={<BarChart3 size={18} />} href="/Creator-dashboard/analytics">
+          <SidebarItem icon={<BarChart3 size={18} />} href="/creator-dashboard/analytics">
             Analytics
           </SidebarItem>
 
-          <SidebarItem icon={<DollarSign size={18} />} href="/Creator-dashboard/earnings">
+          <SidebarItem icon={<DollarSign size={18} />} href="/creator-dashboard/earnings">
             Earnings
           </SidebarItem>
 
-          <SidebarItem icon={<Settings size={18} />} href="/Creator-dashboard/settings">
+          <SidebarItem icon={<Settings size={18} />} href="/creator-dashboard/settings">
             Settings
           </SidebarItem>
 

@@ -185,7 +185,7 @@ export default function DashboardPage() {
     };
 
     const handleNavigateToCreatorDashboard = () => {
-        router.push('/Creator-dashboard');
+        router.push('/creator-dashboard');
     };
 
     const handleNavigateToProfile = () => {
@@ -193,11 +193,11 @@ export default function DashboardPage() {
     };
 
     const handleNavigateToSettings = () => {
-        router.push('/Creator-dashboard/settings');
+        router.push('/creator-dashboard/settings');
     };
 
     const handleViewRecent = () => {
-        router.push('/Creator-dashboard/content');
+        router.push('/creator-dashboard/content');
     };
 
     const handleCardClick = (reel) => {

@@ -21,10 +21,10 @@ const CreatorSidebar = ({ userProfile }) => {
 
     const menuItems = [
         { name: 'Feed', icon: Feed, href: '/dashboard' },
-        { name: 'Dashboard', icon: LayoutGrid, href: '/Creator-dashboard' },
-        { name: 'Upload New', icon: Upload, href: '/Creator-dashboard/post' },
-        { name: 'My Content', icon: Film, href: '/Creator-dashboard/content' },
-        { name: 'Analytics', icon: BarChart2, href: '/Creator-dashboard/analytics' },
+        { name: 'Dashboard', icon: LayoutGrid, href: '/creator-dashboard' },
+        { name: 'Upload New', icon: Upload, href: '/creator-dashboard/post' },
+        { name: 'My Content', icon: Film, href: '/creator-dashboard/content' },
+        { name: 'Analytics', icon: BarChart2, href: '/creator-dashboard/analytics' },
         { name: 'Comments', icon: MessageSquare, href: '/dashboard/comments' },
         { name: 'Notifications', icon: Bell, href: '/dashboard/notification' },
         { name: 'Help', icon: HelpCircle, href: '/dashboard/help' },

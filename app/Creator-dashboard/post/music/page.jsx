@@ -6,7 +6,7 @@ export default async function PostMusicPage() {
     
     // Kick them out if they aren't approved for music
     if (profile.category?.toLowerCase() !== 'music') {
-        redirect('/Creator-dashboard'); 
+        redirect('/creator-dashboard'); 
     }
 
     return (

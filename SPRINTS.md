@@ -136,7 +136,7 @@ Enable creators to post content, edit profiles, and implement comprehensive admi
 - Create content drafts system
 
 **Tasks:**
-1. **Content Posting Feature** (`/Creator-dashboard/post`)
+1. **Content Posting Feature** (`/creator-dashboard/post`)
    - Multi-step content upload form
    - Support for: Music, Movies, Stories
    - File upload with browser-image-compression
@@ -145,14 +145,14 @@ Enable creators to post content, edit profiles, and implement comprehensive admi
    - Draft saving before publish
    - Success/error notifications
 
-2. **Profile Edit Page** (`/Creator-dashboard/settings`)
+2. **Profile Edit Page** (`/creator-dashboard/settings`)
    - Edit bio, creator name, profile picture
    - Social media links
    - Category preferences
    - Email notifications settings
    - Banner image update
 
-3. **My Content Section** (`/Creator-dashboard/content`)
+3. **My Content Section** (`/creator-dashboard/content`)
    - List all creator's posted content
    - Edit content button → modal form
    - Delete content with confirmation
@@ -227,25 +227,25 @@ Enable creators to post content, edit profiles, and implement comprehensive admi
 - Create analytics calculations
 
 **Tasks:**
-1. **Dashboard Data Fetching** (`/Creator-dashboard`)
+1. **Dashboard Data Fetching** (`/creator-dashboard`)
    - Replace mock feedData with API calls to `/api/creator/content`
    - Fetch creator stats (views, likes, followers)
    - Calculate total uploads count
    - Fetch recent uploads with pagination
 
-2. **Analytics Implementation** (`/Creator-dashboard/analytics`)
+2. **Analytics Implementation** (`/creator-dashboard/analytics`)
    - Fetch content performance data
    - Build charts for views/likes over time
    - Create revenue/earnings breakdown
    - Weekly/monthly comparison
 
-3. **Content Section** (`/Creator-dashboard/content`)
+3. **Content Section** (`/creator-dashboard/content`)
    - List all creator's real content from API
    - Real-time view count updates
    - Like/engagement metrics
    - Search and filter functionality
 
-4. **Earnings Section** (`/Creator-dashboard/earnings`)
+4. **Earnings Section** (`/creator-dashboard/earnings`)
    - Calculate earnings from each content
    - Platform share calculation
    - Payment history
