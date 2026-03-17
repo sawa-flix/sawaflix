@@ -1,0 +1,86 @@
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    "";
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  try {
+    const { data: submission, error } = await supabase
+      .from("verification_submissions")
+      .select("*")
+      .eq("creator_id", id)
+      .single();
+
+    if (error || !submission) {
+      return NextResponse.json(
+        { error: "Verification not found" },
+        { status: 404 }
+      );
+    }
+
+    // Normalise the raw Supabase row into the shape VerificationDetails.tsx expects
+    const fd = submission.form_data || {};
+    const identity = fd.identity || {};
+    const professional = fd.professional || {};
+    const portfolio = fd.portfolio || {};
+    const documents = fd.documents || {};
+
+    const formatted = {
+      id: submission.creator_id,
+      status: submission.status || "pending",
+      identity: {
+        fullName: identity.fullName || "Unknown",
+        stageName: identity.stageName || "",
+        email: identity.email || "",
+        phone: identity.phone || "",
+        dob: identity.dob || "",
+        nationality: identity.nationality || "",
+        avatarUrl: identity.avatarUrl || null,
+      },
+      professional: {
+        category: submission.category || professional.category || "Unknown",
+        bio: professional.bio || "",
+        yearsActive: professional.yearsActive || 0,
+        ethnicGroup: professional.ethnicGroup,
+        languages: professional.languages,
+        focusArea: professional.focusArea,
+        signatureDishes: professional.signatureDishes,
+        roles: professional.roles,
+        filmography: professional.filmography,
+        genre: professional.genre,
+        label: professional.label,
+      },
+      portfolio: {
+        links: portfolio.links || [],
+        videos: portfolio.videos || [],
+      },
+      documents: {
+        idCardUrl: documents.idCardUrl || "",
+        selfieUrl: documents.selfieUrl || null,
+        endorsementUrl: documents.endorsementUrl || null,
+        distributorProofUrl: documents.distributorProofUrl || null,
+        productionProofUrl: documents.productionProofUrl || null,
+        foodLicenseUrl: documents.foodLicenseUrl || null,
+        verificationVideoUrl: documents.verificationVideoUrl || null,
+      },
+    };
+
+    return NextResponse.json({ success: true, data: formatted });
+  } catch (err: any) {
+    console.error("Verification detail fetch error:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

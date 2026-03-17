@@ -19,7 +19,7 @@ type UserProfileData = {
 //   const {error} = await createClient.auth.
 // }
 
-const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSidebar: () => void }) => {
+const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boolean; toggleSidebar: () => void; hideSearch?: boolean }) => {
   const [searchValue, setSearchValue] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileSearchBar, setShowMobileSearchBar] = useState(false);
@@ -61,19 +61,19 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 backdrop-blur-md border-b border-gray-800 shadow-lg">
-      <div className="flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
-        {/* Left section */}
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8">
+        {/* Left section - Sidebar-aligned logo */}
+        <div className="flex items-center">
           {/* Mobile menu button */}
           <button
             onClick={toggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="lg:hidden p-2 mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
-          {/* Logo */}
+          {/* Logo - padded to align with sidebar content (w-64 = 256px sidebar, px-4 inside = 16px) */}
           <div className="flex items-center space-x-3">
             <Link href="/dashboard">
             <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center">
@@ -90,32 +90,36 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
         </div>
 
         {/* Search bar - always visible on medium screens and larger */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search movies, music, artists..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl 
-                         text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
-                         focus:ring-red-500 focus:border-transparent transition-all duration-200
-                         hover:bg-gray-800"
-            />
-          </form>
-        </div>
+        {!hideSearch && (
+          <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search movies, music, artists..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl 
+                           text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
+                           focus:ring-red-500 focus:border-transparent transition-all duration-200
+                           hover:bg-gray-800"
+              />
+            </form>
+          </div>
+        )}
 
         {/* Right section */}
         <div className="flex items-center space-x-2">
           {/* Mobile search button */}
-          <button
-            onClick={() => setShowMobileSearchBar(!showMobileSearchBar)}
-            className="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer"
-            aria-label="Toggle search bar"
-          >
-            <Search size={18} />
-          </button>
+          {!hideSearch && (
+            <button
+              onClick={() => setShowMobileSearchBar(!showMobileSearchBar)}
+              className="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer"
+              aria-label="Toggle search bar"
+            >
+              <Search size={18} />
+            </button>
+          )}
 
           {/* Notifications */}
           <Link href="/dashboard/notification">

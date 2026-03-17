@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from './utils/supabase/middleware'
+import { type NextRequest } from 'next/server'
 
-export async function middleware(request) {
+export async function proxy(request: NextRequest) {
   const { supabase, response } = createClient(request)
   
   try {
@@ -35,7 +36,7 @@ export async function middleware(request) {
     return response
   } catch (error) {
     // If auth check fails, allow the request to continue
-    console.error('Middleware auth error:', error)
+    console.error('Proxy auth error:', error)
     return response
   }
 }

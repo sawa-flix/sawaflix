@@ -47,7 +47,7 @@ export async function PUT(req: Request) {
     // 2. Check if the submission exists first
     const { data: submission, error: fetchError } = await supabase
       .from("verification_submissions")
-      .select("id, form_data")
+      .select("creator_id, form_data")
       .eq("creator_id", target_creator_id)
       .single();
 
@@ -58,9 +58,9 @@ export async function PUT(req: Request) {
     const email = submission.form_data?.identity?.email;
     const fullName = submission.form_data?.identity?.fullName || 'Creator';
 
-    // 3. Update creator_profiles
+    // 3. Update creator_profile
     const { error: profileError } = await supabase
-      .from("creator_profiles")
+      .from("creator_profile")
       .update({
         is_verified: isApproved
       })
@@ -95,7 +95,7 @@ export async function PUT(req: Request) {
     try {
       await supabase.from("admin_actions").insert({
         admin_id: adminId,
-        submission_id: submission.id,
+        submission_id: submission.creator_id,
         action_type: status,
         notes: notes || ""
       });

@@ -27,7 +27,7 @@ export default function AdminSidebar({ onNavigate }: { onNavigate?: () => void }
         <div className="h-full flex flex-col bg-gray-900 border-r border-gray-800">
 
             {/* Admin Badge/Header Area */}
-            <div className="px-6 py-6 flex items-center space-x-3 border-b border-gray-800/50 mb-2">
+            <div className="px-4 py-6 flex items-center space-x-3 border-b border-gray-800/50 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-lg shadow-red-500/20">
                     <ShieldCheck className="text-white" size={18} />
                 </div>
