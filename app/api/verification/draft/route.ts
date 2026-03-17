@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"; // Add this for testing support
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/verification/draft:
@@ -38,6 +38,10 @@ export const dynamic = "force-dynamic";
  *       500:
  *         description: Internal server error
  */
+
+
+export const dynamic = "force-dynamic";
+
 export async function PUT(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
@@ -59,43 +63,44 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const creatorId = user.id;
+    const userId = user.id;
 
-    // 2. Parse request body EARLY (so we have the category for the profile)
+    // 2. Parse request body and map your specific JSON structure
     const body = await req.json().catch(() => ({}));
-    const category = body.category || "General";
     const formData = body.form_data || body.formData || {};
-    const legalName = formData.legal_name || user.user_metadata?.full_name || "New Creator";
-    const stageName = formData.stage_name || "TBD";
+    
+    // Deep extraction for the profile columns
+    const category = body.category || formData.category || "General";
+    const identity = formData.identity || {};
+    const professional = formData.professional || {};
 
-    // 3. PRE-FLIGHT PROFILE CHECK (Fixes fk_creator_profile and Not-Null category)
-    const { data: profile } = await supabase
+    // 3. THE FIX: PRE-FLIGHT PROFILE UPSERT (Parent Table)
+    // We map your nested keys (identity.legalName, etc.) to the profile columns
+    const { error: profileError } = await supabase
       .from("creator_profiles")
-      .select("id")
-      .eq("id", creatorId)
-      .maybeSingle();
+      .upsert({ 
+          creator_id: userId,
+          legal_name: identity.legalName || null,
+          stage_name: identity.creatorName || formData.stage_name || "TBD",
+          ethnic_group: identity.ethnicGroup || null,
+          bio: professional.bio || formData.bio || null,
+          years_active: professional.experienceTime || "0",
+          category: category,
+          status: 'unverified', // Keep status as unverified during draft phase
+          is_verified: false,
+          updated_at: new Date().toISOString()
+      }, { onConflict: 'creator_id' });
 
-    if (!profile) {
-      const { error: insertError } = await supabase
-        .from("creator_profiles")
-        .insert({ 
-            creator_id: creatorId, // Use 'id' as the PK for profiles
-            legal_name: legalName,
-            stage_name: stageName,
-            category: category // Now defined and passed correctly
-        });
-      
-      if (insertError) {
-          console.error("Profile Creation Failed:", insertError.message);
-          throw insertError;
-      }
+    if (profileError) {
+      console.error("Profile Sync Error in Draft:", profileError.message);
+      return NextResponse.json({ error: "Database link error: Profile could not be synced." }, { status: 500 });
     }
 
     // 4. Check existing submission status to prevent overwriting "Pending"
     const { data: existingSubmission } = await supabase
       .from("verification_submissions")
       .select("status")
-      .eq("creator_id", creatorId)
+      .eq("creator_id", userId)
       .maybeSingle();
 
     if (existingSubmission && (existingSubmission.status === "pending" || existingSubmission.status === "approved")) {
@@ -108,12 +113,12 @@ export async function PUT(req: Request) {
       );
     }
 
-    // 5. Upsert draft
+    // 5. Upsert Draft: Now safe because the Foreign Key (creator_id) is confirmed
     const { data, error } = await supabase
       .from("verification_submissions")
       .upsert(
         {
-          creator_id: creatorId,
+          creator_id: userId,
           category: category,
           form_data: formData,
           status: "draft",
@@ -131,9 +136,8 @@ export async function PUT(req: Request) {
       message: "Draft saved successfully",
       data,
     });
-  } catch (err) {
-    const error = err as Error;
-    console.error("Draft Save Error:", error);
+  } catch (err: any) {
+    console.error("Draft Save Error:", err.message);
     return NextResponse.json(
       { error: "Internal Server Error", details: err.message },
       { status: 500 }

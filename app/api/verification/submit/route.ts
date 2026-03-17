@@ -47,9 +47,7 @@ function stringToUuid(str: string) {
   const hash = createHash('sha256').update(str).digest('hex');
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${((parseInt(hash.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
 }
-
 export async function POST(req: Request) {
-  
   const authHeader = req.headers.get("Authorization");
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
@@ -58,24 +56,17 @@ export async function POST(req: Request) {
 
   const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
 
-  // 1. DYNAMIC AUTH LOGIC (Removed Hardcoded ID)
+  // 1. Auth Logic
   if (token) {
     try {
-      // Decode the token to get the ACTUAL user ID from the JWT
       const decoded: any = jwtDecode(token);
-      userId = decoded.sub; // This is the 'subject' (User ID) in Supabase JWTs
+      userId = decoded.sub; 
 
       if (serviceKey && token === serviceKey) {
-        // If it's a Service Role request, we use the Admin Client 
-        // Note: For Service Role, you must send a 'x-user-id' header from Insomnia 
-        // or ensure the token is a valid User JWT, not just the API Key.
         supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
-        
-        // If testing via Insomnia with a raw Service Key, we can use a header to specify the user
         const targetUser = req.headers.get("x-user-id");
         if (targetUser) userId = targetUser;
       } else {
-        // Regular User token
         supabase = createAdminClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -83,54 +74,89 @@ export async function POST(req: Request) {
         );
       }
     } catch (e) {
-      
       return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
     }
   } else {
-    // Browser-based session
     supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
     if (user) {
       userId = user.id;
     } else {
-      return NextResponse.json({ error: "Unauthorized: No user session found" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
   try {
     const body = await req.json();
     const category = body.category;
-    const form_data = body.form_data || body.formData;
+    const formData = body.form_data || body.formData;
 
-    // 2. VALIDATION: Check required submission data
-    if (!category || !form_data) {
+    if (!category || !formData) {
       return NextResponse.json({ error: "Category and Form Data are required" }, { status: 400 });
     }
 
-    // 3. THE SUBMISSION
-    const { data, error } = await supabase
+    // Extracting nested data based on your specific JSON structure
+    const identity = formData.identity || {};
+    const professional = formData.professional || {};
+
+    // 2. PRE-FLIGHT PROFILE UPSERT (Parent)
+    // Maps your form structure to the creator_profiles columns
+    const { error: profileError } = await supabase
+      .from("creator_profiles")
+      .upsert({ 
+          creator_id: userId,
+          legal_name: identity.legalName || null,
+          stage_name: identity.creatorName || formData.stage_name || "New Creator",
+          ethnic_group: identity.ethnicGroup || null,
+          bio: professional.bio || formData.bio || null,
+          years_active: professional.experienceTime || "0",
+          category: category,
+          status: 'pending', // Moving to pending state
+          is_verified: false,
+          updated_at: new Date().toISOString()
+      }, { onConflict: 'creator_id' });
+
+    if (profileError) {
+      console.error("Profile Sync Error:", profileError.message);
+      return NextResponse.json({ error: "Could not link creator profile." }, { status: 500 });
+    }
+
+    // 3. THE SUBMISSION (Child)
+    const { data: submissionData, error: submissionError } = await supabase
       .from("verification_submissions")
       .upsert(
         {
           creator_id: userId,
           category,
-          form_data,
-          status: 'pending', 
+          form_data: formData,
+          status: 'pending',
           updated_at: new Date().toISOString(),
         },
         { onConflict: "creator_id" }
       )
       .select();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (submissionError) {
+      return NextResponse.json({ error: submissionError.message }, { status: 500 });
+    }
+
+    // 4. USER TABLE UPDATE
+    const { error: userUpdateError } = await supabase
+      .from("users")
+      .update({ 
+        verification_status: "pending",
+        is_verified: false 
+      })
+      .eq("id", userId);
+
+    if (userUpdateError) {
+      console.error("User Status Update Error:", userUpdateError.message);
     }
 
     return NextResponse.json({ 
       message: "Application submitted successfully!", 
       status: "pending",
-      data 
+      data: submissionData 
     });
 
   } catch (err: any) {
