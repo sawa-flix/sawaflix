@@ -69,7 +69,12 @@ export async function POST(req: NextRequest) {
         // 4. Execute Uploads
         let mediaData = null
         if (media && media instanceof File) {
-            mediaData = await uploadFile(media, data.content_type === 'video' ? 'videos' : 'audio')
+            // Pick folder based on type
+            let folder = 'audio';
+            if (data.content_type === 'video') folder = 'videos';
+            if (data.content_type === 'text') folder = 'documents'; // <-- NEW: Route documents securely
+            
+            mediaData = await uploadFile(media, folder)
         }
 
         let coverData = null

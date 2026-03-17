@@ -10,22 +10,46 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const data = [
-  { day: "Mon", views: 120 },
-  { day: "Tue", views: 180 },
-  { day: "Wed", views: 240 },
-  { day: "Thu", views: 190 },
-  { day: "Fri", views: 260 },
-  { day: "Sat", views: 320 },
-  { day: "Sun", views: 280 },
-];
+export default function PerformanceChart({ content = [] }) {
+  
+  // Aggregate uploads per day for the last 7 days
+  const now = new Date();
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  
+  // Initialize the last 7 days object in order
+  const weeklyData = {};
+  for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      weeklyData[daysOfWeek[d.getDay()]] = 0;
+  }
 
-export default function PerformanceChart() {
+  // Count the uploads inside the last 7 days
+  content.forEach(item => {
+      const d = new Date(item.submission_date || item.updated_at || item.created_at || new Date());
+      const diffTime = Math.abs(now - d);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // If it happened in the last 7 days
+      if (diffDays <= 7) {
+          const dayStr = daysOfWeek[d.getDay()];
+          if (weeklyData[dayStr] !== undefined) {
+              weeklyData[dayStr] += 1;
+          }
+      }
+  });
+
+  // Map into Recharts array format
+  const data = Object.keys(weeklyData).map(key => ({
+      day: key,
+      uploads: weeklyData[key]
+  }));
+
   return (
     <div className="bg-[#111827] border border-gray-800 rounded-xl p-3">
 
-      <h3 className="text-sm font-semibold mb-2">
-        Performance Over Time
+      <h3 className="text-sm font-semibold mb-2 text-white">
+        Upload Velocity (7 Days)
       </h3>
 
       <div className="h-32">
@@ -40,11 +64,15 @@ export default function PerformanceChart() {
             <YAxis
               stroke="#9ca3af"
               tick={{ fontSize: 10 }}
+              allowDecimals={false}
             />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '8px' }}
+              itemStyle={{ color: '#fff' }}
+            />
             <Line
               type="monotone"
-              dataKey="views"
+              dataKey="uploads"
               stroke="#ef4444"
               strokeWidth={2}
               dot={false}
