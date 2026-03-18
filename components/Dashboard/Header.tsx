@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { createClient } from '../../utils/supabase/client'; // Client-side Supabase client
 import { User as SupabaseUser } from '@supabase/supabase-js'; // Alias User type to avoid conflict
 import { handleSignOut } from '../../app/(auth)/actions'; // Import the server action
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -25,6 +26,8 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const [showMobileSearchBar, setShowMobileSearchBar] = useState(false);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+  const { notifications, unreadCount, markRead, markAllRead } = hideSearch ? useAdminNotifications() : { notifications: [], unreadCount: 0, markRead: () => {}, markAllRead: () => {} };
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Fetch user session and profile data on component mount
   useEffect(() => {
@@ -122,21 +125,86 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           )}
 
           {/* Notifications */}
-          <Link href="/dashboard/notification">
-          <button className="relative p-2 rounded-lg cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-            <Bell size={18} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
-              3
-            </span>
-          </button>
-          </Link>
+          {!hideSearch && (
+            <Link href="/dashboard/notification">
+              <button className="relative p-2 rounded-lg cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+                <Bell size={18} />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
+                  3
+                </span>
+              </button>
+            </Link>
+          )}
+
+          {/* Notifications Bell - Only for Admin */}
+          {hideSearch && (
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors relative"
+                aria-label="Notifications"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 border-2 border-gray-900 rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-4 py-2 border-b border-gray-800 flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white">Notifications</h3>
+                    <button 
+                      onClick={markAllRead}
+                      className="text-xs text-red-500 hover:text-red-400 font-medium"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto scrollbar-none">
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                        No notifications yet
+                      </div>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          onClick={() => markRead(n.id)}
+                          className={`px-4 py-3 border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors cursor-pointer group ${!n.read ? 'bg-red-500/5' : ''}`}
+                        >
+                          <div className="flex gap-3">
+                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                              n.type === 'approved' ? 'bg-green-500' : 
+                              n.type === 'rejected' ? 'bg-red-500' : 
+                              n.type === 'new_submission' ? 'bg-yellow-500' : 'bg-blue-500'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium leading-none mb-1 ${!n.read ? 'text-white' : 'text-gray-400'}`}>
+                                {n.title}
+                              </p>
+                              <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
+                              <p className="text-[10px] text-gray-600 mt-1">
+                                {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Settings */}
           <button className="hidden sm:block p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer">
             <Settings size={18} />
           </button>
 
-          {/* Profile dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}

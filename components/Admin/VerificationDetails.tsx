@@ -17,6 +17,7 @@ import {
     Eye,
     Loader2 // Import Loader for loading state
 } from 'lucide-react';
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
 interface VerificationData {
     id: string;
@@ -66,6 +67,7 @@ export default function VerificationDetails({ id }: { id: string }) {
     const [actionModal, setActionModal] = useState<'approve' | 'reject' | 'info' | null>(null);
     const [feedback, setFeedback] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const { addNotification } = useAdminNotifications();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -88,14 +90,32 @@ export default function VerificationDetails({ id }: { id: string }) {
 
     const handleAction = async (type: 'approve' | 'reject' | 'info') => {
         setActionLoading(true);
+        const statusMap = {
+            approve: 'approved',
+            reject: 'rejected',
+            info: 'info_requested'
+        };
+
         try {
-            const res = await fetch(`/api/admin/verifications/${id}/${type}`, {
-                method: 'POST',
+            const res = await fetch(`/api/admin/verify`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feedback })
+                body: JSON.stringify({ 
+                    target_creator_id: id, 
+                    status: statusMap[type],
+                    notes: feedback || `Action performed: ${type}`
+                })
             });
 
             if (!res.ok) throw new Error(`Failed to ${type} verification`);
+
+            // Notifications
+            const creatorName = data?.identity.fullName || 'Creator';
+            addNotification({
+                type: type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'info',
+                title: type === 'approve' ? 'Creator Approved' : type === 'reject' ? 'Creator Rejected' : 'Info Requested',
+                message: `${creatorName} has been ${type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'sent a request for more info'}.`
+            });
 
             // Optimistic Update
             if (data) {
@@ -107,7 +127,11 @@ export default function VerificationDetails({ id }: { id: string }) {
             setFeedback('');
         } catch (err) {
             console.error(err);
-            alert(`Failed to perform action: ${type}`);
+            addNotification({
+                type: 'info',
+                title: 'Action Failed',
+                message: `Failed to ${type} ${data?.identity.fullName || 'this creator'}. Please try again.`
+            });
         } finally {
             setActionLoading(false);
         }

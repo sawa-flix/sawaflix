@@ -12,6 +12,7 @@ import {
     Loader2,
     CheckSquare
 } from 'lucide-react';
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
 interface VerificationItem {
     id: string;
@@ -39,29 +40,45 @@ export default function VerificationQueue() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [bulkLoading, setBulkLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                // Attempt to fetch real data
-                const res = await fetch('/api/admin/verifications');
-                if (res.ok) {
-                    const data = await res.json();
-                    setItems(data.data || []);
-                } else {
-                    // If endpoint doesn't exist or errors, we treat it as empty for now
-                    setItems([]);
-                }
-            } catch (error) {
-                console.error("Failed to fetch verifications:", error);
-                setItems([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { addNotification } = useAdminNotifications();
 
+    const fetchData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true);
+        try {
+            const res = await fetch('/api/admin/verifications');
+            if (res.ok) {
+                const data = await res.json();
+                const fetchedItems = data.data || [];
+                
+                // If it's a background fetch and we have more items now, notify!
+                if (isBackground && fetchedItems.length > items.length) {
+                    const diff = fetchedItems.length - items.length;
+                    addNotification({
+                        type: 'new_submission',
+                        title: 'New Verification Requests',
+                        message: `${diff} new creator${diff > 1 ? 's have' : ' has'} applied for verification.`
+                    });
+                }
+                
+                setItems(fetchedItems);
+            }
+        } catch (error) {
+            console.error("Failed to fetch verifications:", error);
+        } finally {
+            if (!isBackground) setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
-    }, []);
+        
+        // Auto-poll for new submissions every 30 seconds
+        const pollInterval = setInterval(() => {
+            fetchData(true);
+        }, 30000);
+
+        return () => clearInterval(pollInterval);
+    }, [items.length]); // Re-run effect only if items length changes to keep closure fresh
 
     const filteredItems = items.filter(item => {
         const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
@@ -104,9 +121,15 @@ export default function VerificationQueue() {
                 })
             );
             await Promise.all(promises);
+            
+            addNotification({
+                type: 'approved',
+                title: 'Bulk Approval Complete',
+                message: `Successfully approved ${selectedIds.size} creator accounts.`
+            });
+
             setSelectedIds(new Set());
-            // Need to reload window or re-fetch in real app
-            window.location.reload();
+            fetchData(); // Refresh data without reload
         } catch (error) {
             console.error("Bulk approve failed", error);
             alert("Some approvals failed. Please check the queue.");
