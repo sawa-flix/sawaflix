@@ -11,6 +11,7 @@
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.15.2",
     "@react-oauth/google": "^0.12.2",
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.55.0",
     "browser-image-compression": "^2.0.2",

@@ -68,7 +68,7 @@ export async function GET(
         videos: portfolio.videos || [],
       },
       documents: {
-        idCardUrl: documents.idCardUrl || "",
+        idCardUrl: documents.idCardUrl || null,
         selfieUrl: documents.selfieUrl || null,
         endorsementUrl: documents.endorsementUrl || null,
         distributorProofUrl: documents.distributorProofUrl || null,

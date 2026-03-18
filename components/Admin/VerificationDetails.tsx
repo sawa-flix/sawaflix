@@ -167,8 +167,14 @@ export default function VerificationDetails({ id }: { id: string }) {
                         </h2>
 
                         <div className="flex justify-center mb-6">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700 relative">
-                                <img src={data.identity.avatarUrl || ''} alt="Avatar" className="w-full h-full object-cover" />
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700 relative bg-gray-800 flex items-center justify-center">
+                                {data.identity.avatarUrl ? (
+                                    <img src={data.identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-bold text-2xl">
+                                        {data.identity.fullName?.charAt(0)?.toUpperCase() || '?'}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
