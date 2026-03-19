@@ -70,8 +70,8 @@ const MusicProfilePage = async () => {
           >
             <div className="absolute inset-0 bg-opacity-40"></div>
             <div className="relative z-10 p-6 md:p-8 pb-16 md:pb-20 text-white flex justify-end items-end">
-              <Link href="/updateProfile">
-                <button className="bg-red-500 px-3 py-1 rounded-full text-xs cursor-pointer">
+              <Link href="/dashboard/edit-profile">
+                <button className="bg-red-500 px-3 py-1 rounded-full text-xs cursor-pointer hover:bg-red-600 transition-colors">
                   Edit Profile
                 </button>
               </Link>

@@ -81,7 +81,7 @@ export default function EditProfilePage() {
                     >
                         <ChevronLeft className="w-4 h-4" /> Back to Dashboard
                     </Link>
-                    <h1 className="text-4xl font-black text-white tracking-tight">Edit Your <span className="text-red-500">Creator Persona</span></h1>
+                    <h1 className="text-4xl font-black text-white tracking-tight">Edit Your <span className="text-red-500">Profile</span></h1>
                 </div>
             </div>
 
@@ -89,6 +89,7 @@ export default function EditProfilePage() {
                 initialData={profile} 
                 onSave={handleSave} 
                 isSaving={saving} 
+                verificationStatus={profile?.verificationStatus}
             />
         </div>
     );

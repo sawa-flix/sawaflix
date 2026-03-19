@@ -5,8 +5,10 @@ import PendingState from '@/components/Dashboard/PendingState';
 import ApprovedDashboard from '@/components/Dashboard/ApprovedDashboard';
 import RejectedState from '@/components/Dashboard/RejectedState';
 import { StatsSkeleton, DashboardHeaderSkeleton } from '@/components/Dashboard/Skeletons';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
+    const router = useRouter();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,6 +22,12 @@ export default function DashboardPage() {
                 });
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
+                
+                // 🔐 MANDATORY OTP CHECK: Redirect to verify-otp if not verified
+                if (data.emailVerified === false) {
+                    router.push(`/verify-otp?email=${encodeURIComponent(data.displayName || '')}`);
+                }
+                
                 setProfile(data);
             } catch (err) {
                 console.error('Fetch error:', err);
@@ -30,7 +38,7 @@ export default function DashboardPage() {
         };
 
         fetchProfile();
-    }, []);
+    }, [router]);
 
     if (loading) {
         return (

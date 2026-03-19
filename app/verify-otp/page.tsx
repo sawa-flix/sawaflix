@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { Suspense } from 'react';
 import {
   Mail,
   Lock,
@@ -17,32 +18,46 @@ import {
 
 import { createClient } from '@/utils/supabase/client';
 
-const RESEND_TIMER_SECONDS = 30;
+const RESEND_TIMER_SECONDS = 60; // 1 Minute to resend
+const EXPIRY_TIMER_SECONDS = 300; // 5 Minutes for code expiry
 
-const VerifyOtpPage = () => {
+const VerifyOtpPageContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlEmail = searchParams.get('email');
 
   // --- State Management ---
-  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [step, setStep] = useState<'email' | 'otp'>(urlEmail ? 'otp' : 'email');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(urlEmail || '');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timer, setTimer] = useState(0);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [expiryTimer, setExpiryTimer] = useState(0);
+  const [hasAutoSent, setHasAutoSent] = useState(false);
 
   // Refs for OTP inputs
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // --- Logic: Auto-send OTP if email in URL ---
+  useEffect(() => {
+    if (urlEmail && !hasAutoSent) {
+      setHasAutoSent(true);
+      handleSendOtp();
+    }
+  }, [urlEmail, hasAutoSent]);
+
   // --- Logic: Timer ---
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (timer > 0) {
+    if (resendTimer > 0 || expiryTimer > 0) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+        setExpiryTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [timer]);
+  }, [resendTimer, expiryTimer]);
 
   // --- Logic: API Handlers ---
   const handleSendOtp = async (e?: React.FormEvent) => {
@@ -66,8 +81,9 @@ const VerifyOtpPage = () => {
 
       if (res.ok) {
         setStep('otp');
-        setTimer(RESEND_TIMER_SECONDS);
-        setMessage({ type: 'success', text: 'Verification code sent to your email.' });
+        setResendTimer(RESEND_TIMER_SECONDS);
+        setExpiryTimer(EXPIRY_TIMER_SECONDS);
+        setMessage({ type: 'success', text: `Verification code sent to ${email}.` });
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to send OTP.' });
       }
@@ -139,57 +155,41 @@ const VerifyOtpPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D13] flex flex-col font-sans text-white">
-      {/* --- Top Navbar --- */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center px-6 h-14 bg-[#0A0D13]/80 backdrop-blur-lg border-b border-white/5">
+    <div className="h-screen w-full relative overflow-hidden font-inter">
+      {/* Background Image (Same as Signup) */}
+      <Image
+        src="/hero-bg.png"
+        alt="Background"
+        fill
+        quality={100}
+        className="z-0 object-cover"
+        priority
+      />
+
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black opacity-75 z-10"></div>
+
+      {/* Branding Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center px-6 h-14 bg-transparent backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 bg-red-600 rounded-md flex items-center justify-center shadow-lg shadow-red-600/20">
+            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
-          <span className="text-white font-black tracking-tight text-lg">
+          <span className="text-white font-black tracking-tight text-xl">
             Sawa<span className="text-red-500">flix</span>
           </span>
         </div>
       </header>
 
-      <main className="flex flex-1 pt-14 min-h-screen">
-        {/* --- LEFT PANEL: Cultural Branding --- */}
-        <div className="hidden lg:flex w-[45%] relative overflow-hidden flex-shrink-0">
-          <Image
-            src="/otp-bg.jpg"
-            alt="Cultural Storytelling"
-            fill
-            className="object-cover object-top"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D13] via-transparent to-transparent" />
-
-          <div className="relative z-10 flex flex-col justify-center items-center text-center p-12 h-full">
-            <div className="inline-flex items-center gap-2 mb-6">
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-500/40 bg-red-500/10 text-red-400">
-                Creator Verification
-              </span>
-            </div>
-            <h2 className="text-5xl font-black leading-tight tracking-tighter mb-6">
-              Empowering <br /> <span className="text-red-500">Authentic</span> Voices
-            </h2>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-sm font-medium">
-              Verify your identity to unlock creator tools, manage your content, and share your heritage with the world.
-            </p>
-          </div>
-        </div>
-
-        {/* --- RIGHT PANEL: Functional Form --- */}
-        <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#0c1019]">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-[#111827]/80 backdrop-blur-2xl border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+      <main className="relative z-20 flex items-center justify-center h-screen px-4 pt-14">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-black/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-red-500/10">
 
               <AnimatePresence mode="wait">
                 {step === 'email' ? (
@@ -258,9 +258,9 @@ const VerifyOtpPage = () => {
                     </div>
 
                     <div className="text-center mb-6">
-                      <p className="text-gray-500 text-xs font-mono uppercase tracking-tighter">
-                        Expires in <span className="text-red-600 font-bold tabular-nums">
-                          {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
+                      <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest bg-white/5 py-2 px-4 rounded-full inline-block">
+                        Expires in <span className="text-red-500 tabular-nums">
+                          {Math.floor(expiryTimer / 60)}:{String(expiryTimer % 60).padStart(2, '0')}
                         </span>
                       </p>
                     </div>
@@ -295,16 +295,24 @@ const VerifyOtpPage = () => {
                         </button>
 
                         <div className="text-center">
-                          {timer === 0 ? (
+                          {resendTimer === 0 ? (
                             <button
                               type="button"
                               onClick={handleSendOtp}
-                              className="text-red-500 hover:text-red-400 text-xs font-bold underline underline-offset-4 flex items-center justify-center gap-2 mx-auto"
+                              className="text-red-500 hover:text-red-400 text-xs font-bold underline underline-offset-4 flex items-center justify-center gap-2 mx-auto transition-all"
                             >
                               <RefreshCcw size={14} /> Resend New Code
                             </button>
                           ) : (
-                            <p className="text-gray-600 text-xs font-medium">Wait {timer}s to resend</p>
+                            <div className="flex flex-col items-center gap-2">
+                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Wait <span className="text-white">{resendTimer}s</span> to resend</p>
+                                <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-red-600 transition-all duration-1000" 
+                                        style={{ width: `${(resendTimer / RESEND_TIMER_SECONDS) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -332,14 +340,24 @@ const VerifyOtpPage = () => {
               </AnimatePresence>
             </div>
 
-            <p className="text-center text-gray-600 text-[10px] mt-10 uppercase tracking-[0.2em] font-bold opacity-60">
-              Protected by Sawaflix Identity Guard
-            </p>
-          </motion.div>
-        </div>
+          <p className="text-center text-gray-600 text-[10px] mt-8 uppercase tracking-[0.2em] font-bold opacity-40">
+            Protected by Sawaflix Identity Guard
+          </p>
+        </motion.div>
       </main>
+
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        .font-inter { font-family: 'Inter', sans-serif; }
+      `}</style>
     </div>
   );
 };
 
-export default VerifyOtpPage;
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center text-white">Loading...</div>}>
+      <VerifyOtpPageContent />
+    </Suspense>
+  );
+}

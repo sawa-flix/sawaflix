@@ -15,10 +15,7 @@ export default async function CreatorVerifyPage() {
         redirect("/login");
     }
 
-    // 🚫 Not a creator
-    if (profile.category !== "creator") {
-        redirect("/dashboard");
-    }
+    // Everyone is allowed to start the wizard now.
 
     // 🚫 Already submitted or approved
     if (profile.verificationStatus === "pending") {
