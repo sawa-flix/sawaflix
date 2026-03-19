@@ -20,7 +20,7 @@ const CreatorSidebar = ({ userProfile }) => {
     const pathname = usePathname();
 
     const menuItems = [
-        { name: 'Feed', icon: Feed, href: '/dashboard' },
+        { name: 'Feed', icon: Home, href: '/dashboard' },
         { name: 'Dashboard', icon: LayoutGrid, href: '/creator-dashboard' },
         { name: 'Upload New', icon: Upload, href: '/creator-dashboard/post' },
         { name: 'My Content', icon: Film, href: '/creator-dashboard/content' },
