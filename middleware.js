@@ -11,18 +11,18 @@ export async function middleware(request) {
 
     const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp"];
     const authRoutes = ["/login", "/sign-up", "/sign-in"];
-    const isPublicRoute = publicRoutes.includes(pathname);
-    const isAuthRoute = authRoutes.includes(pathname);
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
-
+    // 1. Not logged in
     if (!user) {
-      if (isPublicRoute) return response;
+      if (isPublicRoute || pathname === '/') return response;
       const redirectUrl = new URL("/login", request.url);
       redirectUrl.searchParams.set("redirectedFrom", pathname);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // fetch profile
+    // 2. Fetch profile
     const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("id, role, verification_status")
@@ -31,113 +31,43 @@ export async function middleware(request) {
 
     if (profileError) console.error("Middleware: profile fetch error:", profileError);
 
-    if (pathname === "/creator/verify") {
-      if (profile?.role === "creator" && profile?.verification_status === "approved") {
-        return NextResponse.redirect(new URL("/Creator-dashboard", request.url));
-      }
-      return response; 
-    }
-
+    // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
     if (isAuthRoute || pathname === '/') {
-      const target = profile?.role === 'creator' ? "/Creator-dashboard" : "/dashboard";
+      const target = profile?.role === 'creator' ? "/creator-dashboard" : "/dashboard";
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // NO PROFILE PROTECTION
-    if (!profile) {
-      if (isPublicRoute) return response;
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+    // 4. Missing profile safety
+    if (!profile) return response;
 
-    // (/creator/*)
-    if (pathname.startsWith("/creator")) {
-      if (profile.role !== "creator") {
-        return NextResponse.redirect(new URL("/creator/verify", request.url));
-      }
-
-<<<<<<< HEAD
-      // Creators at any verification state can access their verification portal
-      if (pathname === "/creator/verify") {
-        if (profile.verification_status === "pending") {
-          return NextResponse.redirect(
-            new URL("/creator/verify", request.url),
-          );
-        }
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(
-            new URL("/creator-dashboard", request.url),
-          );
-        }
-        return response;
-      }
-
-      // /creator/pending access
-      if (pathname === "/creator/pending") {
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(
-            new URL("/creator-dashboard", request.url),
-          );
-        }
-        if (profile.verification_status === "unverified") {
-          return NextResponse.redirect(new URL("/creator/verify", request.url));
-=======
-      if (pathname === "/creator/pending") {
-        if (profile.verification_status === "approved") {
-          return NextResponse.redirect(new URL("/Creator-dashboard", request.url));
->>>>>>> cccdeafc400138dfe75fa71febd7eb9c4decea98
-        }
-        return response;
-      }
-
-      if (profile.verification_status !== "approved") {
-        return NextResponse.redirect(new URL("/creator/verify", request.url));
-      }
-      return response;
-    }
-
-    // PROTECTION (/dashboard/*)
-    if (pathname.startsWith("/dashboard")) {
-      if (profile.role === "creator") {
-        if (profile.verification_status === "approved") {
-<<<<<<< HEAD
-          return NextResponse.redirect(
-            new URL("/creator-dashboard", request.url),
-          );
-=======
-          return NextResponse.redirect(new URL("/Creator-dashboard", request.url));
->>>>>>> cccdeafc400138dfe75fa71febd7eb9c4decea98
-        }
-        return NextResponse.redirect(new URL("/creator/verify", request.url));
-      }
-
-      // Standard user must be approved
-      if (profile.verification_status !== "approved") {
+    // 5. OTP Check for all users
+    // If not approved and not on the verify-otp page or public routes, force verification
+    if (profile.verification_status !== "approved") {
+        // Exceptions for public routes or verification pages
+        if (isPublicRoute) return response;
+        if (pathname.startsWith("/creator/verify")) return response;
+        if (pathname.startsWith("/creator/pending")) return response;
+        
         return NextResponse.redirect(new URL("/verify-otp", request.url));
-      }
-      return response;
     }
 
-<<<<<<< HEAD
-    // Auth pages (login / sign-up) — allow viewing even if logged in
-    if (isAuthRoute) {
-      return response;
+    // 6. Access Control for /creator-dashboard
+    if (pathname.startsWith("/creator-dashboard")) {
+       if (profile.role !== "creator" || profile.verification_status !== "approved") {
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+       }
     }
 
-    // OTP verification page — redirect already verified users
-    if (pathname === "/verify-otp") {
-      if (profile.verification_status === "approved") {
-        if (profile.role === "creator") {
-          return NextResponse.redirect(
-            new URL("/creator-dashboard", request.url),
-          );
-        }
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-      return response;
+    // 7. Access Control for /creator/ (Verify/Pending)
+    if (pathname.startsWith("/creator/")) {
+       if (pathname === "/creator/verify" && profile.verification_status === "approved") {
+          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+       }
+       if (pathname === "/creator/pending" && profile.verification_status === "approved") {
+          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+       }
     }
 
-=======
->>>>>>> cccdeafc400138dfe75fa71febd7eb9c4decea98
     return response;
   } catch (error) {
     console.error("Middleware error:", error);
