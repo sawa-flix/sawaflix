@@ -71,7 +71,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                             >
                                 Sample {index + 1}
                                 {hasData && (
-                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                                 )}
                             </button>
                         );
@@ -95,7 +95,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                                     <div className="relative group">
                                         <label className={`flex items-center justify-center gap-3 w-full py-6 rounded-2xl cursor-pointer text-sm font-bold transition-all border-2 border-dashed ${
                                             isUploading ? 'opacity-50 cursor-not-allowed bg-white/5 border-white/10' : 
-                                            rec.file_name ? 'bg-red-600/10 border-red-500/30 text-red-400 hover:bg-red-600/20' : 
+                                            rec.file_name ? 'bg-emerald-600/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/20' : 
                                             'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 active:scale-[0.99] shadow-inner'
                                         }`}>
                                             {isUploading ? (
