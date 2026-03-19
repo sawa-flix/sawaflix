@@ -132,22 +132,23 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    // 6. Also update creator profile with submission data
+    // 6. Also update creator profile with submission data (only existing columns)
     const updateData: Record<string, unknown> = { category };
     
     if (formData?.identity?.legalName) updateData.legal_name = formData.identity.legalName;
     if (formData?.identity?.creatorName) updateData.stage_name = formData.identity.creatorName;
     if (formData?.identity?.ethnicGroup) updateData.ethnic_group = formData.identity.ethnicGroup;
-    if (formData?.identity?.phone) updateData.phone = formData.identity.phone;
-    if (formData?.identity?.email) updateData.email = formData.identity.email;
     if (formData?.professional?.bio) updateData.bio = formData.professional.bio;
-    if (formData?.professional?.languages) updateData.languages = formData.professional.languages;
-    if (formData?.professional?.experienceTime) updateData.experience = formData.professional.experienceTime;
 
-    await supabase
+    const { error: updateError } = await supabase
       .from("creator_profiles")
       .update(updateData)
       .eq("creator_id", creatorId);
+    
+    // Non-critical — don't fail the whole submission if profile update fails
+    if (updateError) {
+      console.warn("Profile update warning:", updateError.message);
+    }
 
     return NextResponse.json({
       success: true,

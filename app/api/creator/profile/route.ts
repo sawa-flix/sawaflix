@@ -31,7 +31,7 @@ export async function GET(req: Request) {
         // 2. Fetch verification status
         let { data: submission, error: subError } = await supabase
             .from('verification_submissions')
-            .select('status, category, rejection_feedback, form_data')
+            .select('status, category, admin_notes, form_data')
             .eq('creator_id', user.id)
             .maybeSingle();
 
@@ -67,7 +67,7 @@ export async function GET(req: Request) {
             category: submission?.category || '',
             emailVerified: userData?.verification_status === 'approved',
             verificationStatus: submission?.status || 'none', // pending, approved, rejected, none
-            rejectionFeedback: submission?.rejection_feedback || '',
+            rejectionFeedback: submission?.admin_notes || '',
             formData: submission?.form_data || {},
         });
 

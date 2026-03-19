@@ -74,16 +74,35 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
-  // Add Creators Dashboard if applied
-  if (verificationStatus !== 'none') {
-    // Check if it's already there to avoid duplicates if re-rendered
-    if (!menuItems.find(item => item.id === 'creator-dashboard')) {
+  // Add Create link based on verification status
+  if (verificationStatus === 'pending') {
+    if (!menuItems.find(item => item.id === 'create')) {
       menuItems.push({ 
-        name: 'Creators Dashboard', 
+        name: 'Create', 
         icon: Workflow, 
-        id: 'creator-dashboard', 
-        route: '/dashboard', 
-        badge: verificationStatus === 'pending' ? 'Pending' : null 
+        id: 'create', 
+        route: '/creator/pending', 
+        badge: 'Pending' 
+      });
+    }
+  } else if (verificationStatus === 'approved') {
+    if (!menuItems.find(item => item.id === 'create')) {
+      menuItems.push({ 
+        name: 'Create', 
+        icon: Workflow, 
+        id: 'create', 
+        route: '/creator-dashboard', 
+        badge: null 
+      });
+    }
+  } else if (verificationStatus === 'none' || verificationStatus === 'rejected') {
+    if (!menuItems.find(item => item.id === 'create')) {
+      menuItems.push({ 
+        name: 'Become Creator', 
+        icon: Workflow, 
+        id: 'create', 
+        route: '/creator/verify', 
+        badge: 'Apply' 
       });
     }
   }
