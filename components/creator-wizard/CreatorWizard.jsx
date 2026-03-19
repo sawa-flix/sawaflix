@@ -10,6 +10,7 @@ import Step4Portfolio from './Step4Portfolio';
 import Step5Summary from './Step5Summary';
 import { getDraft, saveDraft, submitVerification } from '../../lib/verification';
 import { useRouter } from 'next/navigation';
+import StatusModal from '../Dashboard/StatusModal';
 
 const steps = [
     { id: 1, name: 'Category' },
@@ -31,6 +32,7 @@ const CreatorWizard = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [modal, setModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
 
     useEffect(() => {
         const loadDraft = async () => {
@@ -156,17 +158,49 @@ const CreatorWizard = () => {
                 form_data: formData
             });
             console.log("✅ Submission success:", result);
-            // After submitting, show normal dashboard content as requested
-            alert("Application received! You can now browse the dashboard while we review it. Click 'Create Content' in the sidebar to check status.");
-            window.location.href = '/dashboard';
+            
+            // Show premium success modal
+            setModal({
+                isOpen: true,
+                type: 'success',
+                title: 'Application Received',
+                message: 'Thank you for applying to be a SawaFlix Creator. Our team will review your submission within 5 business days.'
+            });
+            
         } catch (error) {
             console.error("❌ Submission failed:", error);
             setIsSubmitting(false);
-            alert("Failed to submit verification. Please try again.");
+            
+            // Show premium error modal
+            setModal({
+                isOpen: true,
+                type: 'error',
+                title: 'Submission Failed',
+                message: 'We encountered an error while processing your application. Please check your connection and try again.'
+            });
         }
     };
 
-    if (!isLoaded) return null;
+    const handleModalClose = () => {
+        if (modal.type === 'success') {
+            window.location.href = '/dashboard';
+        } else {
+            setModal(prev => ({ ...prev, isOpen: false }));
+        }
+    };
+
+    const showModal = (type, title, message) => {
+        setModal({ isOpen: true, type, title, message });
+    };
+
+    if (!isLoaded) return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+            <div className="w-12 h-12 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
+            <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest animate-pulse">
+                Initializing Application...
+            </p>
+        </div>
+    );
 
     return (
         <div className="relative min-h-[calc(100vh-4rem)] w-full flex items-center justify-center p-4 sm:p-8 font-sans text-white antialiased overflow-hidden rounded-tl-3xl rounded-bl-3xl" style={{ backgroundImage: "url('/hero-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -219,19 +253,19 @@ const CreatorWizard = () => {
                                 transition={{ duration: 0.3, ease: 'easeOut' }}
                             >
                                 {currentStep === 1 && (
-                                    <Step1Category data={formData} updateData={handleStep1Update} errors={errors} />
+                                    <Step1Category data={formData} updateData={handleStep1Update} errors={errors} showModal={showModal} />
                                 )}
                                 {currentStep === 2 && (
-                                    <Step2Identity data={formData.identity} updateData={(d) => updateFormData('identity', d)} errors={errors} />
+                                    <Step2Identity data={formData.identity} updateData={(d) => updateFormData('identity', d)} errors={errors} showModal={showModal} />
                                 )}
                                 {currentStep === 3 && (
-                                    <Step3Professional data={formData.professional} updateData={(d) => updateFormData('professional', d)} errors={errors} />
+                                    <Step3Professional data={formData.professional} updateData={(d) => updateFormData('professional', d)} errors={errors} showModal={showModal} />
                                 )}
                                 {currentStep === 4 && (
-                                    <Step4Portfolio data={formData.portfolio} documents={formData.documents} updatePortfolio={(d) => updateFormData('portfolio', d)} updateDocuments={(d) => updateFormData('documents', d)} errors={errors} />
+                                    <Step4Portfolio data={formData.portfolio} documents={formData.documents} updatePortfolio={(d) => updateFormData('portfolio', d)} updateDocuments={(d) => updateFormData('documents', d)} errors={errors} showModal={showModal} />
                                 )}
                                 {currentStep === 5 && (
-                                    <Step5Summary formData={formData} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+                                    <Step5Summary formData={formData} onSubmit={handleSubmit} isSubmitting={isSubmitting} showModal={showModal} />
                                 )}
                             </motion.div>
                         </AnimatePresence>
@@ -269,6 +303,15 @@ const CreatorWizard = () => {
                     </div>
                 </div>
             </div>
+            {/* Success/Error Modal */}
+            <StatusModal
+                isOpen={modal.isOpen}
+                onClose={handleModalClose}
+                type={modal.type}
+                title={modal.title}
+                message={modal.message}
+                actionText={modal.type === 'success' ? 'Go to Dashboard' : 'Try Again'}
+            />
         </div>
     );
 };

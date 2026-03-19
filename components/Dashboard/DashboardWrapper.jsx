@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import Header from './Header';
 import LeftSidebar from './leftsidebar';
 import CreatorSidebar from './CreatorSidebar';
@@ -11,8 +12,9 @@ import { MusicProvider } from '../MusicContext';
 import BottomPlayer from '../BottomPlayer';
 
 const DashboardWrapper = ({ children }) => {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isCreator, setIsCreator] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('none');
   const [userProfile, setUserProfile] = useState(null);
 
   React.useEffect(() => {
@@ -25,10 +27,7 @@ const DashboardWrapper = ({ children }) => {
             if (res.ok) {
                 const data = await res.json();
                 setUserProfile(data);
-                // If they have any status other than 'none', treat them as a creator for the sidebar
-                if (data.verificationStatus && data.verificationStatus !== 'none') {
-                    setIsCreator(true);
-                }
+                setVerificationStatus(data.verificationStatus);
             }
         } catch (err) {
             console.error("Error checking creator status:", err);
@@ -36,6 +35,10 @@ const DashboardWrapper = ({ children }) => {
     };
     checkCreatorStatus();
   }, []);
+
+  // Determine if we should show the creator-specific layout
+  // Only use Creator layout for approved creators on the creator-dashboard path
+  const isCreatorLayout = pathname.startsWith('/creator-dashboard') && verificationStatus === 'approved';
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -48,10 +51,10 @@ const DashboardWrapper = ({ children }) => {
   return (
     <MusicProvider>
       <div className="min-h-screen bg-[#0B0E14]">
-        {/* Header */}
-        {!isCreator && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
+        {/* Header - Only show if NOT in creator layout mode */}
+        {!isCreatorLayout && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        <div className={`flex ${isCreator ? 'pt-0' : 'pt-16'}`}> {/* pt-16 to account for fixed header, pt-0 for creator */}
+        <div className={`flex ${isCreatorLayout ? 'pt-0' : 'pt-16'}`}> 
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -70,7 +73,7 @@ const DashboardWrapper = ({ children }) => {
           <aside
             className={`
               fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-              w-64 ${isCreator ? 'h-screen' : 'h-[calc(100vh-4rem)]'} bg-gray-900
+              w-64 h-screen bg-[#0B0E14]
               transform transition-transform duration-300 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0 lg:block
@@ -78,7 +81,7 @@ const DashboardWrapper = ({ children }) => {
               border-r border-white/5
             `}
           >
-            {isCreator ? (
+            {isCreatorLayout ? (
                 <CreatorSidebar userProfile={userProfile} />
             ) : (
                 <LeftSidebar onNavigate={closeSidebar} />
@@ -86,14 +89,14 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Main Content Area */}
-          <main className={`flex-1 ${isCreator ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0f1729] rounded-tl-3xl rounded-bl-3xl`}>
-            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> {/* Added pb-32 for bottom player space */}
+          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0B0E14] rounded-tl-3xl rounded-bl-3xl`}>
+            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> 
               {children}
             </div>
           </main>
 
-          {/* Right Sidebar */}
-          {!isCreator && (
+          {/* Right Sidebar - Only show for normal user dashboard */}
+          {!isCreatorLayout && (
             <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-white/5">
                 <RightSidebar />
             </aside>

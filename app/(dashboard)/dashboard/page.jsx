@@ -160,19 +160,6 @@ export default function DashboardPage() {
         );
     }
 
-    // Conditional Rendering based on verificationStatus (Creator only)
-    if (profile?.verificationStatus === 'pending') {
-        return <PendingState userProfile={profile} />;
-    }
-
-    if (profile?.verificationStatus === 'approved') {
-        return <ApprovedDashboard creatorName={profile.displayName} userProfile={profile} />;
-    }
-
-    if (profile?.verificationStatus === 'rejected') {
-        return <RejectedState feedback={profile.rejectionFeedback} />;
-    }
-
     // User Dashboard - YouTube Shorts Style with feedData
     const reelsData = feedData;
 

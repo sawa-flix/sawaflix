@@ -13,7 +13,7 @@ const FieldError = ({ message }) => message ? (
 const inputClass = "w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-600/20 focus:border-red-500/50 transition-all font-bold text-sm bg-white/5 border border-white/10 hover:bg-white/10 shadow-inner";
 const textAreaClass = "w-full text-white text-xs font-medium placeholder-zinc-600 focus:outline-none resize-none rounded-xl p-3 bg-white/5 border border-white/10 hover:bg-white/10 focus:ring-2 focus:ring-red-600/20 focus:border-red-500/50 shadow-inner transition-all";
 
-const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, errors = {} }) => {
+    const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, errors = {}, showModal }) => {
     const recordings = data.recordings || [{}, {}, {}];
     const [uploading, setUploading] = useState({});
     const [activeTab, setActiveTab] = useState(0);
@@ -37,7 +37,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
             }
         } catch (error) {
             console.error("Upload failed", error);
-            alert(`Upload failed: ${error.message}`);
+            showModal('error', 'Upload Failed', error.message || 'We could not upload your file at this time.');
         } finally {
             setUploading(prev => ({ ...prev, [key]: false }));
         }

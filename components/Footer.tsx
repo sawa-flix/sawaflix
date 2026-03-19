@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react";
+import SawaflixLogo from "./SawaflixLogo";
 
 export default function Footer() {
     return (
@@ -11,11 +12,7 @@ export default function Footer() {
 
                     {/* Brand Column */}
                     <div className="col-span-1 md:col-span-1">
-                        <Link href="/" className="flex items-center gap-2 mb-4">
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-500">
-                                SawaFlix
-                            </span>
-                        </Link>
+                        <SawaflixLogo className="mb-4" />
                         <p className="text-sm leading-relaxed mb-4">
                             Your premium destination for Sawa cultural heritage. preserving our stories for future generations.
                         </p>

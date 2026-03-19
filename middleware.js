@@ -23,16 +23,16 @@ export async function middleware(request) {
     }
 
     // 2. Fetch profiles
-    // We fetch from both users and creator_profiles for maximum compatibility with merged branches
+    // We fetch from both users and verification_submissions since they define the creator status
     const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("id, role, verification_status")
       .eq("id", user.id)
       .maybeSingle();
 
-    const { data: creator_profile } = await supabase
-      .from("creator_profiles")
-      .select("creator_id, status")
+    const { data: submission } = await supabase
+      .from("verification_submissions")
+      .select("status")
       .eq("creator_id", user.id)
       .maybeSingle();
 
@@ -40,7 +40,8 @@ export async function middleware(request) {
 
     // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
     if (isAuthRoute || pathname === '/') {
-      const target = profile?.role === 'creator' ? "/creator-dashboard" : "/dashboard";
+      const isApprovedCreator = profile?.role === 'creator' || submission?.status === 'approved';
+      const target = isApprovedCreator ? "/creator-dashboard" : "/dashboard";
       return NextResponse.redirect(new URL(target, request.url));
     }
 
@@ -59,22 +60,27 @@ export async function middleware(request) {
 
     // 6. Access Control for /creator-dashboard
     if (pathname.startsWith("/creator-dashboard")) {
-       if (profile.role !== "creator" || profile.verification_status !== "approved") {
+       // Allow access if they have the 'creator' role OR their creator application is approved
+       const isApprovedCreator = profile.role === "creator" || submission?.status === "approved";
+       
+       if (!isApprovedCreator) {
           return NextResponse.redirect(new URL("/dashboard", request.url));
        }
     }
 
     // 7. Access Control for /creator/ (Verify/Pending)
     if (pathname.startsWith("/creator/")) {
-       // If already approved as creator, skip verification/pending
-       if (profile.verification_status === "approved" && profile.role === "creator") {
+       const isApprovedCreator = profile.role === "creator" || submission?.status === "approved";
+       
+       // If already approved as creator, skip verification/pending and go to creator dashboard
+       if (isApprovedCreator) {
          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
        }
        
        // Handle specific paths
        if (pathname === "/creator/pending") {
-         // If they have no submission or unverified, go to verify
-         if (!creator_profile || creator_profile.status === "unverified") {
+         // If they have no submission or their submission is not pending/approved, back to verify
+         if (!submission || (submission.status !== "pending" && submission.status !== "approved")) {
             return NextResponse.redirect(new URL("/creator/verify", request.url));
          }
          return response;

@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { ProfileFormSkeleton } from '@/components/Dashboard/Skeletons';
 import { ChevronLeft, CheckCircle, Plus } from 'lucide-react';
+import StatusModal from '@/components/Dashboard/StatusModal';
 import Link from 'next/link';
 
 export default function EditProfilePage() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
+    const [modalConfig, setModalConfig] = useState({ show: false, type: 'success', title: '', message: '' });
     const router = useRouter();
 
     useEffect(() => {
@@ -30,6 +31,10 @@ export default function EditProfilePage() {
         fetchProfile();
     }, []);
 
+    const showModal = (type, title, message) => {
+        setModalConfig({ show: true, type, title, message });
+    };
+
     const handleSave = async (updatedData) => {
         setSaving(true);
         try {
@@ -41,14 +46,10 @@ export default function EditProfilePage() {
 
             if (!res.ok) throw new Error('Failed to save profile');
             
-            setShowSuccess(true);
-            setTimeout(() => {
-                setShowSuccess(false);
-                router.push('/dashboard');
-            }, 2000);
+            showModal('success', 'Profile Updated', 'Your identity has been successfully synchronized.');
         } catch (err) {
             console.error(err);
-            alert('Error saving profile: ' + err.message);
+            showModal('error', 'Update Failed', err.message || 'There was an error saving your changes. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -68,13 +69,17 @@ export default function EditProfilePage() {
     return (
         <div className="min-h-screen bg-[#0f1729] selection:bg-red-500/30 font-sans">
             <div className="max-w-4xl mx-auto space-y-6 pt-6 px-4 relative">
-                {/* Visual Success Confirmation */}
-                {showSuccess && (
-                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-100 bg-[#141820] text-red-600 px-10 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500 border-2 border-red-600/20">
-                        <CheckCircle className="w-6 h-6" />
-                        <span className="font-bold text-sm text-white/90">Identity Update Successful</span>
-                    </div>
-                )}
+                {/* Visual Status Confirmation */}
+                <StatusModal 
+                    isOpen={modalConfig.show}
+                    onClose={() => {
+                        setModalConfig(prev => ({ ...prev, show: false }));
+                        if (modalConfig.type === 'success') router.push('/dashboard');
+                    }}
+                    type={modalConfig.type}
+                    title={modalConfig.title}
+                    message={modalConfig.message}
+                />
 
                 <div className="flex items-center justify-between border-b border-white/5 pb-8 pt-4">
                     <div>

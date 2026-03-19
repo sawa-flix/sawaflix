@@ -13,6 +13,8 @@ const UploadSchema = z.object({
     "id",
     "endorsements",
     "recording",
+    "profile_image",
+    "cover_image",
   ]),
 });
 

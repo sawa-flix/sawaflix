@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { createClient } from '../../utils/supabase/client'; // Client-side Supabase client
 import { User as SupabaseUser } from '@supabase/supabase-js'; // Alias User type to avoid conflict
 import { handleSignOut } from '../../app/(auth)/actions'; // Import the server action
+import SawaflixLogo from '../SawaflixLogo';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -76,19 +77,17 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
           {/* Logo */}
           <div className="flex items-center space-x-3 group">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="relative w-10 h-10 overflow-hidden transform group-hover:scale-110 transition-transform duration-500">
+              {/* <div className="relative w-10 h-10 overflow-hidden transform group-hover:scale-110 transition-transform duration-500">
                 <Image
                   src="/logo.png"
                   alt="SawaFlix Logo"
                   fill
                   className="object-contain drop-shadow-[0_0_8px_rgba(220,38,38,0.4)]"
                 />
-              </div>
+              </div> */}
               <div className="flex flex-col">
-                <h1 className="text-xl font-black text-white tracking-widest flex items-center gap-1">
-                  SAWA<span className="text-red-600">FLIX</span>
-                </h1>
-                <span className="hidden sm:block text-[8px] text-zinc-500 font-bold uppercase tracking-[0.2em]">One Culture, One People</span>
+                <SawaflixLogo />
+                {/* <span className="hidden sm:block text-[8px] text-zinc-500 font-bold uppercase tracking-[0.2em]">One Culture, One People</span> */}
               </div>
             </Link>
           </div>
@@ -145,17 +144,18 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
               aria-label="User profile menu"
             >
               {userProfile?.profile_image_url ? (
-                <Image
-                  src={userProfile.profile_image_url}
-                  alt="User Avatar"
-                  width={28}
-                  height={28}
-                  className="rounded-full object-cover"
-                  unoptimized
-                />
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-700 shadow-sm flex-shrink-0">
+                  <Image
+                    src={userProfile.profile_image_url}
+                    alt="User Avatar"
+                    fill
+                    className="object-cover aspect-square"
+                    unoptimized
+                  />
+                </div>
               ) : (
-                <div className="w-7 h-7 bg-white/5 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
-                  <User size={14} className="text-white" />
+                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700 shadow-sm flex-shrink-0">
+                  <User size={14} className="text-gray-400" />
                 </div>
               )}
               <span className="hidden sm:block text-sm font-medium">

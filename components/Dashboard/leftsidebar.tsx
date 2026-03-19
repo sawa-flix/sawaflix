@@ -14,6 +14,8 @@ import {
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { usePathname } from 'next/navigation';
+import SawaflixLogo from '../SawaflixLogo';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -23,7 +25,7 @@ type UserProfileData = {
 };
 
 export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const [active, setActive] = useState('');
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
 
@@ -37,15 +39,14 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       setCurrentUser(user);
 
       if (user) {
-        const { data: profileData, error } = await supabase
+        // Fetch user profile
+        const { data: profileData } = await supabase
           .from('users')
           .select('username, email, profile_image_url')
           .eq('id', user.id)
           .single<UserProfileData>();
 
-        if (error) {
-          console.error('Error fetching user profile:', error.message);
-        } else if (profileData) {
+        if (profileData) {
           setUserProfile(profileData);
         }
 
@@ -63,7 +64,16 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     };
 
     fetchUserData();
-  }, []);
+
+    // Poll for status every 5 seconds if none to ensure instant update after submission
+    const interval = setInterval(() => {
+        if (verificationStatus === 'none') {
+            fetchUserData();
+        }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [verificationStatus]);
 
   const menuItems = [
     { name: 'Feed', icon: Home, id: 'feed', route: '/dashboard', badge: null },
@@ -78,7 +88,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
   if (!menuItems.find(item => item.id === 'create-content')) {
     let route = '/creator/verify'; // Default apply
     let badge: string | null = 'Apply';
-    
+
     if (verificationStatus === 'pending') {
       route = '/creator/pending';
       badge = 'Pending';
@@ -90,57 +100,59 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       badge = 'Apply';
     }
 
-    menuItems.push({ 
-      name: 'Create Content', 
-      icon: Workflow, 
-      id: 'create-content', 
-      route: route, 
-      badge: badge 
+    menuItems.push({
+      name: 'Create Content',
+      icon: Workflow,
+      id: 'create-content',
+      route: route,
+      badge: badge
     });
   }
 
-  const smart =[
+  const smart = [
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawaSmart', badge: null },
   ]
 
-  const handleItemClick = (itemId: string) => {
-    setActive(itemId);
+  const handleItemClick = () => {
     // Close sidebar on mobile when navigating
     onNavigate?.();
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-900 border-r border-white/5">
+    <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5">
+      {/* Logo Section */}
+      {/* <div className="p-6 pb-2">
+        <SawaflixLogo />
+      </div> */}
+
       <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
-          
+          const isActive = pathname === item.route;
+
           return (
             <Link
               key={item.id}
               href={item.route}
-              onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${
-                isActive
-                  ? 'bg-red-600 text-white'
+              onClick={handleItemClick}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
+                  ? 'bg-red-600/10 text-red-500'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className="font-semibold text-sm">{item.name}</span>
+                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-bold ${
-                  isActive 
-                    ? 'bg-red-700 text-white' 
-                    : 'bg-red-600/20 text-red-400'
-                }`}>
+                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                    : 'bg-white/10 text-gray-400'
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -150,35 +162,33 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       </nav>
 
       <div className="p-3 border-t border-white/5">
-      {smart.map((item) => {
+        {smart.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
-          
+          const isActive = pathname === item.route;
+
           return (
             <Link
               key={item.id}
               href={item.route}
-              onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${
-                isActive
-                  ? 'bg-red-600 text-white'
+              onClick={handleItemClick}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
+                  ? 'bg-red-600/10 text-red-500'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className="font-semibold text-sm">{item.name}</span>
+                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-bold ${
-                  isActive 
-                    ? 'bg-red-700 text-white' 
-                    : 'bg-red-600/20 text-red-400'
-                }`}>
+                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                    : 'bg-white/10 text-gray-400'
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -188,7 +198,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
           <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 mt-4 transition-all cursor-pointer border border-white/10">
             {userProfile?.profile_image_url ? (
-              <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden">
+              <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden aspect-square border-2 border-white/5">
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
@@ -213,7 +223,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
             </div>
           </div>
         </Link>
-        
+
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
           <div className="bg-gray-800/50 rounded-lg p-2 text-center">
             <div className="text-red-400 font-bold">128</div>
