@@ -94,11 +94,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Ensure creator profile exists
+    // 4. Ensure creator profile exists (PK = creator_id)
     const { data: profile } = await supabase
       .from("creator_profiles")
-      .select("id")
-      .eq("id", creatorId)
+      .select("creator_id")
+      .eq("creator_id", creatorId)
       .maybeSingle();
 
     if (!profile) {
@@ -107,12 +107,12 @@ export async function POST(req: Request) {
       
       const { error: insertError } = await supabase
         .from("creator_profiles")
-        .insert({
+        .upsert({
           creator_id: creatorId,
           legal_name: legalName,
           stage_name: stageName,
           category: category,
-        });
+        }, { onConflict: "creator_id" });
 
       if (insertError) {
         console.error("Profile Creation Failed:", insertError.message);

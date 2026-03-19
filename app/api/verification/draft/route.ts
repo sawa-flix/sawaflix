@@ -82,22 +82,22 @@ export async function PUT(req: Request) {
     const legalName = formData.legal_name || user.user_metadata?.full_name || "New Creator";
     const stageName = formData.stage_name || "TBD";
 
-    // 3. PRE-FLIGHT PROFILE CHECK (Fixes fk_creator_profile and Not-Null category)
+    // 3. PRE-FLIGHT PROFILE CHECK — ensure creator_profiles row exists (PK = creator_id)
     const { data: profile } = await supabase
       .from("creator_profiles")
-      .select("id")
-      .eq("id", creatorId)
+      .select("creator_id")
+      .eq("creator_id", creatorId)
       .maybeSingle();
 
     if (!profile) {
       const { error: insertError } = await supabase
         .from("creator_profiles")
-        .insert({ 
-            creator_id: creatorId, // Use 'id' as the PK for profiles
+        .upsert({ 
+            creator_id: creatorId,
             legal_name: legalName,
             stage_name: stageName,
-            category: category // Now defined and passed correctly
-        });
+            category: category,
+        }, { onConflict: "creator_id" });
       
       if (insertError) {
           console.error("Profile Creation Failed:", insertError.message);
