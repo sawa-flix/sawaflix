@@ -9,8 +9,8 @@ const categories = [
 ];
 
 const FieldError = ({ message }) => message ? (
-    <p className="text-red-400 text-[10px] mt-1 ml-1 font-medium flex items-center gap-1">
-        <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+    <p className="text-red-400 text-[10px] mt-2 ml-2 font-black uppercase tracking-widest flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1">
+        <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
         {message}
     </p>
 ) : null;
@@ -23,31 +23,35 @@ const Step1Category = ({ data, updateData, errors = {} }) => {
     };
 
     return (
-        <div className="space-y-5">
-            <div className="space-y-1">
-                <h2 className="text-xl font-bold text-white">Choose Your Category</h2>
-                <p className="text-gray-500 text-xs">Help us understand your creative identity and passion</p>
+        <div className="space-y-8">
+            <div className="space-y-2 text-center sm:text-left">
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Choose Your Category</h2>
+                <p className="text-zinc-400 text-xs sm:text-sm font-medium">Help us understand your creative identity and passion.</p>
             </div>
 
             <div>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Creator Type *</p>
-                <div className="grid grid-cols-2 gap-3">
+                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4 ml-1">Creator Type <span className="text-red-500">*</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {categories.map((cat) => {
                         const isSelected = selectedCategory === cat.id;
                         return (
                             <button
                                 key={cat.id}
                                 onClick={() => handleSelect(cat.id)}
-                                className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 text-left"
-                                style={{
-                                    backgroundColor: isSelected ? '#DC2626' : '#141820',
-                                    border: `1px solid ${isSelected ? '#DC2626' : errors.category ? 'rgba(220,38,38,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                                }}
+                                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 text-left group border ${
+                                    isSelected 
+                                    ? 'bg-red-600/10 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.15)] ring-1 ring-red-500/50' 
+                                    : errors.category 
+                                        ? 'bg-red-950/10 border-red-500/30' 
+                                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                                }`}
                             >
-                                <span className={`w-5 h-5 flex-shrink-0 ${isSelected ? 'text-white' : 'text-red-500'}`}>
+                                <span className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center transition-colors ${
+                                    isSelected ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-zinc-400 group-hover:text-white group-hover:bg-white/10'
+                                }`}>
                                     {React.cloneElement(cat.icon, { className: "w-5 h-5" })}
                                 </span>
-                                <span className={`text-sm font-semibold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                <span className={`text-sm font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-zinc-300 group-hover:text-white'}`}>
                                     {cat.label}
                                 </span>
                             </button>
@@ -58,15 +62,15 @@ const Step1Category = ({ data, updateData, errors = {} }) => {
             </div>
 
             {/* Benefits Box */}
-            <div className="flex items-start gap-3 p-4 rounded-xl" style={{ backgroundColor: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)' }}>
-                <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(220,38,38,0.15)' }}>
-                    <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-linear-to-br from-red-600/10 to-transparent border border-red-500/20">
+                <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center bg-red-600/20 shadow-inner">
+                    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                 </div>
-                <div>
-                    <h4 className="font-bold text-red-400 text-xs mb-1">Verified Creator Benefits</h4>
-                    <p className="text-[11px] text-gray-500 leading-relaxed font-medium">Get verified badge, priority support, and enhanced discovery for your authentic content.</p>
+                <div className="pt-0.5">
+                    <h4 className="font-black text-red-400 text-xs tracking-wider uppercase mb-1.5">Verified Creator Benefits</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">Get a verified badge, priority support, and enhanced discovery tools for your authentic cultural content.</p>
                 </div>
             </div>
         </div>

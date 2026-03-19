@@ -177,7 +177,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
           <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 mt-4 transition-all cursor-pointer border border-white/10">
             {userProfile?.profile_image_url ? (
-              <div className="w-10 h-10 rounded-full flex-shrink-0 relative overflow-hidden">
+              <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden">
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
@@ -188,7 +188,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shrink-0">
                 <User size={16} className="text-white" />
               </div>
             )}

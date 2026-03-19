@@ -4,6 +4,8 @@ import Header from './Header';
 import LeftSidebar from './leftsidebar';
 import CreatorSidebar from './CreatorSidebar';
 import RightSidebar from './rightsidebar';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
 
 import { MusicProvider } from '../MusicContext';
 import BottomPlayer from '../BottomPlayer';

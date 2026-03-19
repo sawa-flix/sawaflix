@@ -63,7 +63,21 @@ export async function PUT(req: Request) {
 
     // 2. Parse request body EARLY (so we have the category for the profile)
     const body = await req.json().catch(() => ({}));
-    const category = body.category || "General";
+    const rawCategory = body.category || "General";
+    
+    // Map lowercase wizard category IDs to DB-accepted values
+    // DB constraint allows: Music, Film, Traditional storyteller, Comedy, Food&lifestyle, General, Storyteller, Lifestyle, etc.
+    const categoryMap: Record<string, string> = {
+      music: "Music",
+      film: "Film",
+      comedy: "Comedy",
+      storyteller: "Traditional storyteller",
+      lifestyle: "Food&lifestyle",
+      general: "General",
+      unspecified: "General",
+    };
+    const category = categoryMap[rawCategory.toLowerCase()] || "General";
+    
     const formData = body.form_data || body.formData || {};
     const legalName = formData.legal_name || user.user_metadata?.full_name || "New Creator";
     const stageName = formData.stage_name || "TBD";

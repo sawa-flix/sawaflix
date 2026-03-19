@@ -74,18 +74,23 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
           </button>
 
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <Link href="/dashboard">
-            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SF</span>
-            </div>
+          <div className="flex items-center space-x-3 group">
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <div className="relative w-10 h-10 overflow-hidden transform group-hover:scale-110 transition-transform duration-500">
+                <Image
+                  src="/logo.png"
+                  alt="SawaFlix Logo"
+                  fill
+                  className="object-contain drop-shadow-[0_0_8px_rgba(220,38,38,0.4)]"
+                />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-xl font-black text-white tracking-widest flex items-center gap-1">
+                  SAWA<span className="text-red-600">FLIX</span>
+                </h1>
+                <span className="hidden sm:block text-[8px] text-zinc-500 font-bold uppercase tracking-[0.2em]">One Culture, One People</span>
+              </div>
             </Link>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
-                SawaFlix
-              </h1>
-              <span className="hidden sm:block text-xs text-gray-400">Dashboard</span>
-            </div>
           </div>
         </div>
 
@@ -119,12 +124,12 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
 
           {/* Notifications */}
           <Link href="/dashboard/notification">
-          <button className="relative p-2 rounded-lg cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-            <Bell size={18} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
-              3
-            </span>
-          </button>
+            <button className="relative p-2 rounded-lg cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900">
+              <Bell size={18} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
+                3
+              </span>
+            </button>
           </Link>
 
           {/* Settings */}
@@ -139,9 +144,9 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
               className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer"
               aria-label="User profile menu"
             >
-              {userProfile?.profile_image_url ? ( 
+              {userProfile?.profile_image_url ? (
                 <Image
-                  src={userProfile.profile_image_url} 
+                  src={userProfile.profile_image_url}
                   alt="User Avatar"
                   width={28}
                   height={28}
@@ -149,7 +154,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
                   unoptimized
                 />
               ) : (
-                <div className="w-7 h-7 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center">
+                <div className="w-7 h-7 bg-white/5 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                   <User size={14} className="text-white" />
                 </div>
               )}
@@ -158,7 +163,7 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
               </span>
               <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
             </button>
-            
+
             {/* Dropdown menu */}
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
@@ -166,15 +171,15 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
                   <p className="text-sm font-medium text-white">{userProfile?.username || 'Guest'}</p>
                   <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
                 </div>
-                <Link href="/updateProfile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                  Profile Settings
+                <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-zinc-300 hover:bg-gray-700 hover:text-white transition-colors">
+                  Update profile
                 </Link>
-                
+
                 <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
                   Help & Support
                 </a>
                 <hr className="my-2 border-gray-700" />
-                
+
                 {/* Sign Out Button */}
                 <form action={handleSignOut}>
                   <button
@@ -220,8 +225,8 @@ const Header = ({ sidebarOpen, toggleSidebar }: { sidebarOpen: boolean; toggleSi
 
       {/* Click outside to close dropdown */}
       {showProfileMenu && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setShowProfileMenu(false)}
         />
       )}
