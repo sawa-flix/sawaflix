@@ -123,7 +123,6 @@ export async function POST(req: Request) {
           category: category,
           form_data: formData,
           status: "pending",
-          submitted_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
         { onConflict: "creator_id" }
