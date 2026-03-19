@@ -74,37 +74,29 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
-  // Add Create link based on verification status
-  if (verificationStatus === 'pending') {
-    if (!menuItems.find(item => item.id === 'create')) {
-      menuItems.push({ 
-        name: 'Create', 
-        icon: Workflow, 
-        id: 'create', 
-        route: '/creator/pending', 
-        badge: 'Pending' 
-      });
+  // Add "Create Content" link based on verification status
+  if (!menuItems.find(item => item.id === 'create-content')) {
+    let route = '/creator/verify'; // Default apply
+    let badge: string | null = 'Apply';
+    
+    if (verificationStatus === 'pending') {
+      route = '/creator/pending';
+      badge = 'Pending';
+    } else if (verificationStatus === 'approved') {
+      route = '/creator-dashboard';
+      badge = null;
+    } else if (verificationStatus === 'rejected') {
+      route = '/creator/verify'; // Re-apply
+      badge = 'Apply';
     }
-  } else if (verificationStatus === 'approved') {
-    if (!menuItems.find(item => item.id === 'create')) {
-      menuItems.push({ 
-        name: 'Create', 
-        icon: Workflow, 
-        id: 'create', 
-        route: '/creator-dashboard', 
-        badge: null 
-      });
-    }
-  } else if (verificationStatus === 'none' || verificationStatus === 'rejected') {
-    if (!menuItems.find(item => item.id === 'create')) {
-      menuItems.push({ 
-        name: 'Become Creator', 
-        icon: Workflow, 
-        id: 'create', 
-        route: '/creator/verify', 
-        badge: 'Apply' 
-      });
-    }
+
+    menuItems.push({ 
+      name: 'Create Content', 
+      icon: Workflow, 
+      id: 'create-content', 
+      route: route, 
+      badge: badge 
+    });
   }
 
   const smart =[

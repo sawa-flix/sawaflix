@@ -156,8 +156,9 @@ const CreatorWizard = () => {
                 form_data: formData
             });
             console.log("✅ Submission success:", result);
-            // Hard redirect to pending page — guaranteed navigation
-            window.location.href = '/creator/pending';
+            // After submitting, show normal dashboard content as requested
+            alert("Application received! You can now browse the dashboard while we review it. Click 'Create Content' in the sidebar to check status.");
+            window.location.href = '/dashboard';
         } catch (error) {
             console.error("❌ Submission failed:", error);
             setIsSubmitting(false);
