@@ -151,14 +151,15 @@ const CreatorWizard = () => {
         setIsSubmitting(true);
         try {
             console.log("Submitting:", formData);
-            await submitVerification({
+            const result = await submitVerification({
                 category: formData.category,
                 form_data: formData
             });
-            // success logic: redirect to creator pending dashboard
-            router.push('/creator/pending');
+            console.log("✅ Submission success:", result);
+            // Hard redirect to pending page — guaranteed navigation
+            window.location.href = '/creator/pending';
         } catch (error) {
-            console.error("Submission failed", error);
+            console.error("❌ Submission failed:", error);
             setIsSubmitting(false);
             alert("Failed to submit verification. Please try again.");
         }
