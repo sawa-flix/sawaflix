@@ -22,11 +22,18 @@ export async function middleware(request) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // 2. Fetch profile
+    // 2. Fetch profiles
+    // We fetch from both users and creator_profiles for maximum compatibility with merged branches
     const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("id, role, verification_status")
       .eq("id", user.id)
+      .maybeSingle();
+
+    const { data: creator_profile } = await supabase
+      .from("creator_profiles")
+      .select("creator_id, status")
+      .eq("creator_id", user.id)
       .maybeSingle();
 
     if (profileError) console.error("Middleware: profile fetch error:", profileError);
@@ -41,9 +48,8 @@ export async function middleware(request) {
     if (!profile) return response;
 
     // 5. OTP Check for all users
-    // If not approved and not on the verify-otp page or public routes, force verification
+    // If not approved and not on the verify-otp page or exception pages, force verification
     if (profile.verification_status !== "approved") {
-        // Exceptions for public routes or verification pages
         if (isPublicRoute) return response;
         if (pathname.startsWith("/creator/verify")) return response;
         if (pathname.startsWith("/creator/pending")) return response;
@@ -60,12 +66,21 @@ export async function middleware(request) {
 
     // 7. Access Control for /creator/ (Verify/Pending)
     if (pathname.startsWith("/creator/")) {
-       if (pathname === "/creator/verify" && profile.verification_status === "approved") {
-          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+       // If already approved as creator, skip verification/pending
+       if (profile.verification_status === "approved" && profile.role === "creator") {
+         return NextResponse.redirect(new URL("/creator-dashboard", request.url));
        }
-       if (pathname === "/creator/pending" && profile.verification_status === "approved") {
-          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
+       
+       // Handle specific paths
+       if (pathname === "/creator/pending") {
+         // If they have no submission or unverified, go to verify
+         if (!creator_profile || creator_profile.status === "unverified") {
+            return NextResponse.redirect(new URL("/creator/verify", request.url));
+         }
+         return response;
        }
+       
+       return response;
     }
 
     return response;

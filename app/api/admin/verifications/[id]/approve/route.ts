@@ -1,6 +1,39 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-
+/**
+ * @swagger
+ * /api/admin/verifications/{id}/approve:
+ *   post:
+ *     summary: Approve creator verification
+ *     description: Approves a creator verification request and marks the creator profile as verified.
+ *     tags:
+ *       - Admin Verification
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Creator ID
+ *         schema:
+ *           type: string
+ *           example: 123e4567-e89b
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               notes:
+ *                 type: string
+ *                 example: Approved by admin after verification review
+ *     responses:
+ *       200:
+ *         description: Creator successfully approved
+ *       500:
+ *         description: Server error
+ */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
