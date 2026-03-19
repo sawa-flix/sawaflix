@@ -84,14 +84,20 @@ export async function POST(req: Request) {
       .eq("creator_id", creatorId)
       .maybeSingle();
 
-    if (existingSubmission && (existingSubmission.status === "pending" || existingSubmission.status === "approved")) {
+    if (existingSubmission?.status === "approved") {
       return NextResponse.json(
-        {
-          error: "Already submitted",
-          message: "Your verification is already pending review or approved."
-        },
+        { error: "Already approved", message: "Your verification has already been approved." },
         { status: 403 }
       );
+    }
+
+    // If already pending, just return success — data was saved on a prior attempt
+    if (existingSubmission?.status === "pending") {
+      return NextResponse.json({
+        success: true,
+        message: "Your verification is already pending review.",
+        data: existingSubmission,
+      });
     }
 
     // 4. Ensure creator_profiles row exists (PK = creator_id)
