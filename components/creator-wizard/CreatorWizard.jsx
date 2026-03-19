@@ -30,6 +30,7 @@ const CreatorWizard = () => {
     });
     const [isLoaded, setIsLoaded] = useState(false);
     const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const loadDraft = async () => {
@@ -147,6 +148,7 @@ const CreatorWizard = () => {
     const router = useRouter();
 
     const handleSubmit = async () => {
+        setIsSubmitting(true);
         try {
             console.log("Submitting:", formData);
             await submitVerification({
@@ -157,6 +159,7 @@ const CreatorWizard = () => {
             router.push('/creator/pending');
         } catch (error) {
             console.error("Submission failed", error);
+            setIsSubmitting(false);
             alert("Failed to submit verification. Please try again.");
         }
     };
@@ -226,7 +229,7 @@ const CreatorWizard = () => {
                                     <Step4Portfolio data={formData.portfolio} documents={formData.documents} updatePortfolio={(d) => updateFormData('portfolio', d)} updateDocuments={(d) => updateFormData('documents', d)} errors={errors} />
                                 )}
                                 {currentStep === 5 && (
-                                    <Step5Summary formData={formData} onSubmit={handleSubmit} />
+                                    <Step5Summary formData={formData} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
                                 )}
                             </motion.div>
                         </AnimatePresence>

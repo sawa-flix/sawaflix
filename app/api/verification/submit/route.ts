@@ -94,30 +94,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Ensure creator profile exists (PK = creator_id)
-    const { data: profile } = await supabase
+    // 4. Ensure creator_profiles row exists (PK = creator_id)
+    // RLS may prevent seeing the row, so we try upsert and ignore duplicate key errors
+    const legalName = formData?.identity?.legalName || user.user_metadata?.full_name || "Creator";
+    const stageName = formData?.identity?.creatorName || "TBD";
+    
+    const { error: profileErr } = await supabase
       .from("creator_profiles")
-      .select("creator_id")
-      .eq("creator_id", creatorId)
-      .maybeSingle();
-
-    if (!profile) {
-      const legalName = formData?.identity?.legalName || user.user_metadata?.full_name || "Creator";
-      const stageName = formData?.identity?.creatorName || "TBD";
-      
-      const { error: insertError } = await supabase
-        .from("creator_profiles")
-        .upsert({
-          creator_id: creatorId,
-          legal_name: legalName,
-          stage_name: stageName,
-          category: category,
-        }, { onConflict: "creator_id" });
-
-      if (insertError) {
-        console.error("Profile Creation Failed:", insertError.message);
-        throw insertError;
-      }
+      .upsert({
+        creator_id: creatorId,
+        legal_name: legalName,
+        stage_name: stageName,
+        category: category,
+      }, { onConflict: "creator_id", ignoreDuplicates: true });
+    
+    // Only throw if it's NOT a duplicate key error (profile already exists = fine)
+    if (profileErr && profileErr.code !== '23505') {
+      console.error("Profile Creation Failed:", profileErr.message);
+      throw profileErr;
     }
 
     // 5. Upsert verification submission with status 'pending'

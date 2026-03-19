@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Step5Summary = ({ formData, onSubmit }) => {
+const Step5Summary = ({ formData, onSubmit, isSubmitting = false }) => {
     const { category, identity, professional, portfolio, documents } = formData;
 
     const SummarySection = ({ title, children, icon }) => (
@@ -26,7 +26,36 @@ const Step5Summary = ({ formData, onSubmit }) => {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* Submitting Overlay */}
+            <AnimatePresence>
+                {isSubmitting && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950/80 backdrop-blur-md rounded-2xl"
+                    >
+                        <div className="flex flex-col items-center gap-6">
+                            <div className="relative">
+                                <div className="w-16 h-16 rounded-full border-4 border-zinc-700" />
+                                <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-red-500 animate-spin" />
+                                <div className="absolute inset-2 w-12 h-12 rounded-full border-4 border-transparent border-b-red-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <p className="text-white font-black text-sm uppercase tracking-[0.2em]">Submitting Application</p>
+                                <p className="text-zinc-400 text-xs font-medium">Please wait while we process your verification...</p>
+                            </div>
+                            <div className="flex gap-1.5">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="text-center sm:text-left space-y-2">
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Review & <span className="text-red-500">Submit</span></h2>
                 <p className="text-zinc-400 text-xs sm:text-sm font-medium">Please review all your details carefully before final submission.</p>
@@ -98,12 +127,24 @@ const Step5Summary = ({ formData, onSubmit }) => {
                 </label>
 
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                     onClick={onSubmit}
-                    className="w-full sm:w-auto min-w-[300px] py-4 px-8 bg-red-600 hover:bg-red-500 text-white font-black text-sm rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all uppercase tracking-widest"
+                    disabled={isSubmitting}
+                    className={`w-full sm:w-auto min-w-[300px] py-4 px-8 text-white font-black text-sm rounded-xl transition-all uppercase tracking-widest flex items-center justify-center gap-3 ${
+                        isSubmitting 
+                            ? 'bg-zinc-700 cursor-not-allowed opacity-70' 
+                            : 'bg-red-600 hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)]'
+                    }`}
                 >
-                    Submit Verification
+                    {isSubmitting ? (
+                        <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent animate-spin rounded-full" />
+                            Submitting...
+                        </>
+                    ) : (
+                        'Submit Verification'
+                    )}
                 </motion.button>
             </div>
         </div>
