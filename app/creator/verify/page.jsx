@@ -15,19 +15,16 @@ export default async function CreatorVerifyPage() {
         redirect("/login");
     }
 
-    // 🚫 Already a pending creator
-    if (profile.role === "creator" && profile.verificationStatus === "pending") {
+    // 🚀 Everyone is allowed to start the wizard now.
+
+    // 🚫 Already submitted
+    if (profile.verificationStatus === "pending") {
         redirect("/creator/pending");
     }
-<<<<<<< HEAD
-    if (profile.verificationStatus === "approved") {
-        redirect("/creator-dashboard");
-=======
 
     // 🚫 Already an approved creator
-    if (profile.role === "creator" && profile.verificationStatus === "approved") {
-        redirect("/Creator-dashboard");
->>>>>>> cccdeafc400138dfe75fa71febd7eb9c4decea98
+    if (profile.verificationStatus === "approved") {
+        redirect("/creator-dashboard");
     }
 
     // 🚫 Rejected creator

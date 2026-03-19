@@ -27,6 +27,8 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
 
+  const [verificationStatus, setVerificationStatus] = useState<string>('none');
+
   // Fetch user session and profile data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,6 +48,17 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         } else if (profileData) {
           setUserProfile(profileData);
         }
+
+        // Fetch verification status
+        try {
+          const res = await fetch('/api/creator/profile');
+          if (res.ok) {
+            const data = await res.json();
+            setVerificationStatus(data.verificationStatus);
+          }
+        } catch (err) {
+          console.error('Error fetching verification status:', err);
+        }
       }
     };
 
@@ -60,6 +73,20 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Blogs', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
+
+  // Add Creators Dashboard if applied
+  if (verificationStatus !== 'none') {
+    // Check if it's already there to avoid duplicates if re-rendered
+    if (!menuItems.find(item => item.id === 'creator-dashboard')) {
+      menuItems.push({ 
+        name: 'Creators Dashboard', 
+        icon: Workflow, 
+        id: 'creator-dashboard', 
+        route: '/dashboard', 
+        badge: verificationStatus === 'pending' ? 'Pending' : null 
+      });
+    }
+  }
 
   const smart =[
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawaSmart', badge: null },
