@@ -1,5 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { queueEmail } from "@/lib/emailQueue";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
 /**
  * @swagger
  * /api/admin/verifications/{id}/approve:
@@ -34,71 +37,56 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Server error
  */
+
+
+
+
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // FIX 2: Await the params
   const { id: creatorId } = await params;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Always use Service Role for Admin actions
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const notes = body.notes || "Approved by admin";
-
-    // 1. Update the Submission Status
-    const { error: subError } = await supabase
+    // 1. Fetch submission to get Stage Name and Email
+    const { data: submission, error: fetchError } = await supabase
       .from("verification_submissions")
-      .update({
-        status: "approved",
-        admin_notes: notes,
-        updated_at: new Date().toISOString() // Using updated_at for consistency
-      })
-      .eq("creator_id", creatorId);
+      .select(`category, form_data, users(email)`)
+      .eq("creator_id", creatorId)
+      .single();
 
-    if (subError) throw subError;
+    // if (fetchError || !submission) throw new Error("Submission not found");
 
-    // 2. Update Creator Profile (To show blue checkmark on profile)
-    const { error: profileError } = await supabase
-      .from("creator_profiles")
-      .update({
-        is_verified: true
-      })
-      .eq("creator_id", creatorId);
+    const stageName = submission.form_data?.identity?.creatorName || "Creator";
+    const userEmail = (submission.users as any)?.email;
 
-    if (profileError) throw profileError;
+    // 2. Atomic Updates
+    const { error: subErr } = await supabase.from("verification_submissions")
+      .update({ status: "approved" }).eq("creator_id", creatorId);
 
-    // 3. Update Global User Record (For Auth/Permissions)
-    // Note: Ensure your table is named 'users' and not 'profiles'
-    const { error: userError } = await supabase
-      .from("users") 
-      .update({
-        is_verified: true,
-        verification_status: "approved"
-      })
-      .eq("id", creatorId);
+    const { error: profErr } = await supabase.from("creator_profiles")
+      .update({ status: "approved", is_verified: true }).eq("creator_id", creatorId);
 
-    if (userError) {
-       console.warn("User table update failed, check if 'users' table exists:", userError.message);
-       // We don't necessarily want to crash the whole request if only this part fails, 
-       // but it's good to log it.
-    }
+    const { error: userErr } = await supabase.from("users")
+      .update({ role: "creator", verification_status: "approved", is_verified: true }).eq("id", creatorId);
 
-    return NextResponse.json({
-      success: true,
-      message: "Creator has been officially approved and verified",
-      status: "approved"
+    if (subErr || profErr || userErr) throw new Error("Database sync failed");
+
+    // 3. Queue Email (Matches your EmailJob type)
+    await queueEmail({
+      type: "approval",
+      email: userEmail,
+      stageName: stageName
     });
 
+    return NextResponse.json({ success: true, message: "Creator approved and promoted." });
+
   } catch (err: any) {
-    console.error("Approve Error:", err.message);
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

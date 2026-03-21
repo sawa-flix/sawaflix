@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { queueEmail } from "@/lib/emailQueue";
 /**
  * @swagger
  * /api/admin/verifications/{id}/reject:
@@ -40,10 +41,12 @@ import { NextResponse } from "next/server";
  */
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // FIX 2: Await the params
   const { id: creatorId } = await params;
+  const { reason } = await req.json();
+
+  if (!reason) return NextResponse.json({ error: "Reason is required" }, { status: 400 });
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,59 +54,32 @@ export async function POST(
   );
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const notes = body.notes || body.reason; // Supports both 'notes' or 'reason' keys
-
-    // Validation: Admin MUST provide a reason for rejection
-    if (!notes || notes.length < 5) {
-      return NextResponse.json(
-        { error: "A valid rejection reason (minimum 5 characters) is required." },
-        { status: 400 }
-      );
-    }
-
-    // 1. Update the Submission Status to 'rejected'
-    const { error: subError } = await supabase
+    const { data: submission } = await supabase
       .from("verification_submissions")
-      .update({
-        status: "rejected",
-        admin_notes: notes,
-        updated_at: new Date().toISOString()
-      })
+      .select(`users(email)`)
+      .eq("creator_id", creatorId)
+      .single();
+
+    // 1. Update Status & Notes
+    await supabase.from("verification_submissions")
+      .update({ status: "rejected", admin_notes: reason })
       .eq("creator_id", creatorId);
 
-    if (subError) throw subError;
-
-    // 2. Ensure Creator Profile is NOT verified
-    const { error: profileError } = await supabase
-      .from("creator_profiles")
-      .update({
-        is_verified: false
-      })
+    // 2. Set profile back to unverified
+    await supabase.from("creator_profiles")
+      .update({ status: "unverified" })
       .eq("creator_id", creatorId);
 
-    if (profileError) throw profileError;
-
-    // 3. Update Global User Record (Security measure)
-    await supabase
-      .from("users") 
-      .update({
-        is_verified: false,
-        verification_status: "rejected"
-      })
-      .eq("id", creatorId);
-
-    return NextResponse.json({
-      success: true,
-      message: "Creator application rejected successfully.",
-      status: "rejected"
+    // 3. Queue Email (Matches your EmailJob type)
+    await queueEmail({
+      type: "rejection",
+      email: (submission?.users as any)?.email,
+      reason: reason
     });
 
+    return NextResponse.json({ success: true, message: "Rejection feedback sent." });
+
   } catch (err: any) {
-    console.error("Rejection Error:", err.message);
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

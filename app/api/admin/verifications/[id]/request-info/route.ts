@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { queueEmail } from "@/lib/emailQueue";
 /**
  * @swagger
  * /api/admin/verifications/{id}/request-info:
@@ -38,12 +39,14 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Server error
  */
+
+
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // FIX: Params is a Promise
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // FIX: Await the params
   const { id: creatorId } = await params;
+  const { message } = await req.json();
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,46 +54,27 @@ export async function POST(
   );
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const notes = body.notes || body.message;
-
-    // Validation: Admin must tell the creator what to fix
-    if (!notes || notes.length < 5) {
-      return NextResponse.json(
-        { error: "A clear explanation (minimum 5 characters) is required so the creator knows what to fix." },
-        { status: 400 }
-      );
-    }
-
-    // Update the Submission Status
-    const { error: subError } = await supabase
+    const { data: submission } = await supabase
       .from("verification_submissions")
-      .update({
-        status: "info_requested",
-        admin_notes: notes,
-        updated_at: new Date().toISOString()
-      })
+      .select(`users(email)`)
+      .eq("creator_id", creatorId)
+      .single();
+
+    // Update notes but leave status as 'pending'
+    await supabase.from("verification_submissions")
+      .update({ admin_notes: `ACTION REQUIRED: ${message}` })
       .eq("creator_id", creatorId);
 
-    if (subError) throw subError;
-
-    // Optional: Update global user status if you are tracking it there
-    await supabase
-      .from("users")
-      .update({ verification_status: "info_requested" })
-      .eq("id", creatorId);
-
-    return NextResponse.json({
-      success: true,
-      message: "Status updated to 'Info Requested'. The creator can now edit their submission.",
-      status: "info_requested"
+    // Use the rejection logic to send the message
+    await queueEmail({
+      type: "rejection", // Re-using rejection template for simplicity
+      email: (submission?.users as any)?.email,
+      reason: `Additional information required: ${message}`
     });
 
+    return NextResponse.json({ success: true, message: "Information request sent." });
+
   } catch (err: any) {
-    console.error("Request Info Error:", err.message);
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
