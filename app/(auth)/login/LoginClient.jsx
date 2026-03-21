@@ -44,8 +44,9 @@ export default function LoginPage() {
       try {
         const result = await checkAuth();
         if (result.authenticated) {
-          console.log('🟢 User already logged in, redirecting to dashboard');
-          router.push('/dashboard');
+          console.log('🟢 User already logged in, role:', result.role);
+          const targetPath = result.role === 'admin' ? '/admin' : '/dashboard';
+          router.push(targetPath);
         }
       } catch (err) {
         console.log('Not logged in');
@@ -98,14 +99,15 @@ export default function LoginPage() {
         // Show the error message
         setError(result.error);
       } else if (result?.success) {
-        // Login successful - redirect to dashboard
-        console.log('🟢 Login successful, redirecting to dashboard');
+        // Login successful - redirect based on role
+        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
+        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
         setIsRedirecting(true);
         hasRedirected.current = true;
         
         // Short delay to show loading state
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push(targetPath);
         }, 100);
         
       } else {

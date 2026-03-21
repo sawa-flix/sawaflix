@@ -42,17 +42,27 @@ export async function signInWithPassword(formData) {
       return { error: 'Authentication failed. Please try again.' };
     }
 
-    console.log('🟢 Login successful for user:', data.user.email);
+    // Fetch user role from public.users table
+    const { data: userData, error: roleError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    const role = userData?.role || 'client';
+    console.log('🟢 Login successful, role:', role);
     
-    // Revalidate the dashboard path
+    // Revalidate relevant paths
     revalidatePath('/dashboard');
+    if (role === 'admin') revalidatePath('/admin');
     
     // Return success - let the client handle the redirect
     return { 
       success: true, 
       message: 'Login successful',
       user: data.user,
-      redirectTo: '/dashboard'
+      role: role,
+      redirectTo: role === 'admin' ? '/admin' : '/dashboard'
     };
     
   } catch (error) {
@@ -446,10 +456,21 @@ export async function checkAuth() {
       return { authenticated: false, error: error.message };
     }
     
+    let role = 'client';
+    if (session?.user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      role = userData?.role || 'client';
+    }
+    
     return { 
       authenticated: !!session, 
       session,
-      user: session?.user 
+      user: session?.user,
+      role: role
     };
     
   } catch (error) {

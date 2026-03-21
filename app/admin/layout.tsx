@@ -6,7 +6,16 @@ export const metadata = {
     description: 'SawaFlix Administration and Verification Portal',
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+import { redirect } from 'next/navigation';
+import { checkAuth } from '../(auth)/actions';
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { authenticated, role } = await checkAuth();
+
+    if (!authenticated || role !== 'admin') {
+        redirect('/login?error=Unauthorized+access');
+    }
+
     return (
         <AdminLayoutWrapper>
             {children}
