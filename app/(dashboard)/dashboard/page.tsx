@@ -6,7 +6,7 @@ import { User as SupabseUser } from '@supabase/supabase-js'
 import { useRouter } from "next/navigation";
 
 type UserData = {
-  full_name:string | null;
+  username:string | null;
   role: string | null;
 }
 
@@ -25,7 +25,7 @@ export default function DashboardPage() {
       if (user) {
         const { data: profileData, error } = await supabase
         .from('users')
-        .select('full_name, role')
+        .select('username, role')
         .eq('id', user.id)
         .single<UserData>();
 
