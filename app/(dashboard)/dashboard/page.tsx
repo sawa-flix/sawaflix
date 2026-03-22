@@ -59,7 +59,7 @@ export default function DashboardPage() {
       {showHeader && (
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-2">
-            Welcome back, {userProfile?.full_name}!
+            Welcome back, {userProfile?.username}!
           </h1>
           <p className="text-gray-400">
             Here&apos;s what&apos;s trending in your entertainment world.

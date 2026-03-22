@@ -60,7 +60,7 @@ export async function GET(req: Request) {
       submitted_at: v.created_at,
       avatar_url: v.form_data?.identity?.avatarUrl || null,
     })) || [];
-    console.log(verifications.map(v => console.log(v)))
+    console.log("Verifications fetched:", verifications?.length);
 
     return NextResponse.json({
       success: true,
