@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import { createClient } from "./utils/supabase/middleware";
+import { NextResponse } from 'next/server'
+import { createClient } from './utils/supabase/middleware'
+import { type NextRequest } from 'next/server'
 
-export async function middleware(request) {
-  const { supabase, response } = createClient(request);
-
+export async function proxy(request: NextRequest) {
+  const { supabase, response } = createClient(request)
+  
   try {
-    await supabase.auth.getSession();
     const { data: { user } } = await supabase.auth.getUser();
     const { pathname } = request.nextUrl;
 
@@ -16,14 +16,13 @@ export async function middleware(request) {
 
     // 1. Not logged in
     if (!user) {
-      if (isPublicRoute || pathname === '/') return response;
+      if (isPublicRoute || pathname === '/' || pathname === '/favicon.ico') return response;
       const redirectUrl = new URL("/login", request.url);
       redirectUrl.searchParams.set("redirectedFrom", pathname);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // 2. Fetch profiles
-    // We fetch from both users and verification_submissions since they define the creator status
+    // 2. Fetch profile and submission data
     const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("id, role, verification_status")
@@ -36,21 +35,25 @@ export async function middleware(request) {
       .eq("creator_id", user.id)
       .maybeSingle();
 
-    if (profileError) console.error("Middleware: profile fetch error:", profileError);
+    if (profileError) console.error("Proxy: profile fetch error:", profileError);
 
     // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
     if (isAuthRoute || pathname === '/') {
-      const isApprovedCreator = profile?.role === 'creator' || submission?.status === 'approved';
-      const target = isApprovedCreator ? "/creator-dashboard" : "/dashboard";
+      const role = profile?.role || 'client';
+      const isApprovedCreator = role === 'creator' || submission?.status === 'approved';
+      
+      let target = "/dashboard";
+      if (role === 'admin') target = "/admin";
+      else if (isApprovedCreator) target = "/creator-dashboard";
+      
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // 4. Missing profile safety
+    // 4. Reset/Missing profile safety
     if (!profile) return response;
 
-    // 5. OTP Check for all users
-    // If not approved and not on the verify-otp page or exception pages, force verification
-    if (profile.verification_status !== "approved") {
+    // 5. OTP Check for all users except admins
+    if (profile.role !== 'admin' && profile.verification_status !== "approved") {
         if (isPublicRoute) return response;
         if (pathname.startsWith("/creator/verify")) return response;
         if (pathname.startsWith("/creator/pending")) return response;
@@ -60,8 +63,7 @@ export async function middleware(request) {
 
     // 6. Access Control for /creator-dashboard
     if (pathname.startsWith("/creator-dashboard")) {
-       // Allow access if they have the 'creator' role OR their creator application is approved
-       const isApprovedCreator = profile.role === "creator" || submission?.status === "approved";
+       const isApprovedCreator = profile.role === "creator" || submission?.status === "approved" || profile.role === 'admin';
        
        if (!isApprovedCreator) {
           return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -72,30 +74,26 @@ export async function middleware(request) {
     if (pathname.startsWith("/creator/")) {
        const isApprovedCreator = profile.role === "creator" || submission?.status === "approved";
        
-       // If already approved as creator, skip verification/pending and go to creator dashboard
        if (isApprovedCreator) {
          return NextResponse.redirect(new URL("/creator-dashboard", request.url));
        }
        
-       // Handle specific paths
        if (pathname === "/creator/pending") {
-         // If they have no submission or their submission is not pending/approved, back to verify
          if (!submission || (submission.status !== "pending" && submission.status !== "approved")) {
             return NextResponse.redirect(new URL("/creator/verify", request.url));
          }
-         return response;
        }
-       
-       return response;
     }
 
     return response;
   } catch (error) {
-    console.error("Middleware error:", error);
+    console.error('Proxy auth error:', error);
     return response;
   }
 }
 
 export const config = {
-  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
-};
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

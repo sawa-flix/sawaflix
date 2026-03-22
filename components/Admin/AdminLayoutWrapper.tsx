@@ -2,6 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import Header from '../Dashboard/Header'; // Reusing standard header for now
 import AdminSidebar from './AdminSidebar';
+import AdminToast from './AdminToast';
 
 const AdminLayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,7 +18,7 @@ const AdminLayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="min-h-screen bg-gray-900">
             {/* Header */}
-            <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+            <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} hideSearch={true} />
 
             <div className="flex pt-16">
                 {/* Mobile sidebar overlay */}
@@ -37,14 +38,14 @@ const AdminLayoutWrapper = ({ children }: { children: React.ReactNode }) => {
                 {/* Left Sidebar (Admin) */}
                 <aside
                     className={`
-            fixed lg:sticky top-16 left-0 z-50 lg:z-auto
-            w-64 h-[calc(100vh-4rem)] bg-gray-900
-            transform transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            lg:translate-x-0 lg:block
-            overflow-y-auto scrollbar-none
-            border-r border-gray-800
-          `}
+                fixed lg:sticky top-16 left-0 z-50 lg:z-auto
+                w-64 h-[calc(100vh-4rem)] bg-gray-900
+                transform transition-transform duration-300 ease-in-out
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                lg:translate-x-0 lg:block
+                overflow-y-auto scrollbar-none
+                border-r border-gray-800
+              `}
                 >
                     <AdminSidebar onNavigate={closeSidebar} />
                 </aside>
@@ -57,15 +58,18 @@ const AdminLayoutWrapper = ({ children }: { children: React.ReactNode }) => {
                 </main>
             </div>
 
+            {/* Global Admin Toasts */}
+            <AdminToast />
+
             <style jsx global>{`
-        .scrollbar-none::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-none {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+            .scrollbar-none::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-none {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}</style>
         </div>
     );
 };

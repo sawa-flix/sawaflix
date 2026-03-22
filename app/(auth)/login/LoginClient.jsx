@@ -55,7 +55,13 @@ function LoginContent() {
       try {
         const result = await checkAuth();
         if (result.authenticated) {
+<<<<<<< HEAD
           console.log('User is already logged in');
+=======
+          console.log('🟢 User already logged in, role:', result.role);
+          const targetPath = result.role === 'admin' ? '/admin' : '/dashboard';
+          router.push(targetPath);
+>>>>>>> AdminVerification
         }
       } catch (err) {
         console.log('Not logged in');
@@ -109,6 +115,7 @@ function LoginContent() {
         setError(result.error);
         setIsLoading(false);
       } else if (result?.success) {
+<<<<<<< HEAD
         setIsRedirecting(true);
 
         // Use user metadata for intelligent redirection
@@ -133,6 +140,22 @@ function LoginContent() {
         }
 
         router.push(destination);
+=======
+        // Login successful - redirect based on role
+        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
+        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
+        setIsRedirecting(true);
+        hasRedirected.current = true;
+        
+        // Short delay to show loading state
+        setTimeout(() => {
+          router.push(targetPath);
+        }, 100);
+        
+      } else {
+        // Unexpected response
+        setError("Login failed. Please try again.");
+>>>>>>> AdminVerification
       }
     } catch (err) {
       // Handle Next.js redirect errors correctly

@@ -17,12 +17,13 @@ import {
     Loader2,
     AlertCircle,
 } from 'lucide-react';
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
 interface VerificationData {
     id: string;
     status: 'pending' | 'approved' | 'rejected' | 'info_requested';
     identity: {
-        fullName: string;
+        legalName: string;
         stageName?: string;
         email: string;
         phone: string;
@@ -58,7 +59,7 @@ interface VerificationData {
     };
 }
 
-// Simple Toast notification
+// Simple Toast notification for immediate UI feedback
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
     useEffect(() => {
         const t = setTimeout(onClose, 4000);
@@ -81,8 +82,13 @@ export default function VerificationDetails({ id }: { id: string }) {
     const [actionModal, setActionModal] = useState<'approve' | 'reject' | 'info' | null>(null);
     const [feedback, setFeedback] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Feature: Media Viewer & Toast (HEAD)
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'other' } | null>(null);
+
+    // Feature: Admin Notifications (AdminVerification)
+    const { addNotification } = useAdminNotifications();
 
     const getYouTubeEmbedUrl = (url: string) => {
         try {
@@ -119,55 +125,69 @@ export default function VerificationDetails({ id }: { id: string }) {
     }, [id]);
 
     const handleAction = async (type: 'approve' | 'reject' | 'info') => {
-        // Validate that feedback is provided for reject and info actions
         if ((type === 'reject' || type === 'info') && !feedback.trim()) {
             setToast({ message: 'Please enter a message before submitting.', type: 'error' });
             return;
         }
 
         setActionLoading(true);
-        try {
-            // Map internal modal type to backend status strings
-            const statusMap: Record<string, string> = {
-                approve: 'approved',
-                reject: 'rejected',
-                info: 'info_requested',
-            };
+        const statusMap: Record<string, string> = {
+            approve: 'approved',
+            reject: 'rejected',
+            info: 'info_requested'
+        };
 
+        try {
             const res = await fetch(`/api/admin/verify`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: id,
+                    userId: id, // Used in some endpoints
+                    target_creator_id: id, // Used in AdminVerification endpoint
                     status: statusMap[type],
                     feedback: feedback.trim(),
-                }),
+                    notes: feedback.trim() || `Action performed: ${type}`
+                })
             });
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || `Failed to perform action: ${type}`);
+                throw new Error(errData.message || `Failed to ${type} verification`);
+            }
+
+            // Sync with Global Admin Notifications
+            const creatorName = data?.identity.legalName || 'Creator';
+            addNotification({
+                type: type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'info',
+                title: type === 'approve' ? 'Creator Approved' : type === 'reject' ? 'Creator Rejected' : 'Info Requested',
+                message: `${creatorName} has been ${type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'sent a request for more info'}.`
+            });
+
+            // Local Toast & Optimistic UI
+            if (type === 'approve') {
+                setToast({ message: 'Creator approved successfully! Redirecting...', type: 'success' });
+                if (data) setData({ ...data, status: 'approved' });
+                setTimeout(() => router.push('/admin'), 1500);
+            } else if (type === 'reject') {
+                setToast({ message: 'Submission rejected. Redirecting...', type: 'success' });
+                if (data) setData({ ...data, status: 'rejected' });
+                setTimeout(() => router.push('/admin'), 1500);
+            } else {
+                setToast({ message: 'Message sent to creator. Submission stays in queue.', type: 'success' });
+                if (data) setData({ ...data, status: 'info_requested' });
             }
 
             setActionModal(null);
             setFeedback('');
 
-            if (type === 'approve') {
-                setToast({ message: 'Creator approved successfully! Redirecting...', type: 'success' });
-                setTimeout(() => router.push('/admin'), 1500);
-            } else if (type === 'reject') {
-                setToast({ message: 'Submission rejected. Redirecting...', type: 'success' });
-                setTimeout(() => router.push('/admin'), 1500);
-            } else {
-                // info_requested: stay on page, update status badge
-                setToast({ message: 'Message sent to creator. Submission stays in queue.', type: 'success' });
-                if (data) {
-                    setData({ ...data, status: 'info_requested' });
-                }
-            }
         } catch (err: any) {
             console.error(err);
             setToast({ message: err.message || 'Something went wrong. Please try again.', type: 'error' });
+            addNotification({
+                type: 'info',
+                title: 'Action Failed',
+                message: `Failed to ${type} ${data?.identity.legalName || 'this creator'}. Please try again.`
+            });
         } finally {
             setActionLoading(false);
         }
@@ -237,19 +257,21 @@ export default function VerificationDetails({ id }: { id: string }) {
                         </h2>
 
                         <div className="flex justify-center mb-6">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700">
-                                <img
-                                    src={data.identity.avatarUrl || `https://ui-avatars.com/api/?name=${data.identity.fullName}&background=333&color=fff`}
-                                    alt="Avatar"
-                                    className="w-full h-full object-cover"
-                                />
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700 relative bg-gray-800 flex items-center justify-center">
+                                {data.identity.avatarUrl ? (
+                                    <img src={data.identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-bold text-2xl">
+                                        {data.identity.legalName?.charAt(0)?.toUpperCase() || '?'}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs text-gray-500 block">Full Legal Name</label>
-                                <div className="text-white font-medium">{data.identity.fullName}</div>
+                                <label className="text-xs text-gray-500 block">Legal Name</label>
+                                <div className="text-white font-medium">{data.identity.legalName}</div>
                             </div>
                             {data.identity.stageName && (
                                 <div>
@@ -475,7 +497,7 @@ export default function VerificationDetails({ id }: { id: string }) {
                             </h3>
                             <p className="text-gray-400 text-sm">
                                 {actionModal === 'approve'
-                                    ? `You are about to approve "${data.identity.fullName}". They will gain verified creator access immediately.`
+                                    ? `You are about to approve "${data.identity.legalName}". They will gain verified creator access immediately.`
                                     : actionModal === 'reject'
                                         ? 'This will permanently reject the submission. Provide a clear reason to the creator.'
                                         : 'The submission will stay in the queue with an "Info Requested" label until the creator resubmits.'}
