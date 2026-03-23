@@ -71,23 +71,20 @@ const SawaFlix = () => {
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-black/40" />
       
       <div className="relative z-10 h-full flex items-center justify-center text-center px-4 sm:px-6">
-        <div className="drop-shadow-2xl w-full">
+        <div className="drop-shadow-2xl w-full max-w-2xl">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg whitespace-nowrap">
             Sawa<span className="text-red-500">Flix</span>
           </h1>
-          <p className="text-sm sm:text-lg lg:text-2xl text-gray-100 mb-6 sm:mb-8 max-w-3xl font-light drop-shadow-md px-2">
+          <p className="text-sm sm:text-lg lg:text-2xl text-gray-100 mb-6 sm:mb-8 font-light drop-shadow-md px-2">
             The Ultimate Music And Movies Experience
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
+          <div className="flex justify-center">
             <Link href="/dashboard/youtubeVids">
-              <button className="w-full sm:w-auto group/btn relative bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:shadow-red-500/50 hover:-translate-y-1 active:scale-95">
+              <button className="group/btn relative bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-8 sm:px-10 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:shadow-red-500/50 hover:-translate-y-1 active:scale-95">
                 ▶ Play Now
                 <span className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
               </button>
             </Link>
-            <button className="w-full sm:w-auto bg-white/15 backdrop-blur-md border-2 border-white/60 text-white hover:bg-white/25 hover:border-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:-translate-y-1 active:scale-95">
-              Explore Collection
-            </button>
           </div>
         </div>
       </div>
