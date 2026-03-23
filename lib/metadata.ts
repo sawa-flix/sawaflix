@@ -1,18 +1,27 @@
 import type { Metadata } from 'next';
 
 const OG_IMAGE = 'https://i.ibb.co/4HC007J/image.png';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://sawaflixplay.vercel.app';
+const SITE_URL = 'https://sawaflixplay.vercel.app';
 const SITE_NAME = 'Sawaflix';
 
 export const defaultMetadata: Metadata = {
   title: 'Sawaflix - African Music & Culture',
   description: 'Discover authentic African music, traditions, and cultural content on Sawaflix. Stream the best of African entertainment.',
-  keywords: ['African music', 'African culture', 'streaming', 'entertainment', 'traditions'],
+  keywords: [
+    'Sawaflix',
+    'African music',
+    'African culture',
+    'streaming',
+    'entertainment',
+    'traditional music',
+    'African artists',
+    'cultural content',
+  ],
   metadataBase: new URL(SITE_URL),
   openGraph: {
-    title: 'Sawaflix - African Music & Culture',
-    description: 'Discover authentic African music, traditions, and cultural content on Sawaflix.',
-    url: '/',
+    title: 'Sawaflix | Discover Authentic African Music & Culture',
+    description: 'Stream authentic African music, traditions, and cultural content from across the continent. Discover the best of African entertainment on Sawaflix.',
+    url: SITE_URL,
     siteName: SITE_NAME,
     images: [
       {
@@ -28,22 +37,28 @@ export const defaultMetadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sawaflix - African Music & Culture',
-    description: 'Discover authentic African music, traditions, and cultural content on Sawaflix.',
+    title: 'Sawaflix | Stream African Music & Culture',
+    description: 'Discover authentic African music, traditions, and cultural entertainment on Sawaflix.',
+    creator: '@sawaflix',
+    site: '@sawaflix',
     images: {
       url: OG_IMAGE,
       alt: 'Sawaflix - African Music & Culture',
     },
-    site: '@sawaflix',
-    creator: '@sawaflix',
   },
-  manifest: '/manifest.json',
-  icons: {
-    icon: '/favicon.ico',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
-// Override metadata for specific pages
 export const createPageMetadata = (
   title: string,
   description: string,
@@ -59,7 +74,7 @@ export const createPageMetadata = (
     openGraph: {
       title: `${title} | Sawaflix`,
       description,
-      url: path,
+      url: `${SITE_URL}${path}`,
       siteName: SITE_NAME,
       images: [
         {
@@ -76,12 +91,12 @@ export const createPageMetadata = (
       card: 'summary_large_image',
       title: `${title} | Sawaflix`,
       description,
+      creator: '@sawaflix',
+      site: '@sawaflix',
       images: {
         url: imageUrl,
         alt: title,
       },
-      site: '@sawaflix',
-      creator: '@sawaflix',
     },
   };
 };
