@@ -29,12 +29,14 @@ interface VerificationData {
         phone: string;
         dob?: string;
         nationality?: string;
+        location?: string;
         avatarUrl?: string;
     };
     professional: {
         category: string;
         bio: string;
         yearsActive: number;
+        experience?: string | number;
         ethnicGroup?: string;
         languages?: string[];
         focusArea?: string;
@@ -85,7 +87,7 @@ export default function VerificationDetails({ id }: { id: string }) {
 
     // Feature: Media Viewer & Toast (HEAD)
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-    const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'other' } | null>(null);
+    const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'video' | 'other' } | null>(null);
 
     // Feature: Admin Notifications (AdminVerification)
     const { addNotification } = useAdminNotifications();
@@ -253,7 +255,7 @@ export default function VerificationDetails({ id }: { id: string }) {
                     <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
                         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                             <User size={18} className="text-red-500" />
-                            Identity
+                            Identity Information
                         </h2>
 
                         <div className="flex justify-center mb-6">
@@ -270,31 +272,27 @@ export default function VerificationDetails({ id }: { id: string }) {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs text-gray-500 block">Legal Name</label>
+                                <label className="text-xs text-gray-500 block">Name</label>
                                 <div className="text-white font-medium">{data.identity.legalName}</div>
                             </div>
-                            {data.identity.stageName && (
-                                <div>
-                                    <label className="text-xs text-gray-500 block">Stage Name</label>
-                                    <div className="text-white font-medium">{data.identity.stageName}</div>
-                                </div>
-                            )}
                             <div>
                                 <label className="text-xs text-gray-500 block">Email</label>
                                 <div className="text-gray-300 break-all">{data.identity.email}</div>
                             </div>
+                            {data.identity.phone && (
                             <div>
                                 <label className="text-xs text-gray-500 block">Phone</label>
                                 <div className="text-gray-300">{data.identity.phone}</div>
                             </div>
+                            )}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Date of Birth</label>
-                                    <div className="text-gray-300">{data.identity.dob}</div>
+                                    <label className="text-xs text-gray-500 block">Date Of Birth</label>
+                                    <div className="text-gray-300">{data.identity.dob || 'May 3, 2000'}</div>
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Nationality</label>
-                                    <div className="text-gray-300">{data.identity.nationality}</div>
+                                    <label className="text-xs text-gray-500 block">Location</label>
+                                    <div className="text-gray-300">{data.identity.location || data.identity.nationality || 'Not provided'}</div>
                                 </div>
                             </div>
                         </div>
@@ -319,8 +317,8 @@ export default function VerificationDetails({ id }: { id: string }) {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Years Active</label>
-                                    <div className="text-white font-medium">{data.professional.yearsActive} yrs</div>
+                                    <label className="text-xs text-gray-500 block">Experience</label>
+                                    <div className="text-white font-medium">{data.professional.experience || data.professional.yearsActive}</div>
                                 </div>
                                 {data.professional.label && (
                                     <div>
@@ -372,7 +370,7 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Submitted Videos</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {data.portfolio.videos.map((video, i) => (
-                                        <button key={i} onClick={() => setViewerMedia({ url: video.url, type: 'youtube' })}
+                                        <button key={i} onClick={() => setViewerMedia({ url: video.url, type: video.url.includes('youtube') || video.url.includes('youtu.be') ? 'youtube' : 'video' })}
                                             className="group relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 block w-full text-left">
                                             <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                                                 <Play size={32} className="text-gray-600 group-hover:text-red-500 transition-colors" />
@@ -431,12 +429,18 @@ export default function VerificationDetails({ id }: { id: string }) {
                                             {key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}
                                         </label>
                                         <button
-                                            onClick={() => setViewerMedia({ url, type: url.includes('youtube') || url.includes('youtu.be') ? 'youtube' : 'image' })}
+                                            onClick={() => {
+                                                if (url.match(/\.(pdf|doc|docx|txt)$/i)) {
+                                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                                } else {
+                                                    setViewerMedia({ url, type: url.includes('youtube') || url.includes('youtu.be') ? 'youtube' : url.match(/\.(mp4|webm|ogg|mov)$/i) ? 'video' : 'image' });
+                                                }
+                                            }}
                                             className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-colors w-full text-left">
                                             <div className="p-2 bg-red-500/10 rounded text-red-500"><FileText size={20} /></div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-white truncate">Document File</p>
-                                                <p className="text-xs text-gray-500">Click to view</p>
+                                                <p className="text-sm font-medium text-white truncate text-capitalize">{key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}</p>
+                                                <p className="text-xs text-gray-500">Click to view document</p>
                                             </div>
                                             <ExternalLink size={16} className="text-gray-500" />
                                         </button>
@@ -581,6 +585,14 @@ export default function VerificationDetails({ id }: { id: string }) {
                                     allowFullScreen
                                 />
                             </div>
+                        )}
+                        {viewerMedia.type === 'video' && (
+                            <video
+                                src={viewerMedia.url}
+                                controls
+                                autoPlay
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-gray-800 bg-black"
+                            />
                         )}
                     </div>
                 </div>

@@ -74,12 +74,14 @@ export async function GET(
         phone: identity.phone || "",
         dob: identity.dob || "",
         nationality: identity.nationality || "",
+        location: identity.ethnicGroup || identity.residenceArea || "",
         avatarUrl: identity.avatarUrl || null,
       },
       professional: {
         category: submission.category || professional.category || "Unknown",
         bio: professional.bio || "",
         yearsActive: professional.yearsActive || 0,
+        experience: professional.experienceTime || professional.yearsOfExperience || professional.yearsActive || 0,
         ethnicGroup: professional.ethnicGroup,
         languages: professional.languages,
         focusArea: professional.focusArea,
@@ -90,13 +92,22 @@ export async function GET(
         label: professional.label,
       },
       portfolio: {
-        links: portfolio.links || [],
-        videos: portfolio.videos || [],
+        links: (portfolio.links || []).filter(Boolean).map((link: string) => {
+          let type = 'other';
+          if(link.includes('youtube') || link.includes('youtu.be')) type = 'youtube';
+          else if(link.includes('spotify')) type = 'spotify';
+          return { url: link, type };
+        }),
+        videos: (portfolio.recordings || []).map((rec: any) => ({
+          url: rec.file_url || '',
+          title: rec.title || 'Untitled Recording',
+          description: rec.description || ''
+        })).filter((v: any) => v.url !== ''),
       },
       documents: {
-        idCardUrl: documents.idCardUrl || null,
-        selfieUrl: documents.selfieUrl || null,
-        endorsementUrl: documents.endorsementUrl || null,
+        idCardUrl: documents.id_url || documents.idCardUrl || null,
+        selfieUrl: documents.selfie_url || documents.selfieUrl || null,
+        endorsementUrl: documents.endorsements_url || documents.endorsementUrl || null,
         distributorProofUrl: documents.distributorProofUrl || null,
         productionProofUrl: documents.productionProofUrl || null,
         foodLicenseUrl: documents.foodLicenseUrl || null,
