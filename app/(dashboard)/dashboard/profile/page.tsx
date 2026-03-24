@@ -10,7 +10,7 @@ import { MusicFeatures } from '../../../../components/MusicFeatures';
 
 // Define a type for the user profile data
 type UserProfileData = {
-  full_name: string | null;
+  username: string | null;
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
@@ -34,7 +34,7 @@ const MusicProfilePage = async () => {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('full_name, profile_image_url, cover_image_url, bio')
+    .select('username, profile_image_url, cover_image_url, bio')
     .eq('id', user.id)
     .single<UserProfileData>();
 
@@ -59,32 +59,43 @@ const MusicProfilePage = async () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-transparent font-sans selection:bg-red-500/30">
+      <div className="max-w-7xl mx-auto py-8">
         
-        {/* Profile Section with Background */}
-        <div className="relative mb-20">
+        {/* Profile Section with Background - Modern Industrial View */}
+        <div className="relative mb-24 group">
           <div
-            className="relative rounded-lg shadow-lg overflow-hidden bg-cover bg-center"
-            style={{ backgroundImage: `url('${profile?.cover_image_url || DEFAULT_COVER_IMAGE}')` }}
+            className="relative h-64 md:h-96 rounded-[3rem] shadow-3xl overflow-hidden bg-[#0B0E14] border border-gray-800/50"
           >
-            <div className="absolute inset-0 bg-opacity-40"></div>
-            <div className="relative z-10 p-6 md:p-8 pb-16 md:pb-20 text-white flex justify-end items-end">
-              <Link href="/updateProfile">
-                <button className="bg-red-500 px-3 py-1 rounded-full text-xs cursor-pointer">
-                  Edit Profile
+            {profile?.cover_image_url ? (
+              <Image 
+                src={profile.cover_image_url} 
+                alt="Profile Cover" 
+                fill
+                className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                unoptimized
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[radial-gradient(#1a1f29_1px,transparent_1px)] bg-size-[20px_20px] opacity-20" />
+            )}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+            <div className="absolute inset-0 p-8 flex justify-end items-start">
+              <Link href="/dashboard/edit-profile">
+                <button className="bg-red-600 text-white px-8 py-4 rounded-3xl font-black text-[10px] uppercase tracking-[0.3em] cursor-pointer hover:bg-red-700 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-red-600/20 border-b-4 border-red-800">
+                  Modify Identity
                 </button>
               </Link>
             </div>
           </div>
-          {/* Profile Image */}
-          <div className="absolute bottom-0 left-6 md:left-8 transform translate-y-1/2">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
+          
+          {/* Profile Image - High Contrast Border */}
+          <div className="absolute -bottom-16 left-12 md:left-20">
+            <div className="w-40 h-40 md:w-52 md:h-52 rounded-full overflow-hidden border-10 border-[#0f1729] bg-[#1a1f29] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)]">
               <Image 
                 src={profile?.profile_image_url || DEFAULT_PROFILE_IMAGE} 
                 alt="Profile" 
-                width={160} 
-                height={160} 
+                width={208} 
+                height={208} 
                 className="object-cover w-full h-full"
                 unoptimized
               />
@@ -92,22 +103,29 @@ const MusicProfilePage = async () => {
           </div>
         </div>
         
-        {/* User Info Section */}
-        <div className="pl-6 md:pl-8 mt-20">
-          <h2 className="text-3xl md:text-xl font-bold mb-2 text-white">
-            {profile?.full_name || 'Anonymous User'}
-          </h2>
-          <p className="text-purple-50 max-w-2xl">
-            {profile?.bio || DEFAULT_BIO}
-          </p>
+        {/* User Info Section - Industrial Typography */}
+        <div className="pl-12 md:pl-20 mt-20 space-y-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
+              {profile?.username || 'Anonymous <span className="text-red-600">User</span>'}
+            </h2>
+            {profile?.username && <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.5)]" />}
+          </div>
+          <div className="max-w-3xl">
+            <p className="text-gray-400 font-medium text-lg leading-relaxed border-l-4 border-red-600/30 pl-6 py-2 italic bg-red-600/5 rounded-r-2xl">
+              {profile?.bio || DEFAULT_BIO}
+            </p>
+          </div>
         </div>
 
-        {/* The interactive sections are now a separate component */}
-        <MusicFeatures 
-          playlists={playlists} 
-          recommendedSongs={recommendedSongs} 
-          favoriteSongs={favoriteSongs} 
-        />
+        {/* Music Ecosystem Sections */}
+        <div className="mt-16 bg-[#1a1f29]/30 rounded-[3rem] p-10 border border-gray-800/30">
+          <MusicFeatures 
+            playlists={playlists} 
+            recommendedSongs={recommendedSongs} 
+            favoriteSongs={favoriteSongs} 
+          />
+        </div>
         
       </div>
     </div>

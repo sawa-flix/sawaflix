@@ -3,15 +3,18 @@ import { useEffect, useState } from "react";
 import SawaFlix from "../../../components/Dashboard/SawaFlix";
 import { createClient } from '../../../utils/supabase/client'
 import { User as SupabseUser } from '@supabase/supabase-js'
+import { useRouter } from "next/navigation";
 
 type UserData = {
-  full_name:string | null;
+  username:string | null;
+  role: string | null;
 }
 
 export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState<UserData | null>(null);
   const [currentUser, setCurrentUser] = useState<SupabseUser | null>(null);
   const [showHeader, setShowHeader] = useState(true); // New state to control header visibility
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -22,7 +25,7 @@ export default function DashboardPage() {
       if (user) {
         const { data: profileData, error } = await supabase
         .from('users')
-        .select('full_name')
+        .select('username, role')
         .eq('id', user.id)
         .single<UserData>();
 
@@ -30,6 +33,13 @@ export default function DashboardPage() {
           console.error('error fetching user:', error.message);
         } else if (profileData) {
           setUserProfile(profileData);
+          
+          // If admin, redirect to admin portal
+          /*
+          if (profileData.role === 'admin') {
+            router.push('/admin');
+          }
+          */
         }
       }
     };
@@ -49,7 +59,7 @@ export default function DashboardPage() {
       {showHeader && (
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-2">
-            Welcome back, {userProfile?.full_name}!
+            Welcome back, {userProfile?.username}!
           </h1>
           <p className="text-gray-400">
             Here&apos;s what&apos;s trending in your entertainment world.

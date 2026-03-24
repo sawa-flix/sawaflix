@@ -9,22 +9,27 @@ import {
   FileText,
   Workflow,
   Wallet,
+  Home,
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { usePathname } from 'next/navigation';
+import SawaflixLogo from '../SawaflixLogo';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
-  full_name: string | null;
+  username: string | null;
   email: string | null;
   profile_image_url: string | null;
 };
 
 export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const [active, setActive] = useState('');
+  const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+
+  const [verificationStatus, setVerificationStatus] = useState<string>('none');
 
   // Fetch user session and profile data on component mount
   useEffect(() => {
@@ -34,24 +39,44 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       setCurrentUser(user);
 
       if (user) {
-        const { data: profileData, error } = await supabase
+        // Fetch user profile
+        const { data: profileData } = await supabase
           .from('users')
-          .select('full_name, email, profile_image_url')
+          .select('username, email, profile_image_url')
           .eq('id', user.id)
           .single<UserProfileData>();
 
-        if (error) {
-          console.error('Error fetching user profile:', error.message);
-        } else if (profileData) {
+        if (profileData) {
           setUserProfile(profileData);
+        }
+
+        // Fetch verification status
+        try {
+          const res = await fetch('/api/creator/profile');
+          if (res.ok) {
+            const data = await res.json();
+            setVerificationStatus(data.verificationStatus);
+          }
+        } catch (err) {
+          console.error('Error fetching verification status:', err);
         }
       }
     };
 
     fetchUserData();
-  }, []);
+
+    // Poll for status every 5 seconds if none to ensure instant update after submission
+    const interval = setInterval(() => {
+        if (verificationStatus === 'none') {
+            fetchUserData();
+        }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [verificationStatus]);
 
   const menuItems = [
+    { name: 'Feed', icon: Home, id: 'feed', route: '/dashboard', badge: null },
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicPage', badge: 'New' },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
@@ -59,48 +84,75 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
-  const smart =[
+  // Add "Create Content" link based on verification status
+  if (!menuItems.find(item => item.id === 'create-content')) {
+    let route = '/creator/verify'; // Default apply
+    let badge: string | null = 'Apply';
+
+    if (verificationStatus === 'pending') {
+      route = '/creator/pending';
+      badge = 'Pending';
+    } else if (verificationStatus === 'approved') {
+      route = '/creator-dashboard';
+      badge = null;
+    } else if (verificationStatus === 'rejected') {
+      route = '/creator/verify'; // Re-apply
+      badge = 'Apply';
+    }
+
+    menuItems.push({
+      name: 'Create Content',
+      icon: Workflow,
+      id: 'create-content',
+      route: route,
+      badge: badge
+    });
+  }
+
+  const smart = [
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawaSmart', badge: null },
   ]
 
-  const handleItemClick = (itemId: string) => {
-    setActive(itemId);
+  const handleItemClick = () => {
     // Close sidebar on mobile when navigating
     onNavigate?.();
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-900">
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+    <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5">
+      {/* Logo Section */}
+      {/* <div className="p-6 pb-2">
+        <SawaflixLogo />
+      </div> */}
+
+      <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
-          
+          const isActive = pathname === item.route;
+
           return (
             <Link
               key={item.id}
               href={item.route}
-              onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20'
-                  : 'hover:bg-gray-800 text-gray-300 hover:text-white'
-              }`}
+              onClick={handleItemClick}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
+                  ? 'bg-red-600/10 text-red-500'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className="font-medium">{item.name}</span>
+                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  isActive 
-                    ? 'bg-white/20 text-white' 
-                    : 'bg-red-500/20 text-red-400'
-                }`}>
+                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                    : 'bg-white/10 text-gray-400'
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -109,36 +161,34 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-800">
-      {smart.map((item) => {
+      <div className="p-3 border-t border-white/5">
+        {smart.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
-          
+          const isActive = pathname === item.route;
+
           return (
             <Link
               key={item.id}
               href={item.route}
-              onClick={() => handleItemClick(item.id)}
-              className={`flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20'
-                  : 'hover:bg-gray-800 text-gray-300 hover:text-white'
-              }`}
+              onClick={handleItemClick}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
+                  ? 'bg-red-600/10 text-red-500'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon 
-                  size={20} 
-                  className={`transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} 
+                <Icon
+                  size={20}
+                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className="font-medium">{item.name}</span>
+                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
               </div>
-              
+
               {item.badge && (
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                  isActive 
-                    ? 'bg-white/20 text-white' 
-                    : 'bg-red-500/20 text-red-400'
-                }`}>
+                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                    : 'bg-white/10 text-gray-400'
+                  }`}>
                   {item.badge}
                 </span>
               )}
@@ -146,9 +196,9 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
           );
         })}
         <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
-          <div className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-gray-800 mt-5 to-gray-750 hover:from-gray-750 hover:to-gray-700 transition-all cursor-pointer">
+          <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 mt-4 transition-all cursor-pointer border border-white/10">
             {userProfile?.profile_image_url ? (
-              <div className="w-10 h-10 rounded-full flex-shrink-0 relative overflow-hidden">
+              <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden aspect-square border-2 border-white/5">
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
@@ -159,13 +209,13 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shrink-0">
                 <User size={16} className="text-white" />
               </div>
             )}
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm text-white truncate">
-                {userProfile?.full_name || 'Guest'}
+                {userProfile?.username || 'Guest'}
               </p>
               <p className="text-xs text-gray-400 truncate">
                 {userProfile?.email || 'N/A'}
@@ -173,7 +223,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
             </div>
           </div>
         </Link>
-        
+
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
           <div className="bg-gray-800/50 rounded-lg p-2 text-center">
             <div className="text-red-400 font-bold">128</div>

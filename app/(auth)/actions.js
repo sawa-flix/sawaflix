@@ -8,7 +8,7 @@ export async function signInWithPassword(formData) {
   try {
     const email = formData.get('email');
     const password = formData.get('password');
-    
+
     if (!email || !password) {
       return { error: 'Email and password are required' };
     }
@@ -22,7 +22,7 @@ export async function signInWithPassword(formData) {
 
     if (error) {
       console.error('🔴 Sign in error:', error.message);
-      
+
       // User-friendly error messages
       let userMessage = error.message;
       if (error.message.includes('Invalid login credentials')) {
@@ -34,7 +34,7 @@ export async function signInWithPassword(formData) {
       } else if (error.message.includes('User not found')) {
         userMessage = 'No account found with this email address.';
       }
-      
+
       return { error: userMessage };
     }
 
@@ -42,58 +42,71 @@ export async function signInWithPassword(formData) {
       return { error: 'Authentication failed. Please try again.' };
     }
 
-    console.log('🟢 Login successful for user:', data.user.email);
+    // Fetch user role from public.users table
+    const { data: userData, error: roleError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    const role = userData?.role || 'client';
+    console.log('🟢 Login successful, role:', role);
     
-    // Revalidate the dashboard path
+    // Revalidate relevant paths
     revalidatePath('/dashboard');
-    
+    if (role === 'admin') revalidatePath('/admin');
     // Return success - let the client handle the redirect
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'Login successful',
       user: data.user,
-      redirectTo: '/dashboard'
+      user: data.user,
+      role: role,
+      access_token: data.session?.access_token,
+      refresh_token: data.session?.refresh_token,
+      redirectTo: role === 'admin' ? '/admin' : '/dashboard'
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected sign in error:', error);
-    
+
     // Handle NEXT_REDIRECT errors gracefully
     if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: 'Login successful (redirecting)',
         redirectTo: '/dashboard'
       };
     }
-    
+
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 }
 
 export async function signUpWithPassword(formData) {
+  const email = formData.get('email');
+  const password = formData.get('password');
+  const username = formData.get('username');
+  const category = formData.get('category');
+  const phone = formData.get('phone');
+
+  // 1. Basic Validation
+  if (!email || !password) {
+    return { error: 'Email and password are required' };
+  }
+
+  if (password.length < 6) {
+    return { error: 'Password must be at least 6 characters long' };
+  }
+
   try {
-    const email = formData.get('email');
-    const password = formData.get('password');
-    const username = formData.get('username');
-    const userType = formData.get('userType') || 'user';
-    const category = formData.get('category');
-
-    if (!email || !password) {
-      return { error: 'Email and password are required' };
-    }
-
-    if (password.length < 6) {
-      return { error: 'Password must be at least 6 characters long' };
-    }
-
     const supabase = await createClient();
 
-    // Prepare user metadata
+    const emailStr = email?.toString() || "";
     const userMetadata = {
-      username: username || email.split('@')[0],
-      ...(userType && { user_type: userType }),
-      ...(category && { category: category }),
+      username: username || emailStr.split('@')[0],
+      category: category || 'client',
+      phone: phone || null,
     };
 
     const { data, error } = await supabase.auth.signUp({
@@ -101,120 +114,36 @@ export async function signUpWithPassword(formData) {
       password: password.toString(),
       options: {
         data: userMetadata,
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
       },
     });
 
     if (error) {
       console.error('🔴 Sign up error:', error.message);
-      
-      // User-friendly error messages
       let userMessage = error.message;
+
       if (error.message.includes('already registered')) {
         userMessage = 'This email is already registered. Please sign in instead.';
       } else if (error.message.includes('invalid email')) {
         userMessage = 'Please enter a valid email address.';
-      } else if (error.message.includes('password')) {
-        userMessage = 'Password must be at least 6 characters.';
       }
-      
       return { error: userMessage };
     }
 
-    // Insert user into public.users table (the auth trigger should also handle this)
-    if (data.user) {
-      try {
-        // Insert into users table
-        const { error: userError } = await supabase
-          .from('users')
-          .upsert({
-            id: data.user.id,
-            email: email.toString(),
-            full_name: userMetadata.username,
-            role: userType === 'artist' ? 'artist' : userType === 'producer' ? 'producer' : 'client',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'id'
-          });
+    console.log('🟢 Auth account created for:', email);
+    console.log('ℹ️ Public profile creation is being handled by SQL Trigger.');
 
-        if (userError) {
-          console.error('🔴 User profile creation error:', userError.message);
-          // Don't fail signup if profile creation fails - the trigger should have handled it
-        } else {
-          console.log('✅ User profile created in public.users table');
-        }
-      } catch (userErr) {
-        console.error('🔴 Error creating user profile:', userErr);
-        // Continue without profile creation - the auth trigger should have handled it
-      }
-    }
-
-    console.log('🟢 Sign up successful for:', email);
-    
-    // Don't redirect automatically - let client show success message
-    return { 
-      success: true, 
-      message: data.session ? 'Sign up successful!' : 'Please check your email to confirm your account.',
-      requiresEmailConfirmation: !data.session
-    };
-    
   } catch (error) {
     console.error('🔴 Unexpected sign up error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
   }
-}
 
-export async function signInWithGoogle() {
-  try {
-    const supabase = await createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-    console.log('🟡 Starting Google OAuth flow...');
-    console.log('🟡 Redirect URL:', `${origin}/auth/callback`);
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-        // scopes: 'https://www.googleapis.com/auth/youtube.force-ssl',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-
-    if (error) {
-      console.error('🔴 Google OAuth error:', error.message);
-      throw new Error(`Google OAuth failed: ${error.message}`);
-    }
-
-    // If Supabase returned a redirect URL, redirect the browser there
-    if (data?.url) {
-      console.log('🟢 Google OAuth URL generated, redirecting...');
-      redirect(data.url);
-    }
-
-    // If no URL, that's an error
-    throw new Error('Google OAuth service did not return a valid URL');
-  } catch (error) {
-    console.error('🔴 Google OAuth error:', error.message);
-    
-    // Let NEXT_REDIRECT errors propagate (from redirect() calls)
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
-    }
-    
-    // For other errors, redirect to login with error message
-    redirect(`/login?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
-  }
+  redirect(`/verify-otp?email=${encodeURIComponent(email.toString().trim())}`);
 }
 
 export async function resetPassword(formData) {
   try {
     let email;
-    
+
     // Handle different input formats
     if (formData instanceof FormData) {
       email = formData.get('email');
@@ -223,7 +152,7 @@ export async function resetPassword(formData) {
     } else if (typeof formData === 'string') {
       email = formData;
     }
-    
+
     if (!email) {
       return { error: 'Email is required' };
     }
@@ -246,7 +175,7 @@ export async function resetPassword(formData) {
 
     if (error) {
       console.error("🔴 Password reset error:", error.message);
-      
+
       // User-friendly error messages
       let userMessage = error.message;
       if (error.message.includes('rate limit')) {
@@ -256,16 +185,16 @@ export async function resetPassword(formData) {
       } else if (error.message.includes('email')) {
         userMessage = 'Please enter a valid email address.';
       }
-      
+
       return { error: userMessage };
     }
 
     console.log('✅ Password reset email sent successfully');
-    return { 
+    return {
       success: true,
       message: 'Check your email for the password reset link. It may take a minute to arrive.'
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected reset password error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
@@ -278,34 +207,34 @@ export async function updatePasswordDirectly(formData) {
     const code = formData.get('code');
     const newPassword = formData.get('newPassword');
     const confirmPassword = formData.get('confirmPassword');
-    
+
     if (!newPassword || !confirmPassword) {
       return { error: 'Both password fields are required' };
     }
-    
+
     if (newPassword !== confirmPassword) {
       return { error: 'Passwords do not match' };
     }
-    
+
     if (newPassword.length < 6) {
       return { error: 'Password must be at least 6 characters long' };
     }
 
     const supabase = await createClient();
-    
+
     // If we have a code, exchange it first
     if (code) {
       console.log('🟡 Exchanging code for session...');
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-      
+
       if (exchangeError) {
         console.error('🔴 Code exchange error:', exchangeError);
-        
+
         // If exchange fails but we have a session, continue
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          return { 
-            error: 'This reset link is invalid or has expired. Please request a new one.' 
+          return {
+            error: 'This reset link is invalid or has expired. Please request a new one.'
           };
         }
       }
@@ -313,7 +242,7 @@ export async function updatePasswordDirectly(formData) {
 
     // Check if we have a valid session
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session) {
       return { error: 'No active session. Please use a valid reset link.' };
     }
@@ -330,16 +259,16 @@ export async function updatePasswordDirectly(formData) {
     }
 
     console.log('✅ Password updated successfully for user:', data.user?.email);
-    
+
     // Sign out after password update
     await supabase.auth.signOut();
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       message: 'Password updated successfully! You can now log in with your new password.',
       redirectTo: '/login?message=password_updated_success'
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected password update error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
@@ -352,15 +281,15 @@ export async function updatePasswordLoggedIn(formData) {
     const currentPassword = formData.get('currentPassword');
     const newPassword = formData.get('newPassword');
     const confirmPassword = formData.get('confirmPassword');
-    
+
     if (!currentPassword || !newPassword || !confirmPassword) {
       return { error: 'All password fields are required' };
     }
-    
+
     if (newPassword !== confirmPassword) {
       return { error: 'New passwords do not match' };
     }
-    
+
     if (newPassword.length < 6) {
       return { error: 'New password must be at least 6 characters long' };
     }
@@ -369,7 +298,7 @@ export async function updatePasswordLoggedIn(formData) {
 
     // First verify current password by trying to re-authenticate
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       return { error: 'You must be logged in to change your password.' };
     }
@@ -385,12 +314,12 @@ export async function updatePasswordLoggedIn(formData) {
     }
 
     console.log('✅ Password updated for logged-in user:', user.email);
-    
-    return { 
-      success: true, 
-      message: 'Password updated successfully!' 
+
+    return {
+      success: true,
+      message: 'Password updated successfully!'
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected update password error:', error);
     return { error: 'An unexpected error occurred. Please try again.' };
@@ -399,36 +328,36 @@ export async function updatePasswordLoggedIn(formData) {
 
 export async function handleSignOut() {
   const supabase = await createClient();
-  
+
   const { error } = await supabase.auth.signOut();
-  
+
   if (error) {
     console.error('🔴 Sign out error:', error.message);
     return redirect('/login?error=signout_failed');
   }
-  
+
   // Revalidate all paths
   revalidatePath('/');
   revalidatePath('/dashboard');
   revalidatePath('/login');
-  
+
   console.log('✅ User signed out successfully');
-  return redirect('/login?message=signed_out');
+  return redirect('/');
 }
 
 export async function getCurrentUser() {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error } = await supabase.auth.getUser();
-    
+
     if (error) {
       console.error('🔴 Get user error:', error.message);
       return { error: error.message };
     }
-    
+
     return { user };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected get user error:', error);
     return { error: 'Failed to get user information' };
@@ -438,20 +367,30 @@ export async function getCurrentUser() {
 export async function checkAuth() {
   try {
     const supabase = await createClient();
-    
+
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (error) {
       console.error('🔴 Check auth error:', error.message);
       return { authenticated: false, error: error.message };
+    }
+    let role = 'client';
+    if (session?.user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      role = userData?.role || 'client';
     }
     
     return { 
       authenticated: !!session, 
       session,
-      user: session?.user 
+      user: session?.user,
+      role: role
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected check auth error:', error);
     return { authenticated: false, error: 'Auth check failed' };
@@ -466,33 +405,33 @@ export async function verifyResetRequest(code) {
     }
 
     const supabase = await createClient();
-    
+
     // Try to exchange the code for a session
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-    
+
     if (exchangeError) {
       console.error('🔴 Reset code verification error:', exchangeError.message);
-      return { 
-        error: exchangeError.message.includes('expired') 
-          ? 'This reset link has expired. Please request a new one.' 
+      return {
+        error: exchangeError.message.includes('expired')
+          ? 'This reset link has expired. Please request a new one.'
           : 'This reset link is invalid.',
         code
       };
     }
-    
+
     // Check if we have a valid session
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session) {
       return { error: 'Unable to verify reset request. Please try again.' };
     }
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       session,
-      message: 'Reset request verified successfully' 
+      message: 'Reset request verified successfully'
     };
-    
+
   } catch (error) {
     console.error('🔴 Unexpected verification error:', error);
     return { error: 'An unexpected error occurred during verification.' };
@@ -503,7 +442,7 @@ export async function verifyResetRequest(code) {
 export async function testLogin(email, password) {
   try {
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -513,11 +452,11 @@ export async function testLogin(email, password) {
       return { error: error.message };
     }
 
-    return { 
-      success: true, 
-      user: data.user 
+    return {
+      success: true,
+      user: data.user
     };
-    
+
   } catch (error) {
     console.error('🔴 Test login error:', error);
     return { error: error.message };
@@ -528,19 +467,19 @@ export async function testLogin(email, password) {
 export async function validateSession() {
   try {
     const supabase = await createClient();
-    
+
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (error) {
       return { valid: false, error: error.message };
     }
-    
-    return { 
-      valid: !!session, 
+
+    return {
+      valid: !!session,
       session,
-      user: session?.user 
+      user: session?.user
     };
-    
+
   } catch (error) {
     console.error('🔴 Session validation error:', error);
     return { valid: false, error: 'Session validation failed' };
@@ -551,36 +490,39 @@ export async function validateSession() {
 export async function syncUserToPublic() {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !user) {
       return { error: 'No authenticated user found' };
     }
-    
+
     console.log('🟡 Syncing user to public.users:', user.email);
-    
+
+    const platformRole = user.user_metadata?.category || user.user_metadata?.role || 'client';
+
     const { error: syncError } = await supabase
       .from('users')
       .upsert({
         id: user.id,
         email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
-        role: user.user_metadata?.role || 'client',
+        username: user.user_metadata?.full_name || user.user_metadata?.username || user.email,
+        role: platformRole === 'creator' ? 'creator' : 'viewer',
+        platform_role: platformRole === 'creator' ? 'artist' : 'client',
         created_at: new Date(user.created_at).toISOString(),
         updated_at: new Date().toISOString(),
       }, {
         onConflict: 'id'
       });
-    
+
     if (syncError) {
       console.error('🔴 User sync error:', syncError.message);
       return { error: syncError.message };
     }
-    
+
     console.log('✅ User synced successfully');
     return { success: true };
-    
+
   } catch (error) {
     console.error('🔴 Sync user error:', error);
     return { error: error.message };

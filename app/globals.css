@@ -41,3 +41,17 @@ body {
   -webkit-text-fill-color: transparent;
   background-image: linear-gradient(to right, #ffffff, #94a3b8);
 }
+
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
