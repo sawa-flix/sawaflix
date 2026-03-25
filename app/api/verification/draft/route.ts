@@ -70,9 +70,33 @@ export async function PUT(req: Request) {
     const formData = body.form_data || body.formData || {};
     
     // Deep extraction for the profile columns
-    const category = body.category || formData.category || "General";
     const identity = formData.identity || {};
     const professional = formData.professional || {};
+
+    // Map frontend id to label
+    const categoryMap = {
+      music: "Music",
+      film: "Film",
+      comedy: "Comedy",
+      storyteller: "Traditional Storyteller",
+      lifestyle: "Food & Lifestyle",
+    };
+
+    let category = body.category || formData.category;
+
+    // If the value is an id, map it to the label
+    if (categoryMap[category]) {
+      category = categoryMap[category];
+    }
+
+    // Validate category
+    const allowedCategories = Object.values(categoryMap);
+    if (!allowedCategories.includes(category)) {
+      return NextResponse.json(
+        { error: "Invalid or missing category" },
+        { status: 400 }
+      );
+    }
 
     // 3. THE FIX: PRE-FLIGHT PROFILE UPSERT (Parent Table)
     // We map your nested keys (identity.legalName, etc.) to the profile columns
