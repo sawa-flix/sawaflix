@@ -88,11 +88,34 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const category = body.category;
+    const categoryMap = {
+      music: "Music",
+      film: "Film",
+      comedy: "Comedy",
+      storyteller: "Traditional Storyteller",
+      lifestyle: "Food & Lifestyle",
+    };
+
+    let category = body.category;
+
+    // If the value is an id, map it to the label
+    if (categoryMap[category]) {
+      category = categoryMap[category];
+    }
+
+    // Validate category
+    const allowedCategories = Object.values(categoryMap);
+    if (!allowedCategories.includes(category)) {
+      return NextResponse.json(
+        { error: "Invalid or missing category" },
+        { status: 400 }
+      );
+    }
+
     const formData = body.form_data || body.formData;
 
-    if (!category || !formData) {
-      return NextResponse.json({ error: "Category and Form Data are required" }, { status: 400 });
+    if (!formData) {
+      return NextResponse.json({ error: "Form Data is required" }, { status: 400 });
     }
 
     // Extracting nested data based on your specific JSON structure
@@ -109,7 +132,7 @@ export async function POST(req: Request) {
           stage_name: identity.creatorName || formData.stage_name || "New Creator",
           ethnic_group: identity.ethnicGroup || null,
           bio: professional.bio || formData.bio || null,
-          years_active: professional.experienceTime || "0",
+          years_active: professional.experienceTime ?? formData.years_active ?? null,
           category: category,
           status: 'pending', // Moving to pending state
           is_verified: false,
