@@ -62,10 +62,10 @@ export async function POST(
       status: "rejected"
     });
 
-  } catch (err: any) {
-    console.error("Rejection Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Rejection Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: err.message },
+      { error: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

@@ -29,23 +29,30 @@ export async function GET(req: Request) {
         }
 
         // 2. Fetch verification status
-        let { data: submission, error: subError } = await supabase
+        const submissionResponse = await supabase
             .from('verification_submissions')
             .select('status, category, rejection_feedback, form_data')
             .eq('creator_id', user.id)
             .maybeSingle();
 
+        let submission = submissionResponse.data;
+        const subError = submissionResponse.error;
+
+        if (subError) {
+            console.error('Error fetching verification status:', subError);
+        }
+
         // 3. ANONYMOUS LINKAGE: If no submission for user.id, check if visitorId has one
         if (!submission && visitorId) {
             const anonId = stringToUuid(`anon-${visitorId}`);
             console.log(`🔍 Checking for anonymous submission: ${anonId}`);
-            
+
             const { data: anonSubmission } = await supabase
                 .from('verification_submissions')
                 .select('*')
                 .eq('creator_id', anonId)
                 .maybeSingle();
-            
+
             if (anonSubmission) {
                 console.log(`🔗 Linking anonymous submission ${anonId} to user ${user.id}`);
                 // Link it to the real user
@@ -53,7 +60,7 @@ export async function GET(req: Request) {
                     .from('verification_submissions')
                     .update({ creator_id: user.id })
                     .eq('creator_id', anonId);
-                
+
                 submission = anonSubmission;
             }
         }
@@ -70,8 +77,8 @@ export async function GET(req: Request) {
             formData: submission?.form_data || {},
         });
 
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        return NextResponse.json({ error: (err instanceof Error ? err.message : "Unknown error") }, { status: 500 });
     }
 }
 
@@ -100,14 +107,13 @@ export async function PUT(req: Request) {
 
         if (error) {
             console.error('Update profile error:', error);
-            // If social_links doesn't exist, we might get an error. 
-            // In a real app we'd need a migration.
+
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({ message: "Profile updated successfully" });
 
-    } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (err: unknown) {
+        return NextResponse.json({ error: (err instanceof Error ? err.message : "Unknown error") }, { status: 500 });
     }
 }

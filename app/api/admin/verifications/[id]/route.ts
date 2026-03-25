@@ -45,10 +45,10 @@ export async function GET(
       data
     });
 
-  } catch (err: any) {
-    console.error("Admin Fetch Detail Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Admin Fetch Detail Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: err.message },
+      { error: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

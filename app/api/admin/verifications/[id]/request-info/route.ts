@@ -49,10 +49,10 @@ export async function POST(
       status: "info_requested"
     });
 
-  } catch (err: any) {
-    console.error("Request Info Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Request Info Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: err.message },
+      { error: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

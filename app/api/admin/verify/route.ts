@@ -23,7 +23,7 @@ export async function PUT(req: Request) {
     if (authHeader?.startsWith("Bearer ")) {
       try {
         const token = authHeader.substring(7);
-        const decoded: any = jwtDecode(token);
+        const decoded = jwtDecode<{ sub?: string; [key: string]: string | number | boolean }>(token);
         adminId = decoded.sub || "service_role";
       } catch (e) {
         adminId = "token_auth"; 
@@ -106,10 +106,10 @@ export async function PUT(req: Request) {
       status
     });
 
-  } catch (err: any) {
-    console.error("Master Verify Endpoint Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Master Verify Endpoint Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: "Verification processing failed", details: err.message },
+      { error: "Verification processing failed", details: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

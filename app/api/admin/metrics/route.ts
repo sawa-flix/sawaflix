@@ -56,12 +56,12 @@ export async function GET() {
       timestamp: new Date().toISOString()
     });
 
-  } catch (err: any) {
-    console.error("Metrics API Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Metrics API Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
       {
         error: "Failed to fetch dashboard metrics",
-        details: err.message
+        details: (err instanceof Error ? err.message : "Unknown error")
       },
       { status: 500 }
     );

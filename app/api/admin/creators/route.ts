@@ -73,10 +73,10 @@ export async function GET(req: Request) {
       totalPages: Math.ceil((count || 0) / limit)
     });
 
-  } catch (err: any) {
-    console.error("Creators List Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Creators List Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: err.message },
+      { error: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

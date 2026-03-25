@@ -61,10 +61,10 @@ export async function POST(
       status: "approved"
     });
 
-  } catch (err: any) {
-    console.error("Approve Error:", err.message);
+  } catch (err: unknown) {
+    console.error("Approve Error:", (err instanceof Error ? err.message : "Unknown error"));
     return NextResponse.json(
-      { error: err.message },
+      { error: (err instanceof Error ? err.message : "Unknown error") },
       { status: 500 }
     );
   }

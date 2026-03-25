@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   // 1. AUTH LOGIC (Supports Insomnia Service Role + Real Users)
   if (token) {
     try {
-      const decoded: any = jwtDecode(token);
+      const decoded = jwtDecode<{ sub?: string; [key: string]: string | number | boolean }>(token);
       if (serviceKey && token === serviceKey) {
         userId = "b21d3e41-f405-46bc-b144-319669ec3e0d";
         supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       data 
     });
 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : "Unknown error") }, { status: 500 });
   }
 }
