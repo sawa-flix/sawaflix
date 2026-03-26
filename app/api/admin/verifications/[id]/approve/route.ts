@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 /**
  * @swagger
@@ -36,56 +36,33 @@ import { NextResponse } from "next/server";
  */
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // FIX 1: Params is a Promise
+  { params }: { params: { id: string } }
 ) {
-  // FIX 2: Await the params
-  const { id: creatorId } = await params;
+  const creatorId = params.id;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Always use Service Role for Admin actions
-  );
+  const supabase = await createClient();
 
   try {
     const body = await req.json().catch(() => ({}));
     const notes = body.notes || "Approved by admin";
 
-    // 1. Update the Submission Status
-    const { error: subError } = await supabase
+    // Update verification_submissions
+    const { error: subError, data: submission } = await supabase
       .from("verification_submissions")
-      .update({
-        status: "approved",
-        admin_notes: notes,
-        updated_at: new Date().toISOString() // Using updated_at for consistency
-      })
-      .eq("creator_id", creatorId);
+      .update({ status: "approved", admin_notes: notes })
+      .eq("id", creatorId)
+      .select("creator_id")
+      .single();
 
-    if (subError) throw subError;
-
-    // 2. Update Creator Profile (To show blue checkmark on profile)
+    // Also update creator_profiles
+    const creatorIdFromSubmission = submission?.creator_id || creatorId;
     const { error: profileError } = await supabase
       .from("creator_profiles")
-      .update({
-        is_verified: true
-      })
-      .eq("creator_id", creatorId);
+      .update({ is_verified: true })
+      .eq("creator_id", creatorIdFromSubmission);
 
-    if (profileError) throw profileError;
-
-    // 3. Update Global User Record (For Auth/Permissions)
-    // Note: Ensure your table is named 'users' and not 'profiles'
-    const { error: userError } = await supabase
-      .from("users") 
-      .update({
-        is_verified: true,
-        verification_status: "approved"
-      })
-      .eq("id", creatorId);
-
-    if (userError) {
-       console.warn("User table update failed, check if 'users' table exists:", userError.message);
-       // We don't necessarily want to crash the whole request if only this part fails, 
-       // but it's good to log it.
+    if (subError || profileError) {
+      return new Response(JSON.stringify({ message: "Failed to update status." }), { status: 500 });
     }
 
     return NextResponse.json({
