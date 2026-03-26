@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import ProfileView from '@/components/profile/ProfileView';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { Loader2, AlertCircle, Edit3, Eye } from 'lucide-react';
@@ -9,6 +9,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function PublicProfilePage({ params }) {
+    const { username } = use(params);
     const [profile, setProfile] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function PublicProfilePage({ params }) {
         const fetchData = async () => {
             try {
                 // Fetch public profile
-                const profileRes = await fetch(`/api/creator/${params.username}`);
+                const profileRes = await fetch(`/api/creator/${username}`);
                 if (!profileRes.ok) {
                     const data = await profileRes.json();
                     throw new Error(data.error || 'Failed to fetch creator profile');
@@ -42,10 +43,10 @@ export default function PublicProfilePage({ params }) {
             }
         };
 
-        if (params.username) {
+        if (username) {
             fetchData();
         }
-    }, [params.username, supabase.auth]);
+    }, [username, supabase.auth]);
 
     const handleSave = async (updatedData) => {
         setSaving(true);

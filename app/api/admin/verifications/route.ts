@@ -24,85 +24,50 @@ export const dynamic = "force-dynamic";
  *     responses:
  *       200:
  *         description: List of verification submissions
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 count:
- *                   type: integer
- *                   example: 3
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       creator_id:
- *                         type: string
- *                         example: 123e4567-e89b
- *                       category:
- *                         type: string
- *                         example: Music
- *                       status:
- *                         type: string
- *                         example: pending
- *                       created_at:
- *                         type: string
- *                         format: date-time
- *                       creator_profiles:
- *                         type: object
- *                         properties:
- *                           legal_name:
- *                             type: string
- *                             example: John Doe
- *                           stage_name:
- *                             type: string
- *                             example: DJ Killa
- *                           profile_picture_url:
- *                             type: string
- *                             example: https://cdn.site/avatar.jpg
  *       500:
  *         description: Server error
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  // Default to pending, but allows filtering by 'approved' or 'rejected'
-  const status = searchParams.get("status") || "pending";
+  const status = searchParams.get("status");
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("verification_submissions")
-      .select(`
-        creator_id,
-        category,
-        status,
-        created_at,
-        creator_profiles (
-          legal_name,
-          stage_name,
-          profile_picture_url
-        )
-      `)
-      .eq("status", status)
-      .order("created_at", { ascending: false });
+      .select("creator_id, status, category, form_data, created_at, updated_at");
+
+    if (status) {
+      query = query.eq("status", status);
+    }
+
+
+
+    const { data: verifications, error } = await query.order("created_at", { ascending: false });
 
     if (error) throw error;
 
+    // Transform for the frontend
+    const formattedData = verifications?.map((v) => ({
+      id: v.creator_id,
+      full_name: v.form_data?.identity?.legalName || "No Name",
+      category: v.category || "Unknown",
+      status: v.status || "unverified",
+      submitted_at: v.created_at,
+      avatar_url: v.form_data?.identity?.avatarUrl || null,
+    })) || [];
+    console.log("Verifications fetched:", verifications?.length);
+
     return NextResponse.json({
       success: true,
-      count: data?.length || 0,
-      data
+      data: formattedData,
     });
-
   } catch (err: any) {
+    console.error("Admin Fetch Error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

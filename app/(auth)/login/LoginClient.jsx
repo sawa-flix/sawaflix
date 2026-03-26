@@ -55,7 +55,9 @@ function LoginContent() {
       try {
         const result = await checkAuth();
         if (result.authenticated) {
-          console.log('User is already logged in');
+          console.log('🟢 User already logged in, role:', result.role);
+          const targetPath = result.role === 'admin' ? '/admin' : '/dashboard';
+          router.push(targetPath);
         }
       } catch (err) {
         console.log('Not logged in');
@@ -109,30 +111,18 @@ function LoginContent() {
         setError(result.error);
         setIsLoading(false);
       } else if (result?.success) {
+        // Login successful - redirect based on role
+        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
+        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
         setIsRedirecting(true);
-
-        // Use user metadata for intelligent redirection
-        const user = result.user;
-        const role = user?.user_metadata?.category || user?.user_metadata?.role || 'client';
-        // Note: actions.js signInWithPassword doesn't fetch profile, but sign-up does set verification_status in metadata usually
-        // However, middleware handles the granular status usually. We can do a best-effort here or rely on result.redirectTo
-
-        let destination = result.redirectTo || '/dashboard';
-
-        if (role === 'admin') {
-          destination = '/admin';
-        } else if (role === 'creator') {
-          const status = user?.user_metadata?.verification_status || 'unverified';
-          if (status === 'pending') {
-            destination = '/creator/pending';
-          } else if (status === 'approved') {
-            destination = '/Creator-dashboard';
-          } else {
-            destination = '/creator/verify';
-          }
-        }
-
-        router.push(destination);
+        
+        // Short delay to show loading state
+        setTimeout(() => {
+          router.push(targetPath);
+        }, 100);
+      } else {
+        // Unexpected response
+        setError("Login failed. Please try again.");
       }
     } catch (err) {
       // Handle Next.js redirect errors correctly

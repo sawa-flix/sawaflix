@@ -64,7 +64,7 @@ export default function UserDropdown({ profile }) {
           </Link>
 
           <Link
-            href="/Creator-dashboard/settings"
+            href="/creator-dashboard/settings"
             className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
             onClick={() => setIsOpen(false)}
           >
