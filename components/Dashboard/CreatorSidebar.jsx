@@ -13,6 +13,7 @@ import {
     LogOut 
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { handleSignOut } from '@/app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
 
