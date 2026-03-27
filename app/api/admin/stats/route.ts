@@ -41,11 +41,21 @@ export async function GET() {
 
     const avgTimeHours = timedCount > 0 ? (totalTimeMs / timedCount / (1000 * 60 * 60)).toFixed(1) : 0;
 
+    const categoryMapping: Record<string, string> = {
+      "Music": "Music Artist",
+      "Film": "Actor/Filmmaker",
+      "Comedy": "Comedian",
+      "Traditional storyteller": "Traditional Storyteller",
+      "Food&lifestyle": "Food & Lifestyle",
+      "General": "General"
+    };
+
     // Rejections by category
     const rejectionsByCategory = allSubmissions
       .filter(s => s.status === 'rejected' && s.category)
-      .reduce((acc: any, sub) => {
-        acc[sub.category] = (acc[sub.category] || 0) + 1;
+      .reduce((acc: Record<string, number>, sub) => {
+        const catName = categoryMapping[sub.category] || sub.category || "Unknown";
+        acc[catName] = (acc[catName] || 0) + 1;
         return acc;
       }, {});
 
