@@ -1,22 +1,3 @@
-// import { redirect } from "next/navigation";
-// import { getUserProfile } from "@/lib/getUserProfile";
-
-// export default async function PostMusicPage() {
-//     const profile = await getUserProfile();
-    
-//     // Kick them out if they aren't approved for music
-//     if (profile.category?.toLowerCase() !== 'music') {
-//         redirect('/creator-dashboard/post/music'); 
-//     }
-
-//     return (
-//         <div className="p-6">
-//             <h1 className="text-2xl font-bold mb-4">Post Music</h1>
-//             <p className="text-gray-400">Upload and share your music.</p>
-//         </div>
-//     );
-// }
-
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -24,18 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Upload,
     Image as ImageIcon,
-    FileText,
     Music,
     X,
     CheckCircle2,
     Loader2,
     AlertCircle,
-    Save
+    Save,
+    ChevronDown,
+    Music2
 } from 'lucide-react';
 
-
-// --- Sub-component: FileUploadZone (Native Implementation) ---
-const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemove }) => {
+// --- Sub-component: FileUploadZone ---
+const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemove, type = "image" }) => {
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef(null);
 
@@ -107,7 +88,7 @@ const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemov
                             <Icon className="text-gray-500 group-hover:text-red-500 transition-colors" size={28} />
                         </div>
                         <p className="text-[11px] text-gray-500 mb-6 px-4 leading-relaxed tracking-tight">
-                            Drag and drop or click to <br /> <span className="text-gray-400 font-medium">browse image</span>
+                            Drag and drop or click to <br /> <span className="text-gray-400 font-medium">browse {type}</span>
                         </p>
                         <div className="px-6 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-wide rounded-full shadow-lg group-hover:bg-gray-100 transition-colors">
                             Browse file
@@ -119,17 +100,17 @@ const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemov
     );
 };
 
-export default function PostStoryPage() {
+export default function PostMusicPage() {
     // --- Form State ---
     const [formData, setFormData] = useState({
         title: '',
-        ethnicGroup: '',
+        genre: '',
         description: '',
-        significance: '',
+        tags: '',
+        is_featured: false
     });
     const [mediaFiles, setMediaFiles] = useState({
         cover: null,
-        text: null,
         audio: null,
     });
 
@@ -140,7 +121,7 @@ export default function PostStoryPage() {
 
     // --- Local Storage Hooks ---
     useEffect(() => {
-        const saved = localStorage.getItem('sawaflix_story_draft');
+        const saved = localStorage.getItem('sawaflix_music_draft');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
@@ -153,7 +134,7 @@ export default function PostStoryPage() {
 
     const saveDraft = () => {
         setIsDrafting(true);
-        localStorage.setItem('sawaflix_story_draft', JSON.stringify({ formData }));
+        localStorage.setItem('sawaflix_music_draft', JSON.stringify({ formData }));
         setTimeout(() => {
             setIsDrafting(false);
             setMessage({ type: 'success', text: 'Draft saved successfully!' });
@@ -161,14 +142,20 @@ export default function PostStoryPage() {
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!formData.title || !formData.ethnicGroup || !formData.description || !formData.significance) {
-            setMessage({ type: 'error', text: 'Please fill in all required fields (*)' });
+        if (!formData.title || !formData.genre || !mediaFiles.audio) {
+            setMessage({ 
+                type: 'error', 
+                text: !mediaFiles.audio ? 'Audio file is required' : 'Please fill in required fields (*)' 
+            });
             return;
         }
 
@@ -178,19 +165,15 @@ export default function PostStoryPage() {
         try {
             const payload = new FormData();
             payload.append('title', formData.title);
-            payload.append('community_group', formData.ethnicGroup);
-
-            const fullContent = `DESCRIPTION:\n${formData.description}\n\nSIGNIFICANCE:\n${formData.significance}`;
-            payload.append('content_text', fullContent);
-
-            const contentType = mediaFiles.audio ? 'audio' : 'text';
-            payload.append('content_type', contentType);
-            payload.append('languages', 'English');
+            payload.append('genre', formData.genre);
+            payload.append('description', formData.description);
+            payload.append('tags', formData.tags);
+            payload.append('is_featured', String(formData.is_featured));
 
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
-            if (mediaFiles.audio) payload.append('media', mediaFiles.audio);
+            if (mediaFiles.audio) payload.append('audio', mediaFiles.audio);
 
-            const res = await fetch('/api/content/stories/upload', {
+            const res = await fetch('/api/content/music/upload', {
                 method: 'POST',
                 body: payload,
             });
@@ -198,8 +181,8 @@ export default function PostStoryPage() {
             const result = await res.json();
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Story published successfully! Redirecting...' });
-                localStorage.removeItem('sawaflix_story_draft');
+                setMessage({ type: 'success', text: 'Music published successfully! Redirecting...' });
+                localStorage.removeItem('sawaflix_music_draft');
                 setTimeout(() => window.location.href = '/creator-dashboard/content', 2000);
             } else {
                 setMessage({ type: 'error', text: result.error || 'Upload failed' });
@@ -215,16 +198,20 @@ export default function PostStoryPage() {
         <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
 
             {/* Header Section */}
-            <div className="flex items-center justify-center pt-4">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Upload Content</h1>
+            <div className="flex flex-col items-center text-center pt-8 space-y-3">
+                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center border border-red-500/20 mb-2">
+                    <Music2 className="text-red-500" size={32} />
+                </div>
+                <h1 className="text-4xl font-black text-white tracking-tight">Post New Music</h1>
+                <p className="text-gray-400 max-w-md mx-auto">Share your cultural sounds and melodies with the Sawaflix community.</p>
             </div>
 
             <div className="space-y-12">
 
-                {/* DESCRIPTIONS SECTION */}
+                {/* TRACK INFO SECTION */}
                 <section>
                     <div className="flex items-center gap-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-200">Descriptions</h2>
+                        <h2 className="text-xl font-bold text-gray-200">Track Details</h2>
                         <div className="h-[1px] flex-1 bg-gray-800" />
                     </div>
 
@@ -232,60 +219,77 @@ export default function PostStoryPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
                             {/* Title */}
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Title*</label>
+                                <label className="text-sm font-bold text-gray-300 ml-1">Track Title*</label>
                                 <input
                                     name="title"
                                     value={formData.title}
                                     onChange={handleInputChange}
-                                    placeholder="Enter your title"
+                                    placeholder="Enter song title"
                                     className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600"
                                 />
                             </div>
 
-                            {/* Ethnic Group */}
+                            {/* Genre */}
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Ethnic Group*</label>
+                                <label className="text-sm font-bold text-gray-300 ml-1">Genre*</label>
                                 <div className="relative group">
                                     <select
-                                        name="ethnicGroup"
-                                        value={formData.ethnicGroup}
+                                        name="genre"
+                                        value={formData.genre}
                                         onChange={handleInputChange}
                                         className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all appearance-none cursor-pointer"
                                     >
-                                        <option value="" className="bg-[#0F172A]">Choose your ethnic group</option>
-                                        <option value="Sawa" className="bg-[#0F172A]">Sawa (Coastals)</option>
-                                        <option value="Grassfields" className="bg-[#0F172A]">Grassfields</option>
-                                        <option value="Fang-Beti" className="bg-[#0F172A]">Fang-Beti</option>
-                                        <option value="Sudano-Sahelian" className="bg-[#0F172A]">Sudano-Sahelian</option>
+                                        <option value="" className="bg-[#0F172A]">Choose a genre</option>
+                                        <option value="Makossa" className="bg-[#0F172A]">Makossa</option>
+                                        <option value="Bikutsi" className="bg-[#0F172A]">Bikutsi</option>
+                                        <option value="Afro-Pop" className="bg-[#0F172A]">Afro-Pop</option>
+                                        <option value="Highlife" className="bg-[#0F172A]">Highlife</option>
+                                        <option value="Gospel" className="bg-[#0F172A]">Gospel</option>
+                                        <option value="Traditional" className="bg-[#0F172A]">Traditional</option>
+                                        <option value="Other" className="bg-[#0F172A]">Other</option>
                                     </select>
                                     <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 group-focus-within:text-red-500 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                                        <ChevronDown size={16} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Description */}
+                            {/* Tags */}
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Description*</label>
+                                <label className="text-sm font-bold text-gray-300 ml-1">Tags (comma separated)</label>
+                                <input
+                                    name="tags"
+                                    value={formData.tags}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g. cultural, dance, upbeat"
+                                    className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600"
+                                />
+                            </div>
+
+                            {/* Featured Toggle */}
+                            <div className="flex items-center gap-3 pt-8">
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        name="is_featured"
+                                        checked={formData.is_featured}
+                                        onChange={handleInputChange}
+                                        className="sr-only peer" 
+                                    />
+                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                                </label>
+                                <span className="text-sm font-bold text-gray-300">Feature this track on your profile</span>
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-2 lg:col-span-2">
+                                <label className="text-sm font-bold text-gray-300 ml-1">Description</label>
                                 <textarea
                                     name="description"
                                     value={formData.description}
                                     onChange={handleInputChange}
-                                    rows={5}
-                                    placeholder="Enter the description"
-                                    className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600 resize-none leading-relaxed"
-                                />
-                            </div>
-
-                            {/* Significance */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-300 ml-1">Significance*</label>
-                                <textarea
-                                    name="significance"
-                                    value={formData.significance}
-                                    onChange={handleInputChange}
-                                    rows={5}
-                                    placeholder="Enter the description"
+                                    rows={4}
+                                    placeholder="Tell the story behind this track..."
                                     className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600 resize-none leading-relaxed"
                                 />
                             </div>
@@ -293,58 +297,62 @@ export default function PostStoryPage() {
                     </div>
                 </section>
 
-                {/* PROPERTIES SECTION */}
+                {/* MEDIA ASSETS SECTION */}
                 <section>
                     <div className="flex items-center gap-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-200">Properties</h2>
+                        <h2 className="text-xl font-bold text-gray-200">Media Assets</h2>
                         <div className="h-[1px] flex-1 bg-gray-800" />
                     </div>
 
                     <div className="bg-[#0E1628]/40 border border-gray-800/60 rounded-3xl p-8 md:p-12 backdrop-blur-md">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <FileUploadZone
-                                title="Cover Image"
-                                icon={ImageIcon}
-                                accept={{ "image/*": [".jpeg", ".png", ".jpg", ".webp"] }}
-                                file={mediaFiles.cover}
-                                onFileSelect={(f) => setMediaFiles(prev => ({ ...prev, cover: f }))}
-                                onRemove={() => setMediaFiles(prev => ({ ...prev, cover: null }))}
-                            />
-                            <FileUploadZone
-                                title="Text File"
-                                icon={FileText}
-                                accept={{ "application/pdf": [".pdf"], "text/plain": [".txt"] }}
-                                file={mediaFiles.text}
-                                onFileSelect={(f) => setMediaFiles(prev => ({ ...prev, text: f }))}
-                                onRemove={() => setMediaFiles(prev => ({ ...prev, text: null }))}
-                            />
-                            <FileUploadZone
-                                title="Audio File"
+                                title="Audio File*"
                                 icon={Music}
+                                type="audio"
                                 accept={{ "audio/*": [".mp3", ".wav", ".m4a"] }}
                                 file={mediaFiles.audio}
                                 onFileSelect={(f) => setMediaFiles(prev => ({ ...prev, audio: f }))}
                                 onRemove={() => setMediaFiles(prev => ({ ...prev, audio: null }))}
+                            />
+                            <FileUploadZone
+                                title="Cover Art"
+                                icon={ImageIcon}
+                                type="image"
+                                accept={{ "image/*": [".jpeg", ".png", ".jpg", ".webp"] }}
+                                file={mediaFiles.cover}
+                                onFileSelect={(f) => setMediaFiles(prev => ({ ...prev, cover: f }))}
+                                onRemove={() => setMediaFiles(prev => ({ ...prev, cover: null }))}
                             />
                         </div>
                     </div>
                 </section>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-4 pt-6">
+                <div className="flex items-center justify-end gap-4 pt-6">
                     <button
                         onClick={saveDraft}
                         disabled={loading || isDrafting}
-                        className="flex-1 max-w-[200px] h-12 bg-white hover:bg-gray-100 text-black font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
+                        className="px-8 h-12 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm border border-white/5"
                     >
-                        {isDrafting ? <Loader2 className="animate-spin" size={18} /> : "Save As Draft"}
+                        {isDrafting ? <Loader2 className="animate-spin" size={18} /> : (
+                            <>
+                                <Save size={18} />
+                                Save Draft
+                            </>
+                        )}
                     </button>
                     <button
                         onClick={handleUpload}
                         disabled={loading}
-                        className="flex-1 max-w-[200px] h-12 bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm shadow-lg shadow-red-500/20"
+                        className="px-12 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm shadow-lg shadow-red-600/20"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={18} /> : "Upload"}
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : (
+                            <>
+                                <Upload size={18} />
+                                Publish Track
+                            </>
+                        )}
                     </button>
                 </div>
 
@@ -375,6 +383,3 @@ export default function PostStoryPage() {
         </div>
     );
 }
-
-
-

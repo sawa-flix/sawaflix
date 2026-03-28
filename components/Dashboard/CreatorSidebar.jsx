@@ -20,10 +20,25 @@ import SawaflixLogo from '../SawaflixLogo';
 const CreatorSidebar = ({ userProfile }) => {
     const pathname = usePathname();
 
+    const category = userProfile?.category?.toLowerCase();
+    
+    // Determine specific upload path based on niche
+    let uploadPath = '/creator-dashboard/upload';
+    if (category === 'music' || category === 'musician') {
+        uploadPath = '/creator-dashboard/post/music';
+    } else if (category === 'storyteller' || category === 'stories' || category === 'storytelling') {
+        uploadPath = '/creator-dashboard/post/story';
+    } else if (category === 'lifestyle' || category === 'food') {
+        uploadPath = '/creator-dashboard/post/food';
+    }
+
+    // 'Post' always goes to the selection page (Post vs Transfer)
+    const postPath = '/creator-dashboard';
+
     const menuItems = [
         { name: 'Feed', icon: Home, href: '/dashboard' },
-        { name: 'Dashboard', icon: LayoutGrid, href: '/creator-dashboard' },
-        { name: 'Upload New', icon: Upload, href: '/creator-dashboard/post' },
+        { name: 'Post', icon: LayoutGrid, href: postPath },
+        { name: 'Upload New', icon: Upload, href: uploadPath },
         { name: 'My Content', icon: Film, href: '/creator-dashboard/content' },
         { name: 'Analytics', icon: BarChart2, href: '/creator-dashboard/analytics' },
         { name: 'Comments', icon: MessageSquare, href: '/dashboard/comments' },
