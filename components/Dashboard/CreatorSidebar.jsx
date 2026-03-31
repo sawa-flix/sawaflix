@@ -41,7 +41,7 @@ const CreatorSidebar = ({ userProfile }) => {
         { name: 'Upload New', icon: Upload, href: uploadPath },
         { name: 'My Content', icon: Film, href: '/creator-dashboard/content' },
         { name: 'Analytics', icon: BarChart2, href: '/creator-dashboard/analytics' },
-        { name: 'Comments', icon: MessageSquare, href: '/dashboard/comments' },
+        { name: 'Comments', icon: MessageSquare, href: '/creator-dashboard/comments' },
         { name: 'Notifications', icon: Bell, href: '/dashboard/notification' },
         { name: 'Help', icon: HelpCircle, href: '/dashboard/help' },
     ];
