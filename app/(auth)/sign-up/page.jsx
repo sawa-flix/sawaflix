@@ -119,7 +119,7 @@ function SignUpContent() {
           <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-3xl p-6 sm:p-8 w-full border border-gray-800">
 
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-4">
-              {role === 'creator' ? 'Creator Sign Up' : 'Sign Up'}
+              Sign Up
             </h1>
 
             {/* Status Messages */}
@@ -253,18 +253,11 @@ function SignUpContent() {
                   />
 
                   <AuthButton type="submit" isLoading={loading}>
-                    {role === 'creator' ? 'Create Creator Account' : 'Create Account'}
+                    Create Account
                   </AuthButton>
                 </form>
 
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base space-y-2">
-                  <p>
-                    {role === 'creator' ? (
-                      <>Are you a viewer? <Link href="/sign-up" className="text-red-500 hover:underline">Sign up as Client</Link></>
-                    ) : (
-                      <>Want to become a creator? <Link href="/sign-up?role=creator" className="text-red-500 hover:underline">Creator</Link></>
-                    )}
-                  </p>
                   <p>
                     Already have an account?{' '}
                     <Link href="/login" className="text-red-500 hover:underline font-medium">Sign In</Link>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
+import SawaflixLogo from './SawaflixLogo';
 
 const Header = ({ onSearch }) => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -17,9 +18,7 @@ const Header = ({ onSearch }) => {
   return (
     <header className="flex items-center justify-between p-4 md:p-6 bg-gray bg-opacity-10 backdrop-blur-sm fixed w-full z-40">
       {/* Logo */}
-      <div className="text-red-600 font-bold text-xl md:text-2xl hover:text-red-500 transition-colors">
-        SawaFlix
-      </div>
+      <SawaflixLogo />
       
       {/* Search Bar */}
       <div className="flex items center">

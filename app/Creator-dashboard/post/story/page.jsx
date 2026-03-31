@@ -181,7 +181,7 @@ export default function PostStoryPage() {
             if (res.ok) {
                 setMessage({ type: 'success', text: 'Story published successfully! Redirecting...' });
                 localStorage.removeItem('sawaflix_story_draft');
-                setTimeout(() => window.location.href = '/Creator-dashboard/content', 2000);
+                setTimeout(() => window.location.href = '/creator-dashboard/content', 2000);
             } else {
                 setMessage({ type: 'error', text: result.error || 'Upload failed' });
             }

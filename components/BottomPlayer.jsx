@@ -4,7 +4,7 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, RefreshCw, VolumeX 
 import { useMusic } from '@/components/MusicContext';
 import dynamic from 'next/dynamic';
 
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
 // Helper to ensure YouTube URLs are detected correctly
 const normalizeUrl = (url) => {
