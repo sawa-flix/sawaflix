@@ -103,14 +103,23 @@ function LoginContent() {
 
     const formElement = e.currentTarget;
     const formData = new FormData(formElement);
+    const data = Object.fromEntries(formData.entries());
 
     try {
-      const result = await signInWithPassword(formData);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
 
       if (result?.error) {
         setError(result.error);
         setIsLoading(false);
-      } else if (result?.success) {
+      } else if (result?.success || response.ok) {
         // Login successful - redirect based on role
         const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
         console.log(`🟢 Login successful, redirecting to ${targetPath}`);
@@ -119,6 +128,7 @@ function LoginContent() {
         // Short delay to show loading state
         setTimeout(() => {
           router.push(targetPath);
+          router.refresh();
         }, 100);
       } else {
         // Unexpected response

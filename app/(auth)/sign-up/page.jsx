@@ -72,14 +72,23 @@ function SignUpContent() {
     formData.set('category', category);
 
     formData.delete('confirmPassword');
+    const data = Object.fromEntries(formData.entries());
 
     try {
-      const result = await signUpWithPassword(formData);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
 
       if (result?.error) {
         setError(result.error);
         setLoading(false);
-      } else if (result?.success) {
+      } else if (result?.success || response.ok) {
         if (result.requiresEmailConfirmation) {
           setRequiresConfirmation(true);
           setSuccessMessage(result.message || 'Please check your email to confirm your account.');
