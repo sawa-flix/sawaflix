@@ -64,7 +64,7 @@ export async function middleware(request) {
         }
         if (profile.verification_status === "approved") {
           return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
+            new URL("/dashboard", request.url),
           );
         }
         return response;
@@ -74,7 +74,7 @@ export async function middleware(request) {
       if (pathname === "/creator/pending") {
         if (profile.verification_status === "approved") {
           return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
+            new URL("/dashboard", request.url),
           );
         }
         if (profile.verification_status === "unverified") {
@@ -109,7 +109,7 @@ export async function middleware(request) {
         }
         if (profile.verification_status === "approved") {
           return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
+            new URL("/dashboard", request.url),
           );
         }
         return NextResponse.redirect(new URL("/creator/verify", request.url));
@@ -132,7 +132,7 @@ export async function middleware(request) {
       if (profile.verification_status === "approved") {
         if (profile.role === "creator") {
           return NextResponse.redirect(
-            new URL("/Creator-dashboard", request.url),
+            new URL("/dashboard", request.url),
           );
         }
         return NextResponse.redirect(new URL("/dashboard", request.url));
