@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
+const URL = "https://sawaflix-backend.onrender.com"
+
 interface VerificationItem {
     id: string;
     full_name: string;
@@ -45,7 +47,7 @@ export default function VerificationQueue() {
     const fetchData = async (isBackground = false) => {
         if (!isBackground) setLoading(true);
         try {
-            const res = await fetch('/api/admin/verifications');
+            const res = await fetch(`${URL}/api/admin/verifications`);
             if (res.ok) {
                 const data = await res.json();
                 const fetchedItems = data.data || [];
@@ -114,7 +116,7 @@ export default function VerificationQueue() {
         setBulkLoading(true);
         try {
             const promises = Array.from(selectedIds).map(id =>
-                fetch(`/api/admin/verify`, {
+                fetch(`${URL}/api/admin/verify`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ target_creator_id: id, status: 'approved', notes: 'Bulk Approved by Admin' }),

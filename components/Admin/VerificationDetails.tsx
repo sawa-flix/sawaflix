@@ -75,7 +75,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
         </div>
     );
 }
-
+const LIVEURL = "https://sawaflix-backend.onrender.com"
 export default function VerificationDetails({ id }: { id: string }) {
     const router = useRouter();
     const [data, setData] = useState<VerificationData | null>(null);
@@ -111,7 +111,7 @@ export default function VerificationDetails({ id }: { id: string }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/verifications/${id}`);
+                const res = await fetch(`${LIVEURL}/api/admin/verifications/${id}`);
                 if (!res.ok) throw new Error('Failed to fetch verification details');
                 const result = await res.json();
                 setData(result.data);
@@ -280,10 +280,10 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 <div className="text-gray-300 break-all">{data.identity.email}</div>
                             </div>
                             {data.identity.phone && (
-                            <div>
-                                <label className="text-xs text-gray-500 block">Phone</label>
-                                <div className="text-gray-300">{data.identity.phone}</div>
-                            </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block">Phone</label>
+                                    <div className="text-gray-300">{data.identity.phone}</div>
+                                </div>
                             )}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

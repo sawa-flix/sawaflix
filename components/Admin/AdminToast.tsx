@@ -41,7 +41,7 @@ export default function AdminToast() {
         const colors = {
           approved: 'text-green-500 border-green-500/20 bg-green-900/40',
           rejected: 'text-red-500 border-red-500/20 bg-red-900/40',
-          new_submission: 'text-yellow-500 border-yellow-500/20 bg-yellow-900/40 hover:cursor-pointer',
+          new_submission: 'text-yellow-500 border-yellow-500/20 bg-yellow-900/40',
           new_user: 'text-blue-500 border-blue-500/20 bg-blue-900/40',
           info: 'text-gray-400 border-gray-700 bg-gray-900/80'
         }[n.type];
