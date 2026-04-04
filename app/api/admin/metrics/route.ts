@@ -3,7 +3,48 @@ import { NextResponse } from "next/server";
 
 // Force Next.js to fetch fresh data every time the admin refreshes
 export const dynamic = "force-dynamic";
-
+/**
+ * @swagger
+ * /api/admin/metrics:
+ *   get:
+ *     summary: Get admin dashboard metrics
+ *     description: Returns aggregated counts of verification submissions grouped by status for the admin dashboard.
+ *     tags:
+ *       - Admin Management
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Metrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 metrics:
+ *                   type: object
+ *                   properties:
+ *                     total_pending:
+ *                       type: integer
+ *                       example: 12
+ *                     total_approved:
+ *                       type: integer
+ *                       example: 4
+ *                     total_rejected:
+ *                       type: integer
+ *                       example: 2
+ *                     total_info_requested:
+ *                       type: integer
+ *                       example: 1
+ *                     total_submissions:
+ *                       type: integer
+ *                       example: 19
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       500:
+ *         description: Failed to fetch dashboard metrics
+ */
 export async function GET() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

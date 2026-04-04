@@ -1,16 +1,14 @@
-import React from 'react'
+import SawaflixLogo from './SawaflixLogo';
 
 const footer = () => {
-  
   return (
-    <div className="bg-black text-gray-400 py-3 md:py-5">
-      <div className="flex justify-center text-red-600 font-bold text-xl md:text-2xl">SawaFlix</div>
-      <p className="flex justify-center text-xs md:text-sm text-gray-500 mt-4 ">
-      © {new Date().getFullYear()} SawaFlix. All rights reserved.
+    <div className="bg-[#0B0E14] text-gray-400 py-8 border-t border-white/5 flex flex-col items-center gap-4">
+      <SawaflixLogo />
+      <p className="text-xs text-gray-500">
+        © {new Date().getFullYear()} SawaFlix. All rights reserved.
       </p>
-      
     </div>
   )
 }
 
-export default footer
+export default footer;

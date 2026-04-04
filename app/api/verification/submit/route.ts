@@ -1,104 +1,172 @@
 import { createClient } from "@/utils/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
-import { createHash } from 'crypto';
 
-function stringToUuid(str: string) {
-  const hash = createHash('sha256').update(str).digest('hex');
-  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${((parseInt(hash.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
-}
+export const dynamic = "force-dynamic";
 
+/**
+ * @swagger
+ * /api/verification/submit:
+ *   post:
+ *     summary: Submit creator verification application
+ *     description: Finalizes and submits the creator verification form, changing status from 'draft' to 'pending'.
+ *     tags:
+ *       - Creator Verification
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               category:
+ *                 type: string
+ *               form_data:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Verification submitted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Already submitted
+ *       500:
+ *         description: Internal server error
+ */
 export async function POST(req: Request) {
-  console.log("🚀 POST /submit - Finalizing Submission");
-  const authHeader = req.headers.get("Authorization");
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) {
-    console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to regular user client.");
-  }
-
-  let supabase;
-  let userId: string;
-
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-
-  // 1. AUTH LOGIC (Supports Insomnia Service Role + Real Users)
-  if (token) {
-    try {
-      const decoded = jwtDecode<{ sub?: string; [key: string]: string | number | boolean }>(token);
-      if (serviceKey && token === serviceKey) {
-        userId = "b21d3e41-f405-46bc-b144-319669ec3e0d";
-        supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
-      } else {
-        userId = decoded.sub;
-        supabase = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: authHeader } } }
-        );
-      }
-    } catch (e) {
-      console.error("❌ Token Decode Error:", e);
-      return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
-    }
-  } else {
-    supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      userId = user.id;
-    } else {
-      const visitorId = req.headers.get("x-visitor-id");
-      if (visitorId) {
-        userId = stringToUuid(`anon-${visitorId}`);
-        console.log(`🚀 Anonymous Submission: ${userId}`);
-      } else {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    }
-  }
-
-
-
-
-
   try {
-    const body = await req.json();
-    const { category, form_data } = body;
+    const authHeader = req.headers.get("Authorization");
+    let supabase;
 
-    // 2. VALIDATION: Ensure critical fields exist before "Submitting"
-    if (!category || !form_data) {
-      return NextResponse.json({ error: "Category and Form Data are required for submission" }, { status: 400 });
+    if (authHeader?.startsWith("Bearer ")) {
+      supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+    } else {
+      supabase = await createClient();
     }
 
-    // 3. THE SUBMISSION (Update status to 'pending')
+    // 1. Authenticate user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user || authError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const creatorId = user.id;
+
+    // 2. Parse request body
+    const body = await req.json().catch(() => ({}));
+    const rawCategory = body.category || "General";
+
+    // Map lowercase wizard category IDs to DB-accepted values
+    // DB constraint allows: Music, Film, Traditional storyteller, Comedy, Food&lifestyle, General, Storyteller, Lifestyle, etc.
+    const categoryMap: Record<string, string> = {
+      music: "Music",
+      film: "Film",
+      comedy: "Comedy",
+      storyteller: "Traditional storyteller",
+      lifestyle: "Food&lifestyle",
+      general: "General",
+      unspecified: "General",
+    };
+    const category = categoryMap[rawCategory.toLowerCase()] || "General";
+
+    const formData = body.form_data || body.formData || {};
+
+    // 3. Check existing submission status
+    const { data: existingSubmission } = await supabase
+      .from("verification_submissions")
+      .select("status")
+      .eq("creator_id", creatorId)
+      .maybeSingle();
+
+    if (existingSubmission?.status === "approved") {
+      return NextResponse.json(
+        { error: "Already approved", message: "Your verification has already been approved." },
+        { status: 403 }
+      );
+    }
+
+    // If already pending, just return success — data was saved on a prior attempt
+    if (existingSubmission?.status === "pending") {
+      return NextResponse.json({
+        success: true,
+        message: "Your verification is already pending review.",
+        data: existingSubmission,
+      });
+    }
+
+    // 4. Ensure creator_profiles row exists (PK = creator_id)
+    // RLS may prevent seeing the row, so we try upsert and ignore duplicate key errors
+    const legalName = formData?.identity?.legalName || user.user_metadata?.full_name || "Creator";
+    const stageName = formData?.identity?.creatorName || "TBD";
+
+    const { error: profileErr } = await supabase
+      .from("creator_profiles")
+      .upsert({
+        creator_id: creatorId,
+        legal_name: legalName,
+        stage_name: stageName,
+        category: category,
+      }, { onConflict: "creator_id", ignoreDuplicates: true });
+
+    // Only throw if it's NOT a duplicate key error (profile already exists = fine)
+    if (profileErr && profileErr.code !== '23505') {
+      console.error("Profile Creation Failed:", profileErr.message);
+      throw profileErr;
+    }
+
+    // 5. Upsert verification submission with status 'pending'
     const { data, error } = await supabase
       .from("verification_submissions")
       .upsert(
         {
-          creator_id: userId,
-          category,
-          form_data,
-          status: 'pending', // <--- This is the key change!
+          creator_id: creatorId,
+          category: category,
+          form_data: formData,
+          status: "pending",
           updated_at: new Date().toISOString(),
         },
         { onConflict: "creator_id" }
       )
-      .select();
+      .select()
+      .single();
 
-    if (error) {
-      console.error("❌ Submission Error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) throw error;
+
+    // 6. Also update creator profile with submission data (only existing columns)
+    const updateData: Record<string, unknown> = { category };
+
+    if (formData?.identity?.legalName) updateData.legal_name = formData.identity.legalName;
+    if (formData?.identity?.creatorName) updateData.stage_name = formData.identity.creatorName;
+    if (formData?.identity?.ethnicGroup) updateData.ethnic_group = formData.identity.ethnicGroup;
+    if (formData?.professional?.bio) updateData.bio = formData.professional.bio;
+
+    const { error: updateError } = await supabase
+      .from("creator_profiles")
+      .update(updateData)
+      .eq("creator_id", creatorId);
+
+    // Non-critical — don't fail the whole submission if profile update fails
+    if (updateError) {
+      console.warn("Profile update warning:", updateError.message);
     }
 
-    console.log("✅ SUCCESS: Creator is now PENDING review");
-    return NextResponse.json({ 
-      message: "Application submitted successfully!", 
-      status: "pending",
-      data 
+    return NextResponse.json({
+      success: true,
+      message: "Verification submitted successfully! Your application is now pending review.",
+      data,
     });
-
-  } catch (err: unknown) {
-    return NextResponse.json({ error: (err instanceof Error ? err.message : "Unknown error") }, { status: 500 });
+  } catch (err) {
+    const error = err as Error;
+    console.error("Submit Error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
+    );
   }
 }

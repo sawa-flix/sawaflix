@@ -10,6 +10,7 @@ import {
     Maximize2, 
     Check 
 } from 'lucide-react';
+import SawaflixLogo from '../SawaflixLogo';
 
 const DetailRow = ({ label, value }) => (
     <div className="flex items-center justify-between mb-4">
@@ -38,12 +39,7 @@ const PendingState = ({ userProfile }) => {
         <div className="min-h-screen bg-[#0B0F19] md:p-12 p-6 flex flex-col items-center justify-start text-white font-sans animate-in fade-in duration-500">
             {/* Header Branding */}
             <div className="w-full max-w-5xl mb-12">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-red-600 rounded-md flex items-center justify-center shadow-lg shadow-red-600/20">
-                        <Play className="w-4 h-4 text-white fill-current" />
-                    </div>
-                    <span className="font-black text-xl tracking-tight text-white">Sawa<span className="text-red-500">flix</span></span>
-                </div>
+                <SawaflixLogo />
             </div>
 
             <div className="w-full max-w-4xl space-y-16 pb-24">

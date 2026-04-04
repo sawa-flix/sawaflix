@@ -42,19 +42,29 @@ export async function signInWithPassword(formData) {
       return { error: 'Authentication failed. Please try again.' };
     }
 
-    console.log('🟢 Login successful for user:', data.user.email);
+    // Fetch user role from public.users table
+    const { data: userData, error: roleError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
 
-    // Revalidate the dashboard path
+    const role = userData?.role || 'client';
+    console.log('🟢 Login successful, role:', role);
+    
+    // Revalidate relevant paths
     revalidatePath('/dashboard');
-
+    if (role === 'admin') revalidatePath('/admin');
     // Return success - let the client handle the redirect
     return {
       success: true,
       message: 'Login successful',
       user: data.user,
+      user: data.user,
+      role: role,
       access_token: data.session?.access_token,
       refresh_token: data.session?.refresh_token,
-      redirectTo: '/dashboard'
+      redirectTo: role === 'admin' ? '/admin' : '/dashboard'
     };
 
   } catch (error) {
@@ -364,11 +374,21 @@ export async function checkAuth() {
       console.error('🔴 Check auth error:', error.message);
       return { authenticated: false, error: error.message };
     }
-
-    return {
-      authenticated: !!session,
+    let role = 'client';
+    if (session?.user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      role = userData?.role || 'client';
+    }
+    
+    return { 
+      authenticated: !!session, 
       session,
-      user: session?.user
+      user: session?.user,
+      role: role
     };
 
   } catch (error) {

@@ -2,20 +2,21 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 import { z } from "zod";
+import { sendApprovalEmail, sendRejectionEmail } from "../../../../utils/email";
 
 const VerifySchema = z.object({
   target_creator_id: z.string().uuid(),
   status: z.enum(['approved', 'rejected', 'info_requested']),
-  notes: z.string().min(1, "Please provide admin notes")
+  notes: z.string().min(1, "Please provide admin notes").optional()
 });
 
 export async function PUT(req: Request) {
   const authHeader = req.headers.get("Authorization");
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Essential for Admin overrides
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     // 1. Determine which Admin is performing the action
@@ -46,7 +47,7 @@ export async function PUT(req: Request) {
     // 2. Check if the submission exists first
     const { data: submission, error: fetchError } = await supabase
       .from("verification_submissions")
-      .select("id")
+      .select("creator_id, form_data")
       .eq("creator_id", target_creator_id)
       .single();
 
@@ -54,9 +55,12 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    // 3. Update creator_profiles
+    const email = submission.form_data?.identity?.email;
+    const fullName = submission.form_data?.identity?.fullName || 'Creator';
+
+    // 3. Update creator_profile
     const { error: profileError } = await supabase
-      .from("creator_profiles")
+      .from("creator_profile")
       .update({
         is_verified: isApproved
       })
@@ -69,7 +73,7 @@ export async function PUT(req: Request) {
       .from("verification_submissions")
       .update({
         status,
-        admin_notes: notes,
+        admin_notes: notes || "",
         updated_at: new Date().toISOString()
       })
       .eq("creator_id", target_creator_id);
@@ -87,17 +91,25 @@ export async function PUT(req: Request) {
 
     if (userError) console.error("Global users table update failed:", userError.message);
 
-    // 6. Audit Log (Recording Boyema's action)
-    // Wrap in a try/catch so if the audit table doesn't exist yet, it doesn't break the verification
+    // 6. Audit Log
     try {
       await supabase.from("admin_actions").insert({
         admin_id: adminId,
-        submission_id: submission.id,
+        submission_id: submission.creator_id,
         action_type: status,
-        notes: notes
+        notes: notes || ""
       });
     } catch (auditErr) {
       console.warn("Audit logging skipped - Check if admin_actions table exists.");
+    }
+
+    // 7. Send Email Notifications
+    if (email) {
+      if (status === "approved") {
+        await sendApprovalEmail(email, fullName, "");
+      } else if (status === "rejected") {
+        await sendRejectionEmail(email, fullName, notes || "");
+      }
     }
 
     return NextResponse.json({
