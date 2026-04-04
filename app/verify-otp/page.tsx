@@ -107,17 +107,17 @@ const VerifyOtpPageContent = () => {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/otp/verify', {
+      const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: otpString }),
+        body: JSON.stringify({ email, token: otpString }),
       });
       const data = await res.json();
 
       if (res.ok) {
         setMessage({ type: 'success', text: data.message || 'Account verified! Redirecting...' });
         setTimeout(() => {
-          data.pendingReview ? router.push('/creator/pending') : router.push('/dashboard');
+          router.push(data.redirectTo || (data.pendingReview ? '/creator/pending' : '/dashboard'));
         }, 2000);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid or expired code.' });
