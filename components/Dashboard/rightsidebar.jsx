@@ -5,7 +5,7 @@ import Image from 'next/image';
 const RightSidebar = () => {
   const trendingMusic = {
     title: 'Top Trending Music of the Week',
-    image: '/mfy1.jpg',
+    image: 'https://i.ibb.co/HTg91sqB/Whats-App-Image-2026-03-19-at-7-26-55-AM.jpg',
     likes: 2300,
     views: 5400,
     comments: 120,
@@ -52,7 +52,7 @@ const RightSidebar = () => {
             <span>{trendingMusic.comments}</span>
           </span>
         </div>
-        <button className="mt-4 w-full px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-200\">
+        <button className="mt-4 w-full px-4 py-3 bg-white text-red-600 font-semibold rounded-lg hover:bg-white/100 transition-all duration-200\">
           ➕ Follow Artist
         </button>
       </div>

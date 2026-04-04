@@ -1,6 +1,10 @@
+import Link from 'next/link';
 import CreatorWizard from '@/components/creator-wizard/CreatorWizard';
 import { redirect } from "next/navigation";
 import { getUserProfile } from "@/lib/getUserProfile"; 
+import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
     title: 'Creator Verification | SawaFlix',
@@ -9,30 +13,26 @@ export const metadata = {
 
 export default async function CreatorVerifyPage() {
     const profile = await getUserProfile();
+    
+    // Debug logging removed, logic simplified for production
+    const status = profile?.verificationStatus || 'none';
 
-    // 🚫 Not logged in
     if (!profile) {
         redirect("/login");
     }
 
-    // 🚫 Already a pending creator
-    if (profile.role === "creator" && profile.verificationStatus === "pending") {
+    if (status === "pending") {
         redirect("/creator/pending");
     }
 
-    // 🚫 Already an approved creator
-    if (profile.role === "creator" && profile.verificationStatus === "approved") {
-        redirect("/Creator-dashboard");
+    if (status === "approved") {
+        redirect("/creator-dashboard");
     }
 
-    // 🚫 Rejected creator
-    if (profile.role === "creator" && profile.verificationStatus === "rejected") {
-        redirect("/dashboard");
-    }
 
     return (
-        <main className="min-h-screen bg-[#0B0E14]">
+        <DashboardWrapper>
             <CreatorWizard />
-        </main>
+        </DashboardWrapper>
     );
 }

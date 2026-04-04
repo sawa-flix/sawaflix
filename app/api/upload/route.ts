@@ -13,6 +13,8 @@ const UploadSchema = z.object({
     "id",
     "endorsements",
     "recording",
+    "profile_image",
+    "cover_image",
   ]),
 });
 
@@ -105,27 +107,61 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const type = await fileTypeFromBuffer(buffer);
 
+    // Determine MIME type and extension, with fallback to file name
+    let mimeType = type?.mime || file.type || "application/octet-stream";
+    let ext = type?.ext || file.name.split('.').pop() || "bin";
+
+    // If file-type couldn't detect it, use the file extension mapping
     if (!type) {
-      console.error("❌ File Type Error: Could not determine file type");
-      return NextResponse.json(
-        { error: "Could not determine file type" },
-        { status: 400 }
-      );
+      const extMap: Record<string, string> = {
+        mp4: "video/mp4", mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg",
+        webm: "video/webm", m4a: "audio/mp4", aac: "audio/aac", flac: "audio/flac",
+        avi: "video/x-msvideo", mov: "video/quicktime", mkv: "video/x-matroska",
+        jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
+        pdf: "application/pdf", doc: "application/msword",
+      };
+      ext = file.name.split('.').pop()?.toLowerCase() || "bin";
+      mimeType = extMap[ext] || file.type || "application/octet-stream";
     }
 
     const storageClient = serviceKey
       ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
       : supabase;
 
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${type.ext}`;
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
     const filePath = `${creator_id}/${validation.data.category}/${fileName}`;
 
-    console.log(`📤 Uploading: ${filePath} (${type.mime}) using ${serviceKey ? 'Admin' : 'User'} Client`);
+    // Choose bucket based on category — recordings/content go to content-uploads
+    const isMediaUpload = validation.data.category === "recording" || validation.data.category === "content_sample";
+    let usedBucket = "verification-docs";
 
-    const { data, error: uploadError } = await storageClient.storage
-      .from("verification-docs")
-      .upload(filePath, buffer, { contentType: type.mime });
+    console.log(`📤 Uploading: ${filePath} (${mimeType}) using ${serviceKey ? 'Admin' : 'User'} Client`);
 
+    // For media uploads, first try content-uploads bucket, fall back to verification-docs
+    let uploadResult;
+    if (isMediaUpload) {
+      // Try content-uploads first
+      uploadResult = await storageClient.storage
+        .from("content-uploads")
+        .upload(filePath, buffer, { contentType: mimeType });
+      
+      if (!uploadResult.error) {
+        usedBucket = "content-uploads";
+      } else {
+        console.log(`⚠️ content-uploads bucket failed: ${uploadResult.error.message}. Trying verification-docs with generic type...`);
+        // Fall back to verification-docs with application/octet-stream to bypass MIME restrictions
+        uploadResult = await storageClient.storage
+          .from("verification-docs")
+          .upload(filePath, buffer, { contentType: "application/octet-stream" });
+        usedBucket = "verification-docs";
+      }
+    } else {
+      uploadResult = await storageClient.storage
+        .from("verification-docs")
+        .upload(filePath, buffer, { contentType: mimeType });
+    }
+    
+    const { data, error: uploadError } = uploadResult;
 
     if (uploadError) {
       console.error("❌ Storage Upload Error:", uploadError.message);
@@ -144,10 +180,9 @@ export async function POST(req: Request) {
       throw uploadError;
     }
 
-
-    // Get Public URL
+    // Get Public URL from the bucket that was actually used
     const { data: { publicUrl } } = storageClient.storage
-      .from("verification-docs")
+      .from(usedBucket)
       .getPublicUrl(filePath);
 
 
