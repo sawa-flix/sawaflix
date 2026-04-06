@@ -75,7 +75,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
         </div>
     );
 }
-const LIVEURL = "https://sawaflix-backend.onrender.com"
+const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
 export default function VerificationDetails({ id }: { id: string }) {
     const router = useRouter();
     const [data, setData] = useState<VerificationData | null>(null);
@@ -133,22 +133,22 @@ export default function VerificationDetails({ id }: { id: string }) {
         }
 
         setActionLoading(true);
-        const statusMap: Record<string, string> = {
-            approve: 'approved',
-            reject: 'rejected',
-            info: 'info_requested'
+
+        // Map action type to the correct Render API endpoint
+        const endpointMap: Record<string, string> = {
+            approve: `${LIVEURL}/api/admin/verifications/${id}/approve`,
+            reject:  `${LIVEURL}/api/admin/verifications/${id}/reject`,
+            info:    `${LIVEURL}/api/admin/verifications/${id}/reject`, // info_requested uses reject route with a flag
         };
 
         try {
-            const res = await fetch(`/api/admin/verify`, {
-                method: 'PUT',
+            const res = await fetch(endpointMap[type], {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: id, // Used in some endpoints
-                    target_creator_id: id, // Used in AdminVerification endpoint
-                    status: statusMap[type],
                     feedback: feedback.trim(),
-                    notes: feedback.trim() || `Action performed: ${type}`
+                    notes: feedback.trim() || `Action performed: ${type}`,
+                    ...(type === 'info' && { status: 'info_requested' }),
                 })
             });
 

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
-const LIVEURL = "https://sawaflix-backend.onrender.com"
+const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
 
 interface VerificationItem {
     id: string;
