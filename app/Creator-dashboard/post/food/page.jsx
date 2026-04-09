@@ -6,7 +6,7 @@ export default async function PostFoodPage() {
     
     // Kick them out if they aren't approved for food
     if (profile.category?.toLowerCase() !== 'food') {
-        redirect('/Creator-dashboard'); 
+        redirect('/creator-dashboard'); 
     }
 
     return (

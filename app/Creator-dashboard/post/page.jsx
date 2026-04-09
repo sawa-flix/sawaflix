@@ -11,13 +11,13 @@ export default async function PostSelectorPage() {
   // Mappings from Step1Category.jsx IDs
   const category = profile.category?.toLowerCase();
 
-  if (category === 'lifestyle') redirect('/Creator-dashboard/post/food');
-  if (category === 'music') redirect('/Creator-dashboard/post/music');
-  if (category === 'storyteller') redirect('/Creator-dashboard/post/story');
+  if (category === 'lifestyle') redirect('/creator-dashboard/post/food');
+  if (category === 'music') redirect('/creator-dashboard/post/music');
+  if (category === 'storyteller') redirect('/creator-dashboard/post/story');
 
   // Fallbacks for flexibility
-  if (category === 'food') redirect('/Creator-dashboard/post/food');
-  if (category === 'stories' || category === 'storytelling') redirect('/Creator-dashboard/post/story');
+  if (category === 'food') redirect('/creator-dashboard/post/food');
+  if (category === 'stories' || category === 'storytelling') redirect('/creator-dashboard/post/story');
 
   return (
     <div className="space-y-10">
@@ -36,7 +36,7 @@ export default async function PostSelectorPage() {
 
         {/* ===== Story Card ===== */}
         <Link
-          href="/Creator-dashboard/post/story"
+          href="/creator-dashboard/post/story"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">📖</div>
@@ -50,7 +50,7 @@ export default async function PostSelectorPage() {
 
         {/* ===== Music Card ===== */}
         <Link
-          href="/Creator-dashboard/post/music"
+          href="/creator-dashboard/post/music"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">🎵</div>
@@ -64,7 +64,7 @@ export default async function PostSelectorPage() {
 
         {/* ===== Food Card ===== */}
         <Link
-          href="/Creator-dashboard/post/food"
+          href="/creator-dashboard/post/food"
           className="bg-[#11151F] border border-gray-800 hover:border-red-500 transition-all rounded-xl p-8 group"
         >
           <div className="text-4xl mb-4">🍲</div>

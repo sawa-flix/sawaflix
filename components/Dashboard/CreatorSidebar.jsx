@@ -12,19 +12,19 @@ import {
     Settings, 
     LogOut 
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { handleSignOut } from '@/app/(auth)/actions';
+import SawaflixLogo from '../SawaflixLogo';
 
 const CreatorSidebar = ({ userProfile }) => {
     const pathname = usePathname();
 
     const menuItems = [
-        { name: 'Feed', icon: Feed, href: '/dashboard' },
-        { name: 'Dashboard', icon: LayoutGrid, href: '/Creator-dashboard' },
-        { name: 'Upload New', icon: Upload, href: '/Creator-dashboard/post' },
-        { name: 'My Content', icon: Film, href: '/Creator-dashboard/content' },
-        { name: 'Analytics', icon: BarChart2, href: '/Creator-dashboard/analytics' },
+        { name: 'Feed', icon: Home, href: '/dashboard' },
+        { name: 'Dashboard', icon: LayoutGrid, href: '/creator-dashboard' },
+        { name: 'Upload New', icon: Upload, href: '/creator-dashboard/post' },
+        { name: 'My Content', icon: Film, href: '/creator-dashboard/content' },
+        { name: 'Analytics', icon: BarChart2, href: '/creator-dashboard/analytics' },
         { name: 'Comments', icon: MessageSquare, href: '/dashboard/comments' },
         { name: 'Notifications', icon: Bell, href: '/dashboard/notification' },
         { name: 'Help', icon: HelpCircle, href: '/dashboard/help' },
@@ -32,20 +32,13 @@ const CreatorSidebar = ({ userProfile }) => {
 
     return (
         <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5 w-64">
-            {/* Logo */}
-            <div className="p-6 pb-4 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-                        </svg>
-                    </div>
-                    <span className="text-lg font-black text-white tracking-tight">Sawa<span className="text-red-600">Flix</span></span>
-                </div>
+            {/* Logo Section */}
+            <div className="p-6 pb-2">
+                <SawaflixLogo />
             </div>
             <div className="p-6 border-b border-white/5">
                 <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-red-600 mb-3">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-red-600 mb-3 shrink-0 aspect-square">
                         <img 
                             src={userProfile?.profileImage || "/0.jpg"} 
                             alt="Profile" 

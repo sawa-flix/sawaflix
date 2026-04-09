@@ -63,32 +63,40 @@ export async function PUT(req: Request) {
 
     // 2. Parse request body EARLY (so we have the category for the profile)
     const body = await req.json().catch(() => ({}));
-    const category = body.category || "General";
+    const rawCategory = body.category || "General";
+    
+    // Map lowercase wizard category IDs to DB-accepted values
+    // DB constraint allows: Music, Film, Traditional storyteller, Comedy, Food&lifestyle, General, Storyteller, Lifestyle, etc.
+    const categoryMap: Record<string, string> = {
+      music: "Music",
+      film: "Film",
+      comedy: "Comedy",
+      storyteller: "Traditional storyteller",
+      lifestyle: "Food&lifestyle",
+      general: "General",
+      unspecified: "General",
+    };
+    const category = categoryMap[rawCategory.toLowerCase()] || "General";
+    
     const formData = body.form_data || body.formData || {};
     const legalName = formData.legal_name || user.user_metadata?.full_name || "New Creator";
     const stageName = formData.stage_name || "TBD";
 
-    // 3. PRE-FLIGHT PROFILE CHECK (Fixes fk_creator_profile and Not-Null category)
-    const { data: profile } = await supabase
+    // 3. PRE-FLIGHT: Ensure creator_profiles row exists (PK = creator_id)
+    // RLS may prevent seeing the row, so we try insert and ignore duplicate key errors
+    const { error: profileErr } = await supabase
       .from("creator_profiles")
-      .select("id")
-      .eq("id", creatorId)
-      .maybeSingle();
-
-    if (!profile) {
-      const { error: insertError } = await supabase
-        .from("creator_profiles")
-        .insert({ 
-            creator_id: creatorId, // Use 'id' as the PK for profiles
-            legal_name: legalName,
-            stage_name: stageName,
-            category: category // Now defined and passed correctly
-        });
-      
-      if (insertError) {
-          console.error("Profile Creation Failed:", insertError.message);
-          throw insertError;
-      }
+      .upsert({ 
+          creator_id: creatorId,
+          legal_name: legalName,
+          stage_name: stageName,
+          category: category,
+      }, { onConflict: "creator_id", ignoreDuplicates: true });
+    
+    // Only throw if it's NOT a duplicate key error (profile already exists = fine)
+    if (profileErr && profileErr.code !== '23505') {
+      console.error("Profile Creation Failed:", profileErr.message);
+      throw profileErr;
     }
 
     // 4. Check existing submission status to prevent overwriting "Pending"

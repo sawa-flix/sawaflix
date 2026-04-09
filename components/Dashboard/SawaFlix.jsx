@@ -57,30 +57,41 @@ const SawaFlix = () => {
   );
 
   const HeroSection = () => (
-    <div className="relative h-64 sm:h-80 lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden mb-8">
+    <div className="relative h-72 sm:h-80 lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden mb-8 group">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1489599849323-2429c9b59ec8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')" }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500"
+        style={{ backgroundImage: "url('https://i.ibb.co/N2c9XWpL/Fang-beti-Slider.jpg')" }}
       />
-      <div className="absolute inset-0 bg-black/60" />
-      <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
-        <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white mb-4">
+      {/* Multi-layer dark overlays for better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+      
+      {/* Decorative gradient accent */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-black/40" />
+      
+      <div className="relative z-10 h-full flex items-center justify-center text-center px-4 sm:px-6">
+        <div className="drop-shadow-2xl w-full max-w-2xl">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg whitespace-nowrap">
             Sawa<span className="text-red-500">Flix</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-200 mb-6 max-w-2xl">
+          <p className="text-sm sm:text-lg lg:text-2xl text-gray-100 mb-6 sm:mb-8 font-light drop-shadow-md px-2">
             The Ultimate Music And Movies Experience
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-
+          <div className="flex justify-center">
             <Link href="/dashboard/youtubeVids">
-            <button className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-black px-8 py-3 rounded-full font-semibold transition-all duration-200 cursor-pointer">
-              Listen-Now
-            </button>
+              <button className="group/btn relative bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-8 sm:px-10 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:shadow-red-500/50 hover:-translate-y-1 active:scale-95">
+                ▶ Play Now
+                <span className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
+              </button>
             </Link>
           </div>
         </div>
       </div>
+      
+      {/* Animated corner accent */}
+      <div className="absolute top-0 left-0 w-40 h-40 bg-red-500/10 rounded-full filter blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full filter blur-3xl"></div>
     </div>
   );
 
