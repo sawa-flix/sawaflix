@@ -7,7 +7,7 @@ import { sendApprovalEmail, sendRejectionEmail } from "../../../../utils/email";
 const VerifySchema = z.object({
   target_creator_id: z.string().uuid(),
   status: z.enum(['approved', 'rejected', 'info_requested']),
-  notes: z.string().min(1, "Please provide admin notes").optional()
+  notes: z.string().optional()
 });
 
 export async function PUT(req: Request) {
@@ -58,7 +58,7 @@ export async function PUT(req: Request) {
     const email = submission.form_data?.identity?.email;
     const fullName = submission.form_data?.identity?.fullName || 'Creator';
 
-    // 3. Update creator_profile
+    // 3. Update creator_profile (non-fatal if profile row doesn't exist)
     const { error: profileError } = await supabase
       .from("creator_profile")
       .update({
@@ -66,7 +66,9 @@ export async function PUT(req: Request) {
       })
       .eq("creator_id", target_creator_id);
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.warn("creator_profile update skipped:", profileError.message);
+    }
 
     // 4. Update verification_submissions
     const { error: subError } = await supabase

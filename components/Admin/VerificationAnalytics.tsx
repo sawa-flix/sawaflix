@@ -11,7 +11,7 @@ interface StatsData {
   avgTimeHours: string;
   rejectionsByCategory: Record<string, number>;
 }
-
+const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
 export default function VerificationAnalytics() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,8 @@ export default function VerificationAnalytics() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/admin/stats");
+
+        const res = await fetch(`${LIVEURL}/api/admin/stats`);
         if (res.ok) {
           const result = await res.json();
           if (result.success) {

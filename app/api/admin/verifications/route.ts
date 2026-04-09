@@ -52,10 +52,19 @@ export async function GET(req: Request) {
     if (error) throw error;
 
     // Transform for the frontend
+    const categoryMapping: Record<string, string> = {
+      "Music": "Music Artist",
+      "Film": "Actor/Filmmaker",
+      "Comedy": "Comedian",
+      "Traditional storyteller": "Traditional Storyteller",
+      "Food&lifestyle": "Food & Lifestyle",
+      "General": "General"
+    };
+
     const formattedData = verifications?.map((v) => ({
       id: v.creator_id,
       full_name: v.form_data?.identity?.legalName || "No Name",
-      category: v.category || "Unknown",
+      category: categoryMapping[v.category] || v.category || "Unknown",
       status: v.status || "unverified",
       submitted_at: v.created_at,
       avatar_url: v.form_data?.identity?.avatarUrl || null,

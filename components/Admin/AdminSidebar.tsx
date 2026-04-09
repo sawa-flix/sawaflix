@@ -71,7 +71,7 @@ export default function AdminSidebar({ onNavigate }: { onNavigate?: () => void }
                     onClick={() => console.log('Admin Logout')}
                 >
                     <LogOut size={20} />
-                    <span className="font-medium">Sign Out</span>
+                    <span className="font-medium hover:cursor-pointer">Sign Out</span>
                 </button>
             </div>
         </div>

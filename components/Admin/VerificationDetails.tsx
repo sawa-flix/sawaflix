@@ -75,7 +75,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
         </div>
     );
 }
-
+const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
 export default function VerificationDetails({ id }: { id: string }) {
     const router = useRouter();
     const [data, setData] = useState<VerificationData | null>(null);
@@ -111,7 +111,7 @@ export default function VerificationDetails({ id }: { id: string }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/verifications/${id}`);
+                const res = await fetch(`${LIVEURL}/api/admin/verifications/${id}`);
                 if (!res.ok) throw new Error('Failed to fetch verification details');
                 const result = await res.json();
                 setData(result.data);
@@ -133,22 +133,22 @@ export default function VerificationDetails({ id }: { id: string }) {
         }
 
         setActionLoading(true);
-        const statusMap: Record<string, string> = {
-            approve: 'approved',
-            reject: 'rejected',
-            info: 'info_requested'
+
+        // Map action type to the correct Render API endpoint
+        const endpointMap: Record<string, string> = {
+            approve: `${LIVEURL}/api/admin/verifications/${id}/approve`,
+            reject:  `${LIVEURL}/api/admin/verifications/${id}/reject`,
+            info:    `${LIVEURL}/api/admin/verifications/${id}/reject`, // info_requested uses reject route with a flag
         };
 
         try {
-            const res = await fetch(`/api/admin/verify`, {
-                method: 'PUT',
+            const res = await fetch(endpointMap[type], {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: id, // Used in some endpoints
-                    target_creator_id: id, // Used in AdminVerification endpoint
-                    status: statusMap[type],
                     feedback: feedback.trim(),
-                    notes: feedback.trim() || `Action performed: ${type}`
+                    notes: feedback.trim() || `Action performed: ${type}`,
+                    ...(type === 'info' && { status: 'info_requested' }),
                 })
             });
 
@@ -280,10 +280,10 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 <div className="text-gray-300 break-all">{data.identity.email}</div>
                             </div>
                             {data.identity.phone && (
-                            <div>
-                                <label className="text-xs text-gray-500 block">Phone</label>
-                                <div className="text-gray-300">{data.identity.phone}</div>
-                            </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block">Phone</label>
+                                    <div className="text-gray-300">{data.identity.phone}</div>
+                                </div>
                             )}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

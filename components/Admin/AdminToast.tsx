@@ -58,7 +58,7 @@ export default function AdminToast() {
               <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">{n.title}</h4>
               <p className="text-xs text-gray-300 line-clamp-2">{n.message}</p>
             </div>
-            <button 
+            <button
               onClick={() => setVisibleQueue(prev => prev.filter(vid => vid !== id))}
               className="mt-1 opacity-50 hover:opacity-100 transition-opacity"
             >
