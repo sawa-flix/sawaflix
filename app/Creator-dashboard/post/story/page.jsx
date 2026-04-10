@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import {
     Upload,
     Image as ImageIcon,
@@ -171,7 +172,7 @@ export default function PostStoryPage() {
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.audio) payload.append('media', mediaFiles.audio);
 
-            const res = await fetch('/api/content/stories/upload', {
+            const res = await fetch(`${BACKEND_URL}/api/content/stories/upload`, {
                 method: 'POST',
                 body: payload,
             });

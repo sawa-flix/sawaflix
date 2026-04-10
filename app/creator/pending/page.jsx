@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
 import PendingState from '@/components/Dashboard/PendingState';
 import { Loader2 } from 'lucide-react';
@@ -14,7 +15,7 @@ export default function CreatorPendingPage() {
         const fetchProfile = async () => {
             try {
                 const visitorId = localStorage.getItem('sawaflix_visitor_id');
-                const res = await fetch('/api/creator/profile', {
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                     headers: visitorId ? { 'x-visitor-id': visitorId } : {}
                 });
                 if (!res.ok) throw new Error('Failed to fetch profile');

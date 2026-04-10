@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { BACKEND_URL } from '../../lib/apiConfig';
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import LeftSidebar from './leftsidebar';
@@ -21,7 +22,7 @@ const DashboardWrapper = ({ children }) => {
     const checkCreatorStatus = async () => {
         try {
             const visitorId = localStorage.getItem('sawaflix_visitor_id');
-            const res = await fetch('/api/creator/profile', {
+            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                 headers: visitorId ? { 'x-visitor-id': visitorId } : {}
             });
             if (res.ok) {

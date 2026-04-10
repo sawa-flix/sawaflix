@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BACKEND_URL } from '@/lib/apiConfig';
 
 export default function EditContentModal({ content, close, onUpdate }) {
   const [title, setTitle] = useState(content.title);
@@ -7,7 +8,7 @@ export default function EditContentModal({ content, close, onUpdate }) {
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`/api/content/${content.id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/content/${content.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

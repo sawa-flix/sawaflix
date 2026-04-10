@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 
 interface UploadResult {
     success?: boolean;
@@ -20,7 +21,7 @@ export default function TestStoriesUploadPage() {
 
         try {
             const formData = new FormData(e.currentTarget);
-            const response = await fetch('/api/content/stories/upload', {
+            const response = await fetch(`${BACKEND_URL}/api/content/stories/upload`, {
                 method: 'POST',
                 body: formData,
             });

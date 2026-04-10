@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Volume2, VolumeX, Heart, MessageCircle, UserPlus, Send, X, Check, Share2, Loader2 } from "lucide-react";
+import { BACKEND_URL } from '@/lib/apiConfig';
 
 const formatCount = (num) => {
   if (!num) return 0;
@@ -47,7 +48,7 @@ export default function CameroonReelsPage() {
     try {
       const selectedCat = CATEGORIES.find(c => c.id === activeCategory);
       const tokenParam = isNewCategory ? "" : `&pageToken=${nextPageToken || ""}`;
-      const res = await fetch(`/api/youtube/cameroon?q=${encodeURIComponent(selectedCat.query)}${tokenParam}`);
+      const res = await fetch(`${BACKEND_URL}/api/videos/external?q=${encodeURIComponent(selectedCat.query)}${tokenParam}`);
       const data = await res.json();
 
       if (isNewCategory) {
@@ -138,12 +139,12 @@ export default function CameroonReelsPage() {
       v.id === videoId ? { ...v, statistics: { ...v.statistics, likeCount: (parseInt(v.statistics.likeCount || 0) + 1).toString() } } : v
     ));
 
-    await fetch("/api/youtube/like", { method: "POST", body: JSON.stringify({ videoId }) });
+    await fetch(`${BACKEND_URL}/api/youtube/like`, { method: "POST", body: JSON.stringify({ videoId }) });
   };
 
   const handleFollow = async (channelId) => {
     setFollowedChannels(prev => [...prev, channelId]);
-    await fetch("/api/youtube/follow", { method: "POST", body: JSON.stringify({ channelId }) });
+    await fetch(`${BACKEND_URL}/api/youtube/follow`, { method: "POST", body: JSON.stringify({ channelId }) });
   };
 
   return (

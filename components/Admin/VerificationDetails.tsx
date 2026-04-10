@@ -75,7 +75,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
         </div>
     );
 }
-const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
 export default function VerificationDetails({ id }: { id: string }) {
     const router = useRouter();
     const [data, setData] = useState<VerificationData | null>(null);

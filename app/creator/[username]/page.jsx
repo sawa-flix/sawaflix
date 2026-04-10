@@ -5,6 +5,7 @@ import ProfileView from '@/components/profile/ProfileView';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { Loader2, AlertCircle, Edit3, Eye } from 'lucide-react';
 import Link from 'next/link';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
@@ -23,7 +24,7 @@ export default function PublicProfilePage({ params }) {
         const fetchData = async () => {
             try {
                 // Fetch public profile
-                const profileRes = await fetch(`/api/creator/${username}`);
+                const profileRes = await fetch(`${BACKEND_URL}/api/creator/${username}`);
                 if (!profileRes.ok) {
                     const data = await profileRes.json();
                     throw new Error(data.error || 'Failed to fetch creator profile');
@@ -51,7 +52,7 @@ export default function PublicProfilePage({ params }) {
     const handleSave = async (updatedData) => {
         setSaving(true);
         try {
-            const res = await fetch('/api/creator/profile', {
+            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),

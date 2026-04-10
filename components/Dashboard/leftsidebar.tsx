@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { BACKEND_URL } from '../../lib/apiConfig';
 import Link from 'next/link';
 import {
   Film,
@@ -52,7 +53,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
 
         // Fetch verification status
         try {
-          const res = await fetch('/api/creator/profile');
+          const res = await fetch(`${BACKEND_URL}/api/creator/profile`);
           if (res.ok) {
             const data = await res.json();
             setVerificationStatus(data.verificationStatus);

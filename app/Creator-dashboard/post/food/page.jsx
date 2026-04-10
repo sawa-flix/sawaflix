@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import {
     Image as ImageIcon,
     Video,
@@ -165,7 +166,7 @@ export default function FoodUploadPage() {
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.video) payload.append('video', mediaFiles.video);
 
-            const res = await fetch('/api/content/food/upload', {
+            const res = await fetch(`${BACKEND_URL}/api/content/food/upload`, {
                 method: 'POST',
                 body: payload,
             });

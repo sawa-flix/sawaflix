@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, Suspense } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signUpWithPassword } from '@/app/(auth)/actions';
 
@@ -75,7 +76,7 @@ function SignUpContent() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Suspense } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import {
   Mail,
   Lock,
@@ -72,7 +73,7 @@ const VerifyOtpPageContent = () => {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/otp/send', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -107,7 +108,7 @@ const VerifyOtpPageContent = () => {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, token: otpString }),

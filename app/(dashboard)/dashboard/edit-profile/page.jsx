@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import { useRouter } from 'next/navigation';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { ProfileFormSkeleton } from '@/components/Dashboard/Skeletons';
@@ -18,7 +19,7 @@ export default function EditProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await fetch('/api/creator/profile');
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`);
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
                 setProfile(data);
@@ -38,7 +39,7 @@ export default function EditProfilePage() {
     const handleSave = async (updatedData) => {
         setSaving(true);
         try {
-            const res = await fetch('/api/creator/profile', {
+            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),

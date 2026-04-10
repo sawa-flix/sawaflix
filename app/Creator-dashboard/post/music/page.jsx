@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import {
     Upload,
     Image as ImageIcon,
@@ -173,7 +174,7 @@ export default function PostMusicPage() {
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.audio) payload.append('audio', mediaFiles.audio);
 
-            const res = await fetch('/api/content/music/upload', {
+            const res = await fetch(`${BACKEND_URL}/api/content/music/upload`, {
                 method: 'POST',
                 body: payload,
             });

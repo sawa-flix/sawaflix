@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithPassword, resetPassword, checkAuth } from '@/app/(auth)/actions';
 
@@ -106,7 +107,7 @@ function LoginContent() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

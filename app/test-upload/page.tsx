@@ -7,7 +7,7 @@ export default function TestUploadPage() {
       <form
         method="post"
         encType="multipart/form-data"
-        action="/api/content/music/upload"
+        action="https://sawaflix-backend.onrender.com/api/content/music/upload"
       >
         <div>
           <label>Audio file: <input type="file" name="audio" required /></label>

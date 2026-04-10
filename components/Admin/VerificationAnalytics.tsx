@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Clock, CheckCircle, XCircle, Users, Activity } from "lucide-react";
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
 
 interface StatsData {
   total: number;
@@ -11,7 +12,7 @@ interface StatsData {
   avgTimeHours: string;
   rejectionsByCategory: Record<string, number>;
 }
-const LIVEURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sawaflix-backend.onrender.com';
+
 export default function VerificationAnalytics() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
