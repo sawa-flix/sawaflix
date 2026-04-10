@@ -107,15 +107,7 @@ function LoginContent() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      const result = await response.json();
+      const result = await signInWithPassword(formData);
 
       if (result?.error) {
         setError(result.error);

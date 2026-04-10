@@ -36,10 +36,11 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
   useEffect(() => {
     const fetchUserData = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      setCurrentUser(user || null);
 
-      if (user) {
+      if (user && session) {
         // Fetch user profile
         const { data: profileData } = await supabase
           .from('users')
@@ -53,7 +54,11 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
 
         // Fetch verification status
         try {
-          const res = await fetch(`${BACKEND_URL}/api/creator/profile`);
+          const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          });
           if (res.ok) {
             const data = await res.json();
             setVerificationStatus(data.verificationStatus);

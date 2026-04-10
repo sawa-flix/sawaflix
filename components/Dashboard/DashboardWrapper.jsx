@@ -21,9 +21,17 @@ const DashboardWrapper = ({ children }) => {
   React.useEffect(() => {
     const checkCreatorStatus = async () => {
         try {
+            const { createClient } = require('../../utils/supabase/client');
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
             const visitorId = localStorage.getItem('sawaflix_visitor_id');
             const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
-                headers: visitorId ? { 'x-visitor-id': visitorId } : {}
+                headers: {
+                    ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
             });
             if (res.ok) {
                 const data = await res.json();
