@@ -18,6 +18,8 @@ import {
     AlertCircle,
 } from 'lucide-react';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+import { createClient } from '../../utils/supabase/client';
 
 interface VerificationData {
     id: string;
@@ -75,7 +77,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
         </div>
     );
 }
-import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+
 export default function VerificationDetails({ id }: { id: string }) {
     const router = useRouter();
     const [data, setData] = useState<VerificationData | null>(null);
@@ -111,8 +113,20 @@ export default function VerificationDetails({ id }: { id: string }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${LIVEURL}/api/admin/verifications/${id}`);
-                if (!res.ok) throw new Error('Failed to fetch verification details');
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { user } } = await supabase.auth.getUser();
+                const token = session?.access_token;
+
+                const res = await fetch(`${LIVEURL}/api/admin/verifications/${id}`, {
+                    headers: {
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`Failed to fetch verification details: ${res.status} ${text}`);
+                }
                 const result = await res.json();
                 setData(result.data);
             } catch (err) {
@@ -142,9 +156,16 @@ export default function VerificationDetails({ id }: { id: string }) {
         };
 
         try {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
             const res = await fetch(endpointMap[type], {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
                     feedback: feedback.trim(),
                     notes: feedback.trim() || `Action performed: ${type}`,

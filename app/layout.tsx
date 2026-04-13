@@ -1,9 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { AdminNotificationProvider } from '../contexts/AdminNotificationContext';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflixplay.vercel.app'),
@@ -59,7 +56,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <AdminNotificationProvider>
           {children}
         </AdminNotificationProvider>

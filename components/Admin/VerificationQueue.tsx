@@ -15,6 +15,7 @@ import {
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 
 import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+import { createClient } from '../../utils/supabase/client';
 
 interface VerificationItem {
     id: string;
@@ -47,7 +48,16 @@ export default function VerificationQueue() {
     const fetchData = async (isBackground = false) => {
         if (!isBackground) setLoading(true);
         try {
-            const res = await fetch(`${LIVEURL}/api/admin/verifications`);
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+            
+            const res = await fetch(`${LIVEURL}/api/admin/verifications`, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
             if (res.ok) {
                 const data = await res.json();
                 const fetchedItems = data.data || [];
@@ -84,7 +94,7 @@ export default function VerificationQueue() {
 
     const filteredItems = items.filter(item => {
         const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
-        const matchesSearch = item.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (item.full_name || '').toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -115,10 +125,18 @@ export default function VerificationQueue() {
 
         setBulkLoading(true);
         try {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+            
             const promises = Array.from(selectedIds).map(id =>
                 fetch(`${LIVEURL}/api/admin/verify`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
                     body: JSON.stringify({ target_creator_id: id, status: 'approved', notes: 'Bulk Approved by Admin' }),
                 })
             );
