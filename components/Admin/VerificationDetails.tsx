@@ -158,6 +158,7 @@ export default function VerificationDetails({ id }: { id: string }) {
         try {
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
             const token = session?.access_token;
             
             const res = await fetch(endpointMap[type], {

@@ -111,7 +111,7 @@ const VerifyOtpPageContent = () => {
       const res = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token: otpString }),
+        body: JSON.stringify({ email, code: otpString }),
       });
       const data = await res.json();
 

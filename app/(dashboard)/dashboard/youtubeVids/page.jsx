@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Volume2, VolumeX, Heart, MessageCircle, UserPlus, Send, X, Check, Share2, Loader2 } from "lucide-react";
 import { BACKEND_URL } from '@/lib/apiConfig';
+import { createClient } from '@/utils/supabase/client';
 
 const formatCount = (num) => {
   if (!num) return 0;
@@ -48,7 +49,17 @@ export default function CameroonReelsPage() {
     try {
       const selectedCat = CATEGORIES.find(c => c.id === activeCategory);
       const tokenParam = isNewCategory ? "" : `&pageToken=${nextPageToken || ""}`;
-      const res = await fetch(`${BACKEND_URL}/api/videos/external?q=${encodeURIComponent(selectedCat.query)}${tokenParam}`);
+      
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+      const token = session?.access_token;
+
+      const res = await fetch(`${BACKEND_URL}/api/videos/external?q=${encodeURIComponent(selectedCat.query)}${tokenParam}`, {
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
       const data = await res.json();
 
       if (isNewCategory) {
@@ -139,12 +150,35 @@ export default function CameroonReelsPage() {
       v.id === videoId ? { ...v, statistics: { ...v.statistics, likeCount: (parseInt(v.statistics.likeCount || 0) + 1).toString() } } : v
     ));
 
-    await fetch(`${BACKEND_URL}/api/youtube/like`, { method: "POST", body: JSON.stringify({ videoId }) });
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    await fetch(`${BACKEND_URL}/api/youtube/like`, { 
+      method: "POST", 
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ videoId }) 
+    });
   };
 
   const handleFollow = async (channelId) => {
     setFollowedChannels(prev => [...prev, channelId]);
-    await fetch(`${BACKEND_URL}/api/youtube/follow`, { method: "POST", body: JSON.stringify({ channelId }) });
+    
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    await fetch(`${BACKEND_URL}/api/youtube/follow`, { 
+      method: "POST", 
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ channelId }) 
+    });
   };
 
   return (

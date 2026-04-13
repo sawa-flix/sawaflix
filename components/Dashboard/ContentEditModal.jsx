@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BACKEND_URL } from '@/lib/apiConfig';
+import { createClient } from '@/utils/supabase/client';
 
 export default function EditContentModal({ content, close, onUpdate }) {
   const [title, setTitle] = useState(content.title);
@@ -8,10 +9,16 @@ export default function EditContentModal({ content, close, onUpdate }) {
 
   const handleSave = async () => {
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+      const token = session?.access_token;
+
       const res = await fetch(`${BACKEND_URL}/api/content/${content.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({ title, type, status }),
       });

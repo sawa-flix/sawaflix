@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BACKEND_URL } from '@/lib/apiConfig';
+import { createClient } from '@/utils/supabase/client';
 import {
     Upload,
     Image as ImageIcon,
@@ -174,8 +175,16 @@ export default function PostMusicPage() {
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.audio) payload.append('audio', mediaFiles.audio);
 
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+
             const res = await fetch(`${BACKEND_URL}/api/content/music/upload`, {
                 method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
                 body: payload,
             });
 

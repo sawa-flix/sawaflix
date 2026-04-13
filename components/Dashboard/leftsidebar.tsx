@@ -37,7 +37,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     const fetchUserData = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
+      const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user || null);
 
       if (user && session) {

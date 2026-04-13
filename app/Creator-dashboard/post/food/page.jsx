@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BACKEND_URL } from '@/lib/apiConfig';
-import {
+import { createClient } from '@/utils/supabase/client';
     Image as ImageIcon,
     Video,
     X,
@@ -166,8 +166,16 @@ export default function FoodUploadPage() {
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.video) payload.append('video', mediaFiles.video);
 
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+
             const res = await fetch(`${BACKEND_URL}/api/content/food/upload`, {
                 method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
                 body: payload,
             });
 
