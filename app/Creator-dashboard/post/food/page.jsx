@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BACKEND_URL } from '@/lib/apiConfig';
 import { createClient } from '@/utils/supabase/client';
+import {
     Image as ImageIcon,
     Video,
     X,
