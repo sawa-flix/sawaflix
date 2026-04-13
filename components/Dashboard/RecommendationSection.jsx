@@ -44,7 +44,7 @@ export default function RecommendationSection() {
         title: 'Afrobeats Collection',
         description: 'Latest hits from African artists',
         type: 'Music',
-        link: '/dashboard/musicPage',
+        link: '/dashboard/musicpage',
         gradient: 'from-purple-600 to-pink-600'
       },
       {
@@ -65,7 +65,7 @@ export default function RecommendationSection() {
         title: 'Cultural Vibes',
         description: 'Celebrating traditions',
         type: 'Music',
-        link: '/dashboard/musicPage',
+        link: '/dashboard/musicpage',
         gradient: 'from-green-600 to-emerald-600'
       },
     ];

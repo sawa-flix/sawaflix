@@ -56,7 +56,7 @@ export default function FeaturedSection() {
     description: 'Explore the hottest trending content from around the world',
     views: '2.3M',
     likes: '156K',
-    link: '/dashboard/musicPage'
+    link: '/dashboard/musicpage'
   };
 
   return (

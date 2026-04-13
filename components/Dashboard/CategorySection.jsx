@@ -28,7 +28,7 @@ export default function CategorySection() {
       icon: Music,
       title: 'Music',
       description: 'Discover trending tracks and artists',
-      href: '/dashboard/musicPage',
+      href: '/dashboard/musicpage',
       color: 'bg-gradient-to-br from-purple-600 to-pink-600'
     },
     {

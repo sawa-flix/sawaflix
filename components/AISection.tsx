@@ -49,7 +49,7 @@ export default function AISection() {
                             ))}
                         </ul>
 
-                        <Link href="/dashboard/sawaSmart" className="inline-block px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg font-semibold shadow-lg shadow-red-600/20 hover:shadow-red-600/40 transition-shadow">
+                        <Link href="/dashboard/sawasmart" className="inline-block px-8 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg font-semibold shadow-lg shadow-red-600/20 hover:shadow-red-600/40 transition-shadow">
                             Experience Beta
                         </Link>
                     </motion.div>

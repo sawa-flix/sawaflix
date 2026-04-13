@@ -84,7 +84,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
   const menuItems = [
     { name: 'Feed', icon: Home, id: 'feed', route: '/dashboard', badge: null },
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
-    { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicPage', badge: 'New' },
+    { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
     { name: 'Blogs', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
@@ -116,7 +116,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
   }
 
   const smart = [
-    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawaSmart', badge: null },
+    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ]
 
   const handleItemClick = () => {

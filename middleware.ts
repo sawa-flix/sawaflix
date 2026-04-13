@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from './utils/supabase/middleware'
 import { type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { supabase, response } = createClient(request)
   
   try {
@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
       .eq("creator_id", user.id)
       .maybeSingle();
 
-    if (profileError) console.error("Proxy: profile fetch error:", profileError);
+    if (profileError) console.error("Middleware: profile fetch error:", profileError);
 
     // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
     if (isAuthRoute || pathname === '/') {
@@ -87,7 +87,7 @@ export async function proxy(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Proxy auth error:', error);
+    console.error('Middleware auth error:', error);
     return response;
   }
 }

@@ -31,8 +31,8 @@ export default function Footer() {
                             <li><Link href="/dashboard/movie" className="hover:text-white transition-colors">Movies</Link></li>
                             <li><Link href="/dashboard/music" className="hover:text-white transition-colors">Music</Link></li>
                             <li><Link href="/dashboard" className="hover:text-white transition-colors">Traditions</Link></li>
-                            <li><Link href="/dashboard/youtubeVids" className="hover:text-white transition-colors">Events</Link></li>
-                            <li><Link href="/dashboard/sawaSmart" className="hover:text-white transition-colors">SawaSmart AI</Link></li>
+                            <li><Link href="/dashboard/youtubevids" className="hover:text-white transition-colors">Events</Link></li>
+                            <li><Link href="/dashboard/sawasmart" className="hover:text-white transition-colors">SawaSmart AI</Link></li>
                         </ul>
                     </div>
 

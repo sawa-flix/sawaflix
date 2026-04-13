@@ -72,7 +72,7 @@ const ArtistPage = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-6">
             {topArtists.map((artist) => (
-              <Link href='/dashboard/artistPage'>
+              <Link href='/dashboard/artistpage'>
               <div
                 key={artist.id}
                 className="bg-[#2C2C3D] rounded-lg p-4 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all duration-300"
@@ -105,7 +105,7 @@ const ArtistPage = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-6">
             {mostPopularArtists.map((artist) => (
-              <Link href='/dashboard/artistPage'>
+              <Link href='/dashboard/artistpage'>
               <div
                 key={artist.id}
                 className="bg-[#2C2C3D] rounded-lg p-4 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all duration-300"
