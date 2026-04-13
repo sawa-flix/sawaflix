@@ -1,6 +1,8 @@
 import React from 'react';
 import AdminLayoutWrapper from '../../components/Admin/AdminLayoutWrapper';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
     title: 'Admin Portal | SawaFlix',
     description: 'SawaFlix Administration and Verification Portal',
