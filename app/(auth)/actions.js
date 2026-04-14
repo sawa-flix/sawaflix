@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
 export async function signInWithPassword(formData) {
+  let targetPath = '/dashboard';
   try {
     const email = formData.get('email');
     const password = formData.get('password');
@@ -55,32 +56,20 @@ export async function signInWithPassword(formData) {
     // Revalidate relevant paths
     revalidatePath('/dashboard');
     if (role === 'admin') revalidatePath('/admin');
-    // Return success - let the client handle the redirect
-    return {
-      success: true,
-      message: 'Login successful',
-      user: data.user,
-      user: data.user,
-      role: role,
-      access_token: data.session?.access_token,
-      refresh_token: data.session?.refresh_token,
-      redirectTo: role === 'admin' ? '/admin' : '/dashboard'
-    };
-
+    
+    targetPath = role === 'admin' ? '/admin' : '/dashboard';
   } catch (error) {
     console.error('🔴 Unexpected sign in error:', error);
 
-    // Handle NEXT_REDIRECT errors gracefully
+    // Let NEXT_REDIRECT bubble up so Next.js actually redirects the browser!
     if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      return {
-        success: true,
-        message: 'Login successful (redirecting)',
-        redirectTo: '/dashboard'
-      };
+      throw error;
     }
 
     return { error: 'An unexpected error occurred. Please try again.' };
   }
+  
+  redirect(targetPath);
 }
 
 export async function signUpWithPassword(formData) {

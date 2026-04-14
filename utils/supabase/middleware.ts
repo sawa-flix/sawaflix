@@ -40,6 +40,10 @@ export async function updateSession(request: NextRequest) {
   const { data, error } = await supabase.auth.getUser()
   const user = data?.user;
 
+  if (error) {
+     console.error('Middleware getUser error:', error.message);
+  }
+
   const { pathname } = request.nextUrl;
 
   const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp"];
@@ -52,11 +56,14 @@ export async function updateSession(request: NextRequest) {
     const targetUrl = new URL(url, request.url);
     const redirectResponse = NextResponse.redirect(targetUrl);
     
-    // Copy cookies explicitly
-    supabaseResponse.cookies.getAll().forEach(cookie => {
-       redirectResponse.cookies.set(cookie.name, cookie.value);
+    // Copy the raw set-cookie headers from supabaseResponse to the redirect response
+    // Next.js 15 Edge supports spreading headers directly
+    const setCookies = supabaseResponse.headers.getSetCookie?.() || [];
+    setCookies.forEach((cookie) => {
+      redirectResponse.headers.append('Set-Cookie', cookie);
     });
     
+    console.log(`Middleware Redirecting to ${url} from ${pathname}`);
     return redirectResponse;
   };
 
@@ -65,6 +72,7 @@ export async function updateSession(request: NextRequest) {
     if (isPublicRoute || pathname === '/' || pathname === '/favicon.ico') return supabaseResponse;
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirectedFrom", pathname);
+    console.log(`No user, redirecting to login from ${pathname}.`);
     return redirectWithCookies(redirectUrl);
   }
 
@@ -74,12 +82,13 @@ export async function updateSession(request: NextRequest) {
   let isApprovedCreator = false;
 
   try {
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from("users")
       .select("id, role, verification_status")
       .eq("id", user.id)
       .maybeSingle();
       
+    if (profileError) console.error('Middleware profile fetch error:', profileError);
     profile = profileData;
     
     // We only fetch verification submissions if they are a creator
@@ -106,6 +115,7 @@ export async function updateSession(request: NextRequest) {
     if (role === 'admin') target = "/admin";
     else if (isApprovedCreator) target = "/creator-dashboard";
     
+    console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
     return redirectWithCookies(target);
   }
 

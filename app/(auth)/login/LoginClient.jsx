@@ -112,19 +112,8 @@ function LoginContent() {
       if (result?.error) {
         setError(result.error);
         setIsLoading(false);
-      } else if (result?.success || response.ok) {
-        // Login successful - redirect based on role
-        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
-        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
-        setIsRedirecting(true);
-        
-        // Short delay to show loading state
-        setTimeout(() => {
-          router.push(targetPath);
-          router.refresh();
-        }, 100);
       } else {
-        // Unexpected response
+        // Unexpected response if no redirect was thrown
         setError("Login failed. Please try again.");
       }
     } catch (err) {
