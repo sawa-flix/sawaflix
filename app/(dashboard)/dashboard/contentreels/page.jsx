@@ -1,20 +1,19 @@
 // /app/reels/page.jsx
-import path from 'path';
-import { promises as fs } from 'fs';
 import VideoPlayer from './VideoPlayer';
 
-// This is a Server Component and can safely use Node.js modules like 'fs'
-// to read from the local file system during the build process or on a server request.
+// As the backend is now using Cloudinary/standalone Node.js,
+// we fetch the videos from the backend or an external source
+// instead of reading the local filesystem.
 async function getVideos() {
-  const videosDir = path.join(process.cwd(), 'public', 'contentReels');
-
   try {
-    const filenames = await fs.readdir(videosDir);
-    const videoFiles = filenames.filter(file => file.endsWith('.mp4'));
-    return videoFiles.map(file => `/contentReels/${file}`);
+    // Replace with your actual backend API endpoint if needed
+    // const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reels`);
+    // const data = await res.json();
+    // return data.videos;
+    return []; // Temporary empty array until API integration
   } catch (error) {
-    console.error('Failed to read videos directory:', error);
-    return []; // Return an empty array on error
+    console.error('Failed to fetch videos from backend:', error);
+    return [];
   }
 }
 
@@ -30,7 +29,7 @@ export default async function ReelsPage() {
             <VideoPlayer key={url} src={url} />
           ))
         ) : (
-          <p>No videos found in the public/videos folder.</p>
+          <p>No videos available at the moment. Please upload via Cloudinary backend.</p>
         )}
       </div>
     </div>

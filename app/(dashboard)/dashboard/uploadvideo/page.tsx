@@ -2,11 +2,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { BACKEND_URL } from '../../../../lib/apiConfig';
 import { createClient } from '../../../../utils/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-
-// Chunk size for uploads (5MB)
-const CHUNK_SIZE = 5 * 1024 * 1024;
 
 export default function VideoUpload() {
   const [uploading, setUploading] = useState(false);
@@ -17,24 +14,6 @@ export default function VideoUpload() {
   const formRef = useRef<HTMLFormElement>(null);
   const supabase = createClient();
 
-  const uploadChunk = async (bucket: string, path: string, chunk: Blob, chunkIndex: number, totalChunks: number) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(`${path}?chunk=${chunkIndex}`, chunk);
-      
-      if (error) throw error;
-      
-      // Update progress based on chunks uploaded
-      const chunkProgress = ((chunkIndex + 1) / totalChunks) * 100;
-      setProgress(Math.min(chunkProgress, 90)); // Cap at 90% until finalization
-      
-      return data;
-    } catch (err) {
-      throw new Error(`Chunk ${chunkIndex} upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  };
-
   const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -44,10 +23,6 @@ export default function VideoUpload() {
     const file = fileInputRef.current?.files?.[0];
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
-    const release_date = formData.get('release_date') as string;
-    const producer_name = formData.get('producer_name') as string;
-    const is_featured = formData.get('is_featured') === 'on';
-    const featured_actors = formData.get('featured_actors') as string;
 
     // Validation
     if (!file) {
@@ -55,13 +30,8 @@ export default function VideoUpload() {
       return;
     }
 
-    if (!title.trim()) {
-      setError('Please enter a title');
-      return;
-    }
-
-    if (!description.trim()) {
-      setError('Please enter a description');
+    if (!title.trim() || !description.trim()) {
+      setError('Please fill in required fields');
       return;
     }
 
@@ -70,73 +40,26 @@ export default function VideoUpload() {
       return;
     }
 
-    if (file.size > 100 * 1024 * 1024) {
-      setError('File size must be less than 100MB');
-      return;
-    }
-
     setUploading(true);
-    setProgress(0);
+    setProgress(50); // Show partial progress while waiting for backend Cloudinary upload
 
     try {
-      // Generate unique identifiers
-      const movieId = uuidv4();
-      const producerId = uuidv4();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${movieId}.${fileExt}`;
-      const filePath = `uploads/${fileName}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      // Pass the raw FormData directly to the backend
+      const response = await fetch(`${BACKEND_URL}/api/content/movie/upload`, {
+        method: 'POST',
+        headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: formData,
+      });
 
-      // For large files, use chunked upload
-      if (file.size > CHUNK_SIZE) {
-        const chunks = Math.ceil(file.size / CHUNK_SIZE);
-        
-        for (let i = 0; i < chunks; i++) {
-          const start = i * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          const chunk = file.slice(start, end);
-          
-          await uploadChunk('videos', filePath, chunk, i, chunks);
-        }
-      } else {
-        // Direct upload for smaller files
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(filePath, file);
+      const result = await response.json();
 
-        if (uploadError) {
-          throw new Error(`Upload failed: ${uploadError.message}`);
-        }
-
-        setProgress(90);
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('videos')
-        .getPublicUrl(filePath);
-
-      // Insert metadata
-      const { error: dbError } = await supabase
-        .from('movies')
-        .insert({
-          id: movieId,
-          title: title.trim(),
-          description: description.trim(),
-          release_date: release_date || null,
-          producer_id: producerId,
-          producer_name: producer_name.trim() || null,
-          is_featured,
-          featured_actors: featured_actors.trim() || null,
-          file_path: filePath,
-          video_url: urlData.publicUrl,
-          file_size: file.size,
-          mime_type: file.type,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
-        });
-
-      if (dbError) {
-        await supabase.storage.from('videos').remove([filePath]);
-        throw new Error(`Database error: ${dbError.message}`);
+      if (!response.ok) {
+        throw new Error(result.error || 'Backend failed to upload content to Cloudinary');
       }
 
       setProgress(100);
