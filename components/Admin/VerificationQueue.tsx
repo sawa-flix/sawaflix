@@ -348,7 +348,7 @@ export default function VerificationQueue() {
                                 {!loading && filteredItems.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                            No creators found matching "{searchTerm}" or "{filterCategory}".
+                                            No creators found matching &quot;{searchTerm}&quot; or &quot;{filterCategory}&quot;.
                                         </td>
                                     </tr>
                                 )}

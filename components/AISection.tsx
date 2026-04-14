@@ -76,7 +76,7 @@ export default function AISection() {
                                     </div>
                                     <div>
                                         <p className="text-white font-medium text-sm">Suggestion</p>
-                                        <p className="text-gray-400 text-xs">Based on "Makossa Classics"</p>
+                                        <p className="text-gray-400 text-xs">Based on &quot;Makossa Classics&quot;</p>
                                     </div>
                                 </div>
                                 <div className="h-2 bg-gray-700 rounded-full w-full overflow-hidden">

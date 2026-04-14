@@ -158,7 +158,6 @@ export default function VerificationDetails({ id }: { id: string }) {
         try {
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
             const token = session?.access_token;
             
             const res = await fetch(endpointMap[type], {
@@ -204,9 +203,9 @@ export default function VerificationDetails({ id }: { id: string }) {
             setActionModal(null);
             setFeedback('');
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setToast({ message: err.message || 'Something went wrong. Please try again.', type: 'error' });
+            setToast({ message: err instanceof Error ? err.message : 'Something went wrong. Please try again.', type: 'error' });
             addNotification({
                 type: 'info',
                 title: 'Action Failed',
