@@ -27,7 +27,9 @@ export async function updateSession(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
-            request,
+            request: {
+              headers: request.headers,
+            },
           })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -49,9 +51,16 @@ export async function updateSession(request: NextRequest) {
 
   // Helper for redirection that preserves cookies exactly
   const redirectWithCookies = (url: URL | string) => {
-    const redirectResponse = NextResponse.redirect(new URL(url, request.url));
-    const setCookieHeaders = supabaseResponse.headers.getSetCookie();
-    setCookieHeaders.forEach((cookie) => redirectResponse.headers.append('Set-Cookie', cookie));
+    const targetUrl = new URL(url, request.url);
+    const redirectResponse = NextResponse.redirect(targetUrl);
+    
+    // In @supabase/ssr, the set cookie headers from the created client 
+    // are stored on the supabaseResponse. We need to forward them.
+    const setCookieHeader = supabaseResponse.headers.get('set-cookie');
+    if (setCookieHeader) {
+      redirectResponse.headers.set('set-cookie', setCookieHeader);
+    }
+    
     return redirectResponse;
   };
 
