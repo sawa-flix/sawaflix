@@ -25,18 +25,13 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({
-              request,
-            })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
-          } catch {
-            // Protects against Vercel Edge Runtime failures if cookie mutation fails
-            console.warn('Silent cookie mutation failure in Edge.')
-          }
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     }
@@ -57,21 +52,10 @@ export async function updateSession(request: NextRequest) {
     const targetUrl = new URL(url, request.url);
     const redirectResponse = NextResponse.redirect(targetUrl);
     
-    // Safely copy all set-cookie headers from the supabaseResponse to the redirect response
-    // Using raw headers instead of parsed cookie objects prevents Vercel MIDDLEWARE_INVOCATION_FAILED bugs
-    const setCookieHeaders = supabaseResponse.headers.getSetCookie?.() || [];
-    
-    if (setCookieHeaders.length > 0) {
-        setCookieHeaders.forEach(cookieStr => {
-            redirectResponse.headers.append('set-cookie', cookieStr);
-        });
-    } else {
-        // Fallback for older Next.js versions
-        const fallbackCookie = supabaseResponse.headers.get('set-cookie');
-        if (fallbackCookie) {
-             redirectResponse.headers.set('set-cookie', fallbackCookie);
-        }
-    }
+    // Copy cookies explicitly
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+       redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
     
     return redirectResponse;
   };
