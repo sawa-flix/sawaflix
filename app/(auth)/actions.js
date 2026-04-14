@@ -57,19 +57,19 @@ export async function signInWithPassword(formData) {
     revalidatePath('/dashboard');
     if (role === 'admin') revalidatePath('/admin');
     
-    targetPath = role === 'admin' ? '/admin' : '/dashboard';
+    // Return success to client so it can do a router.push()
+    return {
+      success: true,
+      message: 'Login successful',
+      user: data.user,
+      role: role,
+      redirectTo: role === 'admin' ? '/admin' : '/dashboard'
+    };
+
   } catch (error) {
     console.error('🔴 Unexpected sign in error:', error);
-
-    // Let NEXT_REDIRECT bubble up so Next.js actually redirects the browser!
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
-    }
-
     return { error: 'An unexpected error occurred. Please try again.' };
   }
-  
-  redirect(targetPath);
 }
 
 export async function signUpWithPassword(formData) {

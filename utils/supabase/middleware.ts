@@ -21,6 +21,23 @@ export async function updateSession(request: NextRequest) {
     supabaseAnonKey,
     {
       cookies: {
+        get(name) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name, value, options) {
+          request.cookies.set({ name, value, ...options });
+          supabaseResponse = NextResponse.next({
+            request: { headers: request.headers },
+          });
+          supabaseResponse.cookies.set({ name, value, ...options });
+        },
+        remove(name, options) {
+          request.cookies.set({ name, value: '', ...options });
+          supabaseResponse = NextResponse.next({
+            request: { headers: request.headers },
+          });
+          supabaseResponse.cookies.set({ name, value: '', ...options });
+        },
         getAll() {
           return request.cookies.getAll()
         },
@@ -39,6 +56,11 @@ export async function updateSession(request: NextRequest) {
 
   const { data, error } = await supabase.auth.getUser()
   const user = data?.user;
+
+  console.log(`[Middleware] Path: ${request.nextUrl.pathname}, User Found: ${!!user}`);
+  if (!user && request.cookies.getAll().length > 0) {
+    console.log(`[Middleware] Cookies present but no user!`, request.cookies.getAll().map(c => c.name));
+  }
 
   if (error) {
      console.error('Middleware getUser error:', error.message);

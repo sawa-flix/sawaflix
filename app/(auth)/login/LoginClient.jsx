@@ -112,17 +112,20 @@ function LoginContent() {
       if (result?.error) {
         setError(result.error);
         setIsLoading(false);
+      } else if (result?.success) {
+        // Login successful - redirect based on role
+        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
+        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
+        setIsRedirecting(true);
+        
+        // Force a hard navigation to guarantee the browser sends the new auth cookies!
+        // This solves the Vercel/NextJS RSC cookie-stripping bug during client transitions.
+        window.location.href = targetPath;
       } else {
         // Unexpected response if no redirect was thrown
         setError("Login failed. Please try again.");
       }
     } catch (err) {
-      // Handle Next.js redirect errors correctly
-      if (err?.digest?.startsWith('NEXT_REDIRECT')) {
-        setIsRedirecting(true);
-        return;
-      }
-
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
