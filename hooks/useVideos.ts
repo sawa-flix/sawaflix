@@ -44,6 +44,11 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             // Fetch first page
             const response = await youtubeApi.searchVideos(categoryQuery, null, 7);
 
+            if (!response || !response.items) {
+                const apiError = response?.error?.message || 'Failed to fetch videos';
+                throw new Error(apiError);
+            }
+
             setVideos(response.items);
             nextPageTokenRef.current = response.nextPageToken;
             setHasMore(!!response.nextPageToken);
@@ -97,6 +102,9 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 nextPageTokenRef.current,
                 7
             );
+            if (!response || !response.items) {
+                throw new Error('Invalid data received while loading more videos');
+            }
 
             setVideos(prev => {
                 // Prevent duplicates by checking IDs

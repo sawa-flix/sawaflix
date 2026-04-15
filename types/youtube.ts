@@ -18,6 +18,10 @@ export interface VideoSearchResponse {
     nextPageToken: string | null;
     prevPageToken?: string | null;
     totalResults?: number;
+    error?: {
+        message: string;
+    };
+
 }
 
 export interface VideoDetails {
