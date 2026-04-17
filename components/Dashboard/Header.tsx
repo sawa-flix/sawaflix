@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Search, Bell, User, Settings, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client'; 
 import { User as SupabaseUser } from '@supabase/supabase-js'; 
 import { handleSignOut } from '../../app/(auth)/actions'; 
@@ -27,6 +28,9 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   // Use admin notifications only if we are in admin mode (indicated by hideSearch)
   const notificationContext = useAdminNotifications();
   const { notifications, unreadCount, markRead, markAllRead } = hideSearch ? notificationContext : { notifications: [], unreadCount: 0, markRead: () => {}, markAllRead: () => {} };
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +59,8 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      console.log('Searching for:', searchValue);
+      // Navigate to youtubeVids page with search query
+      router.push(`/dashboard/youtubeVids?q=${encodeURIComponent(searchValue.trim())}`);
       setShowMobileSearchBar(false);
     }
   };

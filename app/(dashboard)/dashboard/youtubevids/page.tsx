@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Volume2, VolumeX, MessageCircle,
   Send, X, Check, Loader2, ThumbsUp, ThumbsDown,
@@ -38,12 +39,17 @@ export default function CameroonReelsPage() {
   const [followedChannels, setFollowedChannels] = useState<string[]>([]);
   const [newComment, setNewComment] = useState("");
   const [progressMap, setProgressMap] = useState<Map<string, VideoProgress>>(new Map());
+  
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get('q');
+  const [currentQuery, setCurrentQuery] = useState<string>(CATEGORIES[0].query);
+
   const observerRef = useRef<IntersectionObserver | null>(null);
   const videoContainerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
 
-  const { videos, loading, error, hasMore, isRefreshing } =
-    useVideos(currentCategory?.query ?? "Cameroon music");
+  const { videos, loading, error, hasMore, isRefreshing, refresh } =
+    useVideos(currentQuery);
 
   const { stats: activeStats } = useVideoStats(activeVideoId);
 
@@ -95,9 +101,30 @@ export default function CameroonReelsPage() {
   }, []);
 
   const handleCategorySelect = useCallback((id: CategoryId) => {
-    setActiveCategory(id);
-    setMenuOpen(false);
+    try {
+      const cat = CATEGORIES.find(c => c.id === id);
+      if (cat) {
+        setActiveCategory(id);
+        setCurrentQuery(cat.query);
+        setMenuOpen(false);
+      }
+    } catch (err) {
+      console.error('[Dashboard] Error selecting category:', err);
+    }
   }, []);
+
+  // Handle URL search query
+  useEffect(() => {
+    try {
+      if (urlQuery) {
+        console.log('[Dashboard] Search query detected:', urlQuery);
+        setActiveCategory("all" as any); // Reset category visual
+        setCurrentQuery(urlQuery);
+      }
+    } catch (err) {
+      console.error('[Dashboard] Error handling URL query:', err);
+    }
+  }, [urlQuery]);
 
   useEffect(() => {
     if (!videos.length) return;

@@ -1,6 +1,7 @@
 import type { VideoSearchResponse, VideoDetails, Comment } from '@/types/youtube';
+import { BACKEND_URL } from '@/lib/apiConfig';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = BACKEND_URL || 'http://localhost:5000';
 
 export class YouTubeApiService {
     private baseUrl: string;

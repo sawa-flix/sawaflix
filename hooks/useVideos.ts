@@ -44,20 +44,22 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             // Fetch first page
             const response = await youtubeApi.searchVideos(categoryQuery, null, 7);
 
-            if (!response || !response.items) {
-                const apiError = response?.error?.message || 'Failed to fetch videos';
+            const videoList = Array.isArray(response) ? response : (response as any).items || [];
+            
+            if (videoList.length === 0 && !Array.isArray(response)) {
+                const apiError = (response as any)?.error?.message || 'No videos found';
                 throw new Error(apiError);
             }
 
-            setVideos(response.items);
-            nextPageTokenRef.current = response.nextPageToken;
-            setHasMore(!!response.nextPageToken);
+            setVideos(videoList);
+            nextPageTokenRef.current = (response as any).nextPageToken || null;
+            setHasMore(!!(response as any).nextPageToken);
 
-            console.log(`[useVideos] Refreshed: ${response.items.length} videos, hasMore: ${!!response.nextPageToken}`);
+            console.log(`[useVideos] Refreshed: ${videoList.length} videos, hasMore: ${!!(response as any).nextPageToken}`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to refresh videos';
             setError(errorMessage);
-            console.error('[useVideos] Refresh failed:', errorMessage);
+            console.error('[useVideos] Refresh failed:', err); // Log the full error object for better debugging
         } finally {
             setIsRefreshing(false);
             isLoadingRef.current = false;
@@ -102,25 +104,28 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 nextPageTokenRef.current,
                 7
             );
-            if (!response || !response.items) {
+            
+            const videoList = Array.isArray(response) ? response : (response as any).items || [];
+
+            if (videoList.length === 0 && !Array.isArray(response)) {
                 throw new Error('Invalid data received while loading more videos');
             }
 
             setVideos(prev => {
                 // Prevent duplicates by checking IDs
                 const existingIds = new Set(prev.map(v => v.id));
-                const newVideos = response.items.filter(v => !existingIds.has(v.id));
+                const newVideos = videoList.filter(v => !existingIds.has(v.id));
                 return [...prev, ...newVideos];
             });
 
-            nextPageTokenRef.current = response.nextPageToken;
-            setHasMore(!!response.nextPageToken);
+            nextPageTokenRef.current = (response as any).nextPageToken || null;
+            setHasMore(!!(response as any).nextPageToken);
 
-            console.log(`[useVideos] Loaded more: ${response.items.length} new videos, hasMore: ${!!response.nextPageToken}`);
+            console.log(`[useVideos] Loaded more: ${videoList.length} new videos, hasMore: ${!!(response as any).nextPageToken}`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to load more videos';
             setError(errorMessage);
-            console.error('[useVideos] Load more failed:', errorMessage);
+            console.error('[useVideos] Load more failed:', err);
         } finally {
             setLoading(false);
             isLoadingRef.current = false;
