@@ -5,7 +5,7 @@ import HeroSection from '../../../../components/HeroSection';
 import ScrollableRow from '../../../../components/ScrollableRow';
 import Modal from '../../../../components/Modal';
 import Toast from '../../../../components/Toast';
-// import companies from '../../components/company';
+import Companies from '../../../../components/company';
 import mockData from '../../../data/mockdata.json';
 
 export default function MovieStreamingSite() {
@@ -88,7 +88,7 @@ export default function MovieStreamingSite() {
         onMoreInfo={handleMoreInfo}
         onAddToWatchlist={handleAddToWatchlist}
       />
-      <companies/>
+      <Companies />
 
         
         <div className="max-w-7xl mx-auto px-2 md:px-6 py-8 md:py-12 space-y-8 md:space-y-12">

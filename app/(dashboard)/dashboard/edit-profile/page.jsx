@@ -25,7 +25,7 @@ export default function EditProfilePage() {
                 const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
                 const token = session?.access_token;
 
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
                   headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                   }
