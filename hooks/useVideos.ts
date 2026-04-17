@@ -44,12 +44,26 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             // Fetch first page
             const response = await youtubeApi.searchVideos(categoryQuery, null, 7);
 
-            const videoList = Array.isArray(response) ? response : (response as any).items || [];
+            const rawList = Array.isArray(response) ? response : (response as any).items || [];
             
-            if (videoList.length === 0 && !Array.isArray(response)) {
+            if (rawList.length === 0 && !Array.isArray(response)) {
                 const apiError = (response as any)?.error?.message || 'No videos found';
                 throw new Error(apiError);
             }
+
+            const videoList = rawList.map((item: any) => ({
+                id: typeof item.id === 'object' ? item.id.videoId : item.id,
+                title: item.snippet?.title || item.title,
+                description: item.snippet?.description || item.description,
+                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
+                channelId: item.snippet?.channelId || item.channelId,
+                channelTitle: item.snippet?.channelTitle || item.channelTitle,
+                publishedAt: item.snippet?.publishedAt || item.publishedAt,
+                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                likeCount: item.statistics?.likeCount || item.likeCount,
+                commentCount: item.statistics?.commentCount || item.commentCount,
+            }));
 
             setVideos(videoList);
             nextPageTokenRef.current = (response as any).nextPageToken || null;
@@ -105,11 +119,25 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 7
             );
             
-            const videoList = Array.isArray(response) ? response : (response as any).items || [];
+            const rawList = Array.isArray(response) ? response : (response as any).items || [];
 
-            if (videoList.length === 0 && !Array.isArray(response)) {
+            if (rawList.length === 0 && !Array.isArray(response)) {
                 throw new Error('Invalid data received while loading more videos');
             }
+            
+            const videoList = rawList.map((item: any) => ({
+                id: typeof item.id === 'object' ? item.id.videoId : item.id,
+                title: item.snippet?.title || item.title,
+                description: item.snippet?.description || item.description,
+                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
+                channelId: item.snippet?.channelId || item.channelId,
+                channelTitle: item.snippet?.channelTitle || item.channelTitle,
+                publishedAt: item.snippet?.publishedAt || item.publishedAt,
+                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                likeCount: item.statistics?.likeCount || item.likeCount,
+                commentCount: item.statistics?.commentCount || item.commentCount,
+            }));
 
             setVideos(prev => {
                 // Prevent duplicates by checking IDs
