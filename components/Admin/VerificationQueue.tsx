@@ -19,7 +19,9 @@ import { createClient } from '../../utils/supabase/client';
 
 interface VerificationItem {
     id: string;
-    full_name: string;
+    slug: string;
+    legal_name: string;
+    stage_name: string;
     category: string;
     status: "pending" | "approved" | "rejected" | "info_requested";
     submitted_at: string;
@@ -94,7 +96,8 @@ export default function VerificationQueue() {
 
     const filteredItems = items.filter(item => {
         const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
-        const matchesSearch = (item.full_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const nameToSearch = item.stage_name || item.legal_name || '';
+        const matchesSearch = nameToSearch.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -305,11 +308,10 @@ export default function VerificationQueue() {
                                             <td className="px-6 py-4 cursor-pointer" onClick={() => toggleSelect(item.id, isPending)}>
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden relative border border-gray-700">
-                                                        <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${item.full_name}`} alt={item.full_name} className="w-full h-full object-cover" />
+                                                        <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${item.stage_name || item.legal_name}`} alt={item.stage_name || item.legal_name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium text-white">{item.full_name}</div>
-                                                        <div className="text-xs text-gray-500">ID: #{item.id.substring(0, 8)}</div>
+                                                        <div className="font-medium text-white">{item.stage_name !== "TBD" ? item.stage_name : item.legal_name}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -334,7 +336,7 @@ export default function VerificationQueue() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={`/admin/verifications/${item.id}`}
+                                                    href={`/admin/verifications/${item.slug}`}
                                                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-900/20"
                                                 >
                                                     <Eye size={16} />

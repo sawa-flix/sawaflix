@@ -175,7 +175,7 @@ export default function VerificationDetails({ id }: { id: string }) {
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || `Failed to ${type} verification`);
+                throw new Error(errData.error || errData.message || `Failed to ${type} verification`);
             }
 
             // Sync with Global Admin Notifications

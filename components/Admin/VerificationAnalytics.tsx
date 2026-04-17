@@ -5,13 +5,17 @@ import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
 import { createClient } from '../../utils/supabase/client';
 
 interface StatsData {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  approvalRate: string;
-  avgTimeHours: string;
-  rejectionsByCategory: Record<string, number>;
+  userStats: { total: number };
+  queueStats: { pending: number };
+  creatorStats: { total: number };
+  analytics: {
+    totalSubmissions: number;
+    approved: number;
+    rejected: number;
+    approvalRate: number;
+    avgTimeHours: number;
+    rejectionsByCategory: Record<string, number>;
+  };
 }
 
 export default function VerificationAnalytics() {
@@ -65,7 +69,7 @@ export default function VerificationAnalytics() {
   const cards = [
     {
       title: "Pending Reviews",
-      value: (stats.pending || 0).toString(),
+      value: (stats.queueStats?.pending || 0).toString(),
       subtext: "Applications waiting for review",
       icon: <Clock size={24} className="text-yellow-500" />,
       bg: "bg-yellow-500/10",
@@ -73,7 +77,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Approval Rate",
-      value: `${stats.approvalRate || 0}%`,
+      value: `${stats.analytics?.approvalRate || 0}%`,
       subtext: "Of processed applications",
       icon: <CheckCircle size={24} className="text-green-500" />,
       bg: "bg-green-500/10",
@@ -81,7 +85,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Total Processed",
-      value: ((stats.approved || 0) + (stats.rejected || 0)).toString(),
+      value: ((stats.analytics?.approved || 0) + (stats.analytics?.rejected || 0)).toString(),
       subtext: "Total verifications resolved",
       icon: <Users size={24} className="text-blue-500" />,
       bg: "bg-blue-500/10",
@@ -89,7 +93,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Avg. Turnaround",
-      value: `${stats.avgTimeHours || 0}h`,
+      value: `${stats.analytics?.avgTimeHours || 0}h`,
       subtext: "Average time to resolution",
       icon: <Activity size={24} className="text-purple-500" />,
       bg: "bg-purple-500/10",
