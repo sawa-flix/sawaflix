@@ -5,6 +5,7 @@ import { BACKEND_URL } from '@/lib/apiConfig';
 import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
 import PendingState from '@/components/Dashboard/PendingState';
 import { Loader2 } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function CreatorPendingPage() {
     const [profile, setProfile] = useState(null);
@@ -14,9 +15,12 @@ export default function CreatorPendingPage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const visitorId = localStorage.getItem('sawaflix_visitor_id');
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
-                    headers: visitorId ? { 'x-visitor-id': visitorId } : {}
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+
+                const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();

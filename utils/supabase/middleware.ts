@@ -113,14 +113,15 @@ export async function updateSession(request: NextRequest) {
     if (profileError) console.error('Middleware profile fetch error:', profileError);
     profile = profileData;
     
-    // We only fetch verification submissions if they are a creator
+    // We need to fetch submissions for all users because viewers can submit verification applications
+    const { data: submissionData } = await supabase
+      .from("verification_submissions")
+      .select("status")
+      .eq("creator_id", user.id)
+      .maybeSingle();
+    submission = submissionData;
+    
     if (profile?.role === 'creator') {
-        const { data: submissionData } = await supabase
-          .from("verification_submissions")
-          .select("status")
-          .eq("creator_id", user.id)
-          .maybeSingle();
-        submission = submissionData;
         isApprovedCreator = (submission?.status === 'approved');
     } else {
         isApprovedCreator = (profile?.role === 'admin');
