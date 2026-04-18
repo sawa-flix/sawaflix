@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export default function SettingsPage() {
 
         const data = await res.json();
         setProfile(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
@@ -78,8 +78,8 @@ export default function SettingsPage() {
       // Automatically sign out after successful deletion
       await handleSignOut();
       
-    } catch (err: any) {
-      alert(err.message || 'An error occurred while deleting your account.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'An error occurred while deleting your account.');
       setDeleting(false);
     }
   };

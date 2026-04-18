@@ -118,7 +118,7 @@ export default function CameroonReelsPage() {
     try {
       if (urlQuery) {
         console.log('[Dashboard] Search query detected:', urlQuery);
-        setActiveCategory("all" as any); // Reset category visual
+        setActiveCategory("all" as CategoryId); // Reset category visual
         setCurrentQuery(urlQuery);
       }
     } catch (err) {
