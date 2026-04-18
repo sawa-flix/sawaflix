@@ -6,8 +6,7 @@ export default async function CreatorLayout({ children }) {
   const profile = await getUserProfile();
 
   if (!profile) redirect("/login");
-  if (profile.role !== "creator") redirect("/dashboard");
-  if (profile.verification_status !== "approved") redirect("/creator");
+  if (profile.verification_status?.toLowerCase() !== "approved" && profile.role?.toLowerCase() !== "admin") redirect("/dashboard");
 
   return (
     <DashboardWrapper>

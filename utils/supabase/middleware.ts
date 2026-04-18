@@ -121,10 +121,13 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
     submission = submissionData;
     
-    if (profile?.role === 'creator') {
-        isApprovedCreator = (submission?.status === 'approved');
+    if (profile?.role === 'admin') {
+        isApprovedCreator = true;
     } else {
-        isApprovedCreator = (profile?.role === 'admin');
+        isApprovedCreator = (
+            submission?.status?.toLowerCase() === 'approved' || 
+            profile?.verification_status?.toLowerCase() === 'approved'
+        );
     }
   } catch (err) {
     console.error("Middleware DB Fetch issue:", err);
