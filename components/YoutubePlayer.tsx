@@ -15,6 +15,7 @@ declare global {
     interface Window {
         YT: typeof YT;
         onYouTubeIframeAPIReady: () => void;
+        youtubeCallbacks?: (() => void)[];
     }
 }
 
@@ -38,14 +39,23 @@ export function YouTubePlayer({
             return;
         }
 
-        window.onYouTubeIframeAPIReady = () => {
-            setApiLoaded(true);
-        };
+        if (!window.youtubeCallbacks) {
+            window.youtubeCallbacks = [];
+            
+            window.onYouTubeIframeAPIReady = () => {
+                window.youtubeCallbacks?.forEach(cb => cb());
+                window.youtubeCallbacks = [];
+            };
 
-        const script = document.createElement('script');
-        script.src = 'https://www.youtube.com/iframe_api';
-        script.async = true;
-        document.body.appendChild(script);
+            const script = document.createElement('script');
+            script.src = 'https://www.youtube.com/iframe_api';
+            script.async = true;
+            document.body.appendChild(script);
+        }
+
+        window.youtubeCallbacks.push(() => {
+            setApiLoaded(true);
+        });
     }, []);
 
     // Initialize player when needed
