@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Volume2, VolumeX, MessageCircle,
@@ -29,7 +29,7 @@ interface VideoProgress {
   progress: number;
   timeLeft: string;
 }
-export default function CameroonReelsPage() {
+function CameroonReelsContent() {
   // UI State
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const [isMuted, setIsMuted] = useState(true);
@@ -463,5 +463,13 @@ export default function CameroonReelsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CameroonReelsPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center"><Loader2 className="animate-spin text-red-600" size={40} /></div>}>
+      <CameroonReelsContent />
+    </Suspense>
   );
 }
