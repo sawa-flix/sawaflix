@@ -65,7 +65,11 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 commentCount: item.statistics?.commentCount || item.commentCount,
             }));
 
-            setVideos(videoList);
+            // TikTok Effect: Shuffle the videos so the feed feels fresh and dynamic 
+            // every time the user opens the app, even while using the 1-hour cache!
+            const shuffledVideos = [...videoList].sort(() => Math.random() - 0.5);
+
+            setVideos(shuffledVideos);
             nextPageTokenRef.current = (response as any).nextPageToken || null;
             setHasMore(!!(response as any).nextPageToken);
 

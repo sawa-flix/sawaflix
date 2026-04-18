@@ -336,7 +336,7 @@ export default function VerificationQueue() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={`/admin/verifications/${item.slug}`}
+                                                    href={`/admin/verifications/${item.slug || item.id}`}
                                                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-900/20"
                                                 >
                                                     <Eye size={16} />
