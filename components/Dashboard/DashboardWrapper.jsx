@@ -46,9 +46,10 @@ const DashboardWrapper = ({ children }) => {
     checkCreatorStatus();
   }, []);
 
-  // Determine if we should show the creator-specific layout
-  // Only use Creator layout for approved creators on the creator-dashboard path
-  const isCreatorLayout = pathname.startsWith('/creator-dashboard') && verificationStatus === 'approved';
+  // Determine if we should show the creator-specific layout.
+  // The middleware already blocks non-approved creators from /creator-dashboard,
+  // so we trust the pathname directly — no need to wait for the async API call.
+  const isCreatorLayout = pathname.startsWith('/creator-dashboard');
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);

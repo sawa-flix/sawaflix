@@ -149,7 +149,8 @@ export async function updateSession(request: NextRequest) {
   if (!profile) return supabaseResponse;
 
   // 5. OTP Check for all users except admins
-  if (profile.role !== 'admin' && profile.verification_status !== "approved") {
+  // Use .toLowerCase() to match the same logic used in isApprovedCreator above
+  if (profile.role?.toLowerCase() !== 'admin' && profile.verification_status?.toLowerCase() !== "approved") {
       if (isPublicRoute) return supabaseResponse;
       if (pathname.startsWith("/creator/verify")) return supabaseResponse;
       if (pathname.startsWith("/creator/pending")) return supabaseResponse;
