@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, Suspense } from 'react';
-import { BACKEND_URL } from '@/lib/apiConfig';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signUpWithPassword } from '@/app/(auth)/actions';
+import { createClient } from '@/utils/supabase/client';
 
 // import { Suspense } from 'react';
 const AuthButton = ({ children, isLoading, variant = 'primary', className = '', ...props }) => {
@@ -13,6 +13,7 @@ const AuthButton = ({ children, isLoading, variant = 'primary', className = '', 
 
   const variants = {
     primary: "bg-red-700 hover:bg-red-600 disabled:bg-red-900 text-white hover:shadow-red-500/70 hover:scale-[1.02]",
+    google: "bg-gray-900 border border-gray-700 text-white hover:bg-gray-800 hover:shadow-red-500/30",
   };
 
   return (
@@ -37,6 +38,7 @@ function SignUpContent() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,6 +46,42 @@ function SignUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role');
+
+  const handleGoogleSignUp = async () => {
+    setError(null);
+    setSuccessMessage(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const supabase = createClient();
+      const isLocalhost =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+      const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+      const redirectBase = isLocalhost || !configuredSiteUrl
+        ? window.location.origin
+        : configuredSiteUrl;
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${redirectBase}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (oauthError) {
+        setError('Unable to continue with Google right now. Please try again.');
+        setIsGoogleLoading(false);
+      }
+    } catch (err) {
+      setError('Unable to continue with Google right now. Please try again.');
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -73,7 +111,6 @@ function SignUpContent() {
     formData.set('category', category);
 
     formData.delete('confirmPassword');
-    const data = Object.fromEntries(formData.entries());
 
     try {
       const result = await signUpWithPassword(formData);
@@ -81,7 +118,7 @@ function SignUpContent() {
       if (result?.error) {
         setError(result.error);
         setLoading(false);
-      } else if (result?.success || response.ok) {
+      } else if (result?.success) {
         if (result.requiresEmailConfirmation) {
           setRequiresConfirmation(true);
           setSuccessMessage(result.message || 'Please check your email to confirm your account.');
@@ -168,7 +205,7 @@ function SignUpContent() {
                     placeholder="Username"
                     autoComplete="username"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
                   {/* Email Input */}
@@ -179,7 +216,7 @@ function SignUpContent() {
                     placeholder="Email address"
                     autoComplete="email"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
                   {/* Password Input */}
@@ -192,7 +229,7 @@ function SignUpContent() {
                       placeholder="Password"
                       autoComplete="new-password"
                       className="w-full pl-5 pr-12 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                      disabled={loading}
+                      disabled={loading || isGoogleLoading}
                     />
                     <button
                       type="button"
@@ -223,7 +260,7 @@ function SignUpContent() {
                       placeholder="Confirm Password"
                       autoComplete="new-password"
                       className="w-full pl-5 pr-12 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                      disabled={loading}
+                      disabled={loading || isGoogleLoading}
                     />
                     <button
                       type="button"
@@ -251,13 +288,29 @@ function SignUpContent() {
                     placeholder="Phone number (optional)"
                     autoComplete="tel"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
-                  <AuthButton type="submit" isLoading={loading}>
+                  <AuthButton type="submit" isLoading={loading || isGoogleLoading}>
                     Create Account
                   </AuthButton>
                 </form>
+
+                <div className="my-4 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-gray-700" />
+                  <span className="text-xs uppercase tracking-wider text-gray-500">or</span>
+                  <div className="h-px flex-1 bg-gray-700" />
+                </div>
+
+                <AuthButton
+                  type="button"
+                  variant="google"
+                  isLoading={isGoogleLoading}
+                  onClick={handleGoogleSignUp}
+                  disabled={loading || isGoogleLoading}
+                >
+                  Continue with Google
+                </AuthButton>
 
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base space-y-2">
                   <p>

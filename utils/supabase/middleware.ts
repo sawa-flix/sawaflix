@@ -1,7 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { copySetCookies } from './cookies'
 
 export async function updateSession(request: NextRequest) {
+  const isDev = process.env.NODE_ENV === 'development'
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -10,7 +12,7 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (process.env.NODE_ENV === 'development') {
+    if (isDev) {
       console.warn('Missing Supabase environment variables in Middleware.');
     }
     return supabaseResponse;
@@ -57,8 +59,8 @@ export async function updateSession(request: NextRequest) {
   const { data, error } = await supabase.auth.getUser()
   const user = data?.user;
 
-  console.log(`[Middleware] Path: ${request.nextUrl.pathname}, User Found: ${!!user}`);
-  if (!user && request.cookies.getAll().length > 0) {
+  if (isDev) console.log(`[Middleware] Path: ${request.nextUrl.pathname}, User Found: ${!!user}`);
+  if (isDev && !user && request.cookies.getAll().length > 0) {
     console.log(`[Middleware] Cookies present but no user!`, request.cookies.getAll().map(c => c.name));
   }
 
@@ -68,8 +70,8 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp"];
-  const authRoutes = ["/login", "/sign-up", "/sign-in"];
+  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
+  const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
@@ -78,14 +80,9 @@ export async function updateSession(request: NextRequest) {
     const targetUrl = new URL(url, request.url);
     const redirectResponse = NextResponse.redirect(targetUrl);
     
-    // Copy the raw set-cookie headers from supabaseResponse to the redirect response
-    // Next.js 15 Edge supports spreading headers directly
-    const setCookies = supabaseResponse.headers.getSetCookie?.() || [];
-    setCookies.forEach((cookie) => {
-      redirectResponse.headers.append('Set-Cookie', cookie);
-    });
+    copySetCookies(supabaseResponse, redirectResponse)
     
-    console.log(`Middleware Redirecting to ${url} from ${pathname}`);
+    if (isDev) console.log(`Middleware Redirecting to ${url} from ${pathname}`);
     return redirectResponse;
   };
 
@@ -94,7 +91,7 @@ export async function updateSession(request: NextRequest) {
     if (isPublicRoute || pathname === '/' || pathname === '/favicon.ico') return supabaseResponse;
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirectedFrom", pathname);
-    console.log(`No user, redirecting to login from ${pathname}.`);
+    if (isDev) console.log(`No user, redirecting to login from ${pathname}.`);
     return redirectWithCookies(redirectUrl);
   }
 
@@ -141,7 +138,7 @@ export async function updateSession(request: NextRequest) {
     if (role === 'admin') target = "/admin";
     else if (isApprovedCreator) target = "/creator-dashboard";
     
-    console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
+    if (isDev) console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
     return redirectWithCookies(target);
   }
 

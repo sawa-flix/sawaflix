@@ -20,6 +20,6 @@ export const config = {
      * - api/ (API routes)
      * - login (auth pages explicitly ignored by Edge)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|login|sign-in|sign-up|verify-otp|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|login|sign-in|sign-up|verify-otp|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm)$).*)',
   ],
 }
