@@ -45,16 +45,16 @@ export default function AreaToryHero() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-xs transition-all active:scale-[0.97] shadow-lg shadow-red-600/20 uppercase tracking-widest">
+            <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-xs transition-all duration-300 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer uppercase tracking-widest">
               Explore stories
             </button>
             <div className="flex items-center gap-6 px-4">
-               <div className="flex flex-col items-center md:items-start">
+               <div className="flex flex-col items-center md:items-start cursor-default">
                   <span className="text-white font-bold text-base">12k+</span>
                   <span className="text-gray-500 text-[9px] uppercase tracking-widest font-bold">Followers</span>
                </div>
                <div className="w-[1px] h-6 bg-gray-800" />
-               <div className="flex flex-col items-center md:items-start">
+               <div className="flex flex-col items-center md:items-start cursor-default">
                   <span className="text-white font-bold text-base">450+</span>
                   <span className="text-gray-500 text-[9px] uppercase tracking-widest font-bold">Stories</span>
                </div>
@@ -67,19 +67,19 @@ export default function AreaToryHero() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.2 }}
-          className="hidden md:block relative group"
+          className="hidden md:block relative group cursor-pointer"
         >
-          <div className="relative aspect-[16/9] w-full max-w-sm ml-auto bg-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+          <div className="relative aspect-[16/9] w-full max-w-sm ml-auto bg-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-red-600/30 group-hover:shadow-red-600/10">
             <div 
               className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?q=80&w=2070&auto=format&fit=crop')" }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6">
-              <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[9px] font-bold rounded-md mb-2 uppercase tracking-widest">
+              <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-[9px] font-bold rounded-md mb-2 uppercase tracking-widest transition-transform group-hover:scale-105">
                 Latest
               </span>
-              <h3 className="text-lg font-bold text-white mb-1 leading-tight">
+              <h3 className="text-lg font-bold text-white mb-1 leading-tight group-hover:text-red-500 transition-colors">
                 Nyem-nyem festival 2024
               </h3>
             </div>

@@ -36,7 +36,7 @@ export default function AreaToryDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-             <button className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-600/20">
+             <button className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all duration-300 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer">
                 <Plus className="w-4 h-4" />
                 Write story
              </button>
@@ -50,8 +50,8 @@ export default function AreaToryDashboardPage() {
       </div>
 
       {/* Creator Engagement Section */}
-      <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 blur-[100px] rounded-full" />
+      <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5 group">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 blur-[100px] rounded-full transition-opacity group-hover:opacity-100 opacity-60" />
          <div className="relative z-10 max-w-xl mx-auto">
             <h2 className="text-2xl md:text-4xl font-black text-white mb-4 tracking-tighter">
                Become a <span className="text-red-600">storyteller.</span>
@@ -59,7 +59,7 @@ export default function AreaToryDashboardPage() {
             <p className="text-gray-400 text-sm font-medium mb-6">
                Have a cultural insight or a cinematic story to share? Join our growing community of African creators.
             </p>
-            <button className="px-8 py-3 bg-white text-black rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-2xl">
+            <button className="px-8 py-3 bg-white text-black rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white hover:shadow-2xl hover:shadow-red-600/20 hover:-translate-y-1 cursor-pointer">
                Apply to creator program
             </button>
          </div>

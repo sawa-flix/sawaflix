@@ -76,7 +76,7 @@ export default function StoryGrid() {
             {["All", "Culture", "News", "Music"].map((cat) => (
               <button 
                 key={cat}
-                className="px-4 py-1.5 rounded-lg border border-white/10 text-gray-400 text-[10px] font-bold hover:border-red-600 hover:text-white transition-all uppercase tracking-widest"
+                className="px-4 py-1.5 rounded-lg border border-white/10 text-gray-400 text-[10px] font-bold hover:border-red-600 hover:text-white hover:bg-red-600/5 transition-all duration-300 cursor-pointer uppercase tracking-widest"
               >
                 {cat}
               </button>
@@ -131,7 +131,7 @@ export default function StoryGrid() {
 
                 <Link 
                   href={`/dashboard/blogs/${story.id}`}
-                  className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link"
+                  className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
                 >
                   Read story 
                   <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
@@ -143,7 +143,7 @@ export default function StoryGrid() {
 
         {/* Load More Button - Compact */}
         <div className="flex justify-center mt-12">
-          <button className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+          <button className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
             Load more stories
           </button>
         </div>
