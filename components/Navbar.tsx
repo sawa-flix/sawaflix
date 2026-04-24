@@ -62,13 +62,23 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Right Side Buttons */}
+          {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login" className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors">
-              Login
-            </Link>
-            <Link href="/dashboard" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
-              Get Started
+            {/* Language Selector Styled Button */}
+            <div className="relative">
+              <button className="flex items-center gap-2 px-4 py-1 bg-black/30 border border-white/40 rounded text-white text-sm font-medium hover:bg-black/50 transition-all cursor-pointer">
+                <span className="text-xs">文A</span>
+                English
+                <motion.span animate={{ rotate: 0 }} className="inline-block">▼</motion.span>
+              </button>
+            </div>
+
+            {/* Red Sign In Button Feel */}
+            <Link 
+              href="/login" 
+              className="bg-[#E50914] hover:bg-[#C11119] text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
+            >
+              Sign In
             </Link>
           </div>
 
@@ -108,20 +118,18 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 mt-4">
+              <div className="flex flex-col gap-3 mt-6">
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-black/30 border border-white/20 rounded text-white text-sm font-medium">
+                  <span className="text-xs">文A</span>
+                  English
+                  <span>▼</span>
+                </button>
                 <Link
                   href="/login"
-                  className="w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium"
+                  className="w-full text-center bg-[#E50914] text-white px-4 py-2.5 rounded font-bold transition-all"
                   onClick={() => setIsOpen(false)}
                 >
-                  Log In
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="w-full text-center bg-red-600 text-white px-3 py-2 rounded-md font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Get Started
+                  Sign In
                 </Link>
               </div>
             </div>
