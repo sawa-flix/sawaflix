@@ -21,24 +21,24 @@ export default function AreaToryDashboardPage() {
                 <Bell className="w-6 h-6 text-red-600" />
              </div>
              <div>
-                <h4 className="text-white font-black text-lg uppercase tracking-tight">Live Updates</h4>
-                <p className="text-gray-500 text-sm font-medium">Community announcements and real-time news.</p>
+                <h4 className="text-white font-bold text-lg tracking-tight">Live updates</h4>
+                <p className="text-gray-500 text-xs font-medium">Community announcements and real-time news.</p>
              </div>
           </div>
 
-          <div className="flex-1 w-full max-w-2xl">
+          <div className="flex-1 w-full max-w-xl">
              <div className="bg-black/40 border border-white/5 p-4 rounded-xl flex items-center gap-4">
                 <div className="flex-shrink-0 w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                <p className="text-gray-300 text-sm font-medium">
-                  <span className="text-white font-bold">New Update:</span> The "Area Tory" community hub is now officially live in the dashboard!
+                <p className="text-gray-300 text-xs font-medium">
+                  <span className="text-white font-bold">New update:</span> The "Area Tory" community hub is now officially live in the dashboard!
                 </p>
              </div>
           </div>
 
           <div className="flex items-center gap-3">
-             <button className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-600/20">
+             <button className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-600/20">
                 <Plus className="w-4 h-4" />
-                Write Story
+                Write story
              </button>
           </div>
         </div>
@@ -50,17 +50,17 @@ export default function AreaToryDashboardPage() {
       </div>
 
       {/* Creator Engagement Section */}
-      <section className="relative rounded-3xl overflow-hidden py-16 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5">
+      <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5">
          <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 blur-[100px] rounded-full" />
-         <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter">
-               BECOME A <span className="text-red-600">STORYTELLER.</span>
+         <div className="relative z-10 max-w-xl mx-auto">
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-4 tracking-tighter">
+               Become a <span className="text-red-600">storyteller.</span>
             </h2>
-            <p className="text-gray-400 text-lg font-medium mb-8">
+            <p className="text-gray-400 text-sm font-medium mb-6">
                Have a cultural insight or a cinematic story to share? Join our growing community of African creators.
             </p>
-            <button className="px-10 py-4 bg-white text-black rounded-xl font-black text-sm uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-2xl">
-               Apply to Creator Program
+            <button className="px-8 py-3 bg-white text-black rounded-lg font-bold text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-2xl">
+               Apply to creator program
             </button>
          </div>
       </section>

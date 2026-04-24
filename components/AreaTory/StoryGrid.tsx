@@ -63,20 +63,20 @@ export default function StoryGrid() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
 
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
-              LATEST STORIES
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter">
+              Latest stories
             </h2>
-            <p className="text-gray-500 font-medium max-w-lg">
-              Stay updated with the most recent cultural insights, community news, and cinematic releases.
+            <p className="text-gray-500 text-sm font-medium max-w-lg">
+              Stay updated with cultural insights, community news, and cinematic releases.
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             {["All", "Culture", "News", "Music"].map((cat) => (
               <button 
                 key={cat}
-                className="px-6 py-2 rounded-full border border-white/10 text-gray-400 text-xs font-bold hover:border-red-600 hover:text-white transition-all uppercase tracking-widest"
+                className="px-4 py-1.5 rounded-lg border border-white/10 text-gray-400 text-[10px] font-bold hover:border-red-600 hover:text-white transition-all uppercase tracking-widest"
               >
                 {cat}
               </button>
@@ -84,67 +84,67 @@ export default function StoryGrid() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stories.map((story, index) => (
             <motion.div
               key={story.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
               viewport={{ once: true }}
-              className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/50 transition-all shadow-2xl"
+              className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all"
             >
-              {/* Image Container */}
-              <div className="relative h-64 overflow-hidden">
+              {/* Image Container - Compact */}
+              <div className="relative h-48 overflow-hidden">
                 <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                   style={{ backgroundImage: `url(${story.image})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-50" />
                 
-                {/* Category Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 bg-red-600/90 text-white text-[10px] font-black rounded-full uppercase tracking-widest backdrop-blur-md">
+                {/* Category Badge - Small */}
+                <div className="absolute top-3 left-3">
+                  <span className="px-2 py-0.5 bg-red-600/90 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-md">
                     {story.category}
                   </span>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="p-8">
-                <div className="flex items-center gap-4 text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">
+              {/* Content - Scaled Down */}
+              <div className="p-6">
+                <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold uppercase tracking-widest mb-3">
                   <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
+                    <Calendar className="w-2.5 h-2.5" />
                     {story.date}
                   </div>
                   <div className="w-1 h-1 rounded-full bg-gray-700" />
                   <span>5 min read</span>
                 </div>
                 
-                <h3 className="text-xl font-black text-white mb-4 group-hover:text-red-500 transition-colors leading-tight">
+                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
                   {story.title}
                 </h3>
                 
-                <p className="text-gray-400 text-sm font-medium line-clamp-3 mb-6 leading-relaxed">
+                <p className="text-gray-400 text-xs font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
                   {story.excerpt}
                 </p>
 
                 <Link 
-                  href={`/areatory/${story.id}`}
-                  className="flex items-center gap-2 text-white font-black text-xs uppercase tracking-widest group/link"
+                  href={`/dashboard/blogs/${story.id}`}
+                  className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link"
                 >
-                  Read Story 
-                  <ArrowUpRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
+                  Read story 
+                  <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
                 </Link>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Load More Button */}
-        <div className="flex justify-center mt-20">
-          <button className="px-12 py-4 bg-white/5 border border-white/10 text-white rounded-full font-black text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-            Load More Stories
+        {/* Load More Button - Compact */}
+        <div className="flex justify-center mt-12">
+          <button className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+            Load more stories
           </button>
         </div>
       </div>
