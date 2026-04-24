@@ -43,64 +43,64 @@ export default function StoryDetailsPage() {
       {/* Back Button */}
       <button 
         onClick={() => router.back()}
-        className="flex items-center gap-2 mb-8 text-gray-400 hover:text-white transition-all group cursor-pointer"
+        className="flex items-center gap-2 mb-6 text-gray-500 hover:text-white transition-all group cursor-pointer"
       >
-        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        <span className="text-sm font-bold uppercase tracking-widest">Back to stories</span>
+        <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+        <span className="text-[10px] font-bold uppercase tracking-widest">Back to stories</span>
       </button>
 
-      <article className="max-w-4xl mx-auto">
+      <article className="max-w-3xl mx-auto">
         {/* Header Info */}
-        <div className="mb-10 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
-            <span className="px-3 py-1 bg-red-600 text-white text-[10px] font-black rounded-full uppercase tracking-[0.2em]">
+        <div className="mb-8 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+            <span className="px-2 py-0.5 bg-red-600 text-white text-[8px] font-black rounded-md uppercase tracking-[0.2em]">
               {story.category}
             </span>
-            <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-widest">
-              <Clock className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+              <Clock className="w-3 h-3" />
               {story.readTime}
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6 leading-[1.1]">
+          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-white mb-4 leading-[1.2]">
             {story.title}
           </h1>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-y border-white/5 py-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center font-black text-white shadow-xl shadow-red-600/20">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-y border-white/5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-red-600/10">
                 S
               </div>
               <div className="text-left">
-                <p className="text-white font-bold text-sm">By {story.author}</p>
-                <div className="flex items-center gap-2 text-gray-500 text-xs">
-                  <Calendar className="w-3 h-3" />
+                <p className="text-white font-bold text-xs">By {story.author}</p>
+                <div className="flex items-center gap-1.5 text-gray-500 text-[10px]">
+                  <Calendar className="w-2.5 h-2.5" />
                   {story.date}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
-               <button className="flex items-center gap-2 group cursor-pointer">
-                  <Heart className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors" />
-                  <span className="text-sm font-bold text-gray-500 group-hover:text-white transition-colors">{story.likes}</span>
+            <div className="flex items-center gap-5">
+               <button className="flex items-center gap-1.5 group cursor-pointer">
+                  <Heart className="w-4 h-4 text-gray-500 group-hover:text-red-500 transition-colors" />
+                  <span className="text-xs font-bold text-gray-500 group-hover:text-white transition-colors">{story.likes}</span>
                </button>
-               <button className="flex items-center gap-2 group cursor-pointer">
-                  <MessageCircle className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
-                  <span className="text-sm font-bold text-gray-500 group-hover:text-white transition-colors">{story.comments}</span>
+               <button className="flex items-center gap-1.5 group cursor-pointer">
+                  <MessageCircle className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
+                  <span className="text-xs font-bold text-gray-500 group-hover:text-white transition-colors">{story.comments}</span>
                </button>
-               <button className="flex items-center gap-2 group cursor-pointer">
-                  <Share2 className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+               <button className="flex items-center gap-1.5 group cursor-pointer">
+                  <Share2 className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
                </button>
             </div>
           </div>
         </div>
 
-        {/* Hero Image */}
+        {/* Hero Image - Scaled Down */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden mb-12 shadow-2xl border border-white/5"
+          className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden mb-8 shadow-xl border border-white/5"
         >
           <Image 
             src={story.image}
@@ -111,51 +111,51 @@ export default function StoryDetailsPage() {
           />
         </motion.div>
 
-        {/* Article Body */}
-        <div className="prose prose-invert prose-lg max-w-none px-4 md:px-0">
-          <div className="text-gray-300 font-medium leading-relaxed space-y-8 text-lg">
+        {/* Article Body - Compact Typography */}
+        <div className="prose prose-invert prose-sm max-w-none px-4 md:px-0">
+          <div className="text-gray-400 font-medium leading-relaxed space-y-6 text-sm">
              {story.content.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="opacity-90">
+                <p key={index} className="opacity-80">
                    {paragraph.trim()}
                 </p>
              ))}
           </div>
         </div>
 
-        {/* Engagement Footer */}
-        <div className="mt-20 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* Engagement Footer - Scaled Down */}
+        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
            <div className="flex items-center gap-4">
-              <span className="text-gray-500 text-sm font-bold uppercase tracking-widest">Share this story:</span>
-              <div className="flex gap-3">
+              <span className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Share story:</span>
+              <div className="flex gap-2">
                  {['Facebook', 'Twitter', 'WhatsApp'].map(platform => (
-                    <button key={platform} className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold hover:bg-white hover:text-black transition-all cursor-pointer">
+                    <button key={platform} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-md text-[9px] font-bold hover:bg-white hover:text-black transition-all cursor-pointer">
                        {platform}
                     </button>
                  ))}
               </div>
            </div>
            
-           <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase tracking-widest">
-              <Eye className="w-4 h-4" />
-              {story.views.toLocaleString()} Total views
+           <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+              <Eye className="w-3.5 h-3.5" />
+              {story.views.toLocaleString()} Views
            </div>
         </div>
 
-        {/* Related Stories Section (Simple Preview) */}
-        <div className="mt-32 mb-20">
-           <h3 className="text-2xl font-black text-white mb-8 tracking-tighter uppercase">Related stories</h3>
-           <div className="grid md:grid-cols-2 gap-8">
+        {/* Related Stories Section - Compact */}
+        <div className="mt-20 mb-12">
+           <h3 className="text-lg font-bold text-white mb-6 tracking-tight uppercase">Related stories</h3>
+           <div className="grid md:grid-cols-2 gap-6">
               <div className="group cursor-pointer">
-                 <div className="relative aspect-video rounded-2xl overflow-hidden mb-4 border border-white/10">
+                 <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-white/10">
                     <Image src="https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070" alt="Related" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                  </div>
-                 <h4 className="text-lg font-bold text-white group-hover:text-red-600 transition-colors">Exploring Foumban: The Architectural Jewel</h4>
+                 <h4 className="text-sm font-bold text-white group-hover:text-red-600 transition-colors">Exploring foumban: The architectural jewel</h4>
               </div>
               <div className="group cursor-pointer">
-                 <div className="relative aspect-video rounded-2xl overflow-hidden mb-4 border border-white/10">
+                 <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-white/10">
                     <Image src="https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964" alt="Related" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                  </div>
-                 <h4 className="text-lg font-bold text-white group-hover:text-red-600 transition-colors">Top 10 Afropop Hits to Watch This Season</h4>
+                 <h4 className="text-sm font-bold text-white group-hover:text-red-600 transition-colors">Top 10 afropop hits to watch this season</h4>
               </div>
            </div>
         </div>
