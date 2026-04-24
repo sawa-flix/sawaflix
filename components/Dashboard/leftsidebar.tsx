@@ -86,7 +86,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
-    { name: 'Blogs', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
+    { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
   ];
 
