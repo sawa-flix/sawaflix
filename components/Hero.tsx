@@ -39,29 +39,29 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* Main Headline - Fluid & Elegant Typography */}
-          <h1 className="text-[clamp(2.25rem,8vw,4.5rem)] leading-[1.05] md:leading-[1.1] font-black tracking-tighter text-white">
+          {/* Main Headline - Further Refined Scaling */}
+          <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-tighter text-white">
             Unlimited Culture.<br className="hidden md:block" />
             Infinite Stories.
           </h1>
 
-          {/* Description text - Fluid & Readable */}
-          <p className="max-w-xl mx-auto text-[clamp(0.95rem,2vw,1.15rem)] text-gray-300 font-medium leading-relaxed px-4 md:px-0 opacity-80">
+          {/* Description text - Compact & Elegant */}
+          <p className="max-w-xl mx-auto text-[clamp(0.9rem,1.5vw,1.05rem)] text-gray-300 font-medium leading-relaxed px-4 md:px-0 opacity-75">
             Discover the rich heritage of Africa through curated music, cinema, and traditions. 
             A platform dedicated to keeping our stories alive.
           </p>
 
-          {/* Call to Action - Refined & Balanced */}
+          {/* Call to Action - Compact & Professional */}
           <div className="flex flex-col items-center pt-4 md:pt-6">
             <Link
               href="/dashboard"
-              className="group flex items-center justify-center gap-2 w-full md:w-auto md:px-12 py-3.5 md:py-4 bg-red-600 text-white rounded-lg font-black text-base md:text-lg transition-all active:scale-[0.97] shadow-xl shadow-red-600/20 hover:bg-red-700"
+              className="group flex items-center justify-center gap-2 w-full md:w-auto md:px-10 py-3 md:py-3.5 bg-red-600 text-white rounded-lg font-black text-sm md:text-base transition-all active:scale-[0.97] shadow-xl shadow-red-600/20 hover:bg-red-700"
             >
               Get Started
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
             </Link>
             
-            <p className="mt-6 text-gray-500 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em]">
+            <p className="mt-6 text-gray-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em]">
               Watch anywhere. Cancel anytime.
             </p>
           </div>
