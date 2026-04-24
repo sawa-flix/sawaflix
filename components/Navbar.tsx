@@ -26,7 +26,7 @@ export default function Navbar() {
     { name: "Music", href: "#music" },
     { name: "Movies", href: "#movies" },
     { name: "Traditions", href: "#traditions" },
-    { name: "Festival", href: "#festival" },
+    { name: "Area Tory", href: "/areatory" },
   ];
 
   return (
