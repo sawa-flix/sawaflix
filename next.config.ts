@@ -17,6 +17,8 @@ const nextConfig = {
     "next-sanity", 
     "@sanity/ui", 
     "@sanity/icons", 
+    "@sanity/client", 
+    "@sanity/image-url",
     "@sanity/asset-utils", 
     "@sanity/vision",
     "@sanity/schema",
@@ -24,6 +26,14 @@ const nextConfig = {
     "styled-components", 
     "react-is"
   ],
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react': require.resolve('react'),
+      'react-dom': require.resolve('react-dom'),
+    };
+    return config;
+  },
   images: {
     remotePatterns: [
       {
