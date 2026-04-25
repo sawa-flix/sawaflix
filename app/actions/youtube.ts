@@ -148,7 +148,7 @@ export async function commentYouTubeVideoAction(videoId: string, text: string) {
             'Content-Type': 'application/json',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ videoId, comment: text })
+        body: JSON.stringify({ videoId, commentText: text })
     });
     if (!response.ok) {
         let errorMessage = `HTTP error ${response.status}`;

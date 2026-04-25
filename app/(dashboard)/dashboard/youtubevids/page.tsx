@@ -110,16 +110,17 @@ function CameroonReelsContent() {
     }
   }, [newComment, activeVideoId]);
 
-  const handleShare = useCallback(async (videoUrl: string) => {
+  const handleShare = useCallback(async (videoId: string) => {
     try {
+      const shareUrl = `${window.location.origin}/dashboard/youtubevids?q=${videoId}`;
       if (navigator.share) {
         await navigator.share({
           title: 'SawaFlix Video',
           text: 'Check out this video on SawaFlix!',
-          url: videoUrl,
+          url: shareUrl,
         });
       } else {
-        await navigator.clipboard.writeText(videoUrl);
+        await navigator.clipboard.writeText(shareUrl);
         alert("Link copied to clipboard!");
       }
     } catch (err) {
@@ -371,7 +372,7 @@ function CameroonReelsContent() {
 
                 {/* Share */}
                 <button
-                  onClick={() => handleShare(video.videoUrl)}
+                  onClick={() => handleShare(video.id)}
                   className="flex flex-col items-center gap-1"
                   aria-label="Share"
                 >
