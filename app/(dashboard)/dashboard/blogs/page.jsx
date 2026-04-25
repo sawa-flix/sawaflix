@@ -13,7 +13,7 @@ export default function AreaToryDashboardPage() {
       </div>
 
       {/* Live Updates Section - Dashboard Themed */}
-      <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8">
+      {/* <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
              <div className="w-14 h-14 bg-red-600/10 rounded-2xl flex items-center justify-center border border-red-600/20">
@@ -41,7 +41,7 @@ export default function AreaToryDashboardPage() {
              </button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Integrated Story Grid */}
       <div className="rounded-3xl overflow-hidden">
