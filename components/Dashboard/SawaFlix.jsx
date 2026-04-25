@@ -16,10 +16,11 @@ import {
   Heart,
   Loader2
 } from 'lucide-react';
-import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useVideos } from '@/hooks/useVideos';
 import { YouTubePlayer } from '../YoutubePlayer';
+import { X as CloseIcon } from 'lucide-react';
 
 // Simulation of real video content
 const CATEGORIES = [
@@ -103,8 +104,15 @@ const SawaFlix = () => {
   const videoRefs = useRef(new Map());
   const discoverRef = useRef(null);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchQuery = searchParams.get('q');
+
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
-  const { videos, loading, error } = useVideos(currentCategoryObj?.query || CATEGORIES[0].query);
+  
+  // Dynamic query: use Search Query if present, otherwise use Category Query
+  const fetchQuery = searchQuery || currentCategoryObj?.query || CATEGORIES[0].query;
+  const { videos, loading, error } = useVideos(fetchQuery);
 
   useEffect(() => {
     if (!videos.length) return;
@@ -258,11 +266,29 @@ const SawaFlix = () => {
 
         {/* Discovery Feed - TikTok Style */}
         <section ref={discoverRef} className="mb-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-black text-white flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div className="flex items-center gap-4">
               <span className="w-1.5 h-10 bg-red-600 rounded-full" />
-              Discover Content
-            </h2>
+              <h2 className="text-3xl font-black text-white">
+                {searchQuery ? (
+                  <span className="flex items-center gap-3">
+                    Search Results for <span className="text-red-600">"{searchQuery}"</span>
+                  </span>
+                ) : (
+                  "Discover Content"
+                )}
+              </h2>
+            </div>
+            
+            {searchQuery && (
+              <button 
+                onClick={() => router.push('/dashboard')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-white/5"
+              >
+                <CloseIcon size={14} />
+                Clear Search
+              </button>
+            )}
           </div>
 
           <div className="max-w-4xl mx-auto space-y-8 min-h-[50vh]">
