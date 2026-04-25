@@ -177,8 +177,8 @@ export default function StoryGrid() {
               onClick={() => { setActiveCategory("all"); setVisibleCount(6); }}
               className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
                 activeCategory === "all"
-                  ? "border-red-600 text-white bg-red-600/10"
-                  : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
+                  ? "border-white text-white bg-white/10"
+                  : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
               }`}
             >
               All
@@ -194,8 +194,8 @@ export default function StoryGrid() {
                 }}
                 className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
                   activeCategory === (cat.slug?.current || "")
-                    ? "border-red-600 text-white bg-red-600/10"
-                    : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
+                    ? "border-white text-white bg-white/10"
+                    : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
                 }`}
               >
                 {cat.title}
