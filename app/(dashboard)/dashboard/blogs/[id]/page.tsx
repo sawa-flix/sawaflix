@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
 import { sanityFetch, urlFor } from "@/lib/sanity/client";
+import ReactPlayer from "react-player/youtube";
 
 interface StoryDetail {
   _id: string;
@@ -22,6 +23,7 @@ interface StoryDetail {
   likes: number;
   views: number;
   body: any[];
+  videoUrl?: string;
   category: {
     _id: string;
     title: string;
@@ -141,7 +143,8 @@ export default function StoryDetailsPage() {
           _id, title, slug, excerpt, mainImage, publishedAt, readTime,
           featured, likes, views, body,
           category->{ _id, title, slug, color },
-          author->{ _id, name, avatar, role, bio }
+          author->{ _id, name, avatar, role, bio },
+          videoUrl
         }`;
 
         let data = await sanityFetch(STORY_QUERY, { slug });
@@ -152,7 +155,8 @@ export default function StoryDetailsPage() {
             _id, title, slug, excerpt, mainImage, publishedAt, readTime,
             featured, likes, views, body,
             category->{ _id, title, slug, color },
-            author->{ _id, name, avatar, role, bio }
+            author->{ _id, name, avatar, role, bio },
+            videoUrl
           }`;
           data = await sanityFetch(ID_QUERY, { id: slug });
         }
@@ -316,6 +320,34 @@ export default function StoryDetailsPage() {
             priority
           />
         </motion.div>
+
+        {/* Video Player Section — Dynamic */}
+        {story.videoUrl && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-12 group"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/70">Video Highlights</h3>
+            </div>
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl shadow-red-600/5 group-hover:border-red-600/30 transition-all duration-500">
+              <ReactPlayer
+                url={story.videoUrl}
+                width="100%"
+                height="100%"
+                controls
+                light={getImageUrl(story.mainImage, "")} // Uses the main image as a preview for better performance
+                playIcon={
+                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 active:scale-95">
+                    <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1" />
+                  </div>
+                }
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* Article Body — Portable Text */}
         <div className="prose prose-invert prose-sm max-w-none px-4 md:px-0">

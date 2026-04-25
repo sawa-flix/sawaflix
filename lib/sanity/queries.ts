@@ -27,7 +27,8 @@ const STORIES_QUERY = `*[_type == "story"] | order(publishedAt desc) {
     name,
     avatar,
     role
-  }
+  },
+  videoUrl
 }`;
 
 const FEATURED_STORY_QUERY = `*[_type == "story" && featured == true] | order(publishedAt desc)[0] {
@@ -78,7 +79,8 @@ export async function getStoryBySlug(slug: string) {
     _id, title, slug, excerpt, mainImage, publishedAt, readTime,
     featured, likes, views, body,
     category->{ _id, title, slug, color },
-    author->{ _id, name, avatar, role, bio }
+    author->{ _id, name, avatar, role, bio },
+    videoUrl
   }`;
   return sanityFetch(query, { slug });
 }
@@ -88,7 +90,8 @@ export async function getStoryById(id: string) {
     _id, title, slug, excerpt, mainImage, publishedAt, readTime,
     featured, likes, views, body,
     category->{ _id, title, slug, color },
-    author->{ _id, name, avatar, role, bio }
+    author->{ _id, name, avatar, role, bio },
+    videoUrl
   }`;
   return sanityFetch(query, { id });
 }

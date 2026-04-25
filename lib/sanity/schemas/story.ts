@@ -71,6 +71,12 @@ export const story = defineType({
       to: [{ type: "author" }],
     }),
     defineField({
+      name: "videoUrl",
+      title: "YouTube Video URL",
+      type: "url",
+      description: "Optional: Add a YouTube URL to display a video in the article.",
+    }),
+    defineField({
       name: "body",
       title: "Body",
       type: "array",
