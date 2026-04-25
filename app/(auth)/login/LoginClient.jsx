@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import { BACKEND_URL } from '@/lib/apiConfig';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithPassword, resetPassword, checkAuth } from '@/app/(auth)/actions';
+import { createClient } from '@/utils/supabase/client';
 
 import { Suspense } from 'react';
 
@@ -42,12 +42,48 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const hasAttemptedRedirect = useRef(false);
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setSuccessMessage(null);
+    setResetMessage(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const supabase = createClient();
+      const isLocalhost =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+      const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+      const redirectBase = isLocalhost || !configuredSiteUrl
+        ? window.location.origin
+        : configuredSiteUrl;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${redirectBase}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        setError('Unable to continue with Google right now. Please try again.');
+        setIsGoogleLoading(false);
+      }
+    } catch (err) {
+      setError('Unable to continue with Google right now. Please try again.');
+      setIsGoogleLoading(false);
+    }
+  };
 
   // Removed auto-redirect to allow users to see the login page even if logged in
   // Check if user is already logged in (optional check, but don't force redirect now)
@@ -104,7 +140,6 @@ function LoginContent() {
 
     const formElement = e.currentTarget;
     const formData = new FormData(formElement);
-    const data = Object.fromEntries(formData.entries());
 
     try {
       const result = await signInWithPassword(formData);
@@ -258,7 +293,7 @@ function LoginContent() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
+                      disabled={isLoading || isGoogleLoading}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors disabled:cursor-not-allowed"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
@@ -280,24 +315,40 @@ function LoginContent() {
                       <input
                         type="checkbox"
                         className="w-5 h-5 mr-2 appearance-none border border-gray-600 rounded-md bg-gray-800 checked:bg-red-600 checked:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                        disabled={isLoading}
+                      disabled={isLoading || isGoogleLoading}
                       />
                       Remember me
                     </label>
                     <button
                       type="button"
                       onClick={handleResetPassword}
-                      disabled={isResetting || isLoading}
+                      disabled={isResetting || isLoading || isGoogleLoading}
                       className="text-blue-400 hover:text-blue-300 transition-colors duration-200 hover:underline disabled:text-gray-500 disabled:cursor-not-allowed"
                     >
                       {isResetting ? 'Sending...' : 'Forgot password?'}
                     </button>
                   </div>
 
-                  <AuthButton type="submit" isLoading={isLoading}>
+                  <AuthButton type="submit" isLoading={isLoading || isGoogleLoading}>
                     Sign In
                   </AuthButton>
                 </form>
+
+                <div className="my-4 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-gray-700" />
+                  <span className="text-xs uppercase tracking-wider text-gray-500">or</span>
+                  <div className="h-px flex-1 bg-gray-700" />
+                </div>
+
+                <AuthButton
+                  type="button"
+                  variant="google"
+                  isLoading={isGoogleLoading}
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading || isGoogleLoading}
+                >
+                  Continue with Google
+                </AuthButton>
 
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base">
                   <p>
