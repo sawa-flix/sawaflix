@@ -41,7 +41,7 @@ export default function Hero() {
           </div>
 
           {/* Main Headline - Further Refined Scaling */}
-          <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-tighter text-white">
+          <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-wide text-white" style={{ wordSpacing: '0.15em' }}>
             Unlimited Culture.<br className="hidden md:block" />
             Infinite Stories.
           </h1>
