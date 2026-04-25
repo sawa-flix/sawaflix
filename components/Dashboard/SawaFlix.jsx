@@ -80,9 +80,9 @@ const SawaFlix = () => {
           </p>
           <div className="flex justify-center">
             <Link href="/dashboard/youtubevids">
-              <button className="group/btn relative bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-8 sm:px-10 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:shadow-red-500/50 hover:-translate-y-1 active:scale-95">
-                ▶ Play Now
-                <span className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
+              <button className="group/btn flex items-center gap-3 bg-red-600 text-white hover:bg-red-700 px-8 sm:px-10 py-3 sm:py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-2xl shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-0.5 active:scale-[0.97]">
+                <Play size={18} className="fill-current" />
+                Play now
               </button>
             </Link>
           </div>
