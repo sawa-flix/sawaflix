@@ -11,6 +11,11 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '12mb', // Set this higher than your 10MB check
     },
+    turbo: {
+      resolveAlias: {
+        'react': './lib/react-shim.js',
+      },
+    },
   },
   transpilePackages: ["styled-components"],
   images: {
