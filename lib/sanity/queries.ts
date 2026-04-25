@@ -50,6 +50,12 @@ const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
   color
 }`;
 
+const BLOG_SETTINGS_QUERY = `*[_type == "blogSettings"][0] {
+  heroTitle,
+  heroSubtitle,
+  heroBackgroundImage
+}`;
+
 // ============================================================
 // Data fetching functions
 // ============================================================
@@ -105,4 +111,12 @@ export async function getRelatedStories(categoryId: string, currentId: string) {
 
 export async function getStoryCount() {
   return sanityFetch(`count(*[_type == "story"])`);
+}
+
+export async function getTotalViews() {
+  return sanityFetch(`math::sum(*[_type == "story"].views)`);
+}
+
+export async function getBlogSettings() {
+  return sanityFetch(BLOG_SETTINGS_QUERY);
 }

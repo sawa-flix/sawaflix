@@ -49,7 +49,7 @@ export default function AreaToryDashboardPage() {
       </div>
 
       {/* Creator Engagement Section */}
-      <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5 group">
+      {/* <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5 group">
          <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 blur-[100px] rounded-full transition-opacity group-hover:opacity-100 opacity-60" />
          <div className="relative z-10 max-w-xl mx-auto">
             <h2 className="text-2xl md:text-4xl font-black text-white mb-4 tracking-tighter">
@@ -62,7 +62,7 @@ export default function AreaToryDashboardPage() {
                Apply to creator program
             </button>
          </div>
-      </section>
+      </section> */}
     </div>
   );
 }
