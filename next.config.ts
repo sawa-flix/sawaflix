@@ -10,9 +10,26 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '12mb', // Set this higher than your 10MB check
     },
-    serverExternalPackages: ["sanity"],
+    serverExternalPackages: ["sanity", "next-sanity", "@sanity/ui", "@sanity/client"],
+    turbo: {
+      resolveAlias: {
+        'react': 'react',
+        'react-dom': 'react-dom',
+      },
+    },
   },
-  transpilePackages: ["sanity", "next-sanity", "@sanity/ui", "@sanity/icons", "@sanity/asset-utils", "styled-components"],
+  transpilePackages: [
+    "sanity", 
+    "next-sanity", 
+    "@sanity/ui", 
+    "@sanity/icons", 
+    "@sanity/asset-utils", 
+    "@sanity/vision",
+    "@sanity/schema",
+    "@sanity/logos",
+    "styled-components", 
+    "react-is"
+  ],
   images: {
     remotePatterns: [
       {
