@@ -12,23 +12,7 @@ const nextConfig = {
       bodySizeLimit: '12mb', // Set this higher than your 10MB check
     },
   },
-  transpilePackages: [
-    "sanity", 
-    "next-sanity", 
-    "@sanity/ui", 
-    "@sanity/icons", 
-    "@sanity/client", 
-    "@sanity/image-url",
-    "@sanity/asset-utils", 
-    "@sanity/vision",
-    "@sanity/schema",
-    "@sanity/logos",
-    "styled-components", 
-    "react-is"
-  ],
-  webpack: (config) => {
-    return config;
-  },
+  transpilePackages: ["styled-components"],
   images: {
     remotePatterns: [
       {

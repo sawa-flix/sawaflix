@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@sanity/client";
-import imageUrlBuilder from "@sanity/image-url";
+import createImageUrlBuilder from "@sanity/image-url";
 
 const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "eifjj9rh";
 const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
@@ -17,7 +17,7 @@ export const sanityClient = createClient({
 });
 
 // Image URL builder
-const builder = imageUrlBuilder(sanityClient);
+const builder = createImageUrlBuilder(sanityClient);
 
 export function urlFor(source: any) {
   return builder.image(source);
