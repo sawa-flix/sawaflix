@@ -11,12 +11,6 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '12mb', // Set this higher than your 10MB check
     },
-    turbo: {
-      resolveAlias: {
-        'react': 'react',
-        'react-dom': 'react-dom',
-      },
-    },
   },
   transpilePackages: [
     "sanity", 
