@@ -13,16 +13,16 @@ export default function Hero() {
       {/* Background Image with Simple Deep Gradient */}
       <div className="absolute inset-0 z-0">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')", // New premium background
-            filter: "brightness(0.35) saturate(1.1)",
+            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')",
+            filter: "brightness(0.55) saturate(1.2)",
           }}
         />
-        {/* Simple, heavy gradients for maximum clarity and mobile-app feel */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent hidden md:block" />
+        {/* Minimal gradients — just enough for text readability */}
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent hidden md:block" />
       </div>
 
       {/* Content Container */}

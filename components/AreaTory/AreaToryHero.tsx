@@ -11,13 +11,13 @@ export default function AreaToryHero() {
       {/* Background with simple deep gradient */}
       <div className="absolute inset-0 z-0">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')", // New premium background
-            filter: "brightness(0.35) saturate(1.1)",
+            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')",
+            filter: "brightness(0.55) saturate(1.2)",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30" />
       </div>
 
       {/* Content Container */}
