@@ -338,6 +338,12 @@ export default function StoryDetailsPage() {
                 width="100%"
                 height="100%"
                 controls
+                playing={true}
+                config={{
+                  youtube: {
+                    playerVars: { autoplay: 1 }
+                  }
+                }}
                 light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")} // Uses the main cover image as a thumbnail
                 playIcon={
                   <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 active:scale-95">
