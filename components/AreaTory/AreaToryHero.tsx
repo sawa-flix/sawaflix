@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { getFeaturedStory, getStoryCount } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
@@ -24,15 +23,23 @@ export default function AreaToryHero() {
 
   useEffect(() => {
     async function fetchData() {
+      // Set a 5-second timeout for the initial fetch
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Fetch timeout")), 5000)
+      );
+
       try {
-        const [featuredData, count] = await Promise.all([
+        const fetchPromise = Promise.all([
           getFeaturedStory(),
           getStoryCount(),
         ]);
+
+        const [featuredData, count] = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
         if (featuredData) setFeatured(featuredData);
         if (count) setStoryCount(count);
       } catch (error) {
-        console.error("Failed to fetch featured story:", error);
+        console.warn("[AreaToryHero] Failed to fetch featured story or timed out:", error);
       } finally {
         setLoaded(true);
       }
@@ -63,15 +70,12 @@ export default function AreaToryHero() {
 
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 text-center md:text-left grid md:grid-cols-2 items-center gap-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
+        <div>
+
           {/* Tag */}
           <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-            <span className="w-8 h-[1px] bg-red-600 hidden md:block" />
-            <span className="text-red-600 font-bold text-[10px] tracking-[0.3em] uppercase">
+            <span className="w-8 h-[1px] bg-white hidden md:block" />
+            <span className="text-white font-bold text-[10px] tracking-[0.3em]">
               Community & culture
             </span>
           </div>
@@ -86,30 +90,27 @@ export default function AreaToryHero() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-xs transition-all duration-300 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer uppercase tracking-widest">
+            <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-xs transition-all duration-300 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer tracking-widest">
               Explore stories
             </button>
             <div className="flex items-center gap-6 px-4">
               <div className="flex flex-col items-center md:items-start cursor-default">
                 <span className="text-white font-bold text-base">12k+</span>
-                <span className="text-gray-500 text-[9px] uppercase tracking-widest font-bold">Followers</span>
+                <span className="text-gray-500 text-[9px] tracking-widest font-bold">Followers</span>
               </div>
               <div className="w-[1px] h-6 bg-gray-800" />
               <div className="flex flex-col items-center md:items-start cursor-default">
                 <span className="text-white font-bold text-base">
                   {storyCount > 0 ? `${storyCount}+` : "450+"}
                 </span>
-                <span className="text-gray-500 text-[9px] uppercase tracking-widest font-bold">Stories</span>
+                <span className="text-gray-500 text-[9px] tracking-widest font-bold">Stories</span>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Featured Story Preview — Dynamic */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
+        <div
           className="hidden md:block relative group cursor-pointer"
         >
           <Link href={featured?.slug?.current ? `/dashboard/blogs/${featured.slug.current}` : "/dashboard/blogs"}>
@@ -121,7 +122,7 @@ export default function AreaToryHero() {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <span
-                  className="inline-block px-2 py-0.5 text-white text-[9px] font-bold rounded-md mb-2 uppercase tracking-widest transition-transform group-hover:scale-105"
+                  className="inline-block px-2 py-0.5 text-white text-[9px] font-bold rounded-md mb-2 tracking-widest transition-transform group-hover:scale-105"
                   style={{ backgroundColor: featured?.category?.color || "#E50914" }}
                 >
                   {loaded ? (featured?.category?.title || "Featured") : "Loading..."}
@@ -132,7 +133,7 @@ export default function AreaToryHero() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

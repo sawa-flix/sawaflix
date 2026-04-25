@@ -34,11 +34,11 @@ export default function Hero() {
           className="space-y-4 md:space-y-8"
         >
           {/* Subtitle / Brand Tag */}
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <span className="text-red-600 font-bold text-[9px] md:text-[11px] tracking-[0.5em] uppercase opacity-90">
               Sawaflix Original
             </span>
-          </div>
+          </div> */}
 
           {/* Main Headline - Further Refined Scaling */}
           <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-wide text-white" style={{ wordSpacing: '0.15em' }}>
@@ -48,7 +48,7 @@ export default function Hero() {
 
           {/* Description text - Compact & Elegant */}
           <p className="max-w-xl mx-auto text-[clamp(0.9rem,1.5vw,1.05rem)] text-gray-300 font-medium leading-relaxed px-4 md:px-0 opacity-75">
-            Discover the rich heritage of Africa through curated music, cinema, and traditions. 
+            Discover the rich heritage of Africa through curated music, cinema, and traditions.
             A platform dedicated to keeping our stories alive.
           </p>
 
@@ -61,7 +61,7 @@ export default function Hero() {
               Get Started
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
             </Link>
-            
+
             <p className="mt-6 text-gray-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em]">
               Watch anywhere. Cancel anytime.
             </p>

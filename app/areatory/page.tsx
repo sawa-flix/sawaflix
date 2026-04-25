@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AreaToryHero from "@/components/AreaTory/AreaToryHero";
 import StoryGrid from "@/components/AreaTory/StoryGrid";
-import { motion } from "framer-motion";
 import { Send, Bell, MessageSquare } from "lucide-react";
 
 export default function AreaToryPage() {
@@ -58,12 +57,7 @@ export default function AreaToryPage() {
       <section className="py-24 relative overflow-hidden">
          <div className="absolute inset-0 bg-red-600/10 blur-[150px] rounded-full -top-1/2 -left-1/4" />
          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-            <motion.div
-               initial={{ opacity: 0, scale: 0.9 }}
-               whileInView={{ opacity: 1, scale: 1 }}
-               transition={{ duration: 0.8 }}
-               viewport={{ once: true }}
-            >
+            <div>
                <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter">
                   TELL YOUR <br />
                   <span className="text-red-600">STORY.</span>
@@ -80,7 +74,7 @@ export default function AreaToryPage() {
                      JOIN DISCORD
                   </button>
                </div>
-            </motion.div>
+            </div>
          </div>
       </section>
       

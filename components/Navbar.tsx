@@ -9,12 +9,15 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import SawaflixLogo from "./SawaflixLogo";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
   const [isOpen, setIsOpen] = useState(false);
+
+  const pathname = usePathname();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -48,17 +51,24 @@ export default function Navbar() {
           {/* Desktop Links */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  // scroll={false} prevents Next.js from forcing a scroll to top
-                  scroll={true}
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.href === "#home" 
+                  ? pathname === "/" || pathname === "/home"
+                  : pathname?.startsWith(link.href);
+                
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    scroll={true}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive ? "text-red-600 font-bold" : "text-gray-300 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 

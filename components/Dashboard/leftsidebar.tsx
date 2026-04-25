@@ -140,7 +140,11 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.route;
+          // Use startsWith for most routes so details pages keep the parent active
+          // But use exact match for root dashboard to avoid matching everything
+          const isActive = item.route === '/dashboard' 
+            ? pathname === '/dashboard' 
+            : pathname?.startsWith(item.route);
 
           return (
             <Link
@@ -183,7 +187,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         </div>
         {smart.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.route;
+          const isActive = pathname?.startsWith(item.route);
 
           return (
             <Link

@@ -2,7 +2,6 @@
 
 import AreaToryHero from "@/components/AreaTory/AreaToryHero";
 import StoryGrid from "@/components/AreaTory/StoryGrid";
-import { motion } from "framer-motion";
 import { Bell, MessageSquare, Send, Plus } from "lucide-react";
 
 export default function AreaToryDashboardPage() {

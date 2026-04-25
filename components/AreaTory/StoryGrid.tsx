@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { ArrowUpRight, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { getStories, getCategories } from "@/lib/sanity/queries";
@@ -79,22 +78,46 @@ export default function StoryGrid() {
   const [visibleCount, setVisibleCount] = useState(6);
 
   useEffect(() => {
+    let isMounted = true;
+    console.log("[StoryGrid] Mounting and fetching data...");
+
     async function fetchData() {
       try {
+        setLoading(true);
+        
+        // Fetch stories and categories with a timeout fallback
+        const storiesPromise = getStories();
+        const categoriesPromise = getCategories();
+        
         const [storiesData, categoriesData] = await Promise.all([
-          getStories(),
-          getCategories(),
+          storiesPromise,
+          categoriesPromise,
         ]);
-        setStories(storiesData?.length ? storiesData : fallbackStories);
-        setCategories(categoriesData || []);
+
+        console.log(`[StoryGrid] Fetched ${storiesData?.length || 0} stories and ${categoriesData?.length || 0} categories.`);
+
+        if (isMounted) {
+          if (storiesData && storiesData.length > 0) {
+            setStories(storiesData);
+          } else {
+            console.warn("[StoryGrid] No stories found in Sanity, using fallbacks.");
+            setStories(fallbackStories);
+          }
+          
+          if (categoriesData) {
+            setCategories(categoriesData);
+          }
+        }
       } catch (error) {
-        console.error("Failed to fetch from Sanity:", error);
-        setStories(fallbackStories);
+        console.error("[StoryGrid] Error during fetch:", error);
+        if (isMounted) setStories(fallbackStories);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
+
     fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   // Filter stories by active category
@@ -152,7 +175,7 @@ export default function StoryGrid() {
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => { setActiveCategory("all"); setVisibleCount(6); }}
-              className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer uppercase tracking-widest ${
+              className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
                 activeCategory === "all"
                   ? "border-red-600 text-white bg-red-600/10"
                   : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
@@ -164,7 +187,7 @@ export default function StoryGrid() {
               <button
                 key={cat._id}
                 onClick={() => { setActiveCategory(cat.slug.current); setVisibleCount(6); }}
-                className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer uppercase tracking-widest ${
+                className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
                   activeCategory === cat.slug.current
                     ? "border-red-600 text-white bg-red-600/10"
                     : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
@@ -195,12 +218,8 @@ export default function StoryGrid() {
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedStories.map((story, index) => (
-              <motion.div
+              <div
                 key={story._id}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                viewport={{ once: true }}
                 className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all"
               >
                 {/* Image Container */}
@@ -214,7 +233,7 @@ export default function StoryGrid() {
                   {/* Category Badge */}
                   <div className="absolute top-3 left-3">
                     <span
-                      className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-md"
+                      className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md tracking-widest backdrop-blur-md"
                       style={{ backgroundColor: (story.category?.color || "#E50914") + "E6" }}
                     >
                       {story.category?.title || "Uncategorized"}
@@ -224,7 +243,7 @@ export default function StoryGrid() {
                   {/* Featured badge */}
                   {story.featured && (
                     <div className="absolute top-3 right-3">
-                      <span className="px-2 py-0.5 bg-yellow-500/90 text-black text-[9px] font-bold rounded-md uppercase tracking-widest">
+                      <span className="px-2 py-0.5 bg-yellow-500/90 text-black text-[9px] font-bold rounded-md tracking-widest">
                         Featured
                       </span>
                     </div>
@@ -233,7 +252,7 @@ export default function StoryGrid() {
 
                 {/* Content */}
                 <div className="p-6">
-                  <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold uppercase tracking-widest mb-3">
+                  <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold tracking-widest mb-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-2.5 h-2.5" />
                       {formatDate(story.publishedAt)}
@@ -252,13 +271,13 @@ export default function StoryGrid() {
 
                   <Link
                     href={`/dashboard/blogs/${story.slug?.current || story._id}`}
-                    className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
+                    className="flex items-center gap-2 text-white font-bold text-[10px] tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
                   >
                     Read story
                     <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
                   </Link>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
@@ -268,7 +287,7 @@ export default function StoryGrid() {
           <div className="flex justify-center mt-12">
             <button
               onClick={() => setVisibleCount((prev) => prev + 6)}
-              className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+              className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
             >
               Load more stories
             </button>
