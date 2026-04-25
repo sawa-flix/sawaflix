@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getFeaturedStory, getStoryCount, getBlogSettings, getTotalViews } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
+import { motion } from "framer-motion";
 
 interface FeaturedStory {
   _id: string;
@@ -28,6 +29,14 @@ export default function AreaToryHero() {
   const [storyCount, setStoryCount] = useState(0);
   const [totalViews, setTotalViews] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [selectedDev, setSelectedDev] = useState<any | null>(null);
+
+  const developers = [
+    { id: 1, name: "Aris", role: "Fullstack Lead", bio: "Architecting the core Sawaflix experience and community features.", img: "https://i.pravatar.cc/150?u=1" },
+    { id: 2, name: "Dave", role: "UI/UX Designer", bio: "Crafting the visual identity and premium interactions of Sawaflix.", img: "https://i.pravatar.cc/150?u=2" },
+    { id: 3, name: "Sam", role: "Backend Engineer", bio: "Ensuring the scalability and performance of our cultural engine.", img: "https://i.pravatar.cc/150?u=3" },
+    { id: 4, name: "Leo", role: "Mobile Architect", bio: "Bringing the Sawaflix vision to every device in your hand.", img: "https://i.pravatar.cc/150?u=4" }
+  ];
 
   useEffect(() => {
     async function fetchData() {
@@ -154,16 +163,11 @@ export default function AreaToryHero() {
       {/* Developers Avatar Stack — Bottom Right */}
       <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
         <div className="flex items-center -space-x-2">
-          {[
-            { id: 1, name: "Aris", img: "https://i.pravatar.cc/150?u=1" },
-            { id: 2, name: "Dave", img: "https://i.pravatar.cc/150?u=2" },
-            { id: 3, name: "Sam", img: "https://i.pravatar.cc/150?u=3" },
-            { id: 4, name: "Leo", img: "https://i.pravatar.cc/150?u=4" }
-          ].map((dev) => (
+          {developers.map((dev) => (
             <div 
               key={dev.id}
+              onClick={() => setSelectedDev(dev)}
               className="relative w-8 h-8 rounded-full border-2 border-[#0B0E14] overflow-hidden group/dev cursor-pointer transition-transform hover:scale-110 hover:z-10"
-              title={dev.name}
             >
               <img 
                 src={dev.img} 
@@ -181,6 +185,46 @@ export default function AreaToryHero() {
           Built by <span className="text-white">Sawaflix Devs</span>
         </span>
       </div>
+
+      {/* Developer Card Popover */}
+      {selectedDev && (
+        <div 
+          className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md"
+          onClick={() => setSelectedDev(null)}
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[280px] bg-[#11141B] border border-white/10 rounded-2xl p-6 shadow-2xl"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full border-2 border-red-600 p-0.5 mb-4 overflow-hidden">
+                <img src={selectedDev.img} alt={selectedDev.name} className="w-full h-full object-cover rounded-full" />
+              </div>
+              <h4 className="text-white font-black text-lg mb-1 tracking-tight">{selectedDev.name}</h4>
+              <span className="text-red-500 text-[10px] font-bold uppercase tracking-widest mb-3">{selectedDev.role}</span>
+              <p className="text-gray-400 text-xs font-medium leading-relaxed mb-6 opacity-80">
+                {selectedDev.bio}
+              </p>
+              
+              <Link 
+                href="/dashboard/help"
+                className="w-full py-2 bg-white/5 hover:bg-red-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-white/5"
+              >
+                Join the team
+              </Link>
+              
+              <button 
+                onClick={() => setSelectedDev(null)}
+                className="mt-4 text-gray-600 hover:text-white text-[9px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </section>
   );
 }
