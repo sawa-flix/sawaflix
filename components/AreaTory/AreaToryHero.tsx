@@ -32,10 +32,56 @@ export default function AreaToryHero() {
   const [selectedDev, setSelectedDev] = useState<any | null>(null);
 
   const developers = [
-    { id: 1, name: "Aris", role: "Fullstack Lead", bio: "Architecting the core Sawaflix experience and community features.", img: "https://i.pravatar.cc/150?u=1" },
-    { id: 2, name: "Dave", role: "UI/UX Designer", bio: "Crafting the visual identity and premium interactions of Sawaflix.", img: "https://i.pravatar.cc/150?u=2" },
-    { id: 3, name: "Sam", role: "Backend Engineer", bio: "Ensuring the scalability and performance of our cultural engine.", img: "https://i.pravatar.cc/150?u=3" },
-    { id: 4, name: "Leo", role: "Mobile Architect", bio: "Bringing the Sawaflix vision to every device in your hand.", img: "https://i.pravatar.cc/150?u=4" }
+    { 
+      id: 1, 
+      name: "Fonyuy Gita", 
+      role: "Lead Developer", 
+      bio: "Tech innovator specializing in AI and ML. Architect of Sawaflix.", 
+      img: "https://i.ibb.co/0VrHTWQD/image.png",
+      github: "https://github.com/Fonyuygita"
+    },
+    { 
+      id: 2, 
+      name: "Mazehwo John Brindi", 
+      role: "Assistant Lead & Backend", 
+      bio: "Growing Developer focused on robust backend architectures.", 
+      img: "https://i.ibb.co/6cJvhswq/Whats-App-Image-2025-07-09-at-19-44-40.jpg" 
+    },
+    { 
+      id: 3, 
+      name: "Ngam Sabastine", 
+      role: "Backend Developer", 
+      bio: "Design expert and backend specialist bringing precision to code.", 
+      img: "https://i.ibb.co/PZSgMCwB/image.png" 
+    },
+    { 
+      id: 17, 
+      name: "Wohking", 
+      role: "Backend Developer", 
+      bio: "Data Science enthusiast and backend logic expert.", 
+      img: "https://i.ibb.co/Z1VCg9RG/image.png" 
+    },
+    { 
+      id: 198, 
+      name: "Asime Domitila", 
+      role: "Frontend Developer", 
+      bio: "Bridging Data Science and modern Frontend experiences.", 
+      img: "https://i.ibb.co/kLwJmv4/Whats-App-Image-2025-08-22-at-4-38-15-PM.jpg" 
+    },
+    { 
+      id: 16, 
+      name: "Victory Beleh", 
+      role: "Frontend Developer", 
+      bio: "Frontend engineer with a passion for Data Science and UI.", 
+      img: "https://i.ibb.co/xtMSLsY7/image.png" 
+    },
+    { 
+      id: 14, 
+      name: "Kingsley", 
+      role: "Frontend & Designer", 
+      bio: "Computer Engineering expert crafting beautiful web interfaces.", 
+      img: "https://i.ibb.co/b5cGrBBb/image.png" 
+    }
   ];
 
   useEffect(() => {

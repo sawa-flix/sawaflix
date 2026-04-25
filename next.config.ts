@@ -6,11 +6,11 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  serverExternalPackages: ["sanity", "next-sanity", "@sanity/ui", "@sanity/client"],
   experimental: {
     serverActions: {
       bodySizeLimit: '12mb', // Set this higher than your 10MB check
     },
-    serverExternalPackages: ["sanity", "next-sanity", "@sanity/ui", "@sanity/client"],
     turbo: {
       resolveAlias: {
         'react': 'react',
