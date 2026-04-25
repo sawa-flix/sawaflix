@@ -72,7 +72,7 @@ const DashboardWrapper = ({ children }) => {
         {/* Header - Only show if NOT in creator layout mode */}
         {!isCreatorLayout && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        <div className={`flex relative z-10 ${isCreatorLayout ? 'pt-0' : 'pt-16'}`}> 
+        <div className={`relative z-10 ${isCreatorLayout ? '' : 'pt-16'}`}> 
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -87,16 +87,17 @@ const DashboardWrapper = ({ children }) => {
             />
           )}
 
-          {/* Left Sidebar */}
+          {/* Left Sidebar — Fixed */}
           <aside
             className={`
-              fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-              w-72 h-screen bg-[#0B0E14]/80 backdrop-blur-xl
+              fixed top-16 left-0 z-50 lg:z-30
+              w-72 h-[calc(100vh-4rem)] bg-[#0B0E14]/80 backdrop-blur-xl
               transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-              lg:translate-x-0 lg:block
+              lg:translate-x-0
               overflow-y-auto scrollbar-none
               border-r border-white/5 shadow-2xl shadow-black/50
+              ${isCreatorLayout ? 'top-0 h-screen' : ''}
             `}
           >
             {isCreatorLayout ? (
@@ -106,19 +107,23 @@ const DashboardWrapper = ({ children }) => {
             )}
           </aside>
 
-          {/* Main Content Area */}
-          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-transparent`}>
+          {/* Right Sidebar — Fixed */}
+          {!isCreatorLayout && (
+            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+                <RightSidebar />
+            </aside>
+          )}
+
+          {/* Main Content Area — Scrollable center */}
+          <main className={`
+            ${isCreatorLayout ? 'min-h-screen lg:ml-72' : 'min-h-[calc(100vh-4rem)] lg:ml-72'}
+            ${!isCreatorLayout ? 'xl:mr-80' : ''}
+            overflow-y-auto bg-transparent
+          `}>
             <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}
             </div>
           </main>
-
-          {/* Right Sidebar - Only show for normal user dashboard */}
-          {!isCreatorLayout && (
-            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
-                <RightSidebar />
-            </aside>
-          )}
         </div>
 
         {/* Persistent Player */}
