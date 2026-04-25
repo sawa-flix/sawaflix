@@ -2,6 +2,19 @@
 
 import React from "react";
 
+// Shim for useEffectEvent - required for Sanity v5 compatibility with Next.js 15
+if (typeof (React as any).useEffectEvent === "undefined") {
+  (React as any).useEffectEvent = (fn: any) => {
+    const ref = React.useRef(fn);
+    if (typeof window !== "undefined") {
+      React.useLayoutEffect(() => {
+        ref.current = fn;
+      });
+    }
+    return React.useCallback((...args: any[]) => ref.current(...args), []);
+  };
+}
+
 import { NextStudio } from "next-sanity/studio";
 import config from "../../../sanity.config";
 

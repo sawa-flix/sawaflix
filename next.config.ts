@@ -17,6 +17,13 @@ const nextConfig = {
       },
     },
   },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react': require.resolve('./lib/react-shim.js'),
+    };
+    return config;
+  },
   transpilePackages: ["styled-components"],
   images: {
     remotePatterns: [
