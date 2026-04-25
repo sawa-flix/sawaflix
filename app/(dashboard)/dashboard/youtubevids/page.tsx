@@ -60,6 +60,7 @@ function CameroonReelsContent() {
     loading: commentsLoading,
     isOpen: isCommentOpen,
     setIsOpen: setIsCommentOpen,
+    refetch: refetchComments
   } = useComments(activeVideoId);
 
   useEffect(() => {
@@ -105,6 +106,8 @@ function CameroonReelsContent() {
     setNewComment("");
     try {
         await youtubeApi.commentOnVideo(activeVideoId, text);
+        // Refetch comments so the new one appears in the list
+        await refetchComments();
     } catch (err) {
         console.error('[Dashboard] Error submitting comment:', err);
     }
