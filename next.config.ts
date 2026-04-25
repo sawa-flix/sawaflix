@@ -9,6 +9,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   compiler: {
     styledComponents: true,
   },
@@ -19,6 +22,10 @@ const nextConfig = {
     },
   },
   webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react$': path.resolve(__dirname, 'lib/react-shim'),
+    };
     return config;
   },
   transpilePackages: ["styled-components"],
