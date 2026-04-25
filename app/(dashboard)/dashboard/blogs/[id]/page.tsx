@@ -200,7 +200,7 @@ export default function StoryDetailsPage() {
   };
 
   const getImageUrl = (image: any, fallback: string) => {
-    if (image?.asset) return urlFor(image).width(1400).height(600).url();
+    if (image?.asset) return urlFor(image).width(1600).height(900).fit('crop').url();
     return fallback;
   };
 
@@ -338,7 +338,7 @@ export default function StoryDetailsPage() {
                 width="100%"
                 height="100%"
                 controls
-                light={getImageUrl(story.mainImage, "")} // Uses the main image as a preview for better performance
+                light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")} // Uses the main cover image as a thumbnail
                 playIcon={
                   <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 active:scale-95">
                     <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1" />

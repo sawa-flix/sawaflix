@@ -66,7 +66,7 @@ const nextConfig = {
     ],
     // Allow private IPs for Supabase storage in development
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://xjxbjnjspmmpfngbdihd.supabase.co https://lh3.googleusercontent.com https://images.unsplash.com https://i.ibb.co; script-src 'none'; sandbox;",
+    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://*.supabase.co https://*.googleusercontent.com https://images.unsplash.com https://i.ibb.co https://cdn.sanity.io https://i.ytimg.com; frame-src 'self' https://www.youtube.com https://youtube.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.sanity.io https://*.api.sanity.io;",
   },
 }
 export default nextConfig;

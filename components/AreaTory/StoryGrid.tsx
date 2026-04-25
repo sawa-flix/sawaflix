@@ -142,8 +142,8 @@ export default function StoryGrid() {
 
   // Get image URL or fallback
   const getImageUrl = (image: any, fallbackIndex: number) => {
-    if (image) {
-      return urlFor(image).width(800).height(500).url();
+    if (image?.asset) {
+      return urlFor(image).width(800).height(500).fit('crop').url();
     }
     const fallbacks = [
       "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop",

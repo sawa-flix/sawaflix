@@ -107,11 +107,13 @@ export default function AreaToryHero() {
     fetchData();
   }, []);
 
+  const getImageUrl = (image: any, fallback: string) => {
+    if (image?.asset) return urlFor(image).width(1200).height(800).fit('crop').url();
+    return fallback;
+  };
+
   const getFeaturedImage = () => {
-    if (featured?.mainImage?.asset) {
-      return urlFor(featured.mainImage).width(600).height(340).url();
-    }
-    return "https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?q=80&w=2070&auto=format&fit=crop";
+    return getImageUrl(featured?.mainImage, "https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?q=80&w=2070&auto=format&fit=crop");
   };
 
   const getHeroBG = () => {
