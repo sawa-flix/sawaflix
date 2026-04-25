@@ -25,21 +25,34 @@ export async function searchVideosAction(
 
     const url = `${API_BASE_URL}/api/videos/external/youtube?${params.toString()}`;
     
-    // Cache for 1 hour (3600 seconds)
-    const response = await fetch(url, {
-        next: { revalidate: 3600 }
-    });
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-        } catch {}
-        throw new Error(errorMessage);
+        const response = await fetch(url, {
+            next: { revalidate: 3600 },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            let errorMessage = `HTTP error ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch {}
+            throw new Error(errorMessage);
+        }
+
+        return response.json();
+    } catch (error: any) {
+        if (error.name === 'AbortError') {
+            throw new Error('The request timed out. The backend might be starting up.');
+        }
+        console.error('searchVideosAction error:', error);
+        throw error;
     }
-
-    return response.json();
 }
 
 export async function getVideoDetailsAction(videoId: string): Promise<VideoDetails> {

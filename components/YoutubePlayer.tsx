@@ -32,7 +32,7 @@ export function YouTubePlayer({
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [apiLoaded, setApiLoaded] = useState(false);
 
-    // Load YouTube API
+    // Initial API Load
     useEffect(() => {
         if (window.YT && window.YT.Player) {
             setApiLoaded(true);
@@ -50,7 +50,7 @@ export function YouTubePlayer({
             const script = document.createElement('script');
             script.src = 'https://www.youtube.com/iframe_api';
             script.async = true;
-            document.body.appendChild(script);
+            document.head.appendChild(script);
         }
 
         window.youtubeCallbacks.push(() => {
@@ -58,20 +58,20 @@ export function YouTubePlayer({
         });
     }, []);
 
-    // Initialize player when needed
+    // Initialize/Update Player
     useEffect(() => {
-        if (!apiLoaded) return;
-        if (!containerRef.current) return;
+        if (!apiLoaded || !containerRef.current || !videoId) return;
 
-        // Only create player if it doesn't exist AND video is active
-        if (!playerRef.current && isActive) {
-            console.log('[Player] Creating player for:', videoId);
+        let player: YT.Player;
 
-            playerRef.current = new window.YT.Player(containerRef.current, {
+        // If player doesn't exist, create it
+        if (!playerRef.current) {
+            console.log('[Player] Initializing new player instance');
+            player = new window.YT.Player(containerRef.current, {
                 videoId: videoId,
                 playerVars: {
                     autoplay: 1,
-                    mute: isMuted ? 1 : 0,
+                    mute: 1,
                     controls: 0,
                     rel: 0,
                     modestbranding: 1,
@@ -79,84 +79,73 @@ export function YouTubePlayer({
                     enablejsapi: 1,
                     origin: window.location.origin,
                     playsinline: 1,
+                    showinfo: 0,
                 },
                 events: {
-                    onReady: (event: YT.PlayerEvent) => {
-                        console.log('[Player] Ready for:', videoId);
+                    onReady: (event) => {
+                        console.log('[Player] Ready Event');
                         setIsPlayerReady(true);
+                        playerRef.current = event.target;
                         onPlayerReady?.(event.target);
                         if (isActive) {
                             event.target.playVideo();
+                            event.target.mute();
                         }
                     },
-                    onStateChange: (event: YT.OnStateChangeEvent) => {
-                        if (event.data === YT.PlayerState.ENDED) {
-                            console.log('[Player] Video ended:', videoId);
+                    onStateChange: (event) => {
+                        if (event.data === window.YT.PlayerState.UNSTARTED && isActive) {
+                            event.target.playVideo();
                         }
-                    },
-                    onError: (event: YT.OnErrorEvent) => {
-                        console.error('[Player] Error for', videoId, ':', event.data);
-                    },
-                },
-            });
-        }
-
-        // Control playback based on active state
-        if (playerRef.current && isPlayerReady) {
-            if (isActive) {
-                console.log('[Player] Playing active video:', videoId);
-                playerRef.current.playVideo();
-                // Ensure mute state is correct
-                if (isMuted) {
-                    playerRef.current.mute();
-                } else {
-                    playerRef.current.unMute();
+                    }
                 }
-            } else {
-                console.log('[Player] Pausing inactive video:', videoId);
-                playerRef.current.pauseVideo();
+            });
+            playerRef.current = player;
+        } else if (isPlayerReady) {
+            // If player exists and ready, just load the next video
+            try {
+                const currentId = (playerRef.current as any).getVideoData?.()?.video_id;
+                if (currentId !== videoId) {
+                    console.log('[Player] Loading new video ID');
+                    playerRef.current.loadVideoById({
+                        videoId: videoId,
+                        startSeconds: 0
+                    });
+                }
+
+                if (isActive) {
+                    playerRef.current.playVideo();
+                } else {
+                    playerRef.current.pauseVideo();
+                }
+
+                if (isMuted) playerRef.current.mute();
+                else playerRef.current.unMute();
+                
+            } catch (err) {
+                console.warn('[Player] Transition Error:', err);
             }
         }
 
         return () => {
-            // Don't destroy player immediately, just pause it
-            if (playerRef.current && !isActive) {
-                playerRef.current.pauseVideo();
-            }
+            // We only destroy the player instance if the component unmounts entirely
+            // or if we really need to. Currently keeping it persistent for speed.
         };
-    }, [apiLoaded, isActive, videoId, isMuted, onPlayerReady, isPlayerReady]);
+    }, [apiLoaded, videoId, isActive, isPlayerReady, isMuted]);
 
-    // Update mute state and ensure only active video plays
-    useEffect(() => {
-        if (playerRef.current && isPlayerReady) {
-            if (isMuted) {
-                playerRef.current.mute();
-            } else {
-                playerRef.current.unMute();
-            }
-
-            // If this video becomes unmuted but is not active, pause it immediately
-            if (!isMuted && !isActive) {
-                console.log('[Player] Inactive video unmuted - pausing:', videoId);
-                playerRef.current.pauseVideo();
-            }
-        }
-    }, [isMuted, isPlayerReady, isActive, videoId]);
-
-    // Clean up player when component unmounts or video changes significantly
+    // Global cleanup on unmount
     useEffect(() => {
         return () => {
             if (playerRef.current) {
-                console.log('[Player] Destroying player for:', videoId);
-                playerRef.current.stopVideo();
-                playerRef.current.destroy();
+                try {
+                    playerRef.current.destroy();
+                } catch (e) {}
                 playerRef.current = null;
                 setIsPlayerReady(false);
             }
         };
-    }, [videoId]);
+    }, []);
 
-    // Track progress only for active video
+    // Progress tracking
     useEffect(() => {
         if (!isActive || !playerRef.current || !isPlayerReady) {
             if (progressIntervalRef.current) {
@@ -168,43 +157,28 @@ export function YouTubePlayer({
 
         progressIntervalRef.current = setInterval(() => {
             try {
-                const currentTime = playerRef.current?.getCurrentTime();
-                const duration = playerRef.current?.getDuration();
-
-                if (currentTime !== undefined && duration !== undefined && duration > 0) {
-                    const progressPercent = (currentTime / duration) * 100;
-                    const remaining = Math.floor(duration - currentTime);
-                    const minutes = Math.floor(remaining / 60);
-                    const seconds = remaining % 60;
-                    const timeLeftFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    onProgress?.(progressPercent, timeLeftFormatted);
+                if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+                    const currentTime = playerRef.current.getCurrentTime();
+                    const duration = playerRef.current.getDuration();
+                    if (duration > 0) {
+                        onProgress?.((currentTime / duration) * 100, '');
+                    }
                 }
-            } catch (error) {
-                // Silent fail
-            }
+            } catch (e) {}
         }, 1000);
 
         return () => {
-            if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current);
-                progressIntervalRef.current = null;
-            }
+            if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
         };
     }, [isActive, isPlayerReady, onProgress]);
 
     return (
-        <div
-            ref={containerRef}
-            className="w-full h-full"
-            style={{
-                pointerEvents: 'none',
-                backgroundColor: '#000',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0
-            }}
-        />
+        <div className="w-full h-full relative bg-black">
+            <div 
+                ref={containerRef} 
+                className="w-full h-full pointer-events-none"
+            />
+            {/* Fallback/Poster overlay if needed could go here */}
+        </div>
     );
 }
