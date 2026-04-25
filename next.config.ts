@@ -19,11 +19,6 @@ const nextConfig = {
     },
   },
   webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      // Use $ to ensure exact match and avoid breaking react/jsx-runtime
-      'react$': path.resolve(__dirname, 'lib/react-shim'),
-    };
     return config;
   },
   transpilePackages: ["styled-components"],
