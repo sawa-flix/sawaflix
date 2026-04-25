@@ -59,8 +59,8 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      // Navigate to youtubeVids page with search query
-      router.push(`/dashboard/youtubeVids?q=${encodeURIComponent(searchValue.trim())}`);
+      // Navigate to dashboard with search query
+      router.push(`/dashboard?q=${encodeURIComponent(searchValue.trim())}`);
       setShowMobileSearchBar(false);
     }
   };
