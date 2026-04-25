@@ -2,8 +2,15 @@
 
 import type { VideoSearchResponse, VideoDetails, Comment } from '@/types/youtube';
 import { BACKEND_URL } from '@/lib/apiConfig';
+import { createClient } from '@/utils/supabase/server';
 
 const API_BASE_URL = BACKEND_URL || 'http://localhost:5000';
+
+async function getAuthToken() {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token;
+}
 
 export async function searchVideosAction(
     query: string,
@@ -87,5 +94,66 @@ export async function getVideoCommentsAction(videoId: string): Promise<Comment[]
         throw new Error(errorMessage);
     }
 
+    return response.json();
+}
+
+export async function likeYouTubeVideoAction(videoId: string) {
+    if (!videoId || videoId.trim() === '') throw new Error('Video ID cannot be empty');
+    const token = await getAuthToken();
+    const url = `${API_BASE_URL}/api/youtube/like`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ videoId })
+    });
+    if (!response.ok) {
+        let errorMessage = `HTTP error ${response.status}`;
+        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
+        throw new Error(errorMessage);
+    }
+    return response.json();
+}
+
+export async function followYouTubeChannelAction(channelId: string) {
+    if (!channelId || channelId.trim() === '') throw new Error('Channel ID cannot be empty');
+    const token = await getAuthToken();
+    const url = `${API_BASE_URL}/api/youtube/follow`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ channelId })
+    });
+    if (!response.ok) {
+        let errorMessage = `HTTP error ${response.status}`;
+        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
+        throw new Error(errorMessage);
+    }
+    return response.json();
+}
+
+export async function commentYouTubeVideoAction(videoId: string, text: string) {
+    if (!videoId || videoId.trim() === '') throw new Error('Video ID cannot be empty');
+    if (!text || text.trim() === '') throw new Error('Comment text cannot be empty');
+    const token = await getAuthToken();
+    const url = `${API_BASE_URL}/api/youtube/comment`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ videoId, comment: text })
+    });
+    if (!response.ok) {
+        let errorMessage = `HTTP error ${response.status}`;
+        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
+        throw new Error(errorMessage);
+    }
     return response.json();
 }

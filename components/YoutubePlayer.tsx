@@ -7,6 +7,7 @@ interface YouTubePlayerProps {
     videoId: string;
     isActive: boolean;
     isMuted: boolean;
+    isPaused?: boolean;
     onProgress?: (progress: number, timeLeft: string) => void;
     onPlayerReady?: (player: YT.Player) => void;
 }
@@ -23,6 +24,7 @@ export function YouTubePlayer({
     videoId,
     isActive,
     isMuted,
+    isPaused = false,
     onProgress,
     onPlayerReady
 }: YouTubePlayerProps) {
@@ -101,9 +103,9 @@ export function YouTubePlayer({
             });
         }
 
-        // Control playback based on active state
+        // Control playback based on active state and isPaused
         if (playerRef.current && isPlayerReady) {
-            if (isActive) {
+            if (isActive && !isPaused) {
                 console.log('[Player] Playing active video:', videoId);
                 playerRef.current.playVideo();
                 // Ensure mute state is correct
@@ -113,7 +115,7 @@ export function YouTubePlayer({
                     playerRef.current.unMute();
                 }
             } else {
-                console.log('[Player] Pausing inactive video:', videoId);
+                console.log('[Player] Pausing video:', videoId);
                 playerRef.current.pauseVideo();
             }
         }
@@ -124,7 +126,7 @@ export function YouTubePlayer({
                 playerRef.current.pauseVideo();
             }
         };
-    }, [apiLoaded, isActive, videoId, isMuted, onPlayerReady, isPlayerReady]);
+    }, [apiLoaded, isActive, isPaused, videoId, isMuted, onPlayerReady, isPlayerReady]);
 
     // Update mute state and ensure only active video plays
     useEffect(() => {
