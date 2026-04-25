@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -17,7 +17,6 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
-import { createClient } from '@/utils/supabase/client';
 
 const RESEND_TIMER_SECONDS = 60; // 1 Minute to resend
 const EXPIRY_TIMER_SECONDS = 300; // 5 Minutes for code expiry
@@ -46,7 +45,7 @@ const VerifyOtpPageContent = () => {
       setHasAutoSent(true);
       handleSendOtp();
     }
-  }, [urlEmail, hasAutoSent]);
+  }, [urlEmail, hasAutoSent, handleSendOtp]);
 
   // --- Logic: Timer ---
   useEffect(() => {
@@ -61,7 +60,7 @@ const VerifyOtpPageContent = () => {
   }, [resendTimer, expiryTimer]);
 
   // --- Logic: API Handlers ---
-  const handleSendOtp = async (e?: React.FormEvent) => {
+  const handleSendOtp = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -93,7 +92,7 @@ const VerifyOtpPageContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email]);
 
   const handleVerifyOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();

@@ -6,7 +6,6 @@ import {
   Film,
   Music,
   User,
-  Download,
   FileText,
   Workflow,
   Wallet,
@@ -14,9 +13,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
 import { usePathname } from 'next/navigation';
-import SawaflixLogo from '../SawaflixLogo';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -27,7 +24,6 @@ type UserProfileData = {
 
 export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
 
   const [verificationStatus, setVerificationStatus] = useState<string>('none');
@@ -38,7 +34,6 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user || null);
 
       if (user && session) {
         // Fetch user profile

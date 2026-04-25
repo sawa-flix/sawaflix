@@ -100,8 +100,8 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Main Content Area */}
-          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0B0E14] rounded-tl-3xl rounded-bl-3xl`}>
-            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> 
+          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)] bg-[#0B0E14] rounded-tl-3xl rounded-bl-3xl'} overflow-auto`}>
+            <div className={`${isCreatorLayout ? '' : 'px-4 sm:px-6 lg:px-8 py-6'} max-w-full pb-32`}> 
               {children}
             </div>
           </main>
