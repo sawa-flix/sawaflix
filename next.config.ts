@@ -52,6 +52,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // Allow private IPs for Supabase storage in development
     dangerouslyAllowSVG: true,

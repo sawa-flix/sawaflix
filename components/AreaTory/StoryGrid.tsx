@@ -1,61 +1,138 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Calendar, Tag } from "lucide-react";
+import { ArrowUpRight, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { getStories, getCategories } from "@/lib/sanity/queries";
+import { urlFor } from "@/lib/sanity/client";
 
-const stories = [
+interface SanityStory {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  excerpt: string;
+  mainImage: any;
+  publishedAt: string;
+  readTime: string;
+  featured: boolean;
+  likes: number;
+  views: number;
+  category: {
+    _id: string;
+    title: string;
+    slug: { current: string };
+    color: string;
+  };
+  author: {
+    _id: string;
+    name: string;
+    avatar: any;
+    role: string;
+  };
+}
+
+interface SanityCategory {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  color: string;
+}
+
+// Fallback static stories for when Sanity is unavailable
+const fallbackStories = [
   {
-    id: 1,
+    _id: "fallback-1",
     title: "The Sacred Ngondo Festival: Spirits of the Wouri",
-    category: "Culture",
-    date: "Dec 12, 2024",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop",
-    excerpt: "Exploring the sacred communication with water spirits (Miengu) on the banks of the Wouri River."
+    slug: { current: "ngondo-festival" },
+    category: { _id: "c1", title: "Culture", slug: { current: "culture" }, color: "#E50914" },
+    author: { _id: "a1", name: "Sawaflix Heritage Team", avatar: null, role: "Editorial" },
+    publishedAt: "2024-12-12T10:00:00Z",
+    mainImage: null,
+    excerpt: "Exploring the sacred communication with water spirits (Miengu) on the banks of the Wouri River.",
+    readTime: "6 min read",
+    featured: true,
+    likes: 1200,
+    views: 8900,
   },
   {
-    id: 2,
+    _id: "fallback-2",
     title: "Sawaflix Originals: New Creators Program Launch",
-    category: "Announcement",
-    date: "Jan 05, 2025",
-    image: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2070&auto=format&fit=crop",
-    excerpt: "We're investing in local talent to bring more authentic African stories to your screen."
+    slug: { current: "creators-program" },
+    category: { _id: "c2", title: "Announcement", slug: { current: "announcement" }, color: "#3B82F6" },
+    author: { _id: "a1", name: "Sawaflix Heritage Team", avatar: null, role: "Editorial" },
+    publishedAt: "2025-01-05T10:00:00Z",
+    mainImage: null,
+    excerpt: "We're investing in local talent to bring more authentic African stories to your screen.",
+    readTime: "4 min read",
+    featured: false,
+    likes: 890,
+    views: 5600,
   },
-  {
-    id: 3,
-    title: "Exploring Foumban: The Architectural Jewel of the West",
-    category: "Tourism",
-    date: "Feb 18, 2025",
-    image: "https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070&auto=format&fit=crop",
-    excerpt: "A deep dive into the history of the Bamoun Kingdom and the architectural legacy of Sultan Njoya."
-  },
-  {
-    id: 4,
-    title: "Top 10 Afropop Hits to Watch This Season",
-    category: "Music",
-    date: "Mar 10, 2025",
-    image: "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop",
-    excerpt: "From Mr. Leo to Stanley Enow, discover the songs dominating the Cameroonian charts."
-  },
-  {
-    id: 5,
-    title: "Preserving the Baka Polyphonic Singing",
-    category: "Heritage",
-    date: "Apr 02, 2025",
-    image: "https://images.unsplash.com/photo-1526218626217-dc65a29bb444?q=80&w=1974&auto=format&fit=crop",
-    excerpt: "How the Baka Pygmy communities use song to maintain their relationship with the rainforest."
-  },
-  {
-    id: 6,
-    title: "Collywood: The Rise of Cameroonian Cinema",
-    category: "Cinema",
-    date: "May 15, 2025",
-    image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop",
-    excerpt: "An interview with Syndy Emade on the future of movie production in Central Africa."
-  }
 ];
 
 export default function StoryGrid() {
+  const [stories, setStories] = useState<SanityStory[]>([]);
+  const [categories, setCategories] = useState<SanityCategory[]>([]);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [storiesData, categoriesData] = await Promise.all([
+          getStories(),
+          getCategories(),
+        ]);
+        setStories(storiesData?.length ? storiesData : fallbackStories);
+        setCategories(categoriesData || []);
+      } catch (error) {
+        console.error("Failed to fetch from Sanity:", error);
+        setStories(fallbackStories);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Filter stories by active category
+  const filteredStories =
+    activeCategory === "all"
+      ? stories
+      : stories.filter(
+          (s) => s.category?.slug?.current === activeCategory
+        );
+
+  const displayedStories = filteredStories.slice(0, visibleCount);
+
+  // Format date
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Get image URL or fallback
+  const getImageUrl = (image: any, fallbackIndex: number) => {
+    if (image) {
+      return urlFor(image).width(800).height(500).url();
+    }
+    const fallbacks = [
+      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2070&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1526218626217-dc65a29bb444?q=80&w=1974&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop",
+    ];
+    return fallbacks[fallbackIndex % fallbacks.length];
+  };
+
   return (
     <section className="py-24 bg-[#0B0E14] relative overflow-hidden">
       {/* Abstract Background Elements */}
@@ -72,81 +149,131 @@ export default function StoryGrid() {
               Stay updated with cultural insights, community news, and cinematic releases.
             </p>
           </div>
-          <div className="flex gap-3">
-            {["All", "Culture", "News", "Music"].map((cat) => (
-              <button 
-                key={cat}
-                className="px-4 py-1.5 rounded-lg border border-white/10 text-gray-400 text-[10px] font-bold hover:border-red-600 hover:text-white hover:bg-red-600/5 transition-all duration-300 cursor-pointer uppercase tracking-widest"
+          <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={() => { setActiveCategory("all"); setVisibleCount(6); }}
+              className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer uppercase tracking-widest ${
+                activeCategory === "all"
+                  ? "border-red-600 text-white bg-red-600/10"
+                  : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
+              }`}
+            >
+              All
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat._id}
+                onClick={() => { setActiveCategory(cat.slug.current); setVisibleCount(6); }}
+                className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer uppercase tracking-widest ${
+                  activeCategory === cat.slug.current
+                    ? "border-red-600 text-white bg-red-600/10"
+                    : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
+                }`}
               >
-                {cat}
+                {cat.title}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stories.map((story, index) => (
-            <motion.div
-              key={story.id}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              viewport={{ once: true }}
-              className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all"
-            >
-              {/* Image Container - Compact */}
-              <div className="relative h-48 overflow-hidden">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${story.image})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-50" />
-                
-                {/* Category Badge - Small */}
-                <div className="absolute top-3 left-3">
-                  <span className="px-2 py-0.5 bg-red-600/90 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-md">
-                    {story.category}
-                  </span>
-                </div>
-              </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
+            <span className="ml-3 text-gray-400 text-sm font-medium">Loading stories...</span>
+          </div>
+        )}
 
-              {/* Content - Scaled Down */}
-              <div className="p-6">
-                <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold uppercase tracking-widest mb-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-2.5 h-2.5" />
-                    {story.date}
+        {/* Empty State */}
+        {!loading && filteredStories.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-sm">No stories found in this category yet.</p>
+          </div>
+        )}
+
+        {/* Story Grid */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedStories.map((story, index) => (
+              <motion.div
+                key={story._id}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                viewport={{ once: true }}
+                className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all"
+              >
+                {/* Image Container */}
+                <div className="relative h-48 overflow-hidden">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url(${getImageUrl(story.mainImage, index)})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-50" />
+
+                  {/* Category Badge */}
+                  <div className="absolute top-3 left-3">
+                    <span
+                      className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md uppercase tracking-widest backdrop-blur-md"
+                      style={{ backgroundColor: (story.category?.color || "#E50914") + "E6" }}
+                    >
+                      {story.category?.title || "Uncategorized"}
+                    </span>
                   </div>
-                  <div className="w-1 h-1 rounded-full bg-gray-700" />
-                  <span>5 min read</span>
+
+                  {/* Featured badge */}
+                  {story.featured && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-0.5 bg-yellow-500/90 text-black text-[9px] font-bold rounded-md uppercase tracking-widest">
+                        Featured
+                      </span>
+                    </div>
+                  )}
                 </div>
-                
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
-                  {story.title}
-                </h3>
-                
-                <p className="text-gray-400 text-xs font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
-                  {story.excerpt}
-                </p>
 
-                <Link 
-                  href={`/dashboard/blogs/${story.id}`}
-                  className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
-                >
-                  Read story 
-                  <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
-                </Link>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                {/* Content */}
+                <div className="p-6">
+                  <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold uppercase tracking-widest mb-3">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-2.5 h-2.5" />
+                      {formatDate(story.publishedAt)}
+                    </div>
+                    <div className="w-1 h-1 rounded-full bg-gray-700" />
+                    <span>{story.readTime || "5 min read"}</span>
+                  </div>
 
-        {/* Load More Button - Compact */}
-        <div className="flex justify-center mt-12">
-          <button className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-            Load more stories
-          </button>
-        </div>
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
+                    {story.title}
+                  </h3>
+
+                  <p className="text-gray-400 text-xs font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
+                    {story.excerpt}
+                  </p>
+
+                  <Link
+                    href={`/dashboard/blogs/${story.slug?.current || story._id}`}
+                    className="flex items-center gap-2 text-white font-bold text-[10px] uppercase tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
+                  >
+                    Read story
+                    <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {!loading && filteredStories.length > visibleCount && (
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 6)}
+              className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+            >
+              Load more stories
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
