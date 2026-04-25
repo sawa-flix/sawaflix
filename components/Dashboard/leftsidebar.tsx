@@ -131,7 +131,13 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         <SawaflixLogo />
       </div> */}
 
-      <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 px-4 py-8 space-y-3 overflow-y-auto scrollbar-none">
+        <div className="mb-6 px-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+            Main navigation
+          </p>
+        </div>
+        
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.route;
@@ -141,23 +147,25 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
               key={item.id}
               href={item.route}
               onClick={handleItemClick}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
-                  ? 'bg-red-600/10 text-red-500'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              className={`flex items-center justify-between w-full px-5 py-3.5 rounded-xl transition-all duration-300 group cursor-pointer ${isActive
+                  ? 'bg-white text-black shadow-2xl shadow-white/10 translate-x-1'
+                  : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white'
                 }`}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <Icon
-                  size={20}
-                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
+                  size={18}
+                  className={`transition-colors ${isActive ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
+                <span className={`text-sm font-bold tracking-tight ${isActive ? 'font-black' : ''}`}>
+                  {item.name}
+                </span>
               </div>
 
               {item.badge && (
-                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
-                    : 'bg-white/10 text-gray-400'
+                <span className={`px-2 py-0.5 text-[9px] rounded-md font-black uppercase tracking-widest ${isActive
+                    ? 'bg-black text-white'
+                    : 'bg-red-600 text-white shadow-lg shadow-red-600/20'
                   }`}>
                   {item.badge}
                 </span>
@@ -167,7 +175,12 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
         })}
       </nav>
 
-      <div className="p-3 border-t border-white/5">
+      <div className="p-4 space-y-4 border-t border-white/5">
+        <div className="px-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
+            Intelligent features
+          </p>
+        </div>
         {smart.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.route;
@@ -177,23 +190,23 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
               key={item.id}
               href={item.route}
               onClick={handleItemClick}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
-                  ? 'bg-red-600/10 text-red-500'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              className={`flex items-center justify-between w-full px-5 py-3.5 rounded-xl transition-all duration-300 group cursor-pointer ${isActive
+                  ? 'bg-white text-black shadow-2xl shadow-white/10 translate-x-1'
+                  : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white'
                 }`}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <Icon
-                  size={20}
-                  className={`transition-colors ${isActive ? 'text-red-500' : 'text-gray-500 group-hover:text-white'}`}
+                  size={18}
+                  className={`transition-colors ${isActive ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}
                 />
-                <span className={`font-semibold text-sm ${isActive ? 'text-red-500' : ''}`}>{item.name}</span>
+                <span className={`text-sm font-bold tracking-tight ${isActive ? 'font-black' : ''}`}>{item.name}</span>
               </div>
 
               {item.badge && (
-                <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${isActive
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
-                    : 'bg-white/10 text-gray-400'
+                <span className={`px-2 py-0.5 text-[9px] rounded-md font-black uppercase tracking-widest ${isActive
+                    ? 'bg-black text-white'
+                    : 'bg-red-600 text-white shadow-lg shadow-red-600/20'
                   }`}>
                   {item.badge}
                 </span>
@@ -201,29 +214,33 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
             </Link>
           );
         })}
+        
         <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
-          <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 mt-4 transition-all cursor-pointer border border-white/10">
+          <div className={`flex items-center space-x-4 px-5 py-3.5 rounded-xl transition-all duration-300 cursor-pointer border ${pathname === '/dashboard/profile' 
+            ? 'bg-white text-black border-white shadow-2xl shadow-white/10' 
+            : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white'
+          }`}>
             {userProfile?.profile_image_url ? (
-              <div className="w-10 h-10 rounded-full shrink-0 relative overflow-hidden aspect-square border-2 border-white/5">
+              <div className="w-9 h-9 rounded-full shrink-0 relative overflow-hidden aspect-square border-2 border-black/10">
                 <Image
                   src={userProfile.profile_image_url}
                   alt="Profile"
                   fill
-                  sizes="40px"
+                  sizes="36px"
                   className="object-cover"
                   unoptimized
                 />
               </div>
             ) : (
-              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shrink-0">
-                <User size={16} className="text-white" />
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${pathname === '/dashboard/profile' ? 'bg-black' : 'bg-red-600'}`}>
+                <User size={14} className="text-white" />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-white truncate">
+              <p className={`font-bold text-sm truncate ${pathname === '/dashboard/profile' ? 'text-black' : 'text-white'}`}>
                 {userProfile?.username || 'Guest'}
               </p>
-              <p className="text-xs text-gray-400 truncate">
+              <p className="text-[10px] text-gray-500 truncate font-medium">
                 {userProfile?.email || 'N/A'}
               </p>
             </div>

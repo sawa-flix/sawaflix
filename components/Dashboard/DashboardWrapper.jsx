@@ -60,15 +60,23 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <MusicProvider>
-      <div className="min-h-screen bg-[#0B0E14]">
+      <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
+        {/* Genius Background Experience - Mesh Gradients & Glows */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-600/10 blur-[120px] rounded-full animate-pulse" />
+           <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-blue-600/5 blur-[100px] rounded-full" />
+           <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-red-900/10 blur-[150px] rounded-full" />
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
+        </div>
+
         {/* Header - Only show if NOT in creator layout mode */}
         {!isCreatorLayout && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        <div className={`flex ${isCreatorLayout ? 'pt-0' : 'pt-16'}`}> 
+        <div className={`flex relative z-10 ${isCreatorLayout ? 'pt-0' : 'pt-16'}`}> 
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-md transition-all duration-500"
               onClick={closeSidebar}
               role="button"
               tabIndex={0}
@@ -83,12 +91,12 @@ const DashboardWrapper = ({ children }) => {
           <aside
             className={`
               fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-              w-64 h-screen bg-[#0B0E14]
-              transform transition-transform duration-300 ease-in-out
+              w-72 h-screen bg-[#0B0E14]/80 backdrop-blur-xl
+              transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0 lg:block
               overflow-y-auto scrollbar-none
-              border-r border-white/5
+              border-r border-white/5 shadow-2xl shadow-black/50
             `}
           >
             {isCreatorLayout ? (
@@ -99,15 +107,15 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Main Content Area */}
-          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0B0E14] rounded-tl-3xl rounded-bl-3xl`}>
-            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> 
+          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-transparent`}>
+            <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}
             </div>
           </main>
 
           {/* Right Sidebar - Only show for normal user dashboard */}
           {!isCreatorLayout && (
-            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-white/5">
+            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
                 <RightSidebar />
             </aside>
           )}
