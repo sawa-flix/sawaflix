@@ -9,18 +9,14 @@ const nextConfig = {
   serverExternalPackages: [],
   experimental: {
     serverActions: {
-      bodySizeLimit: '12mb', // Set this higher than your 10MB check
-    },
-    turbo: {
-      resolveAlias: {
-        'react': './lib/react-shim.js',
-      },
+      bodySizeLimit: '12mb',
     },
   },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       'react': require.resolve('./lib/react-shim.js'),
+      'react-dom': require.resolve('react-dom'),
     };
     return config;
   },
@@ -29,57 +25,30 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'xjxbjnjspmmpfngbdihd.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
+        hostname: '**.supabase.co',
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.googleusercontent.com',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'i.ibb.co',
-        port: '',
-        pathname: '/**',
+        hostname: '**.ibb.co',
       },
       {
         protocol: 'https',
-        hostname: 'yt3.ggpht.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.sanity.io',
       },
       {
         protocol: 'https',
-        hostname: 'yt3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.ytimg.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-        port: '',
-        pathname: '/**',
+        hostname: '**.ytimg.com',
       },
     ],
-    // Allow private IPs for Supabase storage in development
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://*.supabase.co https://*.googleusercontent.com https://images.unsplash.com https://i.ibb.co https://cdn.sanity.io https://i.ytimg.com; frame-src 'self' https://www.youtube.com https://youtube.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.sanity.io https://*.api.sanity.io;",
   },
 }
 export default nextConfig;
-
