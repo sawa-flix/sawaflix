@@ -44,7 +44,7 @@ const FEATURED_STORY_QUERY = `*[_type == "story" && featured == true] | order(pu
   }
 }`;
 
-const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
+const CATEGORIES_QUERY = `*[_type == "category"] | order(title desc) {
   _id,
   title,
   slug,

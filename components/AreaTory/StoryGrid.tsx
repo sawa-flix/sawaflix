@@ -163,7 +163,7 @@ export default function StoryGrid() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
 
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative z-30">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter">
               Latest stories
@@ -186,9 +186,14 @@ export default function StoryGrid() {
             {categories.map((cat) => (
               <button
                 key={cat._id}
-                onClick={() => { setActiveCategory(cat.slug.current); setVisibleCount(6); }}
+                onClick={() => { 
+                  if (cat.slug?.current) {
+                    setActiveCategory(cat.slug.current); 
+                    setVisibleCount(6); 
+                  }
+                }}
                 className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
-                  activeCategory === cat.slug.current
+                  activeCategory === (cat.slug?.current || "")
                     ? "border-red-600 text-white bg-red-600/10"
                     : "border-white/10 text-gray-400 hover:border-red-600 hover:text-white hover:bg-red-600/5"
                 }`}
