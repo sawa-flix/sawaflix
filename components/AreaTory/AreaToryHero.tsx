@@ -13,7 +13,7 @@ export default function AreaToryHero() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
           style={{
-            backgroundImage: "url('/images/Hero-background.jpg')", // Reusing for consistency as requested
+            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')", // New premium background
             filter: "brightness(0.35) saturate(1.1)",
           }}
         />

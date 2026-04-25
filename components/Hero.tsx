@@ -13,9 +13,10 @@ export default function Hero() {
       {/* Background Image with Simple Deep Gradient */}
       <div className="absolute inset-0 z-0">
         <div
-          className="absolute inset-0 bg-cover bg-[center_top] md:bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] scale-110"
           style={{
-            backgroundImage: "url('/images/Hero-background.jpg')",
+            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')", // New premium background
+            filter: "brightness(0.35) saturate(1.1)",
           }}
         />
         {/* Simple, heavy gradients for maximum clarity and mobile-app feel */}

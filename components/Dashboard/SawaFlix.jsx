@@ -60,7 +60,7 @@ const SawaFlix = () => {
     <div className="relative h-72 sm:h-80 lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden mb-8 group">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500"
-        style={{ backgroundImage: "url('https://i.ibb.co/N2c9XWpL/Fang-beti-Slider.jpg')" }}
+        style={{ backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')" }}
       />
       {/* Multi-layer dark overlays for better contrast */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/70" />
