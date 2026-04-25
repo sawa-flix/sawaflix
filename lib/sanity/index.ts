@@ -1,4 +1,4 @@
-export { sanityClient, urlFor } from "./client";
+export { sanityClient, urlFor, sanityFetch } from "./client";
 export {
   getStories,
   getStoriesByCategory,
@@ -7,4 +7,5 @@ export {
   getFeaturedStory,
   getCategories,
   getRelatedStories,
+  getStoryCount,
 } from "./queries";

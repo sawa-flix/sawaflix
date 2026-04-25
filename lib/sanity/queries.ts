@@ -1,11 +1,11 @@
-import { sanityClient } from "./client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { sanityFetch } from "./client";
 
 // ============================================================
 // GROQ Queries for Area Tory
 // ============================================================
 
-// Fetch all stories with category and author dereferenced
-export const STORIES_QUERY = `*[_type == "story"] | order(publishedAt desc) {
+const STORIES_QUERY = `*[_type == "story"] | order(publishedAt desc) {
   _id,
   title,
   slug,
@@ -30,90 +30,7 @@ export const STORIES_QUERY = `*[_type == "story"] | order(publishedAt desc) {
   }
 }`;
 
-// Fetch stories by category
-export const STORIES_BY_CATEGORY_QUERY = `*[_type == "story" && category->slug.current == $categorySlug] | order(publishedAt desc) {
-  _id,
-  title,
-  slug,
-  excerpt,
-  mainImage,
-  publishedAt,
-  readTime,
-  featured,
-  likes,
-  views,
-  category->{
-    _id,
-    title,
-    slug,
-    color
-  },
-  author->{
-    _id,
-    name,
-    avatar,
-    role
-  }
-}`;
-
-// Fetch a single story by slug with full body
-export const STORY_BY_SLUG_QUERY = `*[_type == "story" && slug.current == $slug][0] {
-  _id,
-  title,
-  slug,
-  excerpt,
-  mainImage,
-  publishedAt,
-  readTime,
-  featured,
-  likes,
-  views,
-  body,
-  category->{
-    _id,
-    title,
-    slug,
-    color
-  },
-  author->{
-    _id,
-    name,
-    avatar,
-    role,
-    bio
-  }
-}`;
-
-// Fetch a single story by _id (for backwards compat with numeric routes)
-export const STORY_BY_ID_QUERY = `*[_type == "story" && _id == $id][0] {
-  _id,
-  title,
-  slug,
-  excerpt,
-  mainImage,
-  publishedAt,
-  readTime,
-  featured,
-  likes,
-  views,
-  body,
-  category->{
-    _id,
-    title,
-    slug,
-    color
-  },
-  author->{
-    _id,
-    name,
-    avatar,
-    role,
-    bio
-  }
-}`;
-
-// Fetch featured story for hero
-export const FEATURED_STORY_QUERY = `*[_type == "story" && featured == true] | order(publishedAt desc)[0] {
+const FEATURED_STORY_QUERY = `*[_type == "story" && featured == true] | order(publishedAt desc)[0] {
   _id,
   title,
   slug,
@@ -126,23 +43,11 @@ export const FEATURED_STORY_QUERY = `*[_type == "story" && featured == true] | o
   }
 }`;
 
-// Fetch all categories
-export const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
+const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
   _id,
   title,
   slug,
   color
-}`;
-
-// Related stories (same category, exclude current)
-export const RELATED_STORIES_QUERY = `*[_type == "story" && category._ref == $categoryId && _id != $currentId] | order(publishedAt desc)[0...3] {
-  _id,
-  title,
-  slug,
-  mainImage,
-  category->{
-    title
-  }
 }`;
 
 // ============================================================
@@ -150,29 +55,54 @@ export const RELATED_STORIES_QUERY = `*[_type == "story" && category._ref == $ca
 // ============================================================
 
 export async function getStories() {
-  return sanityClient.fetch(STORIES_QUERY);
+  return sanityFetch(STORIES_QUERY);
 }
 
 export async function getStoriesByCategory(categorySlug: string) {
-  return sanityClient.fetch(STORIES_BY_CATEGORY_QUERY, { categorySlug });
+  const query = `*[_type == "story" && category->slug.current == $categorySlug] | order(publishedAt desc) {
+    _id, title, slug, excerpt, mainImage, publishedAt, readTime, featured, likes, views,
+    category->{ _id, title, slug, color },
+    author->{ _id, name, avatar, role }
+  }`;
+  return sanityFetch(query, { categorySlug });
 }
 
 export async function getStoryBySlug(slug: string) {
-  return sanityClient.fetch(STORY_BY_SLUG_QUERY, { slug });
+  const query = `*[_type == "story" && slug.current == $slug][0] {
+    _id, title, slug, excerpt, mainImage, publishedAt, readTime,
+    featured, likes, views, body,
+    category->{ _id, title, slug, color },
+    author->{ _id, name, avatar, role, bio }
+  }`;
+  return sanityFetch(query, { slug });
 }
 
 export async function getStoryById(id: string) {
-  return sanityClient.fetch(STORY_BY_ID_QUERY, { id });
+  const query = `*[_type == "story" && _id == $id][0] {
+    _id, title, slug, excerpt, mainImage, publishedAt, readTime,
+    featured, likes, views, body,
+    category->{ _id, title, slug, color },
+    author->{ _id, name, avatar, role, bio }
+  }`;
+  return sanityFetch(query, { id });
 }
 
 export async function getFeaturedStory() {
-  return sanityClient.fetch(FEATURED_STORY_QUERY);
+  return sanityFetch(FEATURED_STORY_QUERY);
 }
 
 export async function getCategories() {
-  return sanityClient.fetch(CATEGORIES_QUERY);
+  return sanityFetch(CATEGORIES_QUERY);
 }
 
 export async function getRelatedStories(categoryId: string, currentId: string) {
-  return sanityClient.fetch(RELATED_STORIES_QUERY, { categoryId, currentId });
+  const query = `*[_type == "story" && category._ref == $categoryId && _id != $currentId] | order(publishedAt desc)[0...3] {
+    _id, title, slug, mainImage,
+    category->{ title }
+  }`;
+  return sanityFetch(query, { categoryId, currentId });
+}
+
+export async function getStoryCount() {
+  return sanityFetch(`count(*[_type == "story"])`);
 }

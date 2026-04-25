@@ -1,9 +1,10 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getFeaturedStory } from "@/lib/sanity/queries";
+import { getFeaturedStory, getStoryCount } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
 
 interface FeaturedStory {
@@ -19,32 +20,28 @@ interface FeaturedStory {
 export default function AreaToryHero() {
   const [featured, setFeatured] = useState<FeaturedStory | null>(null);
   const [storyCount, setStoryCount] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    async function fetchFeatured() {
+    async function fetchData() {
       try {
-        const data = await getFeaturedStory();
-        if (data) setFeatured(data);
-
-        // Get story count
-        const { createClient } = await import("@sanity/client");
-        const client = createClient({
-          projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "eifjj9rh",
-          dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
-          apiVersion: "2024-01-01",
-          useCdn: true,
-        });
-        const count = await client.fetch(`count(*[_type == "story"])`);
-        setStoryCount(count || 0);
+        const [featuredData, count] = await Promise.all([
+          getFeaturedStory(),
+          getStoryCount(),
+        ]);
+        if (featuredData) setFeatured(featuredData);
+        if (count) setStoryCount(count);
       } catch (error) {
         console.error("Failed to fetch featured story:", error);
+      } finally {
+        setLoaded(true);
       }
     }
-    fetchFeatured();
+    fetchData();
   }, []);
 
   const getFeaturedImage = () => {
-    if (featured?.mainImage) {
+    if (featured?.mainImage?.asset) {
       return urlFor(featured.mainImage).width(600).height(340).url();
     }
     return "https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?q=80&w=2070&auto=format&fit=crop";
@@ -100,7 +97,7 @@ export default function AreaToryHero() {
               <div className="w-[1px] h-6 bg-gray-800" />
               <div className="flex flex-col items-center md:items-start cursor-default">
                 <span className="text-white font-bold text-base">
-                  {storyCount > 0 ? `${storyCount}` : "450+"}
+                  {storyCount > 0 ? `${storyCount}+` : "450+"}
                 </span>
                 <span className="text-gray-500 text-[9px] uppercase tracking-widest font-bold">Stories</span>
               </div>
@@ -115,7 +112,7 @@ export default function AreaToryHero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="hidden md:block relative group cursor-pointer"
         >
-          <Link href={featured ? `/dashboard/blogs/${featured.slug.current}` : "#"}>
+          <Link href={featured?.slug?.current ? `/dashboard/blogs/${featured.slug.current}` : "/dashboard/blogs"}>
             <div className="relative aspect-[16/9] w-full max-w-sm ml-auto bg-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-red-600/30 group-hover:shadow-red-600/10">
               <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
@@ -127,10 +124,10 @@ export default function AreaToryHero() {
                   className="inline-block px-2 py-0.5 text-white text-[9px] font-bold rounded-md mb-2 uppercase tracking-widest transition-transform group-hover:scale-105"
                   style={{ backgroundColor: featured?.category?.color || "#E50914" }}
                 >
-                  {featured?.category?.title || "Latest"}
+                  {loaded ? (featured?.category?.title || "Featured") : "Loading..."}
                 </span>
                 <h3 className="text-lg font-bold text-white mb-1 leading-tight group-hover:text-red-500 transition-colors">
-                  {featured?.title || "Loading..."}
+                  {loaded ? (featured?.title || "Explore our latest stories") : "Loading..."}
                 </h3>
               </div>
             </div>

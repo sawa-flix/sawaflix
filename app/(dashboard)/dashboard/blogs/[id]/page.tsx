@@ -8,7 +8,7 @@ import { ArrowLeft, Calendar, Heart, MessageCircle, Share2, Eye, Clock, Loader2 
 import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
-import { sanityClient, urlFor } from "@/lib/sanity/client";
+import { sanityFetch, urlFor } from "@/lib/sanity/client";
 
 interface StoryDetail {
   _id: string;
@@ -144,7 +144,7 @@ export default function StoryDetailsPage() {
           author->{ _id, name, avatar, role, bio }
         }`;
 
-        let data = await sanityClient.fetch(STORY_QUERY, { slug });
+        let data = await sanityFetch(STORY_QUERY, { slug });
 
         // If not found by slug, try by _id
         if (!data) {
@@ -154,7 +154,7 @@ export default function StoryDetailsPage() {
             category->{ _id, title, slug, color },
             author->{ _id, name, avatar, role, bio }
           }`;
-          data = await sanityClient.fetch(ID_QUERY, { id: slug });
+          data = await sanityFetch(ID_QUERY, { id: slug });
         }
 
         if (data) {
@@ -166,7 +166,7 @@ export default function StoryDetailsPage() {
               _id, title, slug, mainImage,
               category->{ title }
             }`;
-            const related = await sanityClient.fetch(RELATED_QUERY, {
+            const related = await sanityFetch(RELATED_QUERY, {
               catId: data.category._id,
               currentId: data._id,
             });
