@@ -150,6 +150,37 @@ export default function AreaToryHero() {
           </Link>
         </div>
       </div>
+
+      {/* Developers Avatar Stack — Bottom Right */}
+      <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
+        <div className="flex items-center -space-x-2">
+          {[
+            { id: 1, name: "Aris", img: "https://i.pravatar.cc/150?u=1" },
+            { id: 2, name: "Dave", img: "https://i.pravatar.cc/150?u=2" },
+            { id: 3, name: "Sam", img: "https://i.pravatar.cc/150?u=3" },
+            { id: 4, name: "Leo", img: "https://i.pravatar.cc/150?u=4" }
+          ].map((dev) => (
+            <div 
+              key={dev.id}
+              className="relative w-8 h-8 rounded-full border-2 border-[#0B0E14] overflow-hidden group/dev cursor-pointer transition-transform hover:scale-110 hover:z-10"
+              title={dev.name}
+            >
+              <img 
+                src={dev.img} 
+                alt={dev.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-red-600/20 opacity-0 group-hover/dev:opacity-100 transition-opacity" />
+            </div>
+          ))}
+          <div className="w-8 h-8 rounded-full border-2 border-[#0B0E14] bg-red-600 flex items-center justify-center text-[10px] font-black text-white cursor-default">
+            +
+          </div>
+        </div>
+        <span className="text-gray-500 text-[8px] font-bold uppercase tracking-widest bg-black/40 px-2 py-1 rounded-full border border-white/5 backdrop-blur-sm">
+          Built by <span className="text-white">Sawaflix Devs</span>
+        </span>
+      </div>
     </section>
   );
 }
