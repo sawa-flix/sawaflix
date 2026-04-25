@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -15,8 +21,8 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      'react': require.resolve('./lib/react-shim.js'),
-      'react-dom': require.resolve('react-dom'),
+      // Use $ to ensure exact match and avoid breaking react/jsx-runtime
+      'react$': path.resolve(__dirname, 'lib/react-shim'),
     };
     return config;
   },
