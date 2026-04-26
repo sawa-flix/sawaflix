@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -10,14 +11,16 @@ export default function Hero() {
       id="home"
       className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-end md:justify-center items-center bg-[#0B0E14]"
     >
-      {/* Background Image with Simple Deep Gradient */}
+      {/* High-Performance Optimized Background Image */}
       <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png')",
-            filter: "brightness(0.55) saturate(1.2)",
-          }}
+        <Image
+          src="https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png"
+          alt="Sawaflix Hero Background"
+          fill
+          priority
+          quality={85}
+          className="object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
+          sizes="100vw"
         />
         {/* Minimal gradients — just enough for text readability */}
         <div className="absolute inset-0 bg-black/10" />
@@ -27,12 +30,12 @@ export default function Hero() {
 
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16 md:pb-0 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-4 md:space-y-8"
-        >
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-4 md:space-y-8"
+          >
           {/* Subtitle / Brand Tag */}
           {/* <div className="flex justify-center">
             <span className="text-red-600 font-bold text-[9px] md:text-[11px] tracking-[0.5em] uppercase opacity-90">
