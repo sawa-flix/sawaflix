@@ -135,6 +135,7 @@ export default function StoryDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
   const [isPlayed, setIsPlayed] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
 
   // Helper to extract YouTube ID and return embed URL
   const getYouTubeEmbedUrl = (url: string) => {
@@ -348,7 +349,10 @@ export default function StoryDetailsPage() {
               {!isPlayed ? (
                 <div 
                   className="relative w-full h-full cursor-pointer group/vid"
-                  onClick={() => setIsPlayed(true)}
+                  onClick={() => {
+                    setIsPlayed(true);
+                    setIsVideoLoading(true);
+                  }}
                 >
                   <Image
                     src={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
@@ -369,13 +373,25 @@ export default function StoryDetailsPage() {
                   </div>
                 </div>
               ) : (
-                <iframe
-                  src={`${getYouTubeEmbedUrl(story.videoUrl)}?autoplay=1&modestbranding=1&rel=0`}
-                  title="YouTube video player"
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
+                <div className="relative w-full h-full">
+                  {isVideoLoading && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-900">
+                      <div className="relative">
+                        <div className="w-12 h-12 border-2 border-white/10 rounded-full" />
+                        <div className="absolute inset-0 w-12 h-12 border-t-2 border-red-600 rounded-full animate-spin shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                      </div>
+                      <span className="mt-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] animate-pulse">Initializing Video</span>
+                    </div>
+                  )}
+                  <iframe
+                    src={`${getYouTubeEmbedUrl(story.videoUrl)}?autoplay=1&modestbranding=1&rel=0`}
+                    title="YouTube video player"
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    onLoad={() => setIsVideoLoading(false)}
+                  />
+                </div>
               )}
             </div>
           </motion.div>
