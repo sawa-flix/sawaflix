@@ -24,7 +24,8 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      'react$': path.resolve(__dirname, 'lib/react-shim'),
+      'react-real': path.resolve(__dirname, 'node_modules/react'),
+      'react': path.resolve(__dirname, 'lib/react-shim'),
     };
     return config;
   },
