@@ -12,15 +12,13 @@ export default function Hero() {
       className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-end md:justify-center items-center bg-[#0B0E14]"
     >
       {/* High-Performance Optimized Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
+      <div className="absolute inset-0 z-0 bg-[#0B0E14]">
+        <img
           src="https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png"
-          alt="Sawaflix Hero Background"
-          fill
-          priority
-          quality={85}
-          className="object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
-          sizes="100vw"
+          alt=""
+          fetchpriority="high"
+          loading="eager"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
         />
         {/* Minimal gradients — just enough for text readability */}
         <div className="absolute inset-0 bg-black/10" />
