@@ -130,14 +130,13 @@ export default function AreaToryHero() {
 
   return (
     <section className="relative h-[35vh] md:h-[42vh] w-full overflow-hidden flex items-center justify-center bg-[#0B0E14]">
-      {/* Background with simple deep gradient */}
-      <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
-          style={{
-            backgroundImage: `url('${getHeroBG()}')`,
-            filter: "brightness(0.55) saturate(1.2)",
-          }}
+      {/* Background with optimized image delivery */}
+      <div className="absolute inset-0 z-0 bg-[#0B0E14]">
+        <img
+          src={getHeroBG()}
+          alt=""
+          fetchpriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30" />
       </div>
