@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
 import { sanityFetch, urlFor } from "@/lib/sanity/client";
-import ReactPlayer from "react-player/youtube";
 
 interface StoryDetail {
   _id: string;
@@ -135,6 +134,16 @@ export default function StoryDetailsPage() {
   const [relatedStories, setRelatedStories] = useState<RelatedStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
+  const [isPlayed, setIsPlayed] = useState(false);
+
+  // Helper to extract YouTube ID and return embed URL
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return "";
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  };
 
   useEffect(() => {
     setHasMounted(true);
@@ -323,7 +332,7 @@ export default function StoryDetailsPage() {
           />
         </motion.div>
 
-        {/* Video Player Section — Sharp & Minimal */}
+        {/* Video Player Section — Native Iframe for Maximum Reliability */}
         {story.videoUrl && hasMounted && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -336,32 +345,38 @@ export default function StoryDetailsPage() {
             </div>
             
             <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] transition-all duration-500 hover:border-white/40">
-              <ReactPlayer
-                url={story.videoUrl}
-                width="100%"
-                height="100%"
-                controls={true}
-                playing={true}
-                light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
-                playIcon={
-                  <div className="group/play relative">
-                    <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 opacity-0 group-hover/play:opacity-100 transition-opacity duration-500" />
-                    <div className="relative w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 group-hover/play:scale-110 active:scale-95">
-                      <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-black border-b-[8px] border-b-transparent ml-1" />
+              {!isPlayed ? (
+                <div 
+                  className="relative w-full h-full cursor-pointer group/vid"
+                  onClick={() => setIsPlayed(true)}
+                >
+                  <Image
+                    src={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
+                    alt="Video Thumbnail"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover/vid:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover/vid:bg-black/10 transition-colors" />
+                  
+                  {/* Premium Play Icon */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="group/play relative">
+                      <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 opacity-0 group-hover/play:opacity-100 transition-opacity duration-500" />
+                      <div className="relative w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 group-hover/play:scale-110 active:scale-95">
+                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-black border-b-[8px] border-b-transparent ml-1" />
+                      </div>
                     </div>
                   </div>
-                }
-                config={{
-                  youtube: {
-                    playerVars: { 
-                      autoplay: 1,
-                      modestbranding: 1,
-                      rel: 0,
-                      origin: typeof window !== 'undefined' ? window.location.origin : ''
-                    }
-                  }
-                }}
-              />
+                </div>
+              ) : (
+                <iframe
+                  src={`${getYouTubeEmbedUrl(story.videoUrl)}?autoplay=1&modestbranding=1&rel=0`}
+                  title="YouTube video player"
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              )}
             </div>
           </motion.div>
         )}
