@@ -207,8 +207,8 @@ export default function AreaToryHero() {
         </div>
       </div>
 
-      {/* Developers Avatar Stack — Bottom Right */}
-      <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
+      {/* Developers Avatar Stack — Bottom Right (Hidden on Mobile) */}
+      <div className="absolute bottom-6 right-6 z-20 hidden md:flex flex-col items-end gap-2">
         <div className="flex items-center -space-x-2">
           {developers.map((dev) => (
             <div 
