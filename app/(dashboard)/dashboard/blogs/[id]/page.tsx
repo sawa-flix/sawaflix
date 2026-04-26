@@ -137,13 +137,25 @@ export default function StoryDetailsPage() {
   const [isPlayed, setIsPlayed] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
 
-  // Helper to extract YouTube ID and return embed URL
-  const getYouTubeEmbedUrl = (url: string) => {
-    if (!url) return "";
+  // Helper to extract YouTube ID
+  const getYouTubeID = (url: string) => {
+    if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
     const match = url.match(regExp);
-    const videoId = (match && match[2].length === 11) ? match[2] : null;
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Helper to get YouTube Thumbnail
+  const getYouTubeThumbnail = (url: string) => {
+    const id = getYouTubeID(url);
+    if (!id) return "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070";
+    return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
+  };
+
+  // Helper to get embed URL
+  const getYouTubeEmbedUrl = (url: string) => {
+    const id = getYouTubeID(url);
+    return id ? `https://www.youtube.com/embed/${id}` : url;
   };
 
   useEffect(() => {
@@ -355,7 +367,7 @@ export default function StoryDetailsPage() {
                   }}
                 >
                   <Image
-                    src={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
+                    src={getYouTubeThumbnail(story.videoUrl)}
                     alt="Video Thumbnail"
                     fill
                     className="object-cover transition-transform duration-700 group-hover/vid:scale-105"
