@@ -134,8 +134,10 @@ export default function StoryDetailsPage() {
   const [story, setStory] = useState<StoryDetail | null>(null);
   const [relatedStories, setRelatedStories] = useState<RelatedStory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     async function fetchStory() {
       try {
         // Try to fetch by slug first
@@ -322,7 +324,7 @@ export default function StoryDetailsPage() {
         </motion.div>
 
         {/* Video Player Section — Sharp & Minimal */}
-        {story.videoUrl && (
+        {story.videoUrl && hasMounted && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -339,7 +341,7 @@ export default function StoryDetailsPage() {
                 width="100%"
                 height="100%"
                 controls={true}
-                playing={false}
+                playing={true}
                 light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
                 playIcon={
                   <div className="group/play relative">
@@ -354,7 +356,8 @@ export default function StoryDetailsPage() {
                     playerVars: { 
                       autoplay: 1,
                       modestbranding: 1,
-                      rel: 0
+                      rel: 0,
+                      origin: typeof window !== 'undefined' ? window.location.origin : ''
                     }
                   }
                 }}
