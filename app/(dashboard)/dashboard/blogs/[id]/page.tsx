@@ -321,35 +321,43 @@ export default function StoryDetailsPage() {
           />
         </motion.div>
 
-        {/* Video Player Section — Dynamic */}
+        {/* Video Player Section — Sharp & Minimal */}
         {story.videoUrl && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-12 group"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-16"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/70">Video Highlights</h3>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-4 bg-white/20 rounded-full" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/90">Video Highlight</h3>
             </div>
-            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl shadow-red-600/5 group-hover:border-red-600/30 transition-all duration-500">
+            
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] transition-all duration-500 hover:border-white/40">
               <ReactPlayer
                 url={story.videoUrl}
                 width="100%"
                 height="100%"
-                controls
-                playing={true}
-                config={{
-                  youtube: {
-                    playerVars: { autoplay: 1 }
-                  }
-                }}
-                light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")} // Uses the main cover image as a thumbnail
+                controls={true}
+                playing={false}
+                light={getImageUrl(story.mainImage, "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070")}
                 playIcon={
-                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 active:scale-95">
-                    <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent ml-1" />
+                  <div className="group/play relative">
+                    <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 opacity-0 group-hover/play:opacity-100 transition-opacity duration-500" />
+                    <div className="relative w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 group-hover/play:scale-110 active:scale-95">
+                      <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-black border-b-[8px] border-b-transparent ml-1" />
+                    </div>
                   </div>
                 }
+                config={{
+                  youtube: {
+                    playerVars: { 
+                      autoplay: 1,
+                      modestbranding: 1,
+                      rel: 0
+                    }
+                  }
+                }}
               />
             </div>
           </motion.div>
