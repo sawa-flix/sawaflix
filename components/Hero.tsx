@@ -9,7 +9,7 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-end md:justify-center items-center bg-[#0B0E14]"
+      className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-center items-center bg-[#0B0E14]"
     >
       {/* High-Performance Optimized Background Image */}
       <div className="absolute inset-0 z-0 bg-[#0B0E14]">
@@ -27,7 +27,7 @@ export default function Hero() {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-16 md:pb-0 text-center">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
