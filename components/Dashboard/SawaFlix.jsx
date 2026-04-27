@@ -81,6 +81,13 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
         </div>
       </div>
 
+      {/* SawaFlix Watermark */}
+      <div className="absolute bottom-6 right-6 z-20 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity">
+        <p className="text-[10px] font-black text-white/90 uppercase tracking-[0.4em] leading-none">
+          Sawa<span className="text-red-600">Flix</span>
+        </p>
+      </div>
+
       {/* Mute Button Toggle */}
       <button
         onClick={() => setIsMuted(!isMuted)}
@@ -136,12 +143,16 @@ const SawaFlix = () => {
   const fetchQuery = searchQuery || currentCategoryObj?.query || CATEGORIES[0].query;
   const { videos, loading, error } = useVideos(fetchQuery);
 
-  // Determine current hero content (main videos or category-specific fallback)
-  const heroSource = videos.length > 0 ? videos : (FALLBACK_VIDEOS[activeCategory] || FALLBACK_VIDEOS.all);
+  // Determine current videos to display (main videos or category-specific fallback)
+  const displayVideos = (!loading && (error || videos.length === 0)) 
+    ? (FALLBACK_VIDEOS[activeCategory] || FALLBACK_VIDEOS.all) 
+    : videos;
+
+  const heroSource = displayVideos.length > 0 ? displayVideos : (FALLBACK_VIDEOS[activeCategory] || FALLBACK_VIDEOS.all);
   const currentHeroVideo = heroSource[heroIndex % heroSource.length];
 
   useEffect(() => {
-    if (!videos.length) return;
+    if (!displayVideos.length) return;
 
     observerRef.current?.disconnect();
     observerRef.current = new IntersectionObserver(
@@ -161,7 +172,7 @@ const SawaFlix = () => {
     });
 
     return () => observerRef.current?.disconnect();
-  }, [videos]);
+  }, [displayVideos, activeCategory]);
 
   const nextHeroVideo = useCallback(() => {
     setHeroIndex((prev) => (prev + 1) % heroSource.length);
@@ -199,7 +210,10 @@ const SawaFlix = () => {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  setHeroIndex(0); // Reset hero index on category change
+                }}
                 className={`px-5 py-2 rounded-lg border text-[11px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
                   activeCategory === cat.id
                     ? "border-white text-white bg-white/10"
@@ -244,7 +258,7 @@ const SawaFlix = () => {
               Sawa<span className="text-red-600">Flix</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-200 mb-8 font-black uppercase tracking-widest drop-shadow-md max-w-xl">
-              {loading && !videos.length ? "LOADING VIBE..." : currentHeroVideo.title}
+              {loading && !displayVideos.length ? "LOADING VIBE..." : currentHeroVideo.title}
             </p>
 
             <div className="flex items-center gap-6 pointer-events-auto">
@@ -298,14 +312,14 @@ const SawaFlix = () => {
         <section ref={discoverRef} className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div className="flex items-center gap-4">
-              <span className="w-1.5 h-10 bg-red-600 rounded-full" />
-              <h2 className="text-3xl font-black text-white">
+              <div className="w-2 h-8 bg-red-600 rounded-full" />
+              <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
                 {searchQuery ? (
-                  <span className="flex items-center gap-3">
+                  <>
                     Search Results for <span className="text-red-600">"{searchQuery}"</span>
-                  </span>
+                  </>
                 ) : (
-                  "Discover Content"
+                  <>Discover <span className="text-red-600">{currentCategoryObj?.label}</span></>
                 )}
               </h2>
             </div>
@@ -313,9 +327,8 @@ const SawaFlix = () => {
             {searchQuery && (
               <button 
                 onClick={() => router.push('/dashboard')}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all border border-white/5"
+                className="text-xs font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"
               >
-                <CloseIcon size={14} />
                 Clear Search
               </button>
             )}
@@ -327,14 +340,9 @@ const SawaFlix = () => {
                 <Loader2 className="w-12 h-12 text-red-600 animate-spin" />
                 <p className="text-gray-500 font-black uppercase tracking-widest text-xs">Loading Latest Vibes...</p>
               </div>
-            ) : error ? (
-              <div className="text-center py-20 bg-red-950/20 rounded-[2.5rem] border border-red-900/30">
-                <p className="text-red-500 font-black mb-2 uppercase tracking-widest text-xs">Playback Error</p>
-                <p className="text-gray-400 text-sm max-w-xs mx-auto">{error}</p>
-              </div>
             ) : (
               <div className="space-y-8">
-                {videos.map((video) => (
+                {displayVideos.map((video) => (
                   <div
                     key={video.id}
                     ref={el => videoRefs.current.set(video.id, el)}
