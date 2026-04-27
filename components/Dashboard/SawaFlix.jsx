@@ -203,9 +203,9 @@ const SawaFlix = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-6">
+      <main className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-6">
 
-        <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar pb-2 mb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar pb-2 mb-0 -mx-2 px-2 sm:mx-0 sm:px-0">
           <div className="flex items-center gap-2">
             {CATEGORIES.map((cat) => (
               <button
@@ -234,38 +234,40 @@ const SawaFlix = () => {
         </div>
 
         {/* Hero Section - Video Carousel */}
-        <section className="relative h-[85vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-12 group shadow-2xl border border-white/5 bg-black">
-          {/* High-quality Thumbnail Backdrop (Fades out when video plays) */}
-          <div className="absolute inset-0 z-0">
+        <section className="relative h-[85vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden mb-8 group shadow-2xl border border-white/5 bg-black">
+          {/* High-quality Thumbnail Backdrop */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
             <Image
               src={currentHeroVideo.thumbnail || `https://i.ytimg.com/vi/${currentHeroVideo.id}/maxresdefault.jpg`}
               alt={currentHeroVideo.title}
               fill
-              className="object-cover opacity-40 scale-110 transition-opacity duration-1000"
+              className="object-cover opacity-50 scale-150 transition-opacity duration-1000 blur-2xl sm:blur-none sm:scale-110"
               priority
             />
           </div>
 
-          {/* Video Player Layer */}
-          <div className="absolute inset-0 z-10">
-            <YouTubePlayer
-              videoId={currentHeroVideo.id}
-              isActive={heroPlaying}
-              isMuted={true}
-              onPlayerReady={(player) => {
-                if (heroPlaying) player.playVideo();
-              }}
-            />
+          {/* Video Player Layer with Zoom for Mobile 9:16 Feel */}
+          <div className="absolute inset-0 z-10 overflow-hidden">
+            <div className="absolute inset-0 scale-[3.2] sm:scale-100">
+              <YouTubePlayer
+                videoId={currentHeroVideo.id}
+                isActive={heroPlaying}
+                isMuted={true}
+                onPlayerReady={(player) => {
+                  if (heroPlaying) player.playVideo();
+                }}
+              />
+            </div>
           </div>
           
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/20 to-transparent pointer-events-none z-10" />
           
-          <div className="relative z-20 h-full flex flex-col items-center justify-center px-6 pointer-events-none">
-            <div className="bg-black/20 backdrop-blur-[2px] p-8 rounded-[3rem] border border-white/5 flex flex-col items-center text-center max-w-sm sm:max-w-md">
+          <div className="relative z-20 h-full flex flex-col items-center justify-end sm:justify-center pb-16 sm:pb-0 px-6 pointer-events-none">
+            <div className="flex flex-col items-center text-center max-w-xs sm:max-w-md">
               <h1 className="text-4xl sm:text-7xl font-black text-white mb-2 tracking-tighter drop-shadow-2xl">
                 Sawa<span className="text-white">Flix</span>
               </h1>
-              <p className="text-sm sm:text-xl text-gray-200 mb-8 font-black uppercase tracking-widest drop-shadow-md">
+              <p className="text-sm sm:text-xl text-gray-200 mb-6 font-black uppercase tracking-widest drop-shadow-md bg-black/20 backdrop-blur-sm px-4 py-1 rounded-full">
                 {loading && !displayVideos.length ? "LOADING VIBE..." : currentHeroVideo.title}
               </p>
 
