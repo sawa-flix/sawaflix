@@ -98,36 +98,15 @@ export function YouTubePlayer({
                         if (event.data === window.YT.PlayerState.UNSTARTED && isActive) {
                             event.target.playVideo();
                         }
-<<<<<<< HEAD
                     },
                     onError: (event: YT.OnErrorEvent) => {
                         console.error('[Player] Error for', videoId, ':', event.data);
                     },
                 },
             });
-        }
-
-        // Control playback based on active state and isPaused
-        if (playerRef.current && isPlayerReady) {
-            if (isActive && !isPaused) {
-                console.log('[Player] Playing active video:', videoId);
-                playerRef.current.playVideo();
-                // Ensure mute state is correct
-                if (isMuted) {
-                    playerRef.current.mute();
-                } else {
-                    playerRef.current.unMute();
-                }
-            } else {
-                console.log('[Player] Pausing video:', videoId);
-                playerRef.current.pauseVideo();
-=======
-                    }
-                }
-            });
             playerRef.current = player;
-        } else if (isPlayerReady) {
-            // If player exists and ready, just load the next video
+        } else if (isPlayerReady && playerRef.current) {
+            // If player exists and ready, handle transitions and reactive updates
             try {
                 const currentId = (playerRef.current as any).getVideoData?.()?.video_id;
                 if (currentId !== videoId) {
@@ -138,18 +117,15 @@ export function YouTubePlayer({
                     });
                 }
 
-                if (isActive) {
+                if (isActive && !isPaused) {
                     playerRef.current.playVideo();
+                    if (isMuted) playerRef.current.mute();
+                    else playerRef.current.unMute();
                 } else {
                     playerRef.current.pauseVideo();
                 }
-
-                if (isMuted) playerRef.current.mute();
-                else playerRef.current.unMute();
-                
             } catch (err) {
                 console.warn('[Player] Transition Error:', err);
->>>>>>> dashboard-revamped
             }
         }
 
@@ -157,11 +133,7 @@ export function YouTubePlayer({
             // We only destroy the player instance if the component unmounts entirely
             // or if we really need to. Currently keeping it persistent for speed.
         };
-<<<<<<< HEAD
     }, [apiLoaded, isActive, isPaused, videoId, isMuted, onPlayerReady, isPlayerReady]);
-=======
-    }, [apiLoaded, videoId, isActive, isPlayerReady, isMuted]);
->>>>>>> dashboard-revamped
 
     // Global cleanup on unmount
     useEffect(() => {
