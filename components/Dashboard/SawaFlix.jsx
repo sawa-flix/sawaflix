@@ -205,29 +205,36 @@ const SawaFlix = () => {
     <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
       <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-6">
 
-        <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar pb-6 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar pb-2 mb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex items-center gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => {
                   setActiveCategory(cat.id);
-                  setHeroIndex(0); // Reset hero index on category change
+                  setHeroIndex(0);
                 }}
-                className={`px-5 py-2 rounded-lg border text-[11px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
+                className={`flex flex-col items-center justify-center min-w-[70px] px-4 py-2 rounded-xl border transition-all duration-300 cursor-pointer ${
                   activeCategory === cat.id
-                    ? "border-white text-white bg-white/10"
-                    : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
+                    ? "border-white/40 text-white bg-white/10 shadow-lg shadow-white/5"
+                    : "border-white/5 text-gray-400 hover:border-white/20 hover:text-white hover:bg-white/5"
                 }`}
               >
-                {cat.label}
+                {cat.id === 'all' ? (
+                  <>
+                    <span className="text-[10px] font-black leading-none uppercase tracking-tighter mb-0.5">All</span>
+                    <span className="text-[13px] font-black leading-none">237</span>
+                  </>
+                ) : (
+                  <span className="text-[11px] font-black uppercase tracking-widest">{cat.label}</span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
         {/* Hero Section - Video Carousel */}
-        <section className="relative h-[70vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-20 group shadow-2xl border border-white/5 bg-black">
+        <section className="relative h-[85vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-12 group shadow-2xl border border-white/5 bg-black">
           {/* High-quality Thumbnail Backdrop (Fades out when video plays) */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -253,21 +260,23 @@ const SawaFlix = () => {
           
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/20 to-transparent pointer-events-none z-10" />
           
-          <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-6 pointer-events-none">
-            <h1 className="text-5xl sm:text-7xl font-black text-white mb-2 tracking-tighter drop-shadow-2xl">
-              Sawa<span className="text-red-600">Flix</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-200 mb-8 font-black uppercase tracking-widest drop-shadow-md max-w-xl">
-              {loading && !displayVideos.length ? "LOADING VIBE..." : currentHeroVideo.title}
-            </p>
+          <div className="relative z-20 h-full flex flex-col items-center justify-center px-6 pointer-events-none">
+            <div className="bg-black/20 backdrop-blur-[2px] p-8 rounded-[3rem] border border-white/5 flex flex-col items-center text-center max-w-sm sm:max-w-md">
+              <h1 className="text-4xl sm:text-7xl font-black text-white mb-2 tracking-tighter drop-shadow-2xl">
+                Sawa<span className="text-white">Flix</span>
+              </h1>
+              <p className="text-sm sm:text-xl text-gray-200 mb-8 font-black uppercase tracking-widest drop-shadow-md">
+                {loading && !displayVideos.length ? "LOADING VIBE..." : currentHeroVideo.title}
+              </p>
 
-            <div className="flex items-center gap-6 pointer-events-auto">
-              <button
-                onClick={scrollToDiscover}
-                className="bg-red-600 text-white px-10 py-4 rounded-full font-black uppercase tracking-[0.2em] text-sm hover:bg-red-700 transition-all shadow-xl shadow-red-600/40 active:scale-95"
-              >
-                Play Now
-              </button>
+              <div className="flex items-center gap-6 pointer-events-auto">
+                <button
+                  onClick={scrollToDiscover}
+                  className="bg-red-600 text-white px-10 py-4 rounded-full font-black uppercase tracking-[0.2em] text-sm hover:bg-red-700 transition-all shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] active:scale-95"
+                >
+                  Play Now
+                </button>
+              </div>
             </div>
           </div>
 
@@ -316,10 +325,10 @@ const SawaFlix = () => {
               <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
                 {searchQuery ? (
                   <>
-                    Search Results for <span className="text-red-600">"{searchQuery}"</span>
+                    Search Results for <span className="text-white">"{searchQuery}"</span>
                   </>
                 ) : (
-                  <>Discover <span className="text-red-600">{currentCategoryObj?.label}</span></>
+                  <>Discover <span className="text-white">{currentCategoryObj?.label}</span></>
                 )}
               </h2>
             </div>
