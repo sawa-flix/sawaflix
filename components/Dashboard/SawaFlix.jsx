@@ -92,6 +92,28 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   );
 };
 
+// Fallback content when network is slow or content is unavailable
+const FALLBACK_VIDEOS = {
+  music: [
+    { id: "-L8hLkg21MQ", title: "Top Music Picks", channelTitle: "SawaFlix Music", thumbnail: "https://i.ytimg.com/vi/-L8hLkg21MQ/maxresdefault.jpg" },
+    { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito", channelTitle: "SawaFlix Music", thumbnail: "https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg" },
+    { id: "OPf0YbXqDm0", title: "Mark Ronson - Uptown Funk", channelTitle: "SawaFlix Music", thumbnail: "https://i.ytimg.com/vi/OPf0YbXqDm0/maxresdefault.jpg" }
+  ],
+  news: [
+    { id: "8jUJivE9xIY", title: "Latest News Update", channelTitle: "SawaFlix News", thumbnail: "https://i.ytimg.com/vi/8jUJivE9xIY/maxresdefault.jpg" },
+    { id: "H96I8m8v20g", title: "Global News Today", channelTitle: "SawaFlix News", thumbnail: "https://i.ytimg.com/vi/H96I8m8v20g/maxresdefault.jpg" }
+  ],
+  comedy: [
+    { id: "ppnaU3oezZU", title: "Top Comedy Hits", channelTitle: "SawaFlix Comedy", thumbnail: "https://i.ytimg.com/vi/ppnaU3oezZU/maxresdefault.jpg" },
+    { id: "3MA0xds_Dk-qPCWN", title: "Hilarious Moments", channelTitle: "SawaFlix Comedy", thumbnail: "https://i.ytimg.com/vi/3MA0xds_Dk-qPCWN/maxresdefault.jpg" }
+  ],
+  all: [
+    { id: "-L8hLkg21MQ", title: "Trending Highlights", channelTitle: "SawaFlix Featured", thumbnail: "https://i.ytimg.com/vi/-L8hLkg21MQ/maxresdefault.jpg" },
+    { id: "8jUJivE9xIY", title: "News Flash", channelTitle: "SawaFlix News", thumbnail: "https://i.ytimg.com/vi/8jUJivE9xIY/maxresdefault.jpg" },
+    { id: "ppnaU3oezZU", title: "Comedy Spotlight", channelTitle: "SawaFlix Comedy", thumbnail: "https://i.ytimg.com/vi/ppnaU3oezZU/maxresdefault.jpg" }
+  ]
+};
+
 const SawaFlix = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [isMuted, setIsMuted] = useState(true);
@@ -113,6 +135,10 @@ const SawaFlix = () => {
   // Dynamic query: use Search Query if present, otherwise use Category Query
   const fetchQuery = searchQuery || currentCategoryObj?.query || CATEGORIES[0].query;
   const { videos, loading, error } = useVideos(fetchQuery);
+
+  // Determine current hero content (main videos or category-specific fallback)
+  const heroSource = videos.length > 0 ? videos : (FALLBACK_VIDEOS[activeCategory] || FALLBACK_VIDEOS.all);
+  const currentHeroVideo = heroSource[heroIndex % heroSource.length];
 
   useEffect(() => {
     if (!videos.length) return;
@@ -138,10 +164,8 @@ const SawaFlix = () => {
   }, [videos]);
 
   const nextHeroVideo = useCallback(() => {
-    if (videos.length > 0) {
-      setHeroIndex((prev) => (prev + 1) % Math.min(videos.length, 3));
-    }
-  }, [videos.length]);
+    setHeroIndex((prev) => (prev + 1) % heroSource.length);
+  }, [heroSource.length]);
 
   const toggleHeroPlay = () => {
     setHeroPlaying(!heroPlaying);
@@ -149,14 +173,14 @@ const SawaFlix = () => {
 
   // 5-second auto-slide effect for 'motions' on entry
   useEffect(() => {
-    if (!heroPlaying || !videos.length) return;
+    if (!heroPlaying) return;
 
     const interval = setInterval(() => {
       nextHeroVideo();
     }, 25000); // Increased to 25 seconds for longer previews
 
     return () => clearInterval(interval);
-  }, [heroPlaying, nextHeroVideo, videos.length]);
+  }, [heroPlaying, nextHeroVideo]);
 
   const scrollToDiscover = () => {
     setHeroPlaying(false); // Stop carousel motions when navigating to feed
@@ -190,32 +214,28 @@ const SawaFlix = () => {
 
         {/* Hero Section - Video Carousel */}
         <section className="relative h-[70vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-20 group shadow-2xl border border-white/5 bg-black">
-          {videos.length > 0 && (
-            <>
-              {/* High-quality Thumbnail Backdrop (Fades out when video plays) */}
-              <div className="absolute inset-0 z-0">
-                <Image
-                  src={videos[heroIndex].thumbnail}
-                  alt={videos[heroIndex].title}
-                  fill
-                  className="object-cover opacity-60 scale-105 blur-sm transition-opacity duration-1000"
-                  priority
-                />
-              </div>
+          {/* High-quality Thumbnail Backdrop (Fades out when video plays) */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={currentHeroVideo.thumbnail || `https://i.ytimg.com/vi/${currentHeroVideo.id}/maxresdefault.jpg`}
+              alt={currentHeroVideo.title}
+              fill
+              className="object-cover opacity-60 scale-105 blur-sm transition-opacity duration-1000"
+              priority
+            />
+          </div>
 
-              {/* Video Player Layer */}
-              <div className="absolute inset-0 z-10">
-                <YouTubePlayer
-                  videoId={videos[heroIndex].id}
-                  isActive={heroPlaying}
-                  isMuted={true}
-                  onPlayerReady={(player) => {
-                    if (heroPlaying) player.playVideo();
-                  }}
-                />
-              </div>
-            </>
-          )}
+          {/* Video Player Layer */}
+          <div className="absolute inset-0 z-10">
+            <YouTubePlayer
+              videoId={currentHeroVideo.id}
+              isActive={heroPlaying}
+              isMuted={true}
+              onPlayerReady={(player) => {
+                if (heroPlaying) player.playVideo();
+              }}
+            />
+          </div>
           
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/20 to-transparent pointer-events-none z-10" />
           
@@ -224,7 +244,7 @@ const SawaFlix = () => {
               Sawa<span className="text-red-600">Flix</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-200 mb-8 font-black uppercase tracking-widest drop-shadow-md max-w-xl">
-              {videos.length > 0 ? videos[heroIndex].title : "Loading Vibe..."}
+              {loading && !videos.length ? "LOADING VIBE..." : currentHeroVideo.title}
             </p>
 
             <div className="flex items-center gap-6 pointer-events-auto">
@@ -239,7 +259,7 @@ const SawaFlix = () => {
 
           {/* Edge Navigation Buttons */}
           <button 
-            onClick={() => setHeroIndex(prev => (prev === 0 ? Math.min(videos.length, 3) - 1 : prev - 1))}
+            onClick={() => setHeroIndex(prev => (prev === 0 ? heroSource.length - 1 : prev - 1))}
             className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-red-600 z-20 pointer-events-auto"
           >
             <ChevronLeft size={24} />
@@ -251,13 +271,23 @@ const SawaFlix = () => {
             <ChevronRight size={24} />
           </button>
 
+          {/* Watermark / Brand Identity */}
+          <div className="absolute bottom-10 right-10 z-20 pointer-events-none text-right hidden sm:block">
+            <h3 className="text-2xl font-black text-white leading-none tracking-tighter mb-1">
+              Sawa<span className="text-red-600">Flix</span>
+            </h3>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">
+              TRENDING HIGHLIGHTS
+            </p>
+          </div>
+
           {/* Carousel Dots */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3">
-            {videos.slice(0, 3).map((_, idx) => (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
+            {heroSource.slice(0, 5).map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setHeroIndex(idx)}
-                className={`transition-all duration-500 rounded-full ${heroIndex === idx ? 'w-10 h-2 bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+                className={`transition-all duration-500 rounded-full ${heroIndex % heroSource.length === idx ? 'w-10 h-2 bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
                   }`}
               />
             ))}

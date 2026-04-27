@@ -5,12 +5,25 @@ import { Play, Heart, MessageCircle, Share2, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+const REELS_FALLBACK = [
+  { id: 'kJQP7kiw5Fk', title: 'Viral Music Moment', creator: 'Music Vibe', views: '2.4M', category: 'music', image: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg' },
+  { id: 'OPf0YbXqDm0', title: 'Uptown Funk Vibes', creator: 'Dance Studio', views: '1.2M', category: 'music', image: 'https://i.ytimg.com/vi/OPf0YbXqDm0/maxresdefault.jpg' },
+  { id: '8jUJivE9xIY', title: 'Breaking News Short', creator: 'Sawa News', views: '800K', category: 'news', image: 'https://i.ytimg.com/vi/8jUJivE9xIY/maxresdefault.jpg' },
+  { id: 'ppnaU3oezZU', title: 'African Comedy Gold', creator: 'Laugh Factory', views: '3.1M', category: 'blog', image: 'https://i.ytimg.com/vi/ppnaU3oezZU/maxresdefault.jpg' },
+  { id: '-L8hLkg21MQ', title: 'Jerusalema Challenge', creator: 'Global Hits', views: '5.6M', category: 'music', image: 'https://i.ytimg.com/vi/-L8hLkg21MQ/maxresdefault.jpg' },
+  { id: '3MA0xds_Dk-qPCWN', title: 'Funny Moments', creator: 'Comedy Central', views: '1.5M', category: 'blog', image: 'https://i.ytimg.com/vi/3MA0xds_Dk-qPCWN/maxresdefault.jpg' }
+];
+
 const ReelCard = ({ reel, index }) => (
   <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20">
     {/* Image Container */}
-    <div className="relative w-full aspect-square bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
-      {/* Placeholder with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-purple-600/20 to-pink-600/20" />
+    <div className="relative w-full aspect-[9/16] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
+      <Image
+        src={reel.image}
+        alt={reel.title}
+        fill
+        className="object-cover opacity-60 group-hover:opacity-80 transition-all duration-500 group-hover:scale-110"
+      />
       
       {/* Play Button Overlay */}
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-sm">
@@ -19,41 +32,48 @@ const ReelCard = ({ reel, index }) => (
         </div>
       </div>
 
+      {/* SawaFlix Watermark */}
+      <div className="absolute bottom-4 right-4 z-10 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity">
+        <p className="text-[8px] font-black text-white/80 uppercase tracking-[0.3em] leading-none">
+          Sawa<span className="text-red-600">Flix</span>
+        </p>
+      </div>
+
       {/* Trending Badge */}
-      {index < 3 && (
-        <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-black flex items-center gap-1 shadow-lg">
+      {index < 2 && (
+        <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-1 shadow-lg z-10">
           <TrendingUp className="w-3 h-3" />
-          Trending
+          HOT
         </div>
       )}
 
       {/* Duration Badge */}
-      <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-bold">
-        2:45
+      <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] font-bold">
+        0:30
       </div>
     </div>
 
     {/* Content */}
-    <div className="p-4 space-y-3">
+    <div className="p-4 space-y-2">
       <div>
-        <h3 className="font-bold text-white text-sm line-clamp-2 group-hover:text-red-500 transition-colors">
-          Reel Title {index + 1}
+        <h3 className="font-bold text-white text-xs line-clamp-1 group-hover:text-red-500 transition-colors">
+          {reel.title}
         </h3>
-        <p className="text-gray-400 text-xs mt-1">Creator Name • 2.3M views</p>
+        <p className="text-gray-400 text-[10px] mt-1 font-medium">{reel.creator} • {reel.views} views</p>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center justify-between text-gray-400 text-xs border-t border-white/5 pt-3">
-        <button className="flex items-center gap-1 hover:text-red-500 transition-colors group/btn">
-          <Heart className="w-4 h-4 group-hover/btn:fill-red-500" />
-          <span className="group-hover/btn:text-red-500">1.2K</span>
+      <div className="flex items-center justify-between text-gray-400 text-[10px] border-t border-white/5 pt-3">
+        <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors group/btn font-bold">
+          <Heart className="w-3.5 h-3.5 group-hover/btn:fill-red-500" />
+          <span>1.2K</span>
         </button>
-        <button className="flex items-center gap-1 hover:text-blue-500 transition-colors group/btn">
-          <MessageCircle className="w-4 h-4" />
+        <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors group/btn font-bold">
+          <MessageCircle className="w-3.5 h-3.5" />
           <span>234</span>
         </button>
-        <button className="flex items-center gap-1 hover:text-green-500 transition-colors group/btn">
-          <Share2 className="w-4 h-4" />
+        <button className="flex items-center gap-1.5 hover:text-green-500 transition-colors group/btn">
+          <Share2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
@@ -65,23 +85,13 @@ export default function ReelsSection() {
   const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
-    // Generate mock reels data
-    const mockReels = Array.from({ length: 12 }, (_, i) => ({
-      id: i + 1,
-      title: `Reel Title ${i + 1}`,
-      creator: 'Creator Name',
-      views: Math.floor(Math.random() * 10000000),
-      likes: Math.floor(Math.random() * 100000),
-      category: ['music', 'movie', 'blog'][i % 3],
-      image: `/reel${(i % 6) + 1}.jpg`,
-    }));
-    setReels(mockReels);
+    setReels(REELS_FALLBACK);
   }, []);
 
   const categories = [
     { id: 'all', label: 'All Reels' },
     { id: 'music', label: '🎵 Music' },
-    { id: 'movie', label: '🎬 Movies' },
+    { id: 'news', label: '📰 News' },
     { id: 'blog', label: '📖 Blogs' },
   ];
 
