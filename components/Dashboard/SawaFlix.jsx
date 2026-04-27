@@ -221,10 +221,9 @@ const SawaFlix = () => {
                 }`}
               >
                 {cat.id === 'all' ? (
-                  <>
-                    <span className="text-[10px] font-black leading-none uppercase tracking-tighter mb-0.5">All</span>
-                    <span className="text-[13px] font-black leading-none">237</span>
-                  </>
+                  <span className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                    All <span className="opacity-60 ml-1">237</span>
+                  </span>
                 ) : (
                   <span className="text-[11px] font-black uppercase tracking-widest">{cat.label}</span>
                 )}
