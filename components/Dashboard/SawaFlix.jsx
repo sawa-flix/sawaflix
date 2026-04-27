@@ -170,17 +170,17 @@ const SawaFlix = () => {
     <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
       <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-6">
 
-        {/* Category Navigation - Scrollable & Responsive */}
         <div className="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar pb-6 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="inline-flex items-center gap-1.5 bg-black/60 backdrop-blur-3xl p-1.5 rounded-full border border-white/10 shadow-2xl scale-100 sm:scale-110">
+          <div className="flex items-center gap-3">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 whitespace-nowrap ${activeCategory === cat.id
-                    ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.5)]'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
+                className={`px-5 py-2 rounded-lg border text-[11px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
+                  activeCategory === cat.id
+                    ? "border-white text-white bg-white/10"
+                    : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
+                }`}
               >
                 {cat.label}
               </button>

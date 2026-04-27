@@ -102,10 +102,10 @@ export default function ReelsSection() {
           <button
             key={category.id}
             onClick={() => setActiveCategory(category.id)}
-            className={`px-4 py-2 rounded-full font-bold text-sm transition-all whitespace-nowrap ${
+            className={`px-5 py-2 rounded-lg border text-[11px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
               activeCategory === category.id
-                ? 'bg-red-600 text-white shadow-lg shadow-red-600/50'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                ? "border-white text-white bg-white/10"
+                : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
             }`}
           >
             {category.label}
