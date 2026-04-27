@@ -25,8 +25,8 @@ const RightSidebar = () => {
       {/* Trending Music Section */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 group hover:border-white/20">
         <div className="flex flex-col gap-1 mb-5">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Trending now</p>
-           <h2 className="text-lg font-black text-white leading-tight">
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500/80">TRENDING NOW</p>
+           <h2 className="text-xl font-black text-white leading-tight tracking-tight">
              {trendingMusic.title}
            </h2>
         </div>
@@ -42,19 +42,19 @@ const RightSidebar = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
         </div>
         
-        <div className="flex justify-between mt-6 gap-2">
-          <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-red-600/10 border border-red-600/20 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300 font-bold text-red-500 text-[10px] uppercase tracking-widest cursor-pointer shadow-lg shadow-red-600/5">
-            <span>❤️</span>
+        <div className="flex justify-between mt-6 gap-3">
+          <button className="flex-1 flex items-center justify-center gap-2.5 px-3 py-3 bg-red-600/10 border border-red-600/20 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-red-500 text-[10px] uppercase tracking-widest cursor-pointer shadow-lg shadow-red-600/5">
+            <span className="text-xs">❤️</span>
             <span>{trendingMusic.likes.toLocaleString()}</span>
           </button>
-          <span className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-            <span>👁</span>
+          <div className="flex-1 flex items-center justify-center gap-2.5 px-3 py-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 text-[10px] font-black uppercase tracking-widest shadow-lg">
+            <span className="text-xs">👁</span>
             <span>{trendingMusic.views.toLocaleString()}</span>
-          </span>
+          </div>
         </div>
         
-        <button className="mt-4 w-full px-4 py-3.5 bg-white text-black font-black rounded-xl hover:bg-gray-200 transition-all duration-300 cursor-pointer text-xs uppercase tracking-widest shadow-xl shadow-white/5">
-          Follow artist
+        <button className="mt-4 w-full px-4 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-100 transition-all duration-500 cursor-pointer text-xs uppercase tracking-[0.2em] shadow-2xl shadow-white/5 hover:scale-[1.02] active:scale-95">
+          FOLLOW ARTIST
         </button>
       </div>
 
