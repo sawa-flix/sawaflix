@@ -92,11 +92,11 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search movies, music, artists..."
-                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/5 rounded-xl 
-                           text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
-                           focus:ring-red-600/50 focus:border-transparent transition-all duration-300
-                           hover:bg-white/10"
+                placeholder="Search titles, people, genres..."
+                className="w-full pl-10 pr-4 py-1.5 bg-black border border-white/40 rounded-sm
+                           text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-1 
+                           focus:ring-white focus:border-white transition-all duration-300
+                           hover:border-white/60"
               />
             </form>
           </div>
@@ -253,11 +253,10 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search movies, music, artists..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl 
-                         text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
-                         focus:ring-red-500 focus:border-transparent transition-all duration-200
-                         hover:bg-gray-800"
+              placeholder="Search titles, people, genres..."
+              className="w-full pl-10 pr-4 py-2 bg-black border border-white/60 rounded-sm
+                         text-white placeholder-gray-500 focus:outline-none focus:ring-1 
+                         focus:ring-white transition-all duration-200"
               autoFocus
             />
             <button

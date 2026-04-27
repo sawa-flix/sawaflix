@@ -76,7 +76,7 @@ const Navbar = () => {
                     }
                   }}
                   placeholder="Search movies, music and more..."
-                  className="w-full pl-12 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-2.5 bg-black/40 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all duration-300"
                 />
               </div>
             </div>

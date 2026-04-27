@@ -220,7 +220,7 @@ const SawaFlix = () => {
               src={currentHeroVideo.thumbnail || `https://i.ytimg.com/vi/${currentHeroVideo.id}/maxresdefault.jpg`}
               alt={currentHeroVideo.title}
               fill
-              className="object-cover opacity-60 scale-105 blur-sm transition-opacity duration-1000"
+              className="object-cover opacity-40 scale-110 transition-opacity duration-1000"
               priority
             />
           </div>

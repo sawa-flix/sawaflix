@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, Heart, MessageCircle, Share2, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import YouTubePlayer from '../YoutubePlayer';
 
 const REELS_FALLBACK = [
   { id: 'kJQP7kiw5Fk', title: 'Viral Music Moment', creator: 'Music Vibe', views: '2.4M', category: 'music', image: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/maxresdefault.jpg' },
@@ -14,30 +15,49 @@ const REELS_FALLBACK = [
   { id: '3MA0xds_Dk-qPCWN', title: 'Funny Moments', creator: 'Comedy Central', views: '1.5M', category: 'blog', image: 'https://i.ytimg.com/vi/3MA0xds_Dk-qPCWN/maxresdefault.jpg' }
 ];
 
-const ReelCard = ({ reel, index }) => (
-  <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20">
-    {/* Image Container */}
-    <div className="relative w-full aspect-[9/16] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
-      <Image
-        src={reel.image}
-        alt={reel.title}
-        fill
-        className="object-cover opacity-60 group-hover:opacity-80 transition-all duration-500 group-hover:scale-110"
-      />
-      
-      {/* Play Button Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-sm">
-        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-2xl">
-          <Play className="w-8 h-8 text-white fill-white ml-1" />
-        </div>
-      </div>
+const ReelCard = ({ reel, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
-      {/* SawaFlix Watermark */}
-      <div className="absolute bottom-4 right-4 z-10 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity">
-        <p className="text-[8px] font-black text-white/80 uppercase tracking-[0.3em] leading-none">
-          Sawa<span className="text-red-600">Flix</span>
-        </p>
-      </div>
+  return (
+    <div 
+      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Container */}
+      <div className="relative w-full aspect-[9/16] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
+        {/* Poster Image */}
+        <Image
+          src={reel.image}
+          alt={reel.title}
+          fill
+          className={`object-cover transition-all duration-500 group-hover:scale-110 ${isHovered ? 'opacity-0' : 'opacity-60'}`}
+        />
+
+        {/* Video Player (Plays on Hover) */}
+        {isHovered && (
+          <div className="absolute inset-0 z-0 scale-[3.2] origin-center">
+            <YouTubePlayer
+              videoId={reel.id}
+              isActive={true}
+              isMuted={true}
+            />
+          </div>
+        )}
+        
+        {/* Play Button Overlay */}
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 bg-black/20 backdrop-blur-[1px] ${isHovered ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+          <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-2xl">
+            <Play className="w-6 h-6 text-white fill-white ml-1" />
+          </div>
+        </div>
+
+        {/* SawaFlix Watermark */}
+        <div className="absolute bottom-3 right-3 z-10 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity">
+          <p className="text-[7px] font-black text-white/90 uppercase tracking-[0.4em] leading-none">
+            Sawa<span className="text-red-600">Flix</span>
+          </p>
+        </div>
 
       {/* Trending Badge */}
       {index < 2 && (

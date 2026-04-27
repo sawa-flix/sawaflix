@@ -89,6 +89,12 @@ export function YouTubePlayer({
                         setIsPlayerReady(true);
                         playerRef.current = event.target;
                         onPlayerReady?.(event.target);
+                        
+                        // Attempt to force high quality
+                        try {
+                            (event.target as any).setPlaybackQuality('hd1080');
+                        } catch (e) {}
+
                         if (isActive) {
                             event.target.playVideo();
                             event.target.mute();
