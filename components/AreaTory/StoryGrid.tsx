@@ -162,10 +162,10 @@ export default function StoryGrid() {
       <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative z-30">
           <div>
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter">
+            <h2 className="text-xl md:text-2xl font-black text-white mb-2 tracking-tighter">
               Latest stories
             </h2>
             <p className="text-gray-500 text-sm font-medium max-w-lg">
@@ -256,7 +256,7 @@ export default function StoryGrid() {
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-5">
                   <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold tracking-widest mb-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-2.5 h-2.5" />
@@ -266,11 +266,11 @@ export default function StoryGrid() {
                     <span>{story.readTime || "5 min read"}</span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
+                  <h3 className="text-base font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
                     {story.title}
                   </h3>
 
-                  <p className="text-gray-400 text-xs font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
+                  <p className="text-gray-400 text-[11px] font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
                     {story.excerpt}
                   </p>
 

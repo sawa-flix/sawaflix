@@ -21,7 +21,26 @@ const nextConfig = {
       bodySizeLimit: '12mb',
     },
   },
-  transpilePackages: ["styled-components", "sanity", "next-sanity"],
+  webpack: (config, { webpack }) => {
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^react$/,
+        (resource: any) => {
+          if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
+              resource.context.includes('node_modules' + path.sep + '@sanity')) {
+            resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
+          }
+        }
+      )
+    );
+
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-real': path.resolve(__dirname, 'node_modules/react'),
+    };
+    return config;
+  },
+  transpilePackages: ["styled-components"],
   images: {
     remotePatterns: [
       {
@@ -47,6 +66,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
       },
     ],
     dangerouslyAllowSVG: true,

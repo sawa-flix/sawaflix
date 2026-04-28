@@ -129,21 +129,20 @@ export default function AreaToryHero() {
   };
 
   return (
-    <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden flex items-center justify-center bg-[#0B0E14]">
-      {/* Background with simple deep gradient */}
-      <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
-          style={{
-            backgroundImage: `url('${getHeroBG()}')`,
-            filter: "brightness(0.55) saturate(1.2)",
-          }}
+    <section className="relative h-[35vh] md:h-[42vh] w-full overflow-hidden flex items-center justify-center bg-[#0B0E14]">
+      {/* Background with optimized image delivery */}
+      <div className="absolute inset-0 z-0 bg-[#0B0E14]">
+        <img
+          src={getHeroBG()}
+          alt=""
+          fetchpriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30" />
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 text-center md:text-left grid md:grid-cols-2 items-center gap-8">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 text-center md:text-left grid md:grid-cols-2 items-center gap-8">
         <div>
           {/* Tag */}
           <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
@@ -153,11 +152,11 @@ export default function AreaToryHero() {
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-4">
+          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-white mb-4">
             {settings?.heroTitle || "Area tory."}
           </h1>
 
-          <p className="max-w-md text-sm md:text-base text-gray-300 font-medium leading-relaxed opacity-80 mb-6">
+          <p className="max-w-md text-[13px] md:text-sm text-gray-300 font-medium leading-relaxed opacity-80 mb-6">
             {settings?.heroSubtitle || "The heart of Sawaflix. Discover exclusive announcements, cultural stories, and our growing community."}
           </p>
 
@@ -208,8 +207,8 @@ export default function AreaToryHero() {
         </div>
       </div>
 
-      {/* Developers Avatar Stack — Bottom Right */}
-      <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
+      {/* Developers Avatar Stack — Bottom Right (Hidden on Mobile) */}
+      <div className="absolute bottom-6 right-6 z-20 hidden md:flex flex-col items-end gap-2">
         <div className="flex items-center -space-x-2">
           {developers.map((dev) => (
             <div 
