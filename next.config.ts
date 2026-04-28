@@ -24,11 +24,11 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      'react$': path.resolve(__dirname, 'lib/react-shim'),
+      'react': path.resolve(__dirname, 'lib/react-shim'),
     };
     return config;
   },
-  transpilePackages: ["styled-components"],
+  transpilePackages: ["styled-components", "sanity", "next-sanity"],
   images: {
     remotePatterns: [
       {

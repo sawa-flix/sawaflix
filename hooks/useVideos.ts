@@ -51,19 +51,25 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 throw new Error(apiError);
             }
 
-            const videoList = rawList.map((item: any) => ({
-                id: typeof item.id === 'object' ? item.id.videoId : item.id,
-                title: item.snippet?.title || item.title,
-                description: item.snippet?.description || item.description,
-                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
-                channelId: item.snippet?.channelId || item.channelId,
-                channelTitle: item.snippet?.channelTitle || item.channelTitle,
-                publishedAt: item.snippet?.publishedAt || item.publishedAt,
-                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                likeCount: item.statistics?.likeCount || item.likeCount,
-                commentCount: item.statistics?.commentCount || item.commentCount,
-            }));
+            // Filter out non-video results (like channels or playlists) and map to Video objects
+            const videoList = rawList
+                .filter((item: any) => {
+                    const videoId = typeof item.id === 'object' ? item.id.videoId : item.id;
+                    return !!videoId;
+                })
+                .map((item: any) => ({
+                    id: typeof item.id === 'object' ? item.id.videoId : item.id,
+                    title: item.snippet?.title || item.title,
+                    description: item.snippet?.description || item.description,
+                    thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
+                    channelId: item.snippet?.channelId || item.channelId,
+                    channelTitle: item.snippet?.channelTitle || item.channelTitle,
+                    publishedAt: item.snippet?.publishedAt || item.publishedAt,
+                    videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                    embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                    likeCount: item.statistics?.likeCount || item.likeCount,
+                    commentCount: item.statistics?.commentCount || item.commentCount,
+                }));
 
             // TikTok Effect: Shuffle the videos so the feed feels fresh and dynamic 
             // every time the user opens the app, even while using the 1-hour cache!
@@ -129,19 +135,25 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 throw new Error('Invalid data received while loading more videos');
             }
             
-            const videoList = rawList.map((item: any) => ({
-                id: typeof item.id === 'object' ? item.id.videoId : item.id,
-                title: item.snippet?.title || item.title,
-                description: item.snippet?.description || item.description,
-                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
-                channelId: item.snippet?.channelId || item.channelId,
-                channelTitle: item.snippet?.channelTitle || item.channelTitle,
-                publishedAt: item.snippet?.publishedAt || item.publishedAt,
-                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                likeCount: item.statistics?.likeCount || item.likeCount,
-                commentCount: item.statistics?.commentCount || item.commentCount,
-            }));
+            // Filter and map for pagination too
+            const videoList = rawList
+                .filter((item: any) => {
+                    const videoId = typeof item.id === 'object' ? item.id.videoId : item.id;
+                    return !!videoId;
+                })
+                .map((item: any) => ({
+                    id: typeof item.id === 'object' ? item.id.videoId : item.id,
+                    title: item.snippet?.title || item.title,
+                    description: item.snippet?.description || item.description,
+                    thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
+                    channelId: item.snippet?.channelId || item.channelId,
+                    channelTitle: item.snippet?.channelTitle || item.channelTitle,
+                    publishedAt: item.snippet?.publishedAt || item.publishedAt,
+                    videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                    embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+                    likeCount: item.statistics?.likeCount || item.likeCount,
+                    commentCount: item.statistics?.commentCount || item.commentCount,
+                }));
 
             setVideos(prev => {
                 // Prevent duplicates by checking IDs
