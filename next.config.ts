@@ -21,15 +21,6 @@ const nextConfig = {
       bodySizeLimit: '12mb',
     },
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'react': path.resolve(__dirname, 'lib/react-shim'),
-      };
-    }
-    return config;
-  },
   transpilePackages: ["styled-components", "sanity", "next-sanity"],
   images: {
     remotePatterns: [
