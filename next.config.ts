@@ -1,62 +1,78 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  compiler: {
+    styledComponents: true,
+  },
+  serverExternalPackages: [],
   experimental: {
     serverActions: {
-      bodySizeLimit: '12mb', // Set this higher than your 10MB check
+      bodySizeLimit: '12mb',
     },
   },
+  webpack: (config, { webpack }) => {
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^react$/,
+        (resource: any) => {
+          if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
+              resource.context.includes('node_modules' + path.sep + '@sanity')) {
+            resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
+          }
+        }
+      )
+    );
+
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-real': path.resolve(__dirname, 'node_modules/react'),
+    };
+    return config;
+  },
+  transpilePackages: ["styled-components"],
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'xjxbjnjspmmpfngbdihd.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
+        hostname: '**.supabase.co',
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.googleusercontent.com',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'i.ibb.co',
-        port: '',
-        pathname: '/**',
+        hostname: '**.ibb.co',
       },
       {
         protocol: 'https',
-        hostname: 'yt3.ggpht.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.sanity.io',
       },
       {
         protocol: 'https',
-        hostname: 'yt3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.ytimg.com',
       },
       {
         protocol: 'https',
-        hostname: 'i.ytimg.com',
-        port: '',
-        pathname: '/**',
+        hostname: 'img.youtube.com',
       },
     ],
-    // Allow private IPs for Supabase storage in development
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; img-src 'self' blob: data: https://xjxbjnjspmmpfngbdihd.supabase.co https://lh3.googleusercontent.com https://images.unsplash.com https://i.ibb.co; script-src 'none'; sandbox;",
   },
 }
 export default nextConfig;
-

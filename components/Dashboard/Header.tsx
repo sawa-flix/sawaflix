@@ -58,14 +58,14 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      // Navigate to youtubeVids page with search query
-      router.push(`/dashboard/youtubeVids?q=${encodeURIComponent(searchValue.trim())}`);
+      // Navigate to dashboard with search query
+      router.push(`/dashboard?q=${encodeURIComponent(searchValue.trim())}`);
       setShowMobileSearchBar(false);
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/95 backdrop-blur-md border-b border-gray-800 shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl">
       <div className="flex items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8">
         <div className="flex items-center">
           <button
@@ -86,16 +86,16 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
         {!hideSearch && (
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
               <input
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search movies, music, artists..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl 
-                           text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
-                           focus:ring-red-500 focus:border-transparent transition-all duration-200
-                           hover:bg-gray-800"
+                placeholder="Search titles, people, genres..."
+                className="w-full pl-10 pr-4 py-1.5 bg-black border border-white/40 rounded-sm
+                           text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-1 
+                           focus:ring-white focus:border-white transition-all duration-300
+                           hover:border-white/60"
               />
             </form>
           </div>
@@ -105,7 +105,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           {!hideSearch && (
             <button
               onClick={() => setShowMobileSearchBar(!showMobileSearchBar)}
-              className="md:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer"
+              className="md:hidden p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
               <Search size={18} />
@@ -116,12 +116,10 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           {!hideSearch && (
             <button 
               onClick={() => window.location.href = '/dashboard/notification'}
-              className="relative p-2 rounded-lg cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+              className="relative p-2.5 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/10 transition-all"
             >
               <Bell size={18} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">
-                3
-              </span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-lg shadow-red-600/20" />
             </button>
           )}
 
@@ -130,31 +128,29 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors relative"
+                className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative"
                 aria-label="Notifications"
               >
                 <Bell size={20} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 border-2 border-gray-900 rounded-full flex items-center justify-center text-[10px] font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20" />
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 py-2 border-b border-gray-800 flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-white">Notifications</h3>
+                <div className="absolute right-0 mt-3 w-80 bg-[#0B0E14]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-3 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
+                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Notifications</h3>
                     <button 
                       onClick={markAllRead}
-                      className="text-xs text-red-500 hover:text-red-400 font-medium"
+                      className="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase tracking-widest"
                     >
                       Mark all read
                     </button>
                   </div>
                   <div className="max-h-96 overflow-y-auto scrollbar-none">
                     {notifications.length === 0 ? (
-                      <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                      <div className="px-5 py-10 text-center text-gray-500 text-xs font-medium">
                         No notifications yet
                       </div>
                     ) : (notifications.map(n => (
@@ -163,20 +159,20 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                           onClick={() => {
                             if (!n.read) markRead(n.id);
                           }}
-                          className={`px-4 py-3 border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors cursor-pointer group ${!n.read ? 'bg-red-500/5' : ''}`}
+                          className={`px-5 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group ${!n.read ? 'bg-red-600/5' : ''}`}
                         >
-                          <div className="flex gap-3">
-                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                          <div className="flex gap-4">
+                            <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
                               n.type === 'approved' ? 'bg-green-500' : 
                               n.type === 'rejected' ? 'bg-red-500' : 
                               n.type === 'new_submission' ? 'bg-yellow-500' : 'bg-blue-500'
                             }`} />
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium leading-none mb-1 ${!n.read ? 'text-white' : 'text-gray-400'}`}>
+                              <p className={`text-xs font-bold leading-tight mb-1 ${!n.read ? 'text-white' : 'text-gray-400'}`}>
                                 {n.title}
                               </p>
-                              <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
-                              <p className="text-[10px] text-gray-600 mt-1">
+                              <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{n.message}</p>
+                              <p className="text-[9px] text-gray-600 mt-2 font-bold uppercase tracking-tighter">
                                 {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </p>
                             </div>
@@ -190,18 +186,18 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
             </div>
           )}
 
-          <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer">
+          <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
             <Settings size={18} />
           </Link>
 
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-2 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer"
+              className="flex items-center space-x-3 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               aria-label="User profile menu"
             >
               {userProfile?.profile_image_url ? (
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-700 shadow-sm flex-shrink-0">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-sm flex-shrink-0">
                   <Image
                     src={userProfile.profile_image_url}
                     alt="User Avatar"
@@ -256,11 +252,10 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search movies, music, artists..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/80 border border-gray-700 rounded-xl 
-                         text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 
-                         focus:ring-red-500 focus:border-transparent transition-all duration-200
-                         hover:bg-gray-800"
+              placeholder="Search titles, people, genres..."
+              className="w-full pl-10 pr-4 py-2 bg-black border border-white/60 rounded-sm
+                         text-white placeholder-gray-500 focus:outline-none focus:ring-1 
+                         focus:ring-white transition-all duration-200"
               autoFocus
             />
             <button

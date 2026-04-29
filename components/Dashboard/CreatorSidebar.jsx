@@ -76,7 +76,9 @@ const CreatorSidebar = ({ userProfile }) => {
             {/* Navigation */}
             <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto scrollbar-none">
                 {menuItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = item.href === '/dashboard' 
+                        ? pathname === '/dashboard' 
+                        : pathname?.startsWith(item.href);
                     return (
                         <Link 
                             key={item.href}

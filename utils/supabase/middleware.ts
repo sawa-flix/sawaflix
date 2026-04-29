@@ -1,16 +1,25 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { copySetCookies } from './cookies'
 
 export async function updateSession(request: NextRequest) {
+  const isDev = process.env.NODE_ENV === 'development'
   let supabaseResponse = NextResponse.next({
     request,
   })
+
+  const { pathname } = request.nextUrl;
+
+  // Skip middleware completely for the auth callback to prevent cookie interference during PKCE exchange
+  if (pathname.startsWith('/auth/callback')) {
+    return supabaseResponse;
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (process.env.NODE_ENV === 'development') {
+    if (isDev) {
       console.warn('Missing Supabase environment variables in Middleware.');
     }
     return supabaseResponse;
@@ -21,34 +30,42 @@ export async function updateSession(request: NextRequest) {
     supabaseAnonKey,
     {
       cookies: {
-        get(name) {
-          return request.cookies.get(name)?.value;
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-        set(name, value, options) {
-          request.cookies.set({ name, value, ...options });
-          supabaseResponse = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          supabaseResponse.cookies.set({ name, value, ...options });
-        },
-        remove(name, options) {
-          request.cookies.set({ name, value: '', ...options });
-          supabaseResponse = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          supabaseResponse.cookies.set({ name, value: '', ...options });
-        },
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
@@ -57,8 +74,8 @@ export async function updateSession(request: NextRequest) {
   const { data, error } = await supabase.auth.getUser()
   const user = data?.user;
 
-  console.log(`[Middleware] Path: ${request.nextUrl.pathname}, User Found: ${!!user}`);
-  if (!user && request.cookies.getAll().length > 0) {
+  if (isDev) console.log(`[Middleware] Path: ${request.nextUrl.pathname}, User Found: ${!!user}`);
+  if (isDev && !user && request.cookies.getAll().length > 0) {
     console.log(`[Middleware] Cookies present but no user!`, request.cookies.getAll().map(c => c.name));
   }
 
@@ -66,10 +83,10 @@ export async function updateSession(request: NextRequest) {
      console.error('Middleware getUser error:', error.message);
   }
 
-  const { pathname } = request.nextUrl;
+  // pathname is already extracted above
 
-  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp"];
-  const authRoutes = ["/login", "/sign-up", "/sign-in"];
+  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
+  const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
@@ -78,14 +95,9 @@ export async function updateSession(request: NextRequest) {
     const targetUrl = new URL(url, request.url);
     const redirectResponse = NextResponse.redirect(targetUrl);
     
-    // Copy the raw set-cookie headers from supabaseResponse to the redirect response
-    // Next.js 15 Edge supports spreading headers directly
-    const setCookies = supabaseResponse.headers.getSetCookie?.() || [];
-    setCookies.forEach((cookie) => {
-      redirectResponse.headers.append('Set-Cookie', cookie);
-    });
+    copySetCookies(supabaseResponse, redirectResponse)
     
-    console.log(`Middleware Redirecting to ${url} from ${pathname}`);
+    if (isDev) console.log(`Middleware Redirecting to ${url} from ${pathname}`);
     return redirectResponse;
   };
 
@@ -94,7 +106,7 @@ export async function updateSession(request: NextRequest) {
     if (isPublicRoute || pathname === '/' || pathname === '/favicon.ico') return supabaseResponse;
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirectedFrom", pathname);
-    console.log(`No user, redirecting to login from ${pathname}.`);
+    if (isDev) console.log(`No user, redirecting to login from ${pathname}.`);
     return redirectWithCookies(redirectUrl);
   }
 
@@ -141,16 +153,21 @@ export async function updateSession(request: NextRequest) {
     if (role === 'admin') target = "/admin";
     else if (isApprovedCreator) target = "/creator-dashboard";
     
-    console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
+    if (isDev) console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
     return redirectWithCookies(target);
   }
 
   // 4. Missing profile safety
   if (!profile) return supabaseResponse;
 
-  // 5. OTP Check for all users except admins
-  // Use .toLowerCase() to match the same logic used in isApprovedCreator above
-  if (profile.role?.toLowerCase() !== 'admin' && profile.verification_status?.toLowerCase() !== "approved") {
+  // 5. OTP Check for all users except admins and OAuth users
+  // OAuth users (Google, GitHub, etc.) are pre-verified by the provider — skip OTP
+  // We also allow 'pending' status to bypass OTP because it means they've verified their email
+  // but are waiting for admin approval (for creators).
+  const isOAuthUser = user?.app_metadata?.provider && user.app_metadata.provider !== 'email';
+  const isVerified = profile.verification_status === "approved" || profile.verification_status === "pending";
+  
+  if (profile.role !== 'admin' && !isOAuthUser && !isVerified) {
       if (isPublicRoute) return supabaseResponse;
       if (pathname.startsWith("/creator/verify")) return supabaseResponse;
       if (pathname.startsWith("/creator/pending")) return supabaseResponse;

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import SawaFlix from "../../../components/Dashboard/SawaFlix";
 import { createClient } from '../../../utils/supabase/client'
 import { User as SupabseUser } from '@supabase/supabase-js'
@@ -66,7 +66,9 @@ export default function DashboardPage() {
           </p>
         </div>
       )}
-      <SawaFlix />
+      <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div></div>}>
+        <SawaFlix />
+      </Suspense>
     </div>
   );
-}
+}

@@ -6,8 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import {
   Volume2, VolumeX, MessageCircle,
   Send, X, Check, Loader2, ThumbsUp, ThumbsDown,
-  Share2, ArrowLeft, Menu
+  Share2, ArrowLeft, Menu, Play
 } from 'lucide-react';
+import { youtubeApi } from '@/services/youtubeApi';
 import { useVideos } from '@/hooks/useVideos';
 import { useVideoStats } from '@/hooks/useVideoStats';
 import { useComments } from '@/hooks/useComments';
@@ -34,6 +35,7 @@ function CameroonReelsContent() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
   const [isMuted, setIsMuted] = useState(true);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
   const [followedChannels, setFollowedChannels] = useState<string[]>([]);
@@ -58,7 +60,9 @@ function CameroonReelsContent() {
     loading: commentsLoading,
     isOpen: isCommentOpen,
     setIsOpen: setIsCommentOpen,
+    refetch: refetchComments
   } = useComments(activeVideoId);
+
 
   useEffect(() => {
     const storedLikes = localStorage.getItem('likedVideos');
@@ -76,21 +80,61 @@ function CameroonReelsContent() {
   }, [followedChannels]);
 
 
-  const handleLike = useCallback((videoId: string) => {
+  const handleLike = useCallback(async (videoId: string) => {
     if (likedVideos.includes(videoId)) return;
     setLikedVideos(prev => [...prev, videoId]);
+    try {
+        await youtubeApi.likeVideo(videoId);
+    } catch (err) {
+        console.error('[Dashboard] Error liking video:', err);
+    }
   }, [likedVideos]);
 
-  const handleFollow = useCallback((channelId: string) => {
+  const handleFollow = useCallback(async (channelId: string) => {
     if (followedChannels.includes(channelId)) return;
     setFollowedChannels(prev => [...prev, channelId]);
+    try {
+        await youtubeApi.followChannel(channelId);
+    } catch (err) {
+        console.error('[Dashboard] Error following channel:', err);
+    }
   }, [followedChannels]);
 
-  const handleSubmitComment = useCallback(() => {
-    if (!newComment.trim()) return;
-    console.log('[Comment] Submitting for video', activeVideoId, ':', newComment);
+  const handleSubmitComment = useCallback(async () => {
+    if (!newComment.trim() || !activeVideoId) return;
+    const text = newComment.trim();
+    console.log('[Comment] Submitting for video', activeVideoId, ':', text);
     setNewComment("");
+    try {
+        await youtubeApi.commentOnVideo(activeVideoId, text);
+        // Refetch comments so the new one appears in the list
+        await refetchComments();
+    } catch (err) {
+        console.error('[Dashboard] Error submitting comment:', err);
+    }
   }, [newComment, activeVideoId]);
+
+  const handleShare = useCallback(async (videoId: string) => {
+    try {
+      const shareUrl = `https://sawaflixplay.vercel.app/dashboard/youtubevids?q=${videoId}`;
+      if (navigator.share) {
+        await navigator.share({
+          title: 'SawaFlix Video',
+          text: 'Check out this video on SawaFlix!',
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+    }
+  }, []);
+
+  const togglePlayPause = useCallback(() => {
+    setIsPaused(prev => !prev);
+  }, []);
 
   const handleProgress = useCallback((videoId: string, progress: number, timeLeft: string) => {
     setProgressMap(prev => {
@@ -136,7 +180,10 @@ function CameroonReelsContent() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const videoId = entry.target.getAttribute('data-video-id');
-            if (videoId) setActiveVideoId(videoId);
+            if (videoId && videoId !== activeVideoId) {
+              setActiveVideoId(videoId);
+              setIsPaused(false);
+            }
           }
         });
       },
@@ -249,8 +296,24 @@ function CameroonReelsContent() {
                 videoId={video.id}
                 isActive={isActive}
                 isMuted={isMuted}
+                isPaused={isActive ? isPaused : false}
                 onProgress={(progress, timeLeft) => handleProgress(video.id, progress, timeLeft)}
               />
+
+              {/* Click Overlay for Play/Pause */}
+              <div 
+                className="absolute inset-0 z-10" 
+                onClick={togglePlayPause} 
+              />
+              
+              {/* Play icon overlay when paused */}
+              {isActive && isPaused && (
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none transition-opacity duration-300">
+                  <div className="bg-black/40 rounded-full p-4 backdrop-blur-sm">
+                    <Play size={48} className="text-white opacity-80" fill="white" />
+                  </div>
+                </div>
+              )}
 
               {/* Loading Overlay (first video refresh) */}
               {index === 0 && isRefreshing && (
@@ -313,6 +376,7 @@ function CameroonReelsContent() {
 
                 {/* Share */}
                 <button
+                  onClick={() => handleShare(video.id)}
                   className="flex flex-col items-center gap-1"
                   aria-label="Share"
                 >

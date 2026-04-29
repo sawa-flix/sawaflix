@@ -1,69 +1,77 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 export default function Hero() {
   return (
     <section
       id="home"
-      // Changed h-screen to h-[85vh] on mobile to show the next section title
-      className="relative h-[70vh] md:h-screen w-full overflow-hidden flex items-center justify-center scroll-mt-20"
+      className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-center items-center bg-[#0B0E14]"
     >
-      {/* Background with Overlay - UNTOUCHED as requested */}
-      <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/images/Hero-background.jpg')",
-          }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#8B0000]/25 via-[#E50914]/10 to-[#0B0E14]"></div>
-        <div className="absolute inset-0 bg-[#0B0E14]/60"></div>
+      {/* High-Performance Optimized Background Image */}
+      <div className="absolute inset-0 z-0 bg-[#0B0E14]">
+        <img
+          src="https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png"
+          alt=""
+          fetchPriority="high"
+          loading="eager"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
+        />
+        {/* Minimal gradients — just enough for text readability */}
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent hidden md:block" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center pt-10 md:pt-0">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          {/* Typography adjusted for mobile visibility */}
-          <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold tracking-tight text-white mb-4 md:mb-6 drop-shadow-xl leading-tight">
-            Preserving Culture <br />
-            <span className="inline-block text-red-600 px-4 py-1 rounded-md mt-2">
-              Sharing Stories.
-            </span>{" "}
-            <br />
-            Connecting Generations
+      {/* Content Container */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-4 md:space-y-8"
+          >
+          {/* Subtitle / Brand Tag */}
+          {/* <div className="flex justify-center">
+            <span className="text-red-600 font-bold text-[9px] md:text-[11px] tracking-[0.5em] uppercase opacity-90">
+              Sawaflix Original
+            </span>
+          </div> */}
+
+          {/* Main Headline - Further Refined Scaling */}
+          <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-wide text-white" style={{ wordSpacing: '0.15em' }}>
+            Unlimited Culture.<br className="hidden md:block" />
+            Infinite Stories.
           </h1>
 
-          <p className="text-gray-300 mb-8 md:mb-10 max-w-xl mx-auto text-lg md:text-xl leading-relaxed">
-            Discover the rich heritage of Africa through music, movies, and
-            traditions. A platform dedicated to keeping our stories alive.
+          {/* Description text - Compact & Elegant */}
+          <p className="max-w-xl mx-auto text-[clamp(0.9rem,1.5vw,1.05rem)] text-gray-300 font-medium leading-relaxed px-4 md:px-0 opacity-75">
+            Discover the rich heritage of Africa through curated music, cinema, and traditions.
+            A platform dedicated to keeping our stories alive.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* Call to Action - Compact & Professional */}
+          <div className="flex flex-col items-center pt-4 md:pt-6">
             <Link
               href="/dashboard"
-              className="px-8 py-3.5 bg-red-600 text-white rounded-full font-semibold text-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
+              className="group flex items-center justify-center gap-2 w-full md:w-auto md:px-10 py-3 md:py-3.5 bg-red-600 text-white rounded-lg font-black text-sm md:text-base transition-all active:scale-[0.97] shadow-xl shadow-red-600/20 hover:bg-red-700"
             >
               Get Started
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
             </Link>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3.5 bg-white text-red-600 rounded-full font-semibold text-lg flex items-center justify-center gap-2 hover:bg-gray-100 transition-all cursor-pointer shadow-lg shadow-white/30"
-            >
-              <Play className="w-5 h-5 fill-red-600 text-red-600" />
-              Watch Demo
-            </motion.button>
+            <p className="mt-6 text-gray-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em]">
+              Watch anywhere. Cancel anytime.
+            </p>
           </div>
         </motion.div>
       </div>
+
+      {/* Subtle Bottom Fade for mobile app look */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0B0E14] to-transparent z-20 pointer-events-none" />
     </section>
   );
 }

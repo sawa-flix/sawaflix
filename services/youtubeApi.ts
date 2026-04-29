@@ -1,5 +1,12 @@
 import type { VideoSearchResponse, VideoDetails, Comment } from '@/types/youtube';
-import { searchVideosAction, getVideoDetailsAction, getVideoCommentsAction } from '@/app/actions/youtube';
+import { 
+    searchVideosAction, 
+    getVideoDetailsAction, 
+    getVideoCommentsAction,
+    likeYouTubeVideoAction,
+    followYouTubeChannelAction,
+    commentYouTubeVideoAction
+} from '@/app/actions/youtube';
 
 export class YouTubeApiService {
     async searchVideos(
@@ -19,6 +26,21 @@ export class YouTubeApiService {
     async getVideoComments(videoId: string): Promise<Comment[]> {
         console.log('[API] Invoking server action to fetch comments for:', videoId);
         return getVideoCommentsAction(videoId);
+    }
+
+    async likeVideo(videoId: string) {
+        console.log('[API] Invoking server action to like video:', videoId);
+        return likeYouTubeVideoAction(videoId);
+    }
+
+    async followChannel(channelId: string) {
+        console.log('[API] Invoking server action to follow channel:', channelId);
+        return followYouTubeChannelAction(channelId);
+    }
+
+    async commentOnVideo(videoId: string, text: string) {
+        console.log('[API] Invoking server action to comment on video:', videoId);
+        return commentYouTubeVideoAction(videoId, text);
     }
 }
 
