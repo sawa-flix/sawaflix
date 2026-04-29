@@ -11,6 +11,7 @@ import { useVideos } from '@/hooks/useVideos';
 import { useComments } from '@/hooks/useComments';
 import { useVideoStats } from '@/hooks/useVideoStats';
 import { YouTubePlayer } from '../YoutubePlayer';
+import { youtubeApi } from '@/services/youtubeApi';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -188,6 +189,10 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
     if (isLiked) return;
     setIsLiked(true);
     setLikeCount(p => p + 1);
+    // Call backend to record the like (fire-and-forget, UI already updated optimistically)
+    youtubeApi.likeVideo(video.id).catch(err => {
+      console.warn('[Like] Backend call failed (non-blocking):', err.message);
+    });
   };
 
   const handleShare = async (e) => {
@@ -383,7 +388,16 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                 className="flex-1 bg-white/5 text-white rounded-2xl px-4 py-3 outline-none focus:ring-2 ring-white/20 text-sm border border-white/5"
               />
               <button
-                onClick={() => setNewComment('')}
+                onClick={async () => {
+                  const text = newComment.trim();
+                  if (!text) return;
+                  setNewComment('');
+                  try {
+                    await youtubeApi.commentOnVideo(video.id, text);
+                  } catch (err) {
+                    console.warn('[Comment] Backend call failed:', err.message);
+                  }
+                }}
                 disabled={!newComment.trim()}
                 className="bg-white text-black px-5 rounded-2xl font-bold hover:bg-white/90 active:scale-95 transition-all disabled:opacity-40"
               >
@@ -480,6 +494,8 @@ function SawaFlixContent() {
   // ── Card click: show that video first in TikTok feed (no nav) ──
   const handleCardClick = (video) => {
     setSelectedVideo(video);
+    // Immediately mark this video as active so the player starts playing
+    setActiveVideoId(video.id);
     setTimeout(() => {
       if (discoverRef.current) {
         const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
