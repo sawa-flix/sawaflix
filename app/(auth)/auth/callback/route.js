@@ -30,20 +30,30 @@ export async function GET(request) {
     })
 
     const cookieStore = await cookies()
+    const allCookies = cookieStore.getAll()
+    if (isDev) {
+      console.log('🟢 Cookies present in callback request:', allCookies.map(c => c.name).join(', '))
+      const pkceCookie = allCookies.find(c => c.name.includes('code-verifier'))
+      console.log('🟢 PKCE Cookie found?', !!pkceCookie)
+    }
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        getAll() {
-          return cookieStore.getAll()
+        get(name) {
+          return cookieStore.get(name)?.value
         },
-        setAll(cookiesToSet) {
+        set(name, value, options) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
+            cookieStore.set({ name, value, ...options })
           } catch (error) {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
+            // Ignore in server components
+          }
+        },
+        remove(name, options) {
+          try {
+            cookieStore.delete({ name, ...options })
+          } catch (error) {
+            // Ignore in server components
           }
         },
       },

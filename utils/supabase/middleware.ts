@@ -8,6 +8,13 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const { pathname } = request.nextUrl;
+
+  // Skip middleware completely for the auth callback to prevent cookie interference during PKCE exchange
+  if (pathname.startsWith('/auth/callback')) {
+    return supabaseResponse;
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -23,17 +30,42 @@ export async function updateSession(request: NextRequest) {
     supabaseAnonKey,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
@@ -51,7 +83,7 @@ export async function updateSession(request: NextRequest) {
      console.error('Middleware getUser error:', error.message);
   }
 
-  const { pathname } = request.nextUrl;
+  // pathname is already extracted above
 
   const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
