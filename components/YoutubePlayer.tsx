@@ -8,7 +8,7 @@ interface YouTubePlayerProps {
     isActive: boolean;
     isMuted: boolean;
     isPaused?: boolean;
-    onProgress?: (progress: number, timeLeft: string) => void;
+    onProgress?: (progress: number, timeLeft: string, currentTime: number, duration: number) => void;
     onPlayerReady?: (player: YT.Player) => void;
 }
 
@@ -170,11 +170,15 @@ export function YouTubePlayer({
                     const currentTime = playerRef.current.getCurrentTime();
                     const duration = playerRef.current.getDuration();
                     if (duration > 0) {
-                        onProgress?.((currentTime / duration) * 100, '');
+                        const remaining = Math.max(0, Math.floor(duration - currentTime));
+                        const mins = Math.floor(remaining / 60);
+                        const secs = remaining % 60;
+                        const timeLeft = `${mins}:${String(secs).padStart(2, '0')}`;
+                        onProgress?.((currentTime / duration) * 100, timeLeft, currentTime, duration);
                     }
                 }
             } catch (e) {}
-        }, 1000);
+        }, 500);
 
         return () => {
             if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
