@@ -226,7 +226,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
         >
           <YouTubePlayer
             videoId={video.id}
-            isActive={isActive && !commentOpen}
+            isActive={isActive}
             isPaused={isPaused}
             isMuted={isMuted}
             onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
