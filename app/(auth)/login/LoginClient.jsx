@@ -57,13 +57,8 @@ function LoginContent() {
 
     try {
       const supabase = createClient();
-      const isLocalhost =
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1';
-      const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-      const redirectBase = isLocalhost || !configuredSiteUrl
-        ? window.location.origin
-        : configuredSiteUrl;
+      // Always use the exact origin the user is currently on to prevent PKCE cookie domain mismatches.
+      const redirectBase = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

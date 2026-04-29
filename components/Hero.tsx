@@ -16,7 +16,7 @@ export default function Hero() {
         <img
           src="https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png"
           alt=""
-          fetchpriority="high"
+          fetchPriority="high"
           loading="eager"
           className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
         />
