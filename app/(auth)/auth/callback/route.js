@@ -11,6 +11,7 @@ export async function GET(request) {
     const type = requestUrl.searchParams.get('type')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (isDev) {
       console.log('🔵 CALLBACK RECEIVED:', {
@@ -109,14 +110,30 @@ export async function GET(request) {
           role: platformRole === 'creator' ? 'creator' : 'viewer',
           platform_role: platformRole === 'creator' ? 'artist' : 'client',
           profile_image_url: user.user_metadata?.avatar_url || null,
+          // Google/OAuth users are pre-verified — grant approved status immediately
+          // so the middleware does NOT redirect them to /verify-otp
+          verification_status: 'approved',
           updated_at: new Date().toISOString(),
         }
 
-        const { error: syncError } = await supabase
-          .from('users')
-          .upsert(payload, { onConflict: 'id' })
+        // Use Admin client to bypass RLS during initial sync
+        if (supabaseServiceRoleKey) {
+          const supabaseAdmin = createServerClient(supabaseUrl, supabaseServiceRoleKey, {
+            cookies: { getAll() { return [] }, setAll() {} }
+          })
+          const { error: syncError } = await supabaseAdmin
+            .from('users')
+            .upsert(payload, { onConflict: 'id' })
 
-        if (syncError) console.error('🟡 User sync warning:', syncError.message)
+          if (syncError) console.error('🟡 User sync warning (Admin):', syncError.message)
+          else if (isDev) console.log('🟢 Profile synced via Admin')
+        } else {
+          const { error: syncError } = await supabase
+            .from('users')
+            .upsert(payload, { onConflict: 'id' })
+
+          if (syncError) console.error('🟡 User sync warning (Anon):', syncError.message)
+        }
       } catch (syncErr) {
         console.error('🟡 User sync error (non-fatal):', syncErr.message)
       }

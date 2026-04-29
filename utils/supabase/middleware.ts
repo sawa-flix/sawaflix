@@ -145,8 +145,14 @@ export async function updateSession(request: NextRequest) {
   // 4. Missing profile safety
   if (!profile) return supabaseResponse;
 
-  // 5. OTP Check for all users except admins
-  if (profile.role !== 'admin' && profile.verification_status !== "approved") {
+  // 5. OTP Check for all users except admins and OAuth users
+  // OAuth users (Google, GitHub, etc.) are pre-verified by the provider — skip OTP
+  // We also allow 'pending' status to bypass OTP because it means they've verified their email
+  // but are waiting for admin approval (for creators).
+  const isOAuthUser = user?.app_metadata?.provider && user.app_metadata.provider !== 'email';
+  const isVerified = profile.verification_status === "approved" || profile.verification_status === "pending";
+  
+  if (profile.role !== 'admin' && !isOAuthUser && !isVerified) {
       if (isPublicRoute) return supabaseResponse;
       if (pathname.startsWith("/creator/verify")) return supabaseResponse;
       if (pathname.startsWith("/creator/pending")) return supabaseResponse;

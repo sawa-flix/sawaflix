@@ -134,6 +134,11 @@ function SignUpContent() {
         }
       }
     } catch (err) {
+      // Next.js redirect() throws a NEXT_REDIRECT error internally — re-throw it so the
+      // browser follows the redirect instead of showing a false "Sign up failed" error.
+      if (err instanceof Error && (err.message === 'NEXT_REDIRECT' || err.message?.includes('NEXT_REDIRECT'))) {
+        throw err;
+      }
       console.error('Sign up error:', err);
       setError('Sign up failed. Please try again.');
       setLoading(false);
