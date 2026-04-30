@@ -37,17 +37,7 @@ export default function PostTypeSelector() {
 
   return (
     <div className="relative min-h-[90vh] w-full overflow-hidden rounded-3xl">
-      {/* Cinematic Background */}
-      <div 
-        className="absolute inset-0 z-0 scale-110 blur-[2px]"
-        style={{
-          backgroundImage: 'url("/headset.jpg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-red-900/40" />
-      </div>
+
 
       <div className="relative z-10 p-8 lg:p-12 space-y-16 max-w-6xl mx-auto">
         {/* Header Section */}
