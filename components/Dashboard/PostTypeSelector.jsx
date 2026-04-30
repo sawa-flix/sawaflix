@@ -9,7 +9,7 @@ const cards = [
     id: "post",
     label: "Post",
     icon: Upload,
-    href: "/creator-dashboard/upload",
+    href: "/creator-dashboard/post/upload",
     themeColor: "#FF3B3B", // Vibrant Red
     glow: "shadow-[0_0_40px_rgba(255,59,59,0.3)]",
     border: "border-red-500/30",

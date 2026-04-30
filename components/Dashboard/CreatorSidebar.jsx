@@ -23,15 +23,9 @@ const CreatorSidebar = ({ userProfile }) => {
 
     const category = userProfile?.category?.toLowerCase();
     
-    // Determine specific upload path based on niche
-    let uploadPath = '/creator-dashboard/upload';
-    if (category === 'music' || category === 'musician') {
-        uploadPath = '/creator-dashboard/post/music';
-    } else if (category === 'storyteller' || category === 'stories' || category === 'storytelling') {
-        uploadPath = '/creator-dashboard/post/story';
-    } else if (category === 'lifestyle' || category === 'food') {
-        uploadPath = '/creator-dashboard/post/food';
-    }
+    // Unified upload path matching the new design
+    const uploadPath = '/creator-dashboard/post/upload';
+
 
     // 'Post' always goes to the selection page (Post vs Transfer)
     const postPath = '/creator-dashboard';
