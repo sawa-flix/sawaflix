@@ -32,6 +32,7 @@ const ReelCard = ({ reel, index }) => {
           alt={reel.title}
           fill
           className={`object-cover transition-all duration-500 group-hover:scale-110 ${isHovered ? 'opacity-0' : 'opacity-60'}`}
+          unoptimized
         />
 
         {/* Video Player (Plays on Hover) */}
