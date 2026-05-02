@@ -638,15 +638,15 @@ function SawaFlixContent() {
     <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
       <main className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-6">
         <div className="flex items-center justify-start overflow-x-auto no-scrollbar pb-2 mb-3">
-          <div className="inline-flex items-center gap-2">
+          <div className="inline-flex items-center gap-3">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setHeroIndex(0); setSelectedVideo(null); }}
-                className={`px-5 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'border-white/40 text-white bg-white/10'
-                    : 'border-white/5 text-gray-400 hover:border-white/20 hover:text-white hover:bg-white/5'
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
               >
                 {cat.label}
