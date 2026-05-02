@@ -710,24 +710,26 @@ function SawaFlixContent() {
                   />
                 </div>
               )}
-              <div className="absolute inset-0 z-10">
-                {currentHeroVideo?.origin === 'youtube' ? (
-                  <YouTubePlayer
-                    videoId={currentHeroVideo.id}
-                    isActive={heroPlaying}
-                    isMuted={isHeroMuted}
-                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                  />
-                ) : (
-                  <HTML5Player
-                    videoId={currentHeroVideo.id}
-                    videoUrl={currentHeroVideo.videoUrl}
-                    isActive={heroPlaying}
-                    isMuted={isHeroMuted}
-                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                  />
-                )}
-              </div>
+              {heroPlaying && (
+                <div className="absolute inset-0 z-10">
+                  {currentHeroVideo?.origin === 'youtube' ? (
+                    <YouTubePlayer
+                      videoId={currentHeroVideo.id}
+                      isActive={heroPlaying}
+                      isMuted={isHeroMuted}
+                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                    />
+                  ) : (
+                    <HTML5Player
+                      videoId={currentHeroVideo.id}
+                      videoUrl={currentHeroVideo.videoUrl}
+                      isActive={heroPlaying}
+                      isMuted={isHeroMuted}
+                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                    />
+                  )}
+                </div>
+              )}
             </>
           )}
 
