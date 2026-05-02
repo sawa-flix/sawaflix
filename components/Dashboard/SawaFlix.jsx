@@ -632,9 +632,9 @@ function SawaFlixContent() {
 
   useEffect(() => {
     if (!heroPlaying || !heroSource.length) return;
-    const t = setInterval(nextHeroVideo, 25000);
+    const t = setInterval(handleHeroNext, 25000);
     return () => clearInterval(t);
-  }, [heroPlaying, nextHeroVideo, heroSource.length]);
+  }, [heroPlaying, handleHeroNext, heroSource.length]);
 
   const scrollToDiscover = () => {
     setHeroPlaying(false);
