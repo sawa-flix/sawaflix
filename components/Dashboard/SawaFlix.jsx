@@ -756,8 +756,8 @@ function SawaFlixContent() {
                     </div>
                   : (
                     <div className="flex items-center gap-4">
-                      <SawaflixLogo className="!h-9 sm:!h-11" />
-                      <span className="text-white font-black text-2xl sm:text-[42px] tracking-tighter leading-none translate-y-[2px]">
+                      <SawaflixLogo className="!h-8 sm:!h-10" />
+                      <span className="text-white font-black text-xl sm:text-3xl tracking-tighter leading-none">
                         {currentCategoryObj?.label}
                       </span>
                     </div>
