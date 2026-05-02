@@ -688,11 +688,13 @@ function SawaFlixContent() {
               </div>
               {/* Permanent Base Background (Matches Landing Page) */}
               {/* Permanent Base Background (Matches Landing Page) */}
-              <div className="absolute inset-0 z-0 overflow-hidden">
+              <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${
+                currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 ? 'opacity-0' : 'opacity-100'
+              }`}>
                 <img
                   src="/cameroon.jpg"
                   alt="SawaFlix Background"
-                  className="w-full h-full object-cover transition-opacity duration-700"
+                  className="w-full h-full object-cover"
                   loading="eager"
                   fetchPriority="high"
                 />
@@ -707,9 +709,11 @@ function SawaFlixContent() {
                     src={currentHeroVideo.thumbnail}
                     alt={currentHeroVideo.title}
                     fill
-                    className="object-cover opacity-50 scale-100 transition-opacity duration-1000"
+                    className="object-cover opacity-100 transition-opacity duration-1000"
                     unoptimized
                   />
+                  {/* Re-apply overlay to video thumbnail for consistency */}
+                  <div className="absolute inset-0 bg-black/60" />
                 </div>
               )}
               {heroPlaying && (
