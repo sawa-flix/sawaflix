@@ -70,6 +70,9 @@ const Navbar = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       handleSearch(e);
@@ -175,7 +178,10 @@ const Navbar = () => {
             <div className="flex items-center gap-1">
               {/* Search Icon - Always visible */}
               <button
-                onClick={handleSearch}
+                onClick={(e) => {
+                  handleSearch(e);
+                  document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-full transition-all duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

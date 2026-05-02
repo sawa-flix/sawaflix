@@ -641,7 +641,24 @@ function SawaFlixContent() {
   })();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col relative">
+      {/* YouTube-style Top Loading Bar */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ scaleX: 0, opacity: 1 }}
+            animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1], opacity: 1 }}
+            transition={{ 
+              duration: 2, 
+              times: [0, 0.2, 0.5, 0.8, 1],
+              ease: "easeInOut",
+              repeat: Infinity
+            }}
+            className="fixed top-0 left-0 right-0 h-[3px] bg-red-600 z-[9999] origin-left shadow-[0_0_15px_rgba(220,38,38,0.6)]"
+          />
+        )}
+      </AnimatePresence>
+
       <div className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-2">
         <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
           <div className="inline-flex items-center gap-3">
@@ -671,10 +688,12 @@ function SawaFlixContent() {
               </div>
               <div className="absolute inset-0 z-0">
                 <Image
-                  src={currentHeroVideo?.thumbnail || "/cameroon.jpg"}
+                  src={currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 ? currentHeroVideo.thumbnail : "/cameroon.jpg"}
                   alt={currentHeroVideo?.title || "SawaFlix"}
-                  fill className="object-cover opacity-50 scale-105 transition-opacity duration-1000"
+                  fill 
+                  className="object-cover opacity-60 scale-100 transition-all duration-1000"
                   priority
+                  quality={90}
                   unoptimized
                 />
               </div>
@@ -760,19 +779,19 @@ function SawaFlixContent() {
           )}
         </section>
 
-        <section ref={discoverRef} className="mb-12 scroll-mt-20">
-          <div className="flex items-center justify-between mb-8 gap-4">
+        <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
                   ? <div className="flex items-center gap-3">
-                      <span className="w-1.5 h-9 bg-white/60 rounded-full" />
-                      <>Results for <span className="text-white/60">"{urlQuery}"</span></>
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Results for <span className="text-white/60 font-medium">"{urlQuery}"</span></>
                     </div>
                   : isSearchMode && selectedVideo
                   ? <div className="flex items-center gap-3">
-                      <span className="w-1.5 h-9 bg-white/60 rounded-full" />
-                      <>Watching <span className="text-white/60">"{urlQuery}"</span></>
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
                     </div>
                   : (
                     <div className="flex items-center gap-3">
@@ -788,14 +807,37 @@ function SawaFlixContent() {
               </h2>
             </div>
 
-            {isSearchMode && selectedVideo && (
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all"
-              >
-                <ChevronLeft size={14} /> All Results
-              </button>
-            )}
+            <div className="flex items-center gap-3 flex-1 max-w-md justify-end">
+              <div className="relative w-full group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-red-500">
+                  <Play size={16} className="text-white/30 group-focus-within:text-red-500" fill="currentColor" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search vibes..."
+                  defaultValue={urlQuery}
+                  onFocus={scrollToDiscover}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = e.target.value.trim();
+                      if (val) {
+                        router.push(`/dashboard?q=${encodeURIComponent(val)}`);
+                      }
+                    }
+                  }}
+                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:bg-white/10 focus:border-red-600/50 transition-all duration-300 text-sm font-medium"
+                />
+              </div>
+
+              {isSearchMode && selectedVideo && (
+                <button
+                  onClick={() => setSelectedVideo(null)}
+                  className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
+                >
+                  <ChevronLeft size={14} /> Back
+                </button>
+              )}
+            </div>
           </div>
 
           {loading ? (
