@@ -687,14 +687,14 @@ function SawaFlixContent() {
                 </p>
               </div>
               {/* Permanent Base Background (Matches Landing Page) */}
-              <div className="absolute inset-0 z-0 bg-black">
-                <Image
+              {/* Permanent Base Background (Matches Landing Page) */}
+              <div className="absolute inset-0 z-0">
+                <img
                   src="/cameroon.jpg"
                   alt="SawaFlix Background"
-                  fill
-                  className="object-cover opacity-60 transition-opacity duration-700"
-                  priority
-                  quality={90}
+                  className="w-full h-full object-cover opacity-85 transition-opacity duration-700"
+                  loading="eager"
+                  fetchPriority="high"
                 />
               </div>
 
