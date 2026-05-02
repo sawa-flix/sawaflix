@@ -611,8 +611,7 @@ function SawaFlixContent() {
   const scrollToDiscover = () => {
     setHeroPlaying(false);
     if (discoverRef.current) {
-      const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
-      window.scrollTo({ top, behavior: 'smooth' });
+      discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -751,7 +750,7 @@ function SawaFlixContent() {
           )}
         </section>
 
-        <section ref={discoverRef} className="mb-12">
+        <section ref={discoverRef} className="mb-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-8 gap-4">
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
