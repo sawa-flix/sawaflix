@@ -7,9 +7,9 @@ const SawaflixLogo = ({ className = "" }) => {
             <Image
                 src="/sawalogo.png"
                 alt="SawaFlix Logo"
-                width={400}
-                height={120}
-                className="w-auto h-8 sm:h-10 object-contain group-hover:scale-105 transition-transform duration-300"
+                width={500}
+                height={150}
+                className="w-auto h-10 sm:h-[46px] object-contain object-left group-hover:scale-105 transition-transform duration-300"
                 priority
             />
         </div>
