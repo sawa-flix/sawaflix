@@ -755,9 +755,11 @@ function SawaFlixContent() {
                       <>Watching <span className="text-white/60">"{urlQuery}"</span></>
                     </div>
                   : (
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <SawaflixLogo className="!h-10 sm:!h-14 -ml-1" />
-                      <span className="text-white font-black text-2xl sm:text-4xl tracking-tighter opacity-90">{currentCategoryObj?.label}</span>
+                    <div className="flex items-center gap-4">
+                      <SawaflixLogo className="!h-9 sm:!h-11" />
+                      <span className="text-white font-black text-2xl sm:text-[42px] tracking-tighter leading-none translate-y-[2px]">
+                        {currentCategoryObj?.label}
+                      </span>
                     </div>
                   )
                 }
