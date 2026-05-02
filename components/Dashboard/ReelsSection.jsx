@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, Heart, MessageCircle, Share2, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import SawaflixLogo from '../SawaflixLogo';
 import YouTubePlayer from '../YoutubePlayer';
 
 const REELS_FALLBACK = [
@@ -122,9 +123,12 @@ export default function ReelsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-black text-white mb-2">Discover Reels</h2>
-        <p className="text-gray-400 font-medium">Trending content from your favorite creators</p>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <SawaflixLogo className="!h-10 sm:!h-14 -ml-1" />
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter opacity-90">Reels</h2>
+        </div>
+        <p className="text-gray-400/60 font-medium text-sm ml-1">Trending short-form entertainment</p>
       </div>
 
       {/* Category Filter */}

@@ -13,6 +13,7 @@ import { useComments } from '@/hooks/useComments';
 import { useVideoStats } from '@/hooks/useVideoStats';
 import { YouTubePlayer } from '../YoutubePlayer';
 import { youtubeApi } from '@/services/youtubeApi';
+import SawaflixLogo from '../SawaflixLogo';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -741,14 +742,24 @@ function SawaFlixContent() {
 
         <section ref={discoverRef} className="mb-12">
           <div className="flex items-center justify-between mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <span className="w-1.5 h-9 bg-white/60 rounded-full" />
+            <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
-                  ? <>Results for <span className="text-white/60">"{urlQuery}"</span></>
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-white/60 rounded-full" />
+                      <>Results for <span className="text-white/60">"{urlQuery}"</span></>
+                    </div>
                   : isSearchMode && selectedVideo
-                  ? <>Watching <span className="text-white/60">"{urlQuery}"</span></>
-                  : <>Discover <span className="text-white/50">{currentCategoryObj?.label}</span></>
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-white/60 rounded-full" />
+                      <>Watching <span className="text-white/60">"{urlQuery}"</span></>
+                    </div>
+                  : (
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <SawaflixLogo className="!h-10 sm:!h-14 -ml-1" />
+                      <span className="text-white font-black text-2xl sm:text-4xl tracking-tighter opacity-90">{currentCategoryObj?.label}</span>
+                    </div>
+                  )
                 }
               </h2>
             </div>
