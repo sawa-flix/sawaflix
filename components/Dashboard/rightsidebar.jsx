@@ -31,11 +31,7 @@ const RightSidebar = () => {
       <div className="space-y-2 mb-2">
         <h3 className="px-2 py-1 text-[15px] font-bold text-white">Trending Now</h3>
         <div 
-          onClick={() => {
-            if (trendingMusic.video) {
-              window.dispatchEvent(new CustomEvent('sawa_play_hero', { detail: trendingMusic.video }));
-            }
-          }}
+          onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
           className="group cursor-pointer rounded-xl p-2 hover:bg-white/10 transition-all duration-200"
         >
           <div className="relative w-full h-40 rounded-xl overflow-hidden mb-3">
@@ -76,9 +72,7 @@ const RightSidebar = () => {
              {aiRecommendations.map((video) => (
                <div
                  key={video.id}
-                 onClick={() => {
-                   window.dispatchEvent(new CustomEvent('sawa_play_hero', { detail: video }));
-                 }}
+                 onClick={() => playTrack(video, videos)}
                  className="flex gap-3 p-2 rounded-xl hover:bg-white/10 transition-all duration-200 cursor-pointer group"
                >
                  <div className="relative w-[120px] h-[68px] rounded-lg overflow-hidden shrink-0">

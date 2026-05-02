@@ -543,26 +543,11 @@ function SawaFlixContent() {
   const [isMuted, setIsMuted]               = useState(true);
   const [activeVideoId, setActiveVideoId]   = useState(null);
   const [heroIndex, setHeroIndex]           = useState(0);
-  const [heroPlaying, setHeroPlaying]       = useState(true);
-  const [forcedHeroVideo, setForcedHeroVideo] = useState(null);
+  const [heroPlaying, setHeroPlaying]       = useState(false);
   const [isHeroMuted, setIsHeroMuted]       = useState(true);
   const [selectedVideo, setSelectedVideo]   = useState(null);
 
-  // Listen for video selection from sidebar
-  useEffect(() => {
-    const handleSawaPlayHero = (e) => {
-      const video = e.detail;
-      if (video) {
-        setForcedHeroVideo(video);
-        setHeroPlaying(true);
-        setIsHeroMuted(false);
-        // Scroll to top to show the hero
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    };
-    window.addEventListener('sawa_play_hero', handleSawaPlayHero);
-    return () => window.removeEventListener('sawa_play_hero', handleSawaPlayHero);
-  }, []);
+
 
   const observerRef  = useRef(null);
   const videoRefs    = useRef(new Map());
@@ -578,7 +563,7 @@ function SawaFlixContent() {
   const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
-  const currentHeroVideo = forcedHeroVideo || heroSource[heroIndex % Math.max(heroSource.length, 1)];
+  const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
 
   useEffect(() => {
     if (urlQuery) {
@@ -616,19 +601,12 @@ function SawaFlixContent() {
   }, [videos, hasMore, loadMore]);
 
   const handleHeroNext = useCallback(() => {
-    if (forcedHeroVideo) {
-      setForcedHeroVideo(null);
-    }
     if (!heroSource.length) return;
     setHeroIndex(prev => (prev + 1) % heroSource.length);
-  }, [heroSource.length, forcedHeroVideo]);
-
+  }, [heroSource.length]);
   const handleHeroPrev = useCallback(() => {
-    if (forcedHeroVideo) {
-      setForcedHeroVideo(null);
-    }
     setHeroIndex(prev => (prev === 0 ? Math.max(heroSource.length - 1, 0) : prev - 1));
-  }, [heroSource.length, forcedHeroVideo]);
+  }, [heroSource.length]);
 
   useEffect(() => {
     if (!heroPlaying || !heroSource.length) return;
@@ -747,51 +725,7 @@ function SawaFlixContent() {
             </div>
           )}
 
-          {/* Hero Controls Overlay (When Playing) */}
-          {heroPlaying && (
-            <div className="absolute inset-0 z-40 flex flex-col justify-end p-6 sm:p-10 pointer-events-none">
-              <div className="flex items-end justify-between gap-6">
-                <div className="flex-1 max-w-2xl">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-2"
-                  >
-                    <p className="text-red-600 font-black text-xs sm:text-sm uppercase tracking-[0.3em] mb-1">Now Streaming</p>
-                    <h1 className="text-white text-2xl sm:text-4xl lg:text-5xl font-black tracking-tighter leading-none mb-2 line-clamp-2">
-                      {currentHeroVideo?.title}
-                    </h1>
-                    <p className="text-white/60 text-sm sm:text-base font-bold uppercase tracking-widest flex items-center gap-2">
-                      {currentHeroVideo?.channelTitle}
-                      <span className="w-1 h-1 bg-white/20 rounded-full" />
-                      {formatCount(currentHeroVideo?.viewCount || 0)} Views
-                    </p>
-                  </motion.div>
-                </div>
 
-                <div className="flex flex-col items-center gap-6 pointer-events-auto">
-                  <button 
-                    onClick={() => setIsHeroMuted(!isHeroMuted)}
-                    className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all duration-300"
-                  >
-                    {isHeroMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                  </button>
-                  <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all duration-300">
-                    <Heart size={20} />
-                  </button>
-                  <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all duration-300">
-                    <Share2 size={20} />
-                  </button>
-                  <button 
-                    onClick={() => setHeroPlaying(false)}
-                    className="w-12 h-12 sm:w-14 sm:h-14 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-all duration-300 shadow-xl shadow-red-600/40"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <button
             onClick={handleHeroPrev}
