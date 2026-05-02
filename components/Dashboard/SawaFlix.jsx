@@ -79,6 +79,67 @@ const SearchResultCard = ({ video, onPlay }) => (
   </div>
 );
 
+// ─── HTML5 Player ─────────────────────────────────────────────────────────────
+const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgress, onPlayerReady }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    // Provide the YouTube-like API to the parent
+    if (onPlayerReady) {
+      onPlayerReady({
+        seekTo: (time) => { el.currentTime = time; },
+        playVideo: () => { el.play().catch(() => {}); },
+        pauseVideo: () => { el.pause(); },
+        getCurrentTime: () => el.currentTime,
+        getDuration: () => el.duration || 0,
+        mute: () => { el.muted = true; },
+        unMute: () => { el.muted = false; }
+      });
+    }
+  }, [onPlayerReady]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    
+    if (isActive && !isPaused) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, [isActive, isPaused]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = isMuted;
+  }, [isMuted]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={videoUrl}
+      className="w-full h-full object-cover"
+      playsInline
+      loop
+      onTimeUpdate={(e) => {
+        const ct = e.target.currentTime;
+        const dur = e.target.duration || 1;
+        if (onProgress) {
+          const remaining = Math.max(0, Math.floor(dur - ct));
+          const mins = Math.floor(remaining / 60);
+          const secs = remaining % 60;
+          const timeLeft = `${mins}:${String(secs).padStart(2, '0')}`;
+          onProgress((ct / dur) * 100, timeLeft, ct, dur);
+        }
+      }}
+    />
+  );
+};
+
 // ─── Video Feed Item ──────────────────────────────────────────────────────────
 const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   const [isDesktop, setIsDesktop] = useState(true);
@@ -107,8 +168,11 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   const flashTimer    = useRef(null);
 
   const { stats }  = useVideoStats(isActive ? video.id : null);
-  const { comments, loading: commentsLoading, isOpen: commentOpen, setIsOpen: setCommentOpen }
+  const { comments, loading: commentsLoading, isOpen: commentOpen, setIsOpen: setCommentOpen, addComment }
     = useComments(isActive ? video.id : null);
+
+  // Determine if this is a Sawaflix-origin video or YouTube
+  const videoOrigin = video.origin === 'sawaflix' ? 'sawaflix' : 'youtube';
 
   const displayLikes    = isActive && stats ? (parseInt(stats.likeCount) || likeCount) : likeCount;
   const displayComments = isActive && stats ? stats.commentCount : video.commentCount;
@@ -189,10 +253,16 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
 
   const handleLike = (e) => {
     e.stopPropagation();
-    if (isLiked) return;
-    setIsLiked(true);
-    setLikeCount(p => p + 1);
-    youtubeApi.likeVideo(video.id).catch(() => {});
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    setLikeCount(c => nextLiked ? c + 1 : Math.max(c - 1, 0));
+    
+    // Call the server action completely outside the state updater function
+    youtubeApi.likeVideo(video.id, videoOrigin).catch(() => {
+      // revert on failure
+      setIsLiked(!nextLiked);
+      setLikeCount(c => !nextLiked ? c + 1 : Math.max(c - 1, 0));
+    });
   };
 
   const handleShare = async (e) => {
@@ -224,20 +294,38 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
           className="absolute inset-0 z-0 flex items-center justify-center bg-black"
           onClick={() => setIsPaused(!isPaused)}
         >
-          <YouTubePlayer
-            videoId={video.id}
-            isActive={isActive}
-            isPaused={isPaused}
-            isMuted={isMuted}
-            onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
-            onProgress={(pct, _tLeft, ct, dur) => {
-              if (!isDragging) {
-                setProgress(pct);
-                setCurrentTime(ct);
-                setDuration(dur);
-              }
-            }}
-          />
+          {videoOrigin === 'youtube' ? (
+            <YouTubePlayer
+              videoId={video.id}
+              isActive={isActive}
+              isPaused={isPaused}
+              isMuted={isMuted}
+              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              onProgress={(pct, _tLeft, ct, dur) => {
+                if (!isDragging) {
+                  setProgress(pct);
+                  setCurrentTime(ct);
+                  setDuration(dur);
+                }
+              }}
+            />
+          ) : (
+            <HTML5Player
+              videoId={video.id}
+              videoUrl={video.videoUrl}
+              isActive={isActive}
+              isPaused={isPaused}
+              isMuted={isMuted}
+              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              onProgress={(pct, _tLeft, ct, dur) => {
+                if (!isDragging) {
+                  setProgress(pct);
+                  setCurrentTime(ct);
+                  setDuration(dur);
+                }
+              }}
+            />
+          )}
         </motion.div>
 
         {/* Tap overlay */}
@@ -416,7 +504,22 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                       const text = newComment.trim();
                       if (!text) return;
                       setNewComment('');
-                      try { await youtubeApi.commentOnVideo(video.id, text); } catch (err) {}
+                      // Optimistic update — show comment immediately in UI
+                      if (addComment) {
+                        addComment({
+                          id: `local-${Date.now()}`,
+                          author: 'You',
+                          authorProfileImage: '/default-avatar.png',
+                          text,
+                          likeCount: '0',
+                          publishedAt: new Date().toISOString()
+                        });
+                      }
+                      try {
+                        await youtubeApi.commentOnVideo(video.id, text, videoOrigin);
+                      } catch (err) {
+                        console.error('Comment failed:', err);
+                      }
                     }}
                     disabled={!newComment.trim()}
                     className="bg-blue-600 text-white p-3 rounded-full font-bold hover:bg-blue-500 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-blue-600/20"
@@ -453,7 +556,7 @@ function SawaFlixContent() {
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
-  const { videos, loading, error } = useVideos(fetchQuery);
+  const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
@@ -480,13 +583,18 @@ function SawaFlixContent() {
         if (e.isIntersecting) {
           const id = e.target.getAttribute('data-video-id');
           if (id) setActiveVideoId(id);
+          
+          // Infinite Scroll: If this is the last video, load more!
+          if (id === videos[videos.length - 1]?.id && hasMore) {
+             loadMore();
+          }
         }
       }),
       { threshold: 0.6 }
     );
     videoRefs.current.forEach(el => { if (el) observerRef.current.observe(el); });
     return () => observerRef.current?.disconnect();
-  }, [videos]);
+  }, [videos, hasMore, loadMore]);
 
   const nextHeroVideo = useCallback(() => {
     if (!heroSource.length) return;
@@ -561,15 +669,26 @@ function SawaFlixContent() {
                   alt={currentHeroVideo.title}
                   fill className="object-cover opacity-50 scale-105 transition-opacity duration-1000"
                   priority
+                  unoptimized
                 />
               </div>
               <div className="absolute inset-0 z-10">
-                <YouTubePlayer
-                  videoId={currentHeroVideo.id}
-                  isActive={heroPlaying}
-                  isMuted={true}
-                  onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                />
+                {currentHeroVideo.origin === 'youtube' ? (
+                  <YouTubePlayer
+                    videoId={currentHeroVideo.id}
+                    isActive={heroPlaying}
+                    isMuted={true}
+                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                  />
+                ) : (
+                  <HTML5Player
+                    videoId={currentHeroVideo.id}
+                    videoUrl={currentHeroVideo.videoUrl}
+                    isActive={heroPlaying}
+                    isMuted={true}
+                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                  />
+                )}
               </div>
             </>
           )}

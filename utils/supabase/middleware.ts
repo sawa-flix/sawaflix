@@ -79,7 +79,7 @@ export async function updateSession(request: NextRequest) {
     console.log(`[Middleware] Cookies present but no user!`, request.cookies.getAll().map(c => c.name));
   }
 
-  if (error) {
+  if (error && error.message !== 'Auth session missing!') {
      console.error('Middleware getUser error:', error.message);
   }
 

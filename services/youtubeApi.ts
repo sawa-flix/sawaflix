@@ -5,10 +5,16 @@ import {
     getVideoCommentsAction,
     likeYouTubeVideoAction,
     followYouTubeChannelAction,
-    commentYouTubeVideoAction
+    commentYouTubeVideoAction,
+    getUnifiedFeedAction
 } from '@/app/actions/youtube';
 
 export class YouTubeApiService {
+    async getUnifiedFeed() {
+        console.log('[API] Invoking server action to fetch unified feed');
+        return getUnifiedFeedAction();
+    }
+
     async searchVideos(
         query: string,
         pageToken: string | null = null,
@@ -28,9 +34,9 @@ export class YouTubeApiService {
         return getVideoCommentsAction(videoId);
     }
 
-    async likeVideo(videoId: string) {
-        console.log('[API] Invoking server action to like video:', videoId);
-        return likeYouTubeVideoAction(videoId);
+    async likeVideo(videoId: string, origin: 'youtube' | 'sawaflix' = 'youtube') {
+        console.log('[API] Invoking server action to like video:', videoId, '| origin:', origin);
+        return likeYouTubeVideoAction(videoId, origin);
     }
 
     async followChannel(channelId: string) {
@@ -38,10 +44,10 @@ export class YouTubeApiService {
         return followYouTubeChannelAction(channelId);
     }
 
-    async commentOnVideo(videoId: string, text: string) {
-        console.log('[API] Invoking server action to comment on video:', videoId);
-        return commentYouTubeVideoAction(videoId, text);
+    async commentOnVideo(videoId: string, text: string, origin: 'youtube' | 'sawaflix' = 'youtube') {
+        console.log('[API] Invoking server action to comment on video:', videoId, '| origin:', origin);
+        return commentYouTubeVideoAction(videoId, text, origin);
     }
 }
 
-export const youtubeApi = new YouTubeApiService();
+export const youtubeApi = new YouTubeApiService();

@@ -174,13 +174,21 @@ export default function UnifiedUploadPage() {
         let errMsg = `Upload failed with status: ${res.status}`;
         try {
           const errText = await res.text();
+          console.log("RAW BACKEND ERROR TEXT:", errText); // Log raw text
+
           try {
              const errData = JSON.parse(errText);
-             errMsg = errData.error || errData.message || errMsg;
+             console.log("PARSED BACKEND ERROR DATA:", errData); // Log parsed JSON
+             errMsg = errData.error || errData.message || JSON.stringify(errData);
           } catch(e) {
-             errMsg = errText.slice(0, 200); // Take first 200 chars of HTML/Text error
+             console.log("Failed to parse error as JSON");
+             errMsg = errText; // Keep the full text for the error message
           }
-        } catch(e) {}
+        } catch(e) {
+           console.log("Failed to read error text:", e);
+        }
+        
+        console.error("FINAL THROWN ERROR:", errMsg);
         throw new Error(errMsg);
       }
 

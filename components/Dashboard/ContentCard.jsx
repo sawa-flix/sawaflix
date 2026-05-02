@@ -6,8 +6,10 @@ import { Edit2, Trash2, Eye, CheckCircle, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const ContentCard = ({ item, onEdit, onDelete }) => {
+  const normalizedStatus = item.status?.toLowerCase() === "approved" ? "published" : item.status?.toLowerCase();
+
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    switch (status) {
       case "published":
         return "bg-green-500/20 text-green-400 border-green-500/30";
       case "draft":
@@ -20,7 +22,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
+    switch (status) {
       case "published":
         return <CheckCircle className="w-3 h-3 mr-1" />;
       case "draft":
@@ -29,6 +31,8 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
         return null;
     }
   };
+
+  const hasThumbnail = item.thumbnail && item.thumbnail.startsWith("http");
 
   return (
     <motion.div
@@ -39,12 +43,21 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
     >
       {/* Thumbnail Container */}
       <div className="relative aspect-video w-full overflow-hidden">
-        <Image
-          src={item.thumbnail || "/api/placeholder/400/225"}
-          alt={item.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
-        />
+        {hasThumbnail ? (
+          <Image
+            src={item.thumbnail}
+            alt={item.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-red-900/40 via-[#1A1F2B] to-purple-900/30 flex items-center justify-center">
+            <div className="text-gray-500 text-4xl">
+              {item.content_type === "audio" ? "🎵" : "🎬"}
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2B] via-transparent to-transparent opacity-60" />
       </div>
 
@@ -76,7 +89,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
               Edit
             </button>
             
-            {(item.status === 'draft' || !item.status) && (
+            {(normalizedStatus === 'draft' || !normalizedStatus) && (
                <button
                 onClick={() => onDelete(item.id)}
                 className="flex items-center justify-center p-1.5 bg-gray-800/30 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg border border-gray-700/50 hover:border-red-500/30 transition-all"
@@ -87,14 +100,14 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
             )}
           </div>
 
-          <div className={`flex items-center px-3 py-1.5 rounded-lg border text-xs font-bold ${getStatusColor(item.status)}`}>
-            {getStatusIcon(item.status)}
+          <div className={`flex items-center px-3 py-1.5 rounded-lg border text-xs font-bold ${getStatusColor(normalizedStatus)}`}>
+            {getStatusIcon(normalizedStatus)}
             <span className="uppercase tracking-wider">
-              {item.status === 'approved' ? 'Published' : item.status || 'Draft'}
+              {normalizedStatus || 'Draft'}
             </span>
           </div>
           
-          {item.status === 'approved' && (
+          {normalizedStatus === 'published' && (
              <button
               onClick={() => onDelete(item.id)}
               className="flex items-center justify-center p-1.5 bg-gray-800/30 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg border border-gray-700/50 hover:border-red-500/30 transition-all"
