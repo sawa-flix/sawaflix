@@ -114,9 +114,9 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Main Content Area — Scrollable center */}
           <main className={`
-            ${isCreatorLayout ? 'min-h-screen lg:ml-72' : 'min-h-[calc(100vh-4rem)] lg:ml-72'}
+            ${isCreatorLayout ? 'h-screen lg:ml-72' : 'h-[calc(100vh-4rem)] lg:ml-72'}
             ${!isCreatorLayout ? 'xl:mr-80' : ''}
-            overflow-y-auto bg-transparent
+            overflow-y-auto bg-transparent scroll-smooth
           `}>
             <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}
