@@ -807,37 +807,14 @@ function SawaFlixContent() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-3 flex-1 max-w-md justify-end">
-              <div className="relative w-full group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-red-500">
-                  <Play size={16} className="text-white/30 group-focus-within:text-red-500" fill="currentColor" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search vibes..."
-                  defaultValue={urlQuery}
-                  onFocus={scrollToDiscover}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      const val = e.target.value.trim();
-                      if (val) {
-                        router.push(`/dashboard?q=${encodeURIComponent(val)}`);
-                      }
-                    }
-                  }}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:bg-white/10 focus:border-red-600/50 transition-all duration-300 text-sm font-medium"
-                />
-              </div>
-
-              {isSearchMode && selectedVideo && (
-                <button
-                  onClick={() => setSelectedVideo(null)}
-                  className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
-                >
-                  <ChevronLeft size={14} /> Back
-                </button>
-              )}
-            </div>
+            {isSearchMode && selectedVideo && (
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
+              >
+                <ChevronLeft size={14} /> Back
+              </button>
+            )}
           </div>
 
           {loading ? (
