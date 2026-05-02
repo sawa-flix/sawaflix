@@ -688,14 +688,16 @@ function SawaFlixContent() {
               </div>
               {/* Permanent Base Background (Matches Landing Page) */}
               {/* Permanent Base Background (Matches Landing Page) */}
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden">
                 <img
                   src="/cameroon.jpg"
                   alt="SawaFlix Background"
-                  className="w-full h-full object-cover opacity-85 transition-opacity duration-700"
+                  className="w-full h-full object-cover transition-opacity duration-700"
                   loading="eager"
                   fetchPriority="high"
                 />
+                {/* Brand Overlay (Matches Landing Page opacity) */}
+                <div className="absolute inset-0 bg-black/70" />
               </div>
 
               {/* Dynamic Video Thumbnail Overlay */}
