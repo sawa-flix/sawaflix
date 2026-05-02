@@ -62,11 +62,8 @@ const DashboardWrapper = ({ children }) => {
   return (
     <MusicProvider>
       <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
-        {/* Genius Background Experience - Mesh Gradients & Glows */}
+        {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-600/10 blur-[120px] rounded-full animate-pulse" />
-           <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-blue-600/5 blur-[100px] rounded-full" />
-           <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-red-900/10 blur-[150px] rounded-full" />
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
