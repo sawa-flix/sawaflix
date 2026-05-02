@@ -699,20 +699,12 @@ function SawaFlixContent() {
           <div className="absolute inset-0 z-20 flex items-center justify-center">
             <button
               onClick={scrollToDiscover}
-              className="flex flex-col items-center gap-3 group/play"
+              className="flex flex-col items-center gap-3 group/play cursor-pointer z-40"
             >
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-full p-5 sm:p-6 flex items-center justify-center group-hover/play:scale-110 transition-all duration-300 shadow-[0_0_50px_rgba(255,255,255,0.2)]">
-                <div className="relative w-full h-full translate-x-0.5">
-                  <Image
-                    src="/sawaplay.png"
-                    alt="Play"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover/play:scale-110 transition-all duration-300 shadow-white/20">
+                <Play size={32} className="text-red-600 ml-1" fill="currentColor" />
               </div>
-              <span className="text-white text-[10px] font-black uppercase tracking-[0.3em] bg-black/40 backdrop-blur-md px-5 py-2 rounded-full border border-white/10 mt-2">
+              <span className="text-white text-xs font-black uppercase tracking-[0.25em] bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10">
                 Play Now
               </span>
             </button>
