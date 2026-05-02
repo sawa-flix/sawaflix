@@ -688,7 +688,7 @@ function SawaFlixContent() {
             <>
               <div className="absolute top-5 left-5 z-30 max-w-[55%] pointer-events-none">
                 <p className="text-white/90 text-sm font-bold leading-snug line-clamp-2 bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5">
-                  {currentHeroVideo.title}
+                  {currentHeroVideo?.title}
                 </p>
               </div>
               <div className="absolute inset-0 z-0">
@@ -701,7 +701,7 @@ function SawaFlixContent() {
                 />
               </div>
               <div className="absolute inset-0 z-10">
-                {currentHeroVideo.origin === 'youtube' ? (
+                {currentHeroVideo?.origin === 'youtube' ? (
                   <YouTubePlayer
                     videoId={currentHeroVideo.id}
                     isActive={heroPlaying}
@@ -762,12 +762,12 @@ function SawaFlixContent() {
                   >
                     <p className="text-red-600 font-black text-xs sm:text-sm uppercase tracking-[0.3em] mb-1">Now Streaming</p>
                     <h1 className="text-white text-2xl sm:text-4xl lg:text-5xl font-black tracking-tighter leading-none mb-2 line-clamp-2">
-                      {currentHeroVideo.title}
+                      {currentHeroVideo?.title}
                     </h1>
                     <p className="text-white/60 text-sm sm:text-base font-bold uppercase tracking-widest flex items-center gap-2">
-                      {currentHeroVideo.channelTitle}
+                      {currentHeroVideo?.channelTitle}
                       <span className="w-1 h-1 bg-white/20 rounded-full" />
-                      {formatCount(currentHeroVideo.viewCount)} Views
+                      {formatCount(currentHeroVideo?.viewCount || 0)} Views
                     </p>
                   </motion.div>
                 </div>
