@@ -17,7 +17,7 @@ import SawaflixLogo from '../SawaflixLogo';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",    label: "All 237", query: "Cameroon music hits 2026" },
+  { id: "all",    label: "Sawas",   query: "Cameroon music hits 2026" },
   { id: "music",  label: "Music",   query: "Cameroun music official video" },
   { id: "comedy", label: "Comedy",  query: "Cameroun comedy series" },
   { id: "news",   label: "News",    query: "Cameroun news today" },
@@ -755,9 +755,9 @@ function SawaFlixContent() {
                       <>Watching <span className="text-white/60">"{urlQuery}"</span></>
                     </div>
                   : (
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <SawaflixLogo className="!h-8 sm:!h-10" />
-                      <span className="text-white font-black text-xl sm:text-3xl tracking-tighter leading-none">
+                      <span className="text-white font-black text-lg sm:text-[24px] tracking-tight leading-none opacity-90">
                         {currentCategoryObj?.label}
                       </span>
                     </div>

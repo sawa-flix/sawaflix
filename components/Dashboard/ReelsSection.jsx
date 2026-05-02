@@ -124,9 +124,9 @@ export default function ReelsSection() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <SawaflixLogo className="!h-8 sm:!h-10" />
-          <h2 className="text-white font-black text-xl sm:text-3xl tracking-tighter leading-none">Reels</h2>
+          <h2 className="text-white font-black text-lg sm:text-[24px] tracking-tight leading-none opacity-90">Reels</h2>
         </div>
         <p className="text-gray-400/60 font-medium text-sm ml-1">Trending short-form entertainment</p>
       </div>
