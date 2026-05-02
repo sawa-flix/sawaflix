@@ -26,95 +26,84 @@ const RightSidebar = () => {
   const aiRecommendations = videos.slice(1, 7);
 
   return (
-    <div className="w-full h-full p-6 flex flex-col space-y-8 bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
+    <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
       {/* Trending Music Section */}
-      <div 
-        onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
-        className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all duration-300 group hover:border-white/20 cursor-pointer"
-      >
-        <div className="flex flex-col gap-1 mb-5">
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500/80">TRENDING NOW</p>
-           <h2 className="text-xl font-black text-white leading-tight tracking-tight line-clamp-2">
-             {trendingMusic.title}
-           </h2>
-        </div>
-        <div className="relative w-full h-44 rounded-2xl overflow-hidden shadow-2xl">
-          <Image
-            src={trendingMusic.image}
-            alt="Trending Music"
-            fill
-            sizes="(max-width: 768px) 100vw, 320px"
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-        </div>
-        
-        <div className="flex justify-between mt-6 gap-3">
-          <button className="flex-1 flex items-center justify-center gap-2.5 px-3 py-3 bg-red-600/10 border border-red-600/20 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-red-500 text-[10px] uppercase tracking-widest cursor-pointer shadow-lg shadow-red-600/5">
-            <span className="text-xs">❤️</span>
-            <span>{trendingMusic.likes}</span>
-          </button>
-          <div className="flex-1 flex items-center justify-center gap-2.5 px-3 py-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 text-[10px] font-black uppercase tracking-widest shadow-lg">
-            <span className="text-xs">👁</span>
-            <span>{trendingMusic.views}</span>
+      <div className="space-y-2 mb-2">
+        <h3 className="px-2 py-1 text-[15px] font-bold text-white">Trending Now</h3>
+        <div 
+          onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
+          className="group cursor-pointer rounded-xl p-2 hover:bg-white/10 transition-all duration-200"
+        >
+          <div className="relative w-full h-40 rounded-xl overflow-hidden mb-3">
+            <Image
+              src={trendingMusic.image}
+              alt="Trending Music"
+              fill
+              sizes="(max-width: 768px) 100vw, 320px"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              priority
+            />
           </div>
+          <h2 className="text-sm font-semibold text-white line-clamp-2 mb-1 leading-snug">
+            {trendingMusic.title}
+          </h2>
+          <div className="flex items-center gap-3 text-xs text-[#AAAAAA] mb-3">
+             <span>{trendingMusic.views} views</span>
+             <span>•</span>
+             <span>{trendingMusic.likes} likes</span>
+          </div>
+          <button className="w-full py-2 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all duration-200 text-sm">
+            Follow Artist
+          </button>
         </div>
-        
-        <button className="mt-4 w-full px-4 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-100 transition-all duration-500 cursor-pointer text-xs uppercase tracking-[0.2em] shadow-2xl shadow-white/5 hover:scale-[1.02] active:scale-95">
-          FOLLOW ARTIST
-        </button>
       </div>
+
+      <div className="border-t border-white/10 my-2"></div>
 
       {/* AI Recommended Versions */}
-      <div className="flex-1">
-        <div className="flex flex-col gap-1 mb-5 px-1">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-yellow-600/80">Smart suggest</p>
-           <h2 className="text-lg font-black text-white leading-tight">
-             AI Recommended
-           </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {loading ? (
-            <div className="col-span-2 flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-red-600 animate-spin opacity-50" />
-            </div>
-          ) : (
-            aiRecommendations.map((video) => (
-              <div
-                key={video.id}
-                onClick={() => playTrack(video, videos)}
-                className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer group"
-              >
-                <div className="relative w-full h-24">
-                  <Image
-                    src={video.thumbnail}
-                    alt={video.title}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 160px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-40 group-hover:opacity-20 transition-opacity" />
-                </div>
-                <p className="text-[10px] text-center p-3 text-gray-400 font-bold uppercase tracking-widest group-hover:text-white transition-colors line-clamp-2">
-                  {video.title}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
+      <div className="space-y-2 mb-2">
+        <h3 className="px-2 py-1 text-[15px] font-bold text-white">Recommended</h3>
+        {loading ? (
+           <div className="flex items-center justify-center py-6">
+             <Loader2 className="w-6 h-6 text-[#AAAAAA] animate-spin" />
+           </div>
+        ) : (
+           <div className="flex flex-col gap-1">
+             {aiRecommendations.map((video) => (
+               <div
+                 key={video.id}
+                 onClick={() => playTrack(video, videos)}
+                 className="flex gap-3 p-2 rounded-xl hover:bg-white/10 transition-all duration-200 cursor-pointer group"
+               >
+                 <div className="relative w-[120px] h-[68px] rounded-lg overflow-hidden shrink-0">
+                   <Image
+                     src={video.thumbnail}
+                     alt={video.title}
+                     fill
+                     sizes="120px"
+                     className="object-cover group-hover:scale-105 transition-transform duration-300"
+                   />
+                 </div>
+                 <div className="flex-1 min-w-0 py-0.5">
+                   <h4 className="text-sm font-semibold text-white line-clamp-2 mb-1 leading-tight">{video.title}</h4>
+                   <p className="text-xs text-[#AAAAAA] truncate">{video.channelTitle || 'Artist'}</p>
+                 </div>
+               </div>
+             ))}
+           </div>
+        )}
       </div>
 
+      <div className="border-t border-white/10 my-2"></div>
+
       {/* Quick Actions */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all duration-300">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-4 px-1">Quick actions</p>
-        <div className="space-y-2">
-          {['Create Playlist', 'Import Music', 'Shuffle All'].map(action => (
-            <button key={action} className="w-full text-left px-4 py-3 text-xs font-bold text-gray-400 hover:text-black hover:bg-white rounded-xl transition-all duration-300 cursor-pointer uppercase tracking-widest">
-              {action}
-            </button>
-          ))}
-        </div>
+      <div className="space-y-1 mb-4">
+        <h3 className="px-2 py-2 text-[15px] font-bold text-white">Quick Actions</h3>
+        {['Create Playlist', 'Import Music', 'Shuffle All'].map(action => (
+          <button key={action} className="w-full text-left px-3 py-2.5 text-sm font-medium text-[#AAAAAA] hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 cursor-pointer">
+            {action}
+          </button>
+        ))}
       </div>
     </div>
   );
