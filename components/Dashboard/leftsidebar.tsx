@@ -10,6 +10,7 @@ import {
   Workflow,
   Wallet,
   Home,
+  ChevronRight,
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -76,17 +77,32 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     return () => clearInterval(interval);
   }, [verificationStatus]);
 
-  const menuItems = [
-    { name: 'Feed', icon: Home, id: 'feed', route: '/dashboard', badge: null },
+  const topItems = [
+    { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
+  ];
+
+  const exploreItems = [
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
     { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
+  ];
+
+  const youItems: any[] = [
+    { 
+      name: 'Your profile', 
+      icon: userProfile?.profile_image_url ? null : User, 
+      imageUrl: userProfile?.profile_image_url,
+      id: 'profile', 
+      route: '/dashboard/profile', 
+      badge: null 
+    },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
+    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ];
 
   // Add "Create Content" link based on verification status
-  if (!menuItems.find(item => item.id === 'create-content')) {
+  if (!youItems.find(item => item.id === 'create-content')) {
     let route = '/creator/verify'; // Default apply
     let badge: string | null = 'Apply';
 
@@ -101,7 +117,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
       badge = 'Apply';
     }
 
-    menuItems.push({
+    youItems.push({
       name: 'Create Content',
       icon: Workflow,
       id: 'create-content',
@@ -110,153 +126,99 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
     });
   }
 
-  const smart = [
-    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
-  ]
-
   const handleItemClick = () => {
     // Close sidebar on mobile when navigating
     onNavigate?.();
   };
 
+  const renderItem = (item: any) => {
+    const Icon = item.icon;
+    const isActive = item.route === '/dashboard' 
+      ? pathname === '/dashboard' 
+      : pathname?.startsWith(item.route);
+
+    return (
+      <Link
+        key={item.id}
+        href={item.route}
+        onClick={handleItemClick}
+        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer ${isActive
+            ? 'bg-white/10 text-white font-medium'
+            : 'text-[#AAAAAA] hover:bg-white/10 hover:text-white'
+          }`}
+      >
+        <div className="flex items-center space-x-4">
+          {item.imageUrl ? (
+            <div className="w-5 h-5 rounded-full overflow-hidden relative shrink-0">
+              <Image src={item.imageUrl} alt="Profile" fill className="object-cover" unoptimized />
+            </div>
+          ) : (
+            Icon && <Icon
+              size={20}
+              className={`transition-colors shrink-0 ${isActive ? 'text-white' : 'text-[#AAAAAA] group-hover:text-white'}`}
+            />
+          )}
+          <span className={`text-sm tracking-tight ${isActive ? 'font-semibold' : ''}`}>
+            {item.name}
+          </span>
+        </div>
+
+        {item.badge && (
+          <span className={`px-2 py-0.5 text-[9px] rounded-md font-black uppercase tracking-widest ${isActive
+              ? 'bg-white text-black'
+              : 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+            }`}>
+            {item.badge}
+          </span>
+        )}
+      </Link>
+    );
+  };
+
   return (
     <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5">
-      {/* Logo Section */}
-      {/* <div className="p-6 pb-2">
-        <SawaflixLogo />
-      </div> */}
-
-      <nav className="flex-1 px-4 py-8 space-y-3 overflow-y-auto scrollbar-none">
-        <div className="mb-6 px-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-            Main navigation
-          </p>
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-none">
+        {/* Top Section */}
+        <div className="space-y-1">
+          {topItems.map(renderItem)}
         </div>
-        
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          // Use startsWith for most routes so details pages keep the parent active
-          // But use exact match for root dashboard to avoid matching everything
-          const isActive = item.route === '/dashboard' 
-            ? pathname === '/dashboard' 
-            : pathname?.startsWith(item.route);
 
-          return (
-            <Link
-              key={item.id}
-              href={item.route}
-              onClick={handleItemClick}
-              className={`flex items-center justify-between w-full px-5 py-3.5 rounded-xl transition-all duration-300 group cursor-pointer ${isActive
-                  ? 'bg-white text-black shadow-2xl shadow-white/10 translate-x-1'
-                  : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white'
-                }`}
-            >
-              <div className="flex items-center space-x-4">
-                <Icon
-                  size={18}
-                  className={`transition-colors ${isActive ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}
-                />
-                <span className={`text-sm font-bold tracking-tight ${isActive ? 'font-black' : ''}`}>
-                  {item.name}
-                </span>
-              </div>
+        <div className="border-t border-white/10 my-3"></div>
 
-              {item.badge && (
-                <span className={`px-2 py-0.5 text-[9px] rounded-md font-black uppercase tracking-widest ${isActive
-                    ? 'bg-black text-white'
-                    : 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                  }`}>
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="p-4 space-y-4 border-t border-white/5">
-        <div className="px-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-            Intelligent features
-          </p>
+        {/* You Section */}
+        <div className="space-y-1">
+          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/10 rounded-lg cursor-pointer w-fit mb-1">
+            <span className="text-[15px] font-bold text-white">You</span>
+            <ChevronRight size={18} className="ml-1 text-white" />
+          </Link>
+          {youItems.map(renderItem)}
         </div>
-        {smart.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname?.startsWith(item.route);
 
-          return (
-            <Link
-              key={item.id}
-              href={item.route}
-              onClick={handleItemClick}
-              className={`flex items-center justify-between w-full px-5 py-3.5 rounded-xl transition-all duration-300 group cursor-pointer ${isActive
-                  ? 'bg-white text-black shadow-2xl shadow-white/10 translate-x-1'
-                  : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white'
-                }`}
-            >
-              <div className="flex items-center space-x-4">
-                <Icon
-                  size={18}
-                  className={`transition-colors ${isActive ? 'text-black' : 'text-gray-500 group-hover:text-white'}`}
-                />
-                <span className={`text-sm font-bold tracking-tight ${isActive ? 'font-black' : ''}`}>{item.name}</span>
-              </div>
+        <div className="border-t border-white/10 my-3"></div>
 
-              {item.badge && (
-                <span className={`px-2 py-0.5 text-[9px] rounded-md font-black uppercase tracking-widest ${isActive
-                    ? 'bg-black text-white'
-                    : 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                  }`}>
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-        
-        <Link href="/dashboard/profile" onClick={() => onNavigate?.()}>
-          <div className={`flex items-center space-x-4 px-5 py-3.5 rounded-xl transition-all duration-300 cursor-pointer border ${pathname === '/dashboard/profile' 
-            ? 'bg-white text-black border-white shadow-2xl shadow-white/10' 
-            : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white'
-          }`}>
-            {userProfile?.profile_image_url ? (
-              <div className="w-9 h-9 rounded-full shrink-0 relative overflow-hidden aspect-square border-2 border-black/10">
-                <Image
-                  src={userProfile.profile_image_url}
-                  alt="Profile"
-                  fill
-                  sizes="36px"
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${pathname === '/dashboard/profile' ? 'bg-black' : 'bg-red-600'}`}>
-                <User size={14} className="text-white" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className={`font-bold text-sm truncate ${pathname === '/dashboard/profile' ? 'text-black' : 'text-white'}`}>
-                {userProfile?.username || 'Guest'}
-              </p>
-              <p className="text-[10px] text-gray-500 truncate font-medium">
-                {userProfile?.email || 'N/A'}
-              </p>
+        {/* Explore Section */}
+        <div className="space-y-1">
+          <h3 className="px-3 py-2 text-[15px] font-bold text-white flex items-center mb-1">
+            Explore
+          </h3>
+          {exploreItems.map(renderItem)}
+        </div>
+
+        <div className="border-t border-white/10 my-3"></div>
+
+        <div className="px-3 mt-4">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+              <div className="text-red-400 font-bold">128</div>
+              <div className="text-gray-400">Movies</div>
+            </div>
+            <div className="bg-gray-800/50 rounded-lg p-2 text-center">
+              <div className="text-red-400 font-bold">64</div>
+              <div className="text-gray-400">Songs</div>
             </div>
           </div>
-        </Link>
-
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-            <div className="text-red-400 font-bold">128</div>
-            <div className="text-gray-400">Movies</div>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-            <div className="text-red-400 font-bold">64</div>
-            <div className="text-gray-400">Songs</div>
-          </div>
         </div>
-      </div>
+      </nav>
     </div>
   );
 }
