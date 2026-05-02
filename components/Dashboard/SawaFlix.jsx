@@ -800,7 +800,7 @@ function SawaFlixContent() {
             </div>
           )}
         </section>
-      </main>
+      </div>
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

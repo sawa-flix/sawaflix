@@ -53,7 +53,7 @@ const RightSidebar = () => {
              <span>{trendingMusic.likes} likes</span>
           </div>
           <button className="w-full py-2 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all duration-200 text-sm">
-            Follow Artist
+            View Profile
           </button>
         </div>
       </div>
