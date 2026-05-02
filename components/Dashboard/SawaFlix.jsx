@@ -686,17 +686,30 @@ function SawaFlixContent() {
                   {currentHeroVideo?.title}
                 </p>
               </div>
-              <div className="absolute inset-0 z-0">
+              {/* Permanent Base Background (Matches Landing Page) */}
+              <div className="absolute inset-0 z-0 bg-black">
                 <Image
-                  src={currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 ? currentHeroVideo.thumbnail : "/cameroon.jpg"}
-                  alt={currentHeroVideo?.title || "SawaFlix"}
-                  fill 
-                  className="object-cover opacity-60 scale-100 transition-all duration-1000"
+                  src="/cameroon.jpg"
+                  alt="SawaFlix Background"
+                  fill
+                  className="object-cover opacity-60 transition-opacity duration-700"
                   priority
                   quality={90}
-                  unoptimized
                 />
               </div>
+
+              {/* Dynamic Video Thumbnail Overlay */}
+              {currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 && (
+                <div className="absolute inset-0 z-[1]">
+                  <Image
+                    src={currentHeroVideo.thumbnail}
+                    alt={currentHeroVideo.title}
+                    fill
+                    className="object-cover opacity-50 scale-100 transition-opacity duration-1000"
+                    unoptimized
+                  />
+                </div>
+              )}
               <div className="absolute inset-0 z-10">
                 {currentHeroVideo?.origin === 'youtube' ? (
                   <YouTubePlayer
