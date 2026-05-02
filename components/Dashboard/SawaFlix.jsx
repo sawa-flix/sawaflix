@@ -726,26 +726,23 @@ function SawaFlixContent() {
           {!heroPlaying && (
             <div className="absolute inset-0 z-20 flex items-center justify-center">
               <button
-                onClick={() => { setHeroPlaying(true); setIsHeroMuted(false); }}
-                className="group/play cursor-pointer z-40 flex items-center gap-4 px-10 py-5 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
+                onClick={scrollToDiscover}
+                className="flex flex-col items-center gap-3 group/play cursor-pointer z-40"
               >
-                <div className="relative w-12 h-12 sm:w-16 sm:h-16 transition-transform duration-500 group-hover/play:rotate-[360deg]">
-                  <Image
-                    src="/sawaplay.png"
-                    alt="Play"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-full p-5 sm:p-6 flex items-center justify-center shadow-2xl shadow-white/20 group-hover/play:scale-110 transition-all duration-500">
+                  <div className="relative w-full h-full transition-transform duration-700 group-hover/play:rotate-[360deg]">
+                    <Image
+                      src="/sawaplay.png"
+                      alt="Play"
+                      fill
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
                 </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-white text-xl sm:text-3xl font-black uppercase tracking-[0.1em] leading-tight">
-                    Play Now
-                  </span>
-                  <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mt-0.5">
-                    Stream the latest vibes
-                  </span>
-                </div>
+                <span className="text-white text-xs sm:text-sm font-black uppercase tracking-[0.4em] opacity-60 group-hover/play:opacity-100 transition-opacity">
+                  Play Now
+                </span>
               </button>
             </div>
           )}
