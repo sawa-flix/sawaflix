@@ -635,9 +635,9 @@ function SawaFlixContent() {
   })();
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
-      <main className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-6">
-        <div className="flex items-center justify-start overflow-x-auto no-scrollbar pb-2 mb-3">
+    <div className="min-h-screen bg-[#0B0E14] flex flex-col">
+      <main className="flex-1 p-2 sm:p-6 lg:p-8 pt-0">
+        <div className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md flex items-center justify-start overflow-x-auto no-scrollbar py-3 mb-4 -mx-2 px-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 border-b border-white/5">
           <div className="inline-flex items-center gap-3">
             {CATEGORIES.map(cat => (
               <button
