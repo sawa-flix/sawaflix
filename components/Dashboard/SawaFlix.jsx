@@ -701,10 +701,16 @@ function SawaFlixContent() {
               onClick={scrollToDiscover}
               className="flex flex-col items-center gap-3 group/play"
             >
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover/play:scale-110 transition-all duration-200 shadow-white/20">
-                <Play size={32} className="text-red-600 ml-1" fill="currentColor" />
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 group-hover/play:scale-110 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                <Image
+                  src="/sawaplay.png"
+                  alt="Play"
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
-              <span className="text-white text-xs font-black uppercase tracking-[0.25em] bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10">
+              <span className="text-white text-[10px] font-black uppercase tracking-[0.3em] bg-black/40 backdrop-blur-md px-5 py-2 rounded-full border border-white/10 mt-2">
                 Play Now
               </span>
             </button>
@@ -756,8 +762,10 @@ function SawaFlixContent() {
                     </div>
                   : (
                     <div className="flex items-center gap-3">
-                      <SawaflixLogo className="!h-8 sm:!h-10" />
-                      <span className="text-white font-black text-lg sm:text-[24px] tracking-tight leading-none opacity-90">
+                      <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+                        <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+                      </div>
+                      <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
                         {currentCategoryObj?.label}
                       </span>
                     </div>
