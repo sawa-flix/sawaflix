@@ -246,16 +246,6 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
           </div>
         </Link>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-            <div className="text-red-400 font-bold">128</div>
-            <div className="text-gray-400">Movies</div>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-            <div className="text-red-400 font-bold">64</div>
-            <div className="text-gray-400">Songs</div>
-          </div>
-        </div>
       </div>
     </div>
   );
