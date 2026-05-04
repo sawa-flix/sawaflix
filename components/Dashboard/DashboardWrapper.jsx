@@ -150,7 +150,7 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Main Content Area — Scrollable center */}
-          <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto bg-transparent scroll-smooth">
+          <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto scrollbar-none bg-transparent scroll-smooth">
             <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}
             </div>
