@@ -203,31 +203,25 @@ const CreatorWizard = () => {
     );
 
     return (
-        <div className="relative min-h-[calc(100vh-4rem)] w-full flex items-center justify-center p-4 sm:p-8 font-sans text-white antialiased overflow-hidden rounded-tl-3xl rounded-bl-3xl" style={{ backgroundImage: "url('/hero-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-            {/* Cinematic Overlay */}
-            <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md z-0" />
+        <div className="relative min-h-[calc(100vh-4rem)] w-full flex items-center justify-center p-4 sm:p-8 font-sans text-white antialiased overflow-hidden rounded-tl-3xl rounded-bl-3xl bg-[#0B0E14]">
+            {/* Cinematic Overlay - removed background image for cleaner youtube-like look */}
+            <div className="absolute inset-0 bg-[#0B0E14] z-0" />
 
             <style jsx>{`
-                .grid-pattern {
-                    background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-                    background-size: 24px 24px;
-                }
                 .glass-card {
-                    background: rgba(15, 23, 42, 0.7);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
+                    background: #131722;
                     border: 1px solid rgba(255, 255, 255, 0.05);
                     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
                 }
             `}</style>
             
-            <div className="absolute inset-0 z-0 opacity-20 grid-pattern pointer-events-none" />
+            <div className="absolute inset-0 z-0 pointer-events-none" />
 
             {/* Centralized Creator Application Card */}
             <div className="relative z-10 w-full max-w-4xl glass-card rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh]">
                 
                 {/* Header Context */}
-                <div className="relative px-6 py-6 bg-[#0a0c10]/80 border-b border-white/5 flex flex-col items-center justify-center overflow-hidden shrink-0">
+                <div className="relative px-6 py-6 bg-[#0B0E14] border-b border-white/5 flex flex-col items-center justify-center overflow-hidden shrink-0">
                     <div className="absolute inset-0 bg-red-600/5 opacity-0 hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
                     <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1 text-center">
                         Verified Creator Application
@@ -238,7 +232,7 @@ const CreatorWizard = () => {
                 </div>
 
                 {/* Form Content Area */}
-                <div className="flex-1 flex flex-col px-6 sm:px-10 py-6 bg-[#0f172a]/90 relative overflow-y-auto scrollbar-hide">
+                <div className="flex-1 flex flex-col px-6 sm:px-10 py-6 bg-[#131722] relative overflow-y-auto scrollbar-hide">
                     <div className="max-w-2xl mx-auto mb-8 shrink-0 w-full">
                         <ProgressBar currentStep={currentStep} steps={steps} />
                     </div>
@@ -273,7 +267,7 @@ const CreatorWizard = () => {
                 </div>
 
                 {/* Navigation Footer */}
-                <div className="px-6 py-4 bg-[#0a0c10]/90 border-t border-white/5 flex items-center justify-between shrink-0 z-20">
+                <div className="px-6 py-4 bg-[#0B0E14] border-t border-white/5 flex items-center justify-between shrink-0 z-20">
                     <div>
                         {currentStep > 1 && (
                             <button
