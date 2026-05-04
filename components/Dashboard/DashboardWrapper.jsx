@@ -34,10 +34,39 @@ const DashboardWrapper = ({ children }) => {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
             });
+
             if (res.ok) {
                 const data = await res.json();
                 setUserProfile(data);
                 setVerificationStatus(data.verificationStatus);
+            } else if (user) {
+                // Fallback to direct Supabase queries if API fails
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                const { data: submission } = await supabase
+                    .from('verification_submissions')
+                    .select('status, category')
+                    .eq('creator_id', user.id)
+                    .maybeSingle();
+
+                const finalProfile = {
+                    ...(profile || {
+                        id: user.id,
+                        email: user.email,
+                        username: user.email?.split('@')[0],
+                    }),
+                    category: submission?.category || profile?.category || 'viewer',
+                    verificationStatus: submission?.status || 'none',
+                    verification_status: profile?.verification_status || submission?.status || 'none',
+                    role: profile?.role || 'viewer'
+                };
+
+                setUserProfile(finalProfile);
+                setVerificationStatus(finalProfile.verificationStatus);
             }
         } catch (err) {
             console.error("Error checking creator status:", err);

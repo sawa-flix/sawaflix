@@ -14,6 +14,7 @@ import { useVideoStats } from '@/hooks/useVideoStats';
 import { YouTubePlayer } from '../YoutubePlayer';
 import { youtubeApi } from '@/services/youtubeApi';
 import SawaflixLogo from '../SawaflixLogo';
+import { useMusic } from '../MusicContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -546,6 +547,7 @@ function SawaFlixContent() {
   const [heroPlaying, setHeroPlaying]       = useState(false);
   const [isHeroMuted, setIsHeroMuted]       = useState(true);
   const [selectedVideo, setSelectedVideo]   = useState(null);
+  const { currentTrack } = useMusic();
 
 
 
@@ -578,6 +580,18 @@ function SawaFlixContent() {
   }, [urlQuery]);
 
   useEffect(() => { setSelectedVideo(null); }, [urlQuery]);
+
+  useEffect(() => {
+    if (currentTrack && currentTrack.id !== activeVideoId) {
+      setActiveVideoId(currentTrack.id);
+      setTimeout(() => {
+        const el = videoRefs.current.get(currentTrack.id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [currentTrack]);
 
   useEffect(() => {
     if (!videos.length) return;
@@ -635,9 +649,18 @@ function SawaFlixContent() {
   const isSearchMode = !!urlQuery;
 
   const feedVideos = (() => {
-    if (!isSearchMode || !selectedVideo) return videos;
-    const rest = videos.filter(v => v.id !== selectedVideo.id);
-    return [selectedVideo, ...rest];
+    let list = videos;
+    if (isSearchMode && selectedVideo) {
+      const rest = videos.filter(v => v.id !== selectedVideo.id);
+      list = [selectedVideo, ...rest];
+    }
+    
+    // If a track is selected from sidebar (via MusicContext), ensure it's in the feed
+    if (currentTrack && !list.find(v => v.id === currentTrack.id)) {
+      list = [currentTrack, ...list];
+    }
+    
+    return list;
   })();
 
   return (

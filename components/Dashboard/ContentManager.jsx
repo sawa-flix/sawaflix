@@ -3,11 +3,13 @@
 import React, { useState, useMemo } from "react";
 import ContentCard from "@/components/Dashboard/ContentCard";
 import ContentFilters from "@/components/Dashboard/ContentFilters";
-import { Plus } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 const ContentManager = ({ initialContent }) => {
+  const router = useRouter();
   const [filters, setFilters] = useState({
     search: "",
     type: "all",
@@ -16,12 +18,14 @@ const ContentManager = ({ initialContent }) => {
     sortByViews: "highest",
   });
 
+  const [contentList, setContentList] = useState(initialContent);
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const filteredAndSortedContent = useMemo(() => {
-    let result = [...initialContent];
+    let result = [...contentList];
 
     // Search filter
     if (filters.search) {
@@ -60,18 +64,37 @@ const ContentManager = ({ initialContent }) => {
     }
 
     return result;
-  }, [initialContent, filters]);
+  }, [contentList, filters]);
 
   const handleEdit = (item) => {
-    console.log("Edit item:", item);
-    // Add logic or navigation to edit page
-    window.location.href = `/creator/content/${item.id}/edit`;
+    router.push(`/creator-dashboard/content/${item.id}/edit`);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this content?")) {
-        console.log("Delete item:", id);
-        // Add actual delete logic here
+      try {
+        const { createClient } = require('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const res = await fetch(`https://sawaflix-backend.onrender.com/api/content/${id}`, {
+          method: "DELETE",
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`Delete failed with status: ${res.status}`);
+        }
+
+        // Update UI immediately by removing the deleted item
+        setContentList(prev => prev.filter(item => item.id !== id));
+      } catch (err) {
+        console.error("Delete Error:", err);
+        alert(err.message || "Failed to delete content.");
+      }
     }
   };
 
@@ -89,7 +112,7 @@ const ContentManager = ({ initialContent }) => {
         </div>
         <div className="flex items-center gap-4">
             <Link
-            href="/creator/post"
+            href="/creator-dashboard/post/upload"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-[#1A1F2B]/80 hover:bg-red-600 text-white font-bold rounded-xl border border-gray-800 hover:border-red-500 shadow-xl transition-all active:scale-95 group"
             >
             <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
