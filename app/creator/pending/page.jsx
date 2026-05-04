@@ -19,7 +19,7 @@ export default function CreatorPendingPage() {
                 const { data: { session } } = await supabase.auth.getSession();
                 const token = session?.access_token;
 
-                const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 if (!res.ok) throw new Error('Failed to fetch profile');

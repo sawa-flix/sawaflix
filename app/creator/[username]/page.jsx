@@ -52,7 +52,7 @@ export default function PublicProfilePage({ params }) {
     const handleSave = async (updatedData) => {
         setSaving(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData),

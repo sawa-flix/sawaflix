@@ -50,7 +50,7 @@ export default function LeftSidebar({ onNavigate }: { onNavigate?: () => void })
 
         // Fetch verification status
         try {
-          const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+          const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
             headers: {
               'Authorization': `Bearer ${session.access_token}`
             }

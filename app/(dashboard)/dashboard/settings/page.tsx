@@ -25,7 +25,7 @@ export default function SettingsPage() {
           return;
         }
 
-        const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+        const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }
@@ -63,11 +63,13 @@ export default function SettingsPage() {
         throw new Error('Not authenticated');
       }
 
-      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/delete-account`, {
         method: 'DELETE',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
-        }
+        },
+        body: JSON.stringify({ email: session.user.email })
       });
 
       if (!res.ok) {
