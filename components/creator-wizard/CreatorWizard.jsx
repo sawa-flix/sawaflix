@@ -147,7 +147,13 @@ const CreatorWizard = () => {
                 category: formData.category,
                 form_data: {
                     identity: formData.identity,
-                    professional: formData.professional
+                    professional: formData.professional,
+                    documents: {
+                        selfie_url: formData.documents.selfie_url,
+                        national_id_url: formData.documents.national_id_url,
+                        endorsement_letter_url: formData.documents.endorsement_letter_url
+                    },
+                    links: formData.portfolio?.links?.filter(l => l.trim() !== '') || []
                 }
             });
             console.log("✅ Submission success:", result);
