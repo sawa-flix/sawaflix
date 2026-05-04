@@ -276,7 +276,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   };
 
   return (
-    <div className="relative w-full h-[85vh] bg-black rounded-3xl overflow-hidden mb-6 shadow-2xl border border-white/5 group/vid flex flex-col lg:flex-row">
+    <div className="relative w-full aspect-video max-h-[85vh] bg-black rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl border border-white/5 group/vid flex flex-col lg:flex-row">
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
@@ -678,7 +678,7 @@ function SawaFlixContent() {
           </div>
         </div>
 
-        <section className="relative h-[85vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-10 group shadow-2xl border border-white/5 bg-black">
+        <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] max-h-[75vh] rounded-[2.5rem] overflow-hidden mb-10 group shadow-2xl border border-white/5 bg-black">
           {currentHeroVideo && (
             <>
               <div className="absolute top-5 left-5 z-30 max-w-[55%] pointer-events-none">
@@ -698,8 +698,8 @@ function SawaFlixContent() {
                   loading="eager"
                   fetchPriority="high"
                 />
-                {/* Brand Overlay (Matches Landing Page opacity) */}
-                <div className="absolute inset-0 bg-black/70" />
+                {/* Brand Overlay (Lightened for better visibility) */}
+                <div className="absolute inset-0 bg-black/20" />
               </div>
 
               {/* Dynamic Video Thumbnail Overlay */}
@@ -712,8 +712,8 @@ function SawaFlixContent() {
                     className="object-cover opacity-100 transition-opacity duration-1000"
                     unoptimized
                   />
-                  {/* Re-apply overlay to video thumbnail for consistency */}
-                  <div className="absolute inset-0 bg-black/60" />
+                  {/* Light overlay to keep text legible but image visible */}
+                  <div className="absolute inset-0 bg-black/20" />
                 </div>
               )}
               {heroPlaying && (
@@ -745,7 +745,7 @@ function SawaFlixContent() {
             <div className="absolute inset-0 z-20 flex items-center justify-center">
               <button
                 onClick={scrollToDiscover}
-                className="group/play cursor-pointer z-40 flex items-center gap-4 px-10 py-5 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
+                className="group/play cursor-pointer z-40 flex items-center gap-4 px-12 py-5 bg-black/40 backdrop-blur-xl rounded-lg border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
               >
                 <div className="relative w-12 h-12 sm:w-16 sm:h-16 transition-transform duration-500 group-hover/play:rotate-[360deg]">
                   <Image
