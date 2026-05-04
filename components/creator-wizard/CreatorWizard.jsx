@@ -27,7 +27,7 @@ const CreatorWizard = () => {
         identity: {},
         professional: {},
         portfolio: { recordings: [], links: [] },
-        documents: { id_url: null, id_name: null, endorsements_url: null, endorsements_name: null }
+        documents: { selfie_url: null, selfie_name: null, national_id_url: null, national_id_name: null, endorsement_letter_url: null, endorsement_letter_name: null }
     });
     const [isLoaded, setIsLoaded] = useState(false);
     const [errors, setErrors] = useState({});
@@ -106,26 +106,16 @@ const CreatorWizard = () => {
             if (!id.legalName) newErrors.legalName = "Legal Name is required.";
             if (!id.creatorName) newErrors.creatorName = "Creator Name is required.";
             if (!id.ethnicGroup) newErrors.ethnicGroup = "Ethnic Group / Community is required.";
-            if (!id.phone) newErrors.phone = "Phone number is required.";
-            if (!id.email) newErrors.email = "Email is required.";
-            else if (!/\S+@\S+\.\S+/.test(id.email)) newErrors.email = "Please enter a valid email address.";
+            if (!id.dateOfBirth) newErrors.dateOfBirth = "Date of Birth is required.";
+            if (!id.stage_name) newErrors.stage_name = "Stage Name is required.";
+            if (!id.bio) newErrors.bio = "Bio is required.";
         } else if (step === 3) {
             const pro = formData.professional || {};
-            if (!pro.languages) newErrors.languages = "Languages is required.";
             if (!pro.experienceTime) newErrors.experienceTime = "Experience is required.";
-            if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Bio must be at least 10 characters.";
+            if (!pro.bio || pro.bio.length < 10) newErrors.bio = "Professional bio must be at least 10 characters.";
         } else if (step === 4) {
-            if (!formData.documents?.id_url) newErrors.id = "Please upload your Government ID to continue.";
-
-            // Recording requirement removed as per user request
-            /*
-            const portfolio = formData.portfolio || {};
-            const recordings = portfolio.recordings || [];
-            const validRecordings = recordings.filter(r => r.file_url && r.title && r.description);
-            if (validRecordings.length < 3) {
-                newErrors.recordings = "Please provide at least 3 sample recordings with titles and descriptions.";
-            }
-            */
+            if (!formData.documents?.national_id_url) newErrors.national_id = "Please upload your National ID to continue.";
+            if (!formData.documents?.selfie_url) newErrors.selfie = "Please upload a Selfie to continue.";
         }
 
         setErrors(newErrors);
@@ -155,7 +145,10 @@ const CreatorWizard = () => {
             console.log("Submitting:", formData);
             const result = await submitVerification({
                 category: formData.category,
-                form_data: formData
+                form_data: {
+                    identity: formData.identity,
+                    professional: formData.professional
+                }
             });
             console.log("✅ Submission success:", result);
             
@@ -194,11 +187,29 @@ const CreatorWizard = () => {
     };
 
     if (!isLoaded) return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-            <div className="w-12 h-12 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
-            <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest animate-pulse">
-                Initializing Application...
-            </p>
+        <div className="relative min-h-[calc(100vh-4rem)] w-full flex items-center justify-center p-4 sm:p-8 font-sans text-white antialiased overflow-hidden rounded-[2.5rem] bg-[#0B0E14]">
+            <div className="w-full max-w-4xl h-[70vh] bg-[#131722] rounded-[2.5rem] border border-white/5 shadow-2xl flex flex-col animate-pulse">
+                <div className="h-24 bg-[#0B0E14] border-b border-white/5 flex flex-col items-center justify-center px-6 py-6 shrink-0 rounded-t-[2.5rem]">
+                    <div className="h-6 w-64 bg-white/10 rounded-full mb-3"></div>
+                    <div className="h-3 w-40 bg-white/5 rounded-full"></div>
+                </div>
+                <div className="flex-1 p-6 sm:p-10 space-y-8 overflow-hidden">
+                    <div className="flex justify-between items-center max-w-2xl mx-auto w-full mb-8">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="h-2 w-full mx-1 bg-white/5 rounded-full"></div>
+                        ))}
+                    </div>
+                    <div className="space-y-6 max-w-2xl mx-auto w-full">
+                        <div className="h-14 bg-white/5 rounded-2xl w-full"></div>
+                        <div className="h-14 bg-white/5 rounded-2xl w-full"></div>
+                        <div className="h-14 bg-white/5 rounded-2xl w-full"></div>
+                    </div>
+                </div>
+                <div className="h-20 bg-[#0B0E14] border-t border-white/5 flex justify-between items-center px-6 rounded-b-[2.5rem] shrink-0">
+                    <div className="h-8 w-24 bg-white/5 rounded-full"></div>
+                    <div className="h-12 w-40 bg-white/10 rounded-2xl"></div>
+                </div>
+            </div>
         </div>
     );
 
@@ -218,22 +229,31 @@ const CreatorWizard = () => {
             <div className="absolute inset-0 z-0 pointer-events-none" />
 
             {/* Centralized Creator Application Card */}
-            <div className="relative z-10 w-full max-w-4xl glass-card rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative z-10 w-full max-w-4xl bg-transparent flex flex-col max-h-full py-4">
                 
                 {/* Header Context */}
-                <div className="relative px-6 py-6 bg-[#0B0E14] border-b border-white/5 flex flex-col items-center justify-center overflow-hidden shrink-0">
-                    <div className="absolute inset-0 bg-red-600/5 opacity-0 hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1 text-center">
-                        Verified Creator Application
-                    </h1>
-                    <p className="text-zinc-400 text-[10px] font-bold tracking-widest uppercase text-center max-w-lg">
-                        Step {currentStep} of {steps.length} • {steps[currentStep - 1]?.name}
-                    </p>
+                <div className="relative pb-6 flex flex-col sm:flex-row sm:items-end justify-between overflow-hidden shrink-0 border-b border-white/10 mb-6">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+                            Creator Verification
+                        </h1>
+                        <p className="text-zinc-400 text-sm font-medium">
+                            Complete your profile to unlock creator tools.
+                        </p>
+                    </div>
+                    <div className="mt-4 sm:mt-0 text-left sm:text-right">
+                        <p className="text-zinc-500 text-[10px] font-bold tracking-widest uppercase">
+                            Step {currentStep} of {steps.length}
+                        </p>
+                        <p className="text-white text-sm font-bold mt-1">
+                            {steps[currentStep - 1]?.name}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Form Content Area */}
-                <div className="flex-1 flex flex-col px-6 sm:px-10 py-6 bg-[#131722] relative overflow-y-auto scrollbar-hide">
-                    <div className="max-w-2xl mx-auto mb-8 shrink-0 w-full">
+                <div className="flex-1 flex flex-col relative overflow-y-auto scrollbar-hide pb-20">
+                    <div className="w-full mb-8 shrink-0">
                         <ProgressBar currentStep={currentStep} steps={steps} />
                     </div>
 
@@ -267,17 +287,17 @@ const CreatorWizard = () => {
                 </div>
 
                 {/* Navigation Footer */}
-                <div className="px-6 py-4 bg-[#0B0E14] border-t border-white/5 flex items-center justify-between shrink-0 z-20">
+                <div className="pt-6 border-t border-white/10 flex items-center justify-between shrink-0 z-20 mt-8">
                     <div>
                         {currentStep > 1 && (
                             <button
                                 onClick={handleBack}
-                                className="px-6 py-3 text-[11px] font-black text-zinc-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 group"
+                                className="px-5 py-2.5 text-sm font-bold text-zinc-400 hover:text-white transition-colors flex items-center gap-2 group rounded-full hover:bg-white/5"
                             >
                                 <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                                 </svg>
-                                Go Back
+                                Back
                             </button>
                         )}
                     </div>
@@ -286,11 +306,11 @@ const CreatorWizard = () => {
                         {currentStep < 5 && (
                             <button
                                 onClick={handleNext}
-                                className="px-10 py-4 bg-red-600 hover:bg-white hover:text-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center gap-3 group border-b-4 border-red-900"
+                                className="px-6 py-2.5 bg-white text-black hover:bg-zinc-200 rounded-full font-bold text-sm transition-all flex items-center gap-2 group"
                             >
-                                Continue Step {currentStep + 1}
+                                Continue
                                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
                         )}

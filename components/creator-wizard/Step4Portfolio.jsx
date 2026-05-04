@@ -183,24 +183,60 @@ const textAreaClass = "w-full text-white text-xs font-medium placeholder-zinc-60
             <div>
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 ml-1">Verification Documents <span className="text-red-500">*</span></p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Required: Gov ID */}
+                    {/* Required: Selfie */}
                     <div>
                         <div
-                            className={`relative rounded-2xl p-4 flex items-center gap-4 cursor-pointer overflow-hidden transition-all group ${uploading.id ? 'opacity-50 cursor-not-allowed' : ''} ${
-                                errors.id ? 'bg-red-950/20 border-red-500/50 hover:bg-red-950/30' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                            className={`relative rounded-2xl p-4 flex items-center gap-4 cursor-pointer overflow-hidden transition-all group ${uploading.selfie ? 'opacity-50 cursor-not-allowed' : ''} ${
+                                errors.selfie ? 'bg-red-950/20 border-red-500/50 hover:bg-red-950/30' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
                             } border shadow-inner`}
                         >
                             <input 
                                 type="file" 
-                                disabled={uploading.id}
+                                disabled={uploading.selfie}
+                                accept="image/*"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
-                                    if (file) handleFileUpload('id', file);
+                                    if (file) handleFileUpload('selfie', file);
                                 }} 
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
                             />
-                            <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-colors ${errors.id ? 'bg-red-500/20 text-red-500' : 'bg-red-600/20 text-red-500 group-hover:bg-red-600/30 group-hover:text-red-400'}`}>
-                                {uploading.id ? (
+                            <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-colors ${errors.selfie ? 'bg-red-500/20 text-red-500' : 'bg-red-600/20 text-red-500 group-hover:bg-red-600/30 group-hover:text-red-400'}`}>
+                                {uploading.selfie ? (
+                                    <div className="w-5 h-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
+                                ) : (
+                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-sm truncate">{documents.selfie_name || (uploading.selfie ? 'Uploading...' : 'Take a Selfie')}</p>
+                                <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-0.5">Required for Verification</p>
+                            </div>
+                        </div>
+                        <FieldError message={errors.selfie} />
+                    </div>
+
+                    {/* Required: National ID */}
+                    <div>
+                        <div
+                            className={`relative rounded-2xl p-4 flex items-center gap-4 cursor-pointer overflow-hidden transition-all group ${uploading.national_id ? 'opacity-50 cursor-not-allowed' : ''} ${
+                                errors.national_id ? 'bg-red-950/20 border-red-500/50 hover:bg-red-950/30' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                            } border shadow-inner`}
+                        >
+                            <input 
+                                type="file" 
+                                disabled={uploading.national_id}
+                                accept="image/*,.pdf"
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) handleFileUpload('national_id', file);
+                                }} 
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
+                            />
+                            <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-colors ${errors.national_id ? 'bg-red-500/20 text-red-500' : 'bg-red-600/20 text-red-500 group-hover:bg-red-600/30 group-hover:text-red-400'}`}>
+                                {uploading.national_id ? (
                                     <div className="w-5 h-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
                                 ) : (
                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -209,27 +245,27 @@ const textAreaClass = "w-full text-white text-xs font-medium placeholder-zinc-60
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-white font-bold text-sm truncate">{documents.id_name || (uploading.id ? 'Uploading...' : 'Government ID')}</p>
+                                <p className="text-white font-bold text-sm truncate">{documents.national_id_name || (uploading.national_id ? 'Uploading...' : 'National ID')}</p>
                                 <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-0.5">Required for Verification</p>
                             </div>
                         </div>
-                        <FieldError message={errors.id} />
+                        <FieldError message={errors.national_id} />
                     </div>
 
-                    {/* Optional: Endorsements */}
-                    <div>
-                        <div className={`relative rounded-2xl p-4 flex items-center gap-4 cursor-pointer overflow-hidden transition-all group ${uploading.endorsements ? 'opacity-50 cursor-not-allowed' : ''} bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-inner`}>
+                    {/* Optional: Endorsement Letter */}
+                    <div className="sm:col-span-2">
+                        <div className={`relative rounded-2xl p-4 flex items-center gap-4 cursor-pointer overflow-hidden transition-all group ${uploading.endorsement_letter ? 'opacity-50 cursor-not-allowed' : ''} bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-inner`}>
                             <input 
                                 type="file" 
-                                disabled={uploading.endorsements}
+                                disabled={uploading.endorsement_letter}
                                 onChange={(e) => {
                                     const file = e.target.files[0];
-                                    if (file) handleFileUpload('endorsements', file);
+                                    if (file) handleFileUpload('endorsement_letter', file);
                                 }} 
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed" 
                             />
                             <div className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center bg-zinc-800/80 text-zinc-400 transition-colors group-hover:bg-zinc-700/80 group-hover:text-white">
-                                {uploading.endorsements ? (
+                                {uploading.endorsement_letter ? (
                                     <div className="w-5 h-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
                                 ) : (
                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -238,7 +274,7 @@ const textAreaClass = "w-full text-white text-xs font-medium placeholder-zinc-60
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-white font-bold text-sm truncate">{documents.endorsements_name || (uploading.endorsements ? 'Uploading...' : 'Letters of Endorsement')}</p>
+                                <p className="text-white font-bold text-sm truncate">{documents.endorsement_letter_name || (uploading.endorsement_letter ? 'Uploading...' : 'Endorsement Letter')}</p>
                                 <p className="text-zinc-500 text-[10px] font-black uppercase tracking-wider mt-0.5">Optional</p>
                             </div>
                         </div>
