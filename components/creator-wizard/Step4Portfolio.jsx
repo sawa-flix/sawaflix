@@ -6,6 +6,7 @@ const PLATFORMS = [
         id: 'youtube',
         name: 'YouTube',
         placeholder: 'https://youtube.com/@...',
+        focusColor: 'group-focus-within:text-[#FF0000]',
         icon: (
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.501 5.814a3.016 3.016 0 0 0 2.122 2.136c1.872.55 9.377.55 9.377.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -16,6 +17,7 @@ const PLATFORMS = [
         id: 'spotify',
         name: 'Spotify',
         placeholder: 'https://open.spotify.com/artist/...',
+        focusColor: 'group-focus-within:text-[#1DB954]',
         icon: (
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.45 17.34c-.21.344-.664.455-1.008.243-2.76-1.684-6.234-2.062-10.33-.113-.393.187-.86-.022-1.048-.415-.187-.393.022-.86.415-1.048 4.45-2.122 8.282-1.688 11.385.204.344.208.455.662.243 1.006zm1.428-3.187c-.266.43-3.568-1.298-3.535-7.905-1.782-13.06-1.096-.48.224-1.066-.255-.588-.478-.224-1.065 4.35-1.008 9.948-.246 14.07 1.888.428.267.562.756.295 1.185zm1.536-3.327c-4.14-2.456-10.96-2.68-14.88-1.488-.616.186-1.258-.16-1.444-.776-.187-.616.16-1.258.775-1.444 4.54-1.38 12.08-1.12 16.89 1.734.555.328.74 1.046.412 1.602-.33.556-1.047.74-1.603.412z"/>
@@ -26,6 +28,7 @@ const PLATFORMS = [
         id: 'instagram',
         name: 'Instagram',
         placeholder: 'https://instagram.com/...',
+        focusColor: 'group-focus-within:text-[#E1306C]',
         icon: (
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
@@ -36,6 +39,7 @@ const PLATFORMS = [
         id: 'tiktok',
         name: 'TikTok',
         placeholder: 'https://tiktok.com/@...',
+        focusColor: 'group-focus-within:text-[#00f2fe]',
         icon: (
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.23-1.11 4.46-2.9 5.81-1.66 1.25-3.8 1.63-5.83 1.2-2.03-.43-3.8-1.65-4.83-3.41-1.1-1.85-1.24-4.2-.33-6.14 1.02-2.2 3.12-3.72 5.49-4.05v4.11c-1.07.15-2.09.7-2.67 1.59-.57.88-.71 2.05-.31 3.04.4.98 1.34 1.68 2.37 1.83 1.05.15 2.16-.14 2.88-.88.75-.77 1.08-1.89 1.06-2.98.02-3.95.01-7.9 0-11.85h-2.98V.02z"/>
@@ -46,6 +50,7 @@ const PLATFORMS = [
         id: 'other',
         name: 'Other',
         placeholder: 'https://...',
+        focusColor: 'group-focus-within:text-white',
         icon: (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -204,7 +209,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                         const linkStr = (data.links && data.links[index]) || '';
                         return (
                             <div key={platform.id} className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 transition-colors ${platform.focusColor}`}>
                                     {platform.icon}
                                 </div>
                                 <input
@@ -222,6 +227,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                         );
                     })}
                 </div>
+                {errors.links && <FieldError message={errors.links} />}
             </div>
         </div>
     );

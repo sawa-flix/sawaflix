@@ -116,6 +116,11 @@ const CreatorWizard = () => {
         } else if (step === 4) {
             if (!formData.documents?.national_id_url) newErrors.national_id = "Please upload your National ID to continue.";
             if (!formData.documents?.selfie_url) newErrors.selfie = "Please upload a Selfie to continue.";
+            
+            const validLinks = formData.portfolio?.links?.filter(l => l && l.trim() !== '') || [];
+            if (validLinks.length === 0) {
+                newErrors.links = "Please provide at least one platform link to your work.";
+            }
         }
 
         setErrors(newErrors);
