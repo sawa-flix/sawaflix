@@ -310,7 +310,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   };
 
   return (
-    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black sm:rounded-[2rem] overflow-hidden sm:shadow-2xl sm:border border-white/5 group/vid flex flex-col">
+    <div className="relative w-full h-full sm:h-[97vh] sm:max-w-[450px] mx-auto bg-black sm:rounded-3xl overflow-hidden sm:shadow-2xl sm:border border-white/10 group/vid flex flex-col">
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
@@ -921,22 +921,29 @@ function SawaFlixContent() {
               </div>
             </>
           ) : (
-            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent rounded-none sm:rounded-[2rem] border border-white/5 shadow-2xl">
-              {feedVideos.map(video => (
-                <div
-                  key={video.id}
-                  ref={el => videoRefs.current.set(video.id, el)}
-                  data-video-id={video.id}
-                  className="h-full w-full snap-start snap-always flex items-center justify-center bg-black sm:bg-transparent"
-                >
-                  <VideoFeedItem
-                    video={video}
-                    isActive={activeVideoId === video.id}
-                    isMuted={isMuted}
-                    setIsMuted={setIsMuted}
-                  />
-                </div>
-              ))}
+            <div className="w-full h-[97vh] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black rounded-none shadow-2xl">
+              {feedVideos.map((video, index) => {
+                const isNearby = Math.abs(index - feedVideos.findIndex(v => v.id === activeVideoId)) <= 2;
+                if (!isNearby) return (
+                  <div key={video.id} className="h-full w-full snap-start snap-always bg-black" />
+                );
+
+                return (
+                  <div
+                    key={video.id}
+                    ref={el => videoRefs.current.set(video.id, el)}
+                    data-video-id={video.id}
+                    className="h-full w-full snap-start snap-always flex items-center justify-center bg-black"
+                  >
+                    <VideoFeedItem
+                      video={video}
+                      isActive={activeVideoId === video.id}
+                      isMuted={isMuted}
+                      setIsMuted={setIsMuted}
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
