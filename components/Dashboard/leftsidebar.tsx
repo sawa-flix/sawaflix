@@ -194,62 +194,52 @@ export default function LeftSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#0B0E14] border-r border-white/5">
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-none">
+    <div className="h-full flex flex-col bg-[#06080C] border-r border-white/5">
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-none">
         {/* Top Section */}
-        <div className="space-y-1">
+        <div className="space-y-1 mb-6">
           {topItems.map(renderItem)}
         </div>
 
-        <div className="border-t border-white/10 my-3"></div>
-
         {/* You Section */}
-        <div className="space-y-1">
-          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/10 rounded-lg cursor-pointer w-fit mb-1">
-            <span className="text-[15px] font-bold text-white">You</span>
-            <ChevronRight size={18} className="ml-1 text-white" />
+        <div className="space-y-1 mb-6">
+          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer w-fit mb-2">
+            <span className="text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 group-hover:text-white transition-colors">You</span>
+            <ChevronRight size={14} className="ml-1 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
           </Link>
           {youItems.map(renderItem)}
         </div>
 
-        <div className="border-t border-white/10 my-3"></div>
-
         {/* Explore Section */}
-        <div className="space-y-1">
-          <h3 className="px-3 py-2 text-[15px] font-bold text-white flex items-center mb-1">
+        <div className="space-y-1 mb-6">
+          <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
             Explore
           </h3>
           {exploreItems.map(renderItem)}
         </div>
 
         {verificationStatus?.toLowerCase() === 'approved' && (
-          <>
-            <div className="border-t border-white/10 my-3"></div>
-            {/* Creator Hub Section */}
-            <div className="space-y-1">
-              <h3 className="px-3 py-2 text-[15px] font-bold text-white flex items-center mb-1">
-                Creator Hub
-              </h3>
-              {creatorItems.map(renderItem)}
-            </div>
-          </>
+          <div className="space-y-1 mb-6">
+            <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
+              Creator Hub
+            </h3>
+            {creatorItems.map(renderItem)}
+          </div>
         )}
 
-        <div className="border-t border-white/10 my-3"></div>
-
-        <div className="px-3 mt-4">
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-              <div className="text-red-400 font-bold">128</div>
-              <div className="text-gray-400">Movies</div>
+        <div className="pt-4 mt-auto border-t border-white/5">
+          <div className="grid grid-cols-2 gap-2 text-[10px] font-black uppercase tracking-widest">
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+              <div className="text-white mb-1">128</div>
+              <div className="text-zinc-600">Movies</div>
             </div>
-            <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-              <div className="text-red-400 font-bold">64</div>
-              <div className="text-gray-400">Songs</div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+              <div className="text-white mb-1">64</div>
+              <div className="text-zinc-600">Songs</div>
             </div>
           </div>
         </div>
       </nav>
     </div>
   );
-}
+}

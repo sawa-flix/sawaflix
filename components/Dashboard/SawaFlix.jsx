@@ -1,9 +1,9 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import {
-  Play, ChevronLeft, ChevronRight,
+  Play, Pause, ChevronLeft, ChevronRight,
   Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
-  X, Send,
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,10 +18,16 @@ import { useMusic } from '../MusicContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",    label: "Sawas",   query: "Cameroon music hits 2026" },
-  { id: "music",  label: "Music",   query: "Cameroun music official video" },
-  { id: "comedy", label: "Comedy",  query: "Cameroun comedy series" },
-  { id: "news",   label: "News",    query: "Cameroun news today" },
+  { id: "all",    label: "Sawas",   query: "Cameroon shorts viral 2026" },
+  { id: "music",  label: "Music",   query: "Cameroon music shorts hits" },
+  { id: "comedy", label: "Comedy",  query: "Cameroon comedy shorts" },
+  { id: "news",   label: "News",    query: "Cameroon news shorts today" },
+];
+
+const HERO_IMAGES = [
+  "https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png",
+  "https://i.ibb.co/k2B50hDM/sawaflixcomedy.png",
+  "https://i.ibb.co/j9c5rNnH/Chat-GPT-Image-May-6-2026-02-01-09-PM.png"
 ];
 
 function formatCount(n) {
@@ -41,42 +47,69 @@ function fmtTime(secs) {
 }
 
 // ─── Search Result Card ───────────────────────
-const SearchResultCard = ({ video, onPlay }) => (
+const SearchResultCard = ({ video, onPlay, isShort = false }) => (
   <div
     onClick={() => onPlay(video)}
-    className="group relative cursor-pointer rounded-2xl overflow-hidden bg-[#181b24] border border-white/8 hover:border-white/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-white/5"
-    style={{ aspectRatio: '9/14' }}
+    className="group flex flex-col gap-3 cursor-pointer transition-all duration-300"
   >
-    <div className="absolute inset-0">
+    {/* Thumbnail Container */}
+    <div className={`relative ${isShort ? 'aspect-[9/16]' : 'aspect-video'} rounded-2xl overflow-hidden bg-[#12141a] border border-white/5 group-hover:border-white/20 transition-all duration-300`}>
       <Image
         src={video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`}
         alt={video.title}
         fill
-        className="object-cover group-hover:scale-105 transition-transform duration-700"
+        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         unoptimized
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
-    </div>
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+      
+      {/* Play Icon */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-500">
+          <Play size={24} className="text-white fill-white ml-1" />
+        </div>
+      </div>
 
-    <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-250">
-      <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl">
-        <Play size={22} className="text-red-600 ml-1" fill="currentColor" />
+      {/* Duration/Status Badge */}
+      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm rounded text-[10px] font-bold text-white tracking-wider">
+        {isShort ? 'Saw' : (video.duration || '4:20')}
       </div>
     </div>
 
-    <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-      <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest truncate mb-0.5">
-        {video.channelTitle}
-      </p>
-      <h3 className="text-white text-sm font-bold line-clamp-2 leading-snug">
-        {video.title}
-      </h3>
-      {video.likeCount && (
-        <div className="flex items-center gap-1 mt-1.5">
-          <Heart size={10} className="text-white/60 fill-white/60" />
-          <span className="text-white/60 text-[10px] font-bold">{formatCount(video.likeCount)}</span>
+    {/* Info Container */}
+    <div className="flex gap-3 px-0.5">
+      {/* Channel Avatar Placeholder */}
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex-shrink-0 overflow-hidden relative">
+        <Image 
+          src={video.channelThumbnail || `https://api.dicebear.com/7.x/initials/svg?seed=${video.channelTitle}`} 
+          alt="Avatar" 
+          fill 
+          className="object-cover"
+        />
+      </div>
+      
+      <div className="flex flex-col gap-1 min-w-0">
+        <h3 className="text-white text-sm font-semibold line-clamp-2 leading-tight group-hover:text-white transition-colors">
+          {video.title}
+        </h3>
+        <div className="flex flex-col text-[12px] text-[#AAAAAA] leading-snug">
+          <span className="hover:text-white transition-colors">{video.channelTitle}</span>
+          <span className="text-white/40">{formatCount(video.viewCount || Math.floor(Math.random() * 1000000))} views • 2 days ago</span>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonCard = ({ isShort }) => (
+  <div className="flex flex-col gap-3 animate-pulse">
+    <div className={`w-full rounded-2xl bg-white/5 ${isShort ? 'aspect-[9/16]' : 'aspect-video'}`} />
+    <div className="flex gap-3 px-1">
+      <div className="w-9 h-9 rounded-full bg-white/5 flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-white/5 rounded w-full" />
+        <div className="h-3 bg-white/5 rounded w-2/3" />
+      </div>
     </div>
   </div>
 );
@@ -277,11 +310,11 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   };
 
   return (
-    <div className="relative w-full aspect-video max-h-[85vh] bg-black rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl border border-white/5 group/vid flex flex-col lg:flex-row">
+    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black sm:rounded-[2rem] overflow-hidden sm:shadow-2xl sm:border border-white/5 group/vid flex flex-col">
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
-          width: commentOpen && isDesktop ? 'calc(100% - 400px)' : '100%',
+          width: '100%',
           scale: commentOpen && !isDesktop ? 0.85 : 1,
           y: commentOpen && !isDesktop ? '-20%' : '0%'
         }}
@@ -290,8 +323,8 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
       >
         <motion.div 
           animate={{ 
-            scale: commentOpen && isDesktop ? 0.9 : 1,
-            x: commentOpen && isDesktop ? '-2%' : '0%'
+            scale: 1,
+            x: '0%'
           }}
           className="absolute inset-0 z-0 flex items-center justify-center bg-black"
           onClick={() => setIsPaused(!isPaused)}
@@ -361,10 +394,20 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-transparent pointer-events-none z-10" />
 
         {shareToast && (
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-xs font-black uppercase tracking-widest border border-white/10 pointer-events-none">
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 z-40 px-6 py-2.5 bg-white/10 backdrop-blur-xl rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 pointer-events-none shadow-2xl">
             Link copied!
           </div>
         )}
+
+        {/* Sawa Reels Watermark */}
+        <div className="absolute top-6 left-6 z-30 pointer-events-none opacity-50">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 relative">
+              <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+            </div>
+            <span className="text-white font-black text-xs uppercase tracking-[0.3em]">Reels</span>
+          </div>
+        </div>
 
         {/* Mute toggle */}
         <button
@@ -378,51 +421,67 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
         <AnimatePresence>
           {(!commentOpen || isDesktop) && (
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-x-0 bottom-0 z-30 flex flex-col pointer-events-none"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute inset-x-0 bottom-0 z-30 flex flex-col pointer-events-none p-6"
             >
-              <div className="flex items-end justify-between gap-3 px-5 pb-3">
+              <div className="flex items-end justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-white/60 font-bold text-xs uppercase tracking-widest truncate mb-0.5">{video.channelTitle}</p>
                   <h3 className="text-white text-base font-bold leading-snug line-clamp-2">{video.title}</h3>
                 </div>
                 <div className="flex flex-col items-center gap-5 shrink-0 pointer-events-auto">
-                  <button onClick={handleLike} className="flex flex-col items-center gap-1">
-                    <div className={`p-3 rounded-full transition-all duration-200 ${isLiked ? 'bg-white scale-110' : 'bg-white/10 backdrop-blur-md hover:bg-white/20'}`}>
-                      <Heart size={20} className={isLiked ? 'text-red-600 fill-red-600' : 'text-white'} />
+                  <button onClick={handleLike} className="flex flex-col items-center gap-1 group/btn">
+                    <div className={`p-3.5 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
+                      <ThumbsUp size={22} className={isLiked ? 'text-white fill-white' : 'text-white'} />
                     </div>
-                    <span className="text-[11px] font-black text-white drop-shadow">{formatCount(displayLikes)}</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg">{formatCount(displayLikes)}</span>
                   </button>
-                  <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center gap-1">
-                    <div className="bg-white/10 backdrop-blur-md p-3 rounded-full hover:bg-white/20 transition-colors">
-                      <MessageCircle size={20} className="text-white" />
+
+                  <button className="flex flex-col items-center gap-1 group/btn">
+                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <ThumbsDown size={22} className="text-white" />
                     </div>
-                    <span className="text-[11px] font-black text-white drop-shadow">{formatCount(displayComments)}</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Dislike</span>
                   </button>
-                  <button onClick={handleShare} className="flex flex-col items-center gap-1">
-                    <div className="bg-white/10 backdrop-blur-md p-3 rounded-full hover:bg-white/20 transition-colors">
-                      <Share2 size={20} className="text-white" />
+
+                  <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center gap-1 group/btn">
+                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <MessageCircle size={22} className="text-white fill-white" />
                     </div>
-                    <span className="text-[11px] font-black text-white drop-shadow">Share</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg">{formatCount(displayComments)}</span>
+                  </button>
+
+                  <button onClick={handleShare} className="flex flex-col items-center gap-1 group/btn">
+                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <Share2 size={22} className="text-white fill-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Share</span>
+                  </button>
+
+                  <button className="flex flex-col items-center gap-1 group/btn">
+                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <RotateCcw size={22} className="text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Remix</span>
                   </button>
                 </div>
               </div>
 
               {/* Scrubber */}
-              <div onClick={e => e.stopPropagation()} className="w-full px-4 pb-4 pointer-events-auto">
-                <div ref={scrubberRef} className="relative w-full h-5 flex items-center cursor-pointer group/scrub" onMouseDown={onScrubStart} onTouchStart={onScrubStart}>
-                  <div className="absolute inset-x-0 h-1 bg-white/20 rounded-full overflow-hidden">
-                    <div className="h-full bg-white rounded-full transition-none" style={{ width: `${progress}%` }} />
+              <div onClick={e => e.stopPropagation()} className="w-full pt-4 pointer-events-auto">
+                <div ref={scrubberRef} className="relative w-full h-4 flex items-center cursor-pointer group/scrub" onMouseDown={onScrubStart} onTouchStart={onScrubStart}>
+                  <div className="absolute inset-x-0 h-0.5 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-600 rounded-full transition-none shadow-[0_0_8px_rgba(220,38,38,0.5)]" style={{ width: `${progress}%` }} />
                   </div>
-                  <div className={`absolute w-3.5 h-3.5 bg-white rounded-full shadow-lg -translate-x-1/2 transition-opacity ${isDragging ? 'opacity-100 scale-125' : 'opacity-0 group-hover/scrub:opacity-100'}`} style={{ left: `${progress}%` }} />
+                  <div className={`absolute w-3 h-3 bg-red-600 rounded-full shadow-lg -translate-x-1/2 transition-all ${isDragging ? 'opacity-100 scale-125' : 'opacity-0 group-hover/scrub:opacity-100'}`} style={{ left: `${progress}%` }} />
                 </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <button onClick={() => setIsPaused(p => !p)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    {isPaused ? <Play size={18} className="text-white ml-0.5" fill="currentColor" /> : <div className="flex gap-0.5"><div className="w-1.5 h-4 bg-white rounded-sm"/><div className="w-1.5 h-4 bg-white rounded-sm"/></div>}
+                <div className="flex items-center gap-3 mt-0.5">
+                  <button onClick={() => setIsPaused(p => !p)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white">
+                    {isPaused ? <Play size={16} fill="currentColor" /> : <Pause size={16} fill="currentColor" />}
                   </button>
-                  <span className="text-white text-xs font-mono tabular-nums">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
+                  <span className="text-white/60 text-[10px] font-black tracking-widest tabular-nums uppercase">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
                 </div>
               </div>
             </motion.div>
@@ -453,8 +512,8 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
               dragConstraints={{ top: 0 }}
               dragElastic={0.1}
               onDragEnd={(_, info) => { if (info.offset.y > 150) setCommentOpen(false); }}
-              className={`fixed lg:relative z-50 bg-[#0F1117] border-white/10 flex flex-col shadow-2xl ${
-                isDesktop ? 'h-full w-[400px] border-l' : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
+              className={`fixed z-50 bg-[#0F1117]/95 backdrop-blur-xl border-white/10 flex flex-col shadow-2xl ${
+                isDesktop ? 'inset-y-0 right-0 w-[400px] border-l' : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
               }`}
             >
               {!isDesktop && (
@@ -547,6 +606,8 @@ function SawaFlixContent() {
   const [heroPlaying, setHeroPlaying]       = useState(false);
   const [isHeroMuted, setIsHeroMuted]       = useState(true);
   const [selectedVideo, setSelectedVideo]   = useState(null);
+  const [showShorts, setShowShorts]         = useState(true);
+  const [heroImgIndex, setHeroImgIndex]     = useState(0);
   const { currentTrack } = useMusic();
 
 
@@ -569,6 +630,7 @@ function SawaFlixContent() {
 
   useEffect(() => {
     if (urlQuery) {
+      setShowShorts(true);
       const t = setTimeout(() => {
         if (discoverRef.current) {
           const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
@@ -581,8 +643,13 @@ function SawaFlixContent() {
 
   useEffect(() => { setSelectedVideo(null); }, [urlQuery]);
 
+  const handlePlayNow = () => {
+    scrollToDiscover();
+  };
+
   useEffect(() => {
     if (currentTrack && currentTrack.id !== activeVideoId) {
+      setShowShorts(true);
       setActiveVideoId(currentTrack.id);
       setTimeout(() => {
         const el = videoRefs.current.get(currentTrack.id);
@@ -623,21 +690,31 @@ function SawaFlixContent() {
   }, [heroSource.length]);
 
   useEffect(() => {
-    if (!heroPlaying || !heroSource.length) return;
-    const t = setInterval(handleHeroNext, 25000);
+    const t = setInterval(() => {
+      setHeroImgIndex(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 8000);
     return () => clearInterval(t);
-  }, [heroPlaying, handleHeroNext, heroSource.length]);
+  }, []);
 
   const scrollToDiscover = () => {
     setHeroPlaying(false);
-    if (discoverRef.current) {
-      discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setShowShorts(true);
+    // Auto-select first video to enter feed mode immediately
+    if (videos.length > 0) {
+      setSelectedVideo(videos[0]);
+      setActiveVideoId(videos[0].id);
     }
+    setTimeout(() => {
+      if (discoverRef.current) {
+        discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
   };
 
   const handleCardClick = (video) => {
     setSelectedVideo(video);
     setActiveVideoId(video.id);
+    setShowShorts(true);
     setTimeout(() => {
       if (discoverRef.current) {
         const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
@@ -688,11 +765,16 @@ function SawaFlixContent() {
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => { setActiveCategory(cat.id); setHeroIndex(0); setSelectedVideo(null); }}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                onClick={() => { 
+                  setActiveCategory(cat.id); 
+                  setHeroIndex(0); 
+                  setSelectedVideo(null);
+                  setShowShorts(true);
+                }}
+                className={`px-6 py-2 rounded-xl text-sm font-medium tracking-tight transition-all duration-300 cursor-pointer shadow-lg ${
                   activeCategory === cat.id
-                    ? 'bg-white text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-white text-black scale-105'
+                    : 'bg-white/5 text-[#AAAAAA] hover:bg-white/10 hover:text-white border border-white/5'
                 }`}
               >
                 {cat.label}
@@ -701,97 +783,62 @@ function SawaFlixContent() {
           </div>
         </div>
 
-        <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] max-h-[75vh] rounded-[2.5rem] overflow-hidden mb-10 group shadow-2xl border border-white/5 bg-black">
-          {currentHeroVideo && (
-            <>
-              <div className="absolute top-5 left-5 z-30 max-w-[55%] pointer-events-none">
-                <p className="text-white/90 text-sm font-bold leading-snug line-clamp-2 bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5">
-                  {currentHeroVideo?.title}
-                </p>
-              </div>
-              {/* Permanent Base Background (Matches Landing Page) */}
-              {/* Permanent Base Background (Matches Landing Page) */}
-              <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${
-                currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 ? 'opacity-0' : 'opacity-100'
-              }`}>
-                <img
-                  src="/cameroon.jpg"
-                  alt="SawaFlix Background"
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                  fetchPriority="high"
+        <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] overflow-hidden mb-8 sm:mb-16 group shadow-2xl border-y sm:border border-white/5 bg-black">
+          {/* Static Cover Image */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={heroImgIndex}
+                src={HERO_IMAGES[heroImgIndex]}
+                alt="SawaFlix Cover"
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                className="w-full h-full object-cover"
+              />
+            </AnimatePresence>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+            
+            {/* Slide Indicators */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+              {HERO_IMAGES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setHeroImgIndex(i); }}
+                  className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${heroImgIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
                 />
-                {/* Brand Overlay (Lightened for better visibility) */}
-                <div className="absolute inset-0 bg-black/20" />
-              </div>
-
-              {/* Dynamic Video Thumbnail Overlay */}
-              {currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 && (
-                <div className="absolute inset-0 z-[1]">
-                  <Image
-                    src={currentHeroVideo.thumbnail}
-                    alt={currentHeroVideo.title}
-                    fill
-                    className="object-cover opacity-100 transition-opacity duration-1000"
-                    unoptimized
-                  />
-                  {/* Light overlay to keep text legible but image visible */}
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-              )}
-              {heroPlaying && (
-                <div className="absolute inset-0 z-10">
-                  {currentHeroVideo?.origin === 'youtube' ? (
-                    <YouTubePlayer
-                      videoId={currentHeroVideo.id}
-                      isActive={heroPlaying}
-                      isMuted={isHeroMuted}
-                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                    />
-                  ) : (
-                    <HTML5Player
-                      videoId={currentHeroVideo.id}
-                      videoUrl={currentHeroVideo.videoUrl}
-                      isActive={heroPlaying}
-                      isMuted={isHeroMuted}
-                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                    />
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/20 to-transparent pointer-events-none z-10" />
+              ))}
+            </div>
+          </div>
 
           {!heroPlaying && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center">
-              <button
-                onClick={scrollToDiscover}
-                className="group/play cursor-pointer z-40 flex items-center gap-4 px-12 py-5 bg-black/40 backdrop-blur-xl rounded-lg border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+              <motion.button
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handlePlayNow}
+                className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.4)] group relative overflow-hidden transition-all duration-500 cursor-pointer"
               >
-                <div className="relative w-12 h-12 sm:w-16 sm:h-16 transition-transform duration-500 group-hover/play:rotate-[360deg]">
-                  <Image
-                    src="/sawaplay.png"
-                    alt="Play"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-white text-xl sm:text-3xl font-black uppercase tracking-[0.1em] leading-tight">
-                    Play Now
-                  </span>
-                  <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mt-0.5">
-                    Stream the latest vibes
-                  </span>
-                </div>
-              </button>
+                <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
+                <Play size={42} className="text-black group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
+                
+                {/* Pulsing Outer Ring */}
+                <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
+              </motion.button>
+              
+              <div className="mt-8 text-center space-y-1 pointer-events-none">
+                <h2 className="text-white text-xl sm:text-3xl font-medium tracking-tight drop-shadow-2xl">
+                  {activeCategory === 'music' ? 'Music Hits' : 'Exclusive Vibes'}
+                </h2>
+                <p className="text-white/70 text-xs sm:text-sm font-medium tracking-tight">
+                  Discover the next big thing on SawaFlix
+                </p>
+              </div>
             </div>
           )}
-
-
 
           <button
             onClick={handleHeroPrev}
@@ -805,26 +852,11 @@ function SawaFlixContent() {
           >
             <ChevronRight size={22} />
           </button>
-
-          {heroSource.length > 1 && (
-            <div className="absolute bottom-7 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-30">
-              {heroSource.slice(0, 5).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setHeroIndex(idx)}
-                  className={`transition-all duration-500 rounded-full ${
-                    heroIndex % heroSource.length === idx
-                      ? 'w-8 h-2 bg-white shadow-[0_0_8px_rgba(255,255,255,0.4)]'
-                      : 'w-2 h-2 bg-white/30 hover:bg-white/60'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </section>
 
-        <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
+        {showShorts && (
+          <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
@@ -861,31 +893,41 @@ function SawaFlixContent() {
             )}
           </div>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
-              <Loader2 className="w-12 h-12 text-white animate-spin" />
-              <p className="text-white/30 font-black uppercase tracking-widest text-xs">
-                {isSearchMode ? `Searching for "${urlQuery}"…` : 'Loading Latest Vibes…'}
-              </p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-16 bg-white/5 rounded-[2rem] border border-white/5">
-              <p className="text-white/60 font-black mb-2 uppercase tracking-widest text-xs">Error</p>
-              <p className="text-white/40 text-sm max-w-xs mx-auto">{error}</p>
-            </div>
-          ) : isSearchMode && !selectedVideo ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {videos.map(v => (
-                <SearchResultCard key={v.id} video={v} onPlay={handleCardClick} />
-              ))}
-            </div>
+          {!selectedVideo ? (
+            <>
+              {error && (
+                <div className="text-center py-10 bg-red-500/10 rounded-[2rem] border border-red-500/20 mb-8">
+                  <p className="text-red-500 font-bold text-sm">{error}</p>
+                </div>
+              )}
+              <div className={activeCategory === 'all' 
+                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10" 
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10"
+              }>
+                {loading && videos.length === 0 ? (
+                  Array.from({ length: 12 }).map((_, i) => (
+                    <SkeletonCard key={i} isShort={activeCategory === 'all'} />
+                  ))
+                ) : (
+                  videos.map(v => (
+                    <SearchResultCard 
+                      key={v.id} 
+                      video={v} 
+                      onPlay={handleCardClick}
+                      isShort={activeCategory === 'all'}
+                    />
+                  ))
+                )}
+              </div>
+            </>
           ) : (
-            <div className="max-w-4xl mx-auto space-y-8">
+            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent rounded-none sm:rounded-[2rem] border border-white/5 shadow-2xl">
               {feedVideos.map(video => (
                 <div
                   key={video.id}
                   ref={el => videoRefs.current.set(video.id, el)}
                   data-video-id={video.id}
+                  className="h-full w-full snap-start snap-always flex items-center justify-center bg-black sm:bg-transparent"
                 >
                   <VideoFeedItem
                     video={video}
@@ -898,6 +940,7 @@ function SawaFlixContent() {
             </div>
           )}
         </section>
+        )}
       </div>
 
       <style jsx global>{`
