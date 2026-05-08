@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { copySetCookies } from '../../../../utils/supabase/cookies'
 
 export async function GET(request) {
   try {
@@ -17,7 +16,6 @@ export async function GET(request) {
       console.log('🔵 CALLBACK RECEIVED:', {
         code: code ? 'YES' : 'NO',
         type: type || 'none',
-        pathname: requestUrl.pathname
       })
     }
 
@@ -25,85 +23,83 @@ export async function GET(request) {
       return NextResponse.redirect(new URL('/login?error=auth_config_missing', request.url))
     }
 
-    let supabaseResponse = NextResponse.next({
-      request: { headers: request.headers },
-    })
-
     const cookieStore = await cookies()
-    const allCookies = cookieStore.getAll()
-    if (isDev) {
-      console.log('🟢 Cookies present in callback request:', allCookies.map(c => c.name).join(', '))
-      const pkceCookie = allCookies.find(c => c.name.includes('code-verifier'))
-      console.log('🟢 PKCE Cookie found?', !!pkceCookie)
-    }
 
+    // pendingCookies collects every Set-Cookie call made during this request
+    // (including session cookies written by exchangeCodeForSession)
+    // We replay them on the final redirect response so the browser receives them.
+    const pendingCookies = []
+
+    // @supabase/ssr v0.1.x uses get/set/remove (not getAll/setAll)
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         get(name) {
           return cookieStore.get(name)?.value
         },
         set(name, value, options) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // Ignore in server components
-          }
+          // Capture for the redirect response
+          pendingCookies.push({ name, value, options })
+          // Also write to the request cookie store (makes subsequent reads see the value)
+          try { cookieStore.set({ name, value, ...options }) } catch (_) { /* ok in route handler */ }
         },
         remove(name, options) {
-          try {
-            cookieStore.delete({ name, ...options })
-          } catch (error) {
-            // Ignore in server components
-          }
+          pendingCookies.push({ name, value: '', options })
+          try { cookieStore.delete({ name, ...options }) } catch (_) { /* ok in route handler */ }
         },
       },
     })
 
-    const redirectWithCookies = (target) => {
-      const targetUrl = new URL(target, request.url)
-      const redirectResponse = NextResponse.redirect(targetUrl)
-      copySetCookies(supabaseResponse, redirectResponse)
-      return redirectResponse
+    // Apply all captured cookies onto any response
+    const applyPendingCookies = (response) => {
+      pendingCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, {
+          ...options,
+          path: options?.path ?? '/',
+          sameSite: options?.sameSite ?? 'lax',
+          secure: options?.secure ?? (process.env.NODE_ENV === 'production'),
+          httpOnly: options?.httpOnly ?? true,
+        })
+      })
+      return response
     }
 
-    // STEP 1: If there's NO code at all, it's invalid
+    const redirectWithCookies = (target) => {
+      const targetUrl = new URL(target, request.url)
+      return applyPendingCookies(NextResponse.redirect(targetUrl))
+    }
+
+    // ── STEP 1: Require a code ─────────────────────────────────────────────
     if (!code) {
-      if (isDev) console.log('🔴 No code parameter - invalid callback')
+      if (isDev) console.log('🔴 No code in callback URL')
       return redirectWithCookies('/login?error=invalid_reset_link')
     }
 
-    // STEP 2: Route password recovery links to update-password.
-    // OAuth provider callbacks are handled in STEP 3.
-    const isPasswordReset = type === 'recovery'
-
-    if (isPasswordReset) {
-      if (isDev) console.log('🟡 PASSWORD RESET DETECTED - Redirecting to /update-password')
-
+    // ── STEP 2: Password reset → /update-password ──────────────────────────
+    if (type === 'recovery') {
+      if (isDev) console.log('🟡 Recovery type detected — redirecting to /update-password')
       const redirectUrl = new URL('/update-password', request.url)
-
-      // Copy EVERYTHING from the original URL
       requestUrl.searchParams.forEach((value, key) => {
         redirectUrl.searchParams.set(key, value)
       })
-
-      if (isDev) console.log('🟡 Redirect URL:', redirectUrl.toString())
       return redirectWithCookies(redirectUrl.toString())
     }
 
-    // STEP 3: Regular OAuth / auth callback flow.
-    if (isDev) console.log('🟢 AUTH CALLBACK - Exchanging code for session')
+    // ── STEP 3: OAuth / email confirmation code exchange ───────────────────
+    if (isDev) console.log('🟢 Exchanging code for session...')
 
     try {
+      // This triggers set() above for each session cookie → they go into pendingCookies
       const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
       if (exchangeError || !session?.user) {
-        console.error('🔴 Exchange failed:', exchangeError?.message || 'No session user after exchange')
+        console.error('🔴 Exchange failed:', exchangeError?.message || 'No session')
         return redirectWithCookies('/login?error=auth_failed')
       }
 
       const user = session.user
+      if (isDev) console.log('🟢 Session OK for:', user.email, '| Cookies to set:', pendingCookies.length)
 
-      // First-time OAuth users may not yet have a public.users row. We upsert to support both.
+      // ── Sync profile to public.users ────────────────────────────────────
       let isFirstOAuthUser = false
       try {
         const { data: existingUser } = await supabase
@@ -119,66 +115,61 @@ export async function GET(request) {
         const payload = {
           id: user.id,
           email: user.email,
-          username: user.user_metadata?.full_name || user.user_metadata?.username || user.email || 'Anonymous',
+          // Google sends display name as full_name or name
+          username: user.user_metadata?.full_name
+            || user.user_metadata?.name
+            || user.user_metadata?.username
+            || user.email?.split('@')[0]
+            || 'User',
           role: platformRole === 'creator' ? 'creator' : 'viewer',
           platform_role: platformRole === 'creator' ? 'artist' : 'client',
-          profile_image_url: user.user_metadata?.avatar_url || null,
-          // Google/OAuth users are pre-verified — grant approved status immediately
-          // so the middleware does NOT redirect them to /verify-otp
-          verification_status: 'approved',
+          // Google avatar is in avatar_url or picture
+          profile_image_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+          verification_status: 'approved', // OAuth = already verified
           updated_at: new Date().toISOString(),
         }
 
-        // Use Admin client to bypass RLS during initial sync
         if (supabaseServiceRoleKey) {
+          // Use service role to bypass RLS
           const supabaseAdmin = createServerClient(supabaseUrl, supabaseServiceRoleKey, {
-            cookies: { getAll() { return [] }, setAll() {} }
+            cookies: {
+              get() { return undefined },
+              set() {},
+              remove() {},
+            },
           })
           const { error: syncError } = await supabaseAdmin
             .from('users')
             .upsert(payload, { onConflict: 'id' })
 
-          if (syncError) console.error('🟡 User sync warning (Admin):', syncError.message)
-          else if (isDev) console.log('🟢 Profile synced via Admin')
+          if (syncError) {
+            console.error('🟡 User sync warning (Admin):', syncError.message)
+          } else if (isDev) {
+            console.log('🟢 Profile synced for:', user.email)
+          }
         } else {
           const { error: syncError } = await supabase
             .from('users')
             .upsert(payload, { onConflict: 'id' })
-
           if (syncError) console.error('🟡 User sync warning (Anon):', syncError.message)
         }
       } catch (syncErr) {
-        console.error('🟡 User sync error (non-fatal):', syncErr.message)
+        // Non-fatal — user can continue even if profile sync has an issue
+        console.error('🟡 Profile sync error (non-fatal):', syncErr?.message)
       }
 
       const redirectTarget = isFirstOAuthUser ? '/dashboard?welcome=oauth' : '/dashboard'
-      if (isDev) console.log('🟢 Auth successful, redirecting to', redirectTarget)
+      if (isDev) console.log('🟢 Redirecting to:', redirectTarget)
 
-      // CRITICAL FIX: Build a FRESH redirect response AFTER exchangeCodeForSession
-      // so the new session cookies (set during exchange) are included in the response.
-      // Using the old supabaseResponse (built before exchange) drops the session cookies.
-      const targetUrl = new URL(redirectTarget, request.url)
-      const finalRedirect = NextResponse.redirect(targetUrl)
+      return redirectWithCookies(redirectTarget)
 
-      // Copy all cookies from the cookie store (which now includes the new session)
-      const allCookies = cookieStore.getAll()
-      allCookies.forEach(({ name, value }) => {
-        finalRedirect.cookies.set(name, value, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-        })
-      })
-
-      return finalRedirect
     } catch (exchangeErr) {
-      console.error('🔴 Exchange error:', exchangeErr)
+      console.error('🔴 Exchange exception:', exchangeErr)
       return redirectWithCookies('/login?error=auth_failed')
     }
 
-  } catch (error) {
-    console.error('🔴 CALLBACK ERROR:', error)
+  } catch (topErr) {
+    console.error('🔴 CALLBACK TOP-LEVEL ERROR:', topErr)
     return NextResponse.redirect(new URL('/login?error=callback_error', request.url))
   }
 }

@@ -102,7 +102,7 @@ export async function updateSession(request: NextRequest) {
 
   // pathname is already extracted above
 
-  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
+  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback", "/update-password", "/forgot-password"];
   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));

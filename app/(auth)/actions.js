@@ -146,45 +146,35 @@ export async function resetPassword(formData) {
       return { error: 'Email is required' };
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.toString().trim())) {
       return { error: 'Please enter a valid email address.' };
     }
 
-    const supabase = await createClient();
-    // Use the explicit production URL or fall back to localhost.
-    // IMPORTANT: NEXT_PUBLIC_SITE_URL must be set to https://www.sawaflix.com in Vercel env vars.
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // Call our OWN backend which sends a branded Sawaflix email via Resend
+    // This avoids Supabase's default ugly noreply@mail.app.supabase.io email
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com';
+    const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    console.log('🟡 Sending password reset email to:', email);
-    console.log('🟡 Reset callback URL:', `${origin}/auth/callback?type=recovery`);
+    console.log('🟡 Sending password reset via backend to:', email);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.toString().trim(), {
-      // type=recovery tells the callback route to redirect to /update-password instead of /dashboard
-      redirectTo: `${origin}/auth/callback?type=recovery`,
+    const res = await fetch(`${cleanBackendUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.toString().trim() }),
     });
 
-    if (error) {
-      console.error("🔴 Password reset error:", error.message);
+    const data = await res.json();
 
-      // User-friendly error messages
-      let userMessage = error.message;
-      if (error.message.includes('rate limit')) {
-        userMessage = 'Too many attempts. Please try again in a few minutes.';
-      } else if (error.message.includes('not found')) {
-        userMessage = 'No account found with this email address.';
-      } else if (error.message.includes('email')) {
-        userMessage = 'Please enter a valid email address.';
-      }
-
-      return { error: userMessage };
+    if (!res.ok) {
+      console.error('🔴 Backend forgot-password error:', data);
+      return { error: data.error || 'Failed to send reset email. Please try again.' };
     }
 
-    console.log('✅ Password reset email sent successfully');
+    console.log('✅ Password reset email sent via backend');
     return {
       success: true,
-      message: 'Check your email for the password reset link. It may take a minute to arrive.'
+      message: 'Check your email for the Sawaflix password reset link. It may take a minute to arrive.',
     };
 
   } catch (error) {

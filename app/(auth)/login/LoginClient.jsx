@@ -108,7 +108,15 @@ function LoginContent() {
     } else if (message === 'signed_out') {
       setSuccessMessage('You have been signed out successfully.');
     } else if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      // Map raw Supabase/callback error codes to human-friendly messages
+      const errorMessages = {
+        auth_failed: 'Sign-in failed. Please try again or use a different method.',
+        auth_config_missing: 'Authentication is not configured correctly. Please contact support.',
+        invalid_reset_link: 'This reset link is invalid or has expired. Please request a new one.',
+        callback_error: 'An error occurred during sign-in. Please try again.',
+        signout_failed: 'Sign-out failed. Please try again.',
+      };
+      setError(errorMessages[errorParam] || decodeURIComponent(errorParam));
     }
 
     if (message || errorParam) {
