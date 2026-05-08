@@ -153,13 +153,16 @@ export async function resetPassword(formData) {
     }
 
     const supabase = await createClient();
+    // Use the explicit production URL or fall back to localhost.
+    // IMPORTANT: NEXT_PUBLIC_SITE_URL must be set to https://www.sawaflix.com in Vercel env vars.
     const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     console.log('🟡 Sending password reset email to:', email);
-    console.log('🟡 Site URL:', origin);
+    console.log('🟡 Reset callback URL:', `${origin}/auth/callback?type=recovery`);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.toString().trim(), {
-      redirectTo: `${origin}/auth/callback`,
+      // type=recovery tells the callback route to redirect to /update-password instead of /dashboard
+      redirectTo: `${origin}/auth/callback?type=recovery`,
     });
 
     if (error) {

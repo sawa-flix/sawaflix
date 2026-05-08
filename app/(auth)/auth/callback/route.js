@@ -153,7 +153,25 @@ export async function GET(request) {
 
       const redirectTarget = isFirstOAuthUser ? '/dashboard?welcome=oauth' : '/dashboard'
       if (isDev) console.log('🟢 Auth successful, redirecting to', redirectTarget)
-      return redirectWithCookies(redirectTarget)
+
+      // CRITICAL FIX: Build a FRESH redirect response AFTER exchangeCodeForSession
+      // so the new session cookies (set during exchange) are included in the response.
+      // Using the old supabaseResponse (built before exchange) drops the session cookies.
+      const targetUrl = new URL(redirectTarget, request.url)
+      const finalRedirect = NextResponse.redirect(targetUrl)
+
+      // Copy all cookies from the cookie store (which now includes the new session)
+      const allCookies = cookieStore.getAll()
+      allCookies.forEach(({ name, value }) => {
+        finalRedirect.cookies.set(name, value, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        })
+      })
+
+      return finalRedirect
     } catch (exchangeErr) {
       console.error('🔴 Exchange error:', exchangeErr)
       return redirectWithCookies('/login?error=auth_failed')
