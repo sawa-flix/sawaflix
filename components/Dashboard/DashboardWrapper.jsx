@@ -79,11 +79,8 @@ const DashboardWrapper = ({ children }) => {
   return (
     <MusicProvider>
       <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
-        {/* Genius Background Experience - Mesh Gradients & Glows */}
+        {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-600/10 blur-[120px] rounded-full animate-pulse" />
-           <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-blue-600/5 blur-[100px] rounded-full" />
-           <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-red-900/10 blur-[150px] rounded-full" />
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
@@ -134,9 +131,9 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Main Content Area — Scrollable center */}
           <main className={`
-            ${isCreatorLayout ? 'min-h-screen lg:ml-72' : 'min-h-[calc(100vh-4rem)] lg:ml-72'}
+            ${isCreatorLayout ? 'h-screen lg:ml-72' : 'h-[calc(100vh-4rem)] lg:ml-72'}
             ${!isCreatorLayout ? 'xl:mr-80' : ''}
-            overflow-y-auto bg-transparent
+            overflow-y-auto bg-transparent scroll-smooth
           `}>
             <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}

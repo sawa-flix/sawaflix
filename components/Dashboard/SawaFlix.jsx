@@ -14,10 +14,11 @@ import { useVideoStats } from '@/hooks/useVideoStats';
 import { YouTubePlayer } from '../YoutubePlayer';
 import { youtubeApi } from '@/services/youtubeApi';
 import { useMusic } from '../MusicContext';
+import SawaflixLogo from '../SawaflixLogo';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",    label: "All 237", query: "Cameroon music hits 2026" },
+  { id: "all",    label: "Sawas",   query: "Cameroon music hits 2026" },
   { id: "music",  label: "Music",   query: "Cameroun music official video" },
   { id: "comedy", label: "Comedy",  query: "Cameroun comedy series" },
   { id: "news",   label: "News",    query: "Cameroun news today" },
@@ -276,7 +277,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   };
 
   return (
-    <div className="relative w-full h-[85vh] bg-black rounded-3xl overflow-hidden mb-6 shadow-2xl border border-white/5 group/vid flex flex-col lg:flex-row">
+    <div className="relative w-full aspect-video max-h-[85vh] bg-black rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl border border-white/5 group/vid flex flex-col lg:flex-row">
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
@@ -543,9 +544,12 @@ function SawaFlixContent() {
   const [isMuted, setIsMuted]               = useState(true);
   const [activeVideoId, setActiveVideoId]   = useState(null);
   const [heroIndex, setHeroIndex]           = useState(0);
-  const [heroPlaying, setHeroPlaying]       = useState(true);
+  const [heroPlaying, setHeroPlaying]       = useState(false);
+  const [isHeroMuted, setIsHeroMuted]       = useState(true);
   const [selectedVideo, setSelectedVideo]   = useState(null);
   const { currentTrack } = useMusic();
+
+
 
   const observerRef  = useRef(null);
   const videoRefs    = useRef(new Map());
@@ -610,22 +614,24 @@ function SawaFlixContent() {
     return () => observerRef.current?.disconnect();
   }, [videos, hasMore, loadMore]);
 
-  const nextHeroVideo = useCallback(() => {
+  const handleHeroNext = useCallback(() => {
     if (!heroSource.length) return;
     setHeroIndex(prev => (prev + 1) % heroSource.length);
+  }, [heroSource.length]);
+  const handleHeroPrev = useCallback(() => {
+    setHeroIndex(prev => (prev === 0 ? Math.max(heroSource.length - 1, 0) : prev - 1));
   }, [heroSource.length]);
 
   useEffect(() => {
     if (!heroPlaying || !heroSource.length) return;
-    const t = setInterval(nextHeroVideo, 25000);
+    const t = setInterval(handleHeroNext, 25000);
     return () => clearInterval(t);
-  }, [heroPlaying, nextHeroVideo, heroSource.length]);
+  }, [heroPlaying, handleHeroNext, heroSource.length]);
 
   const scrollToDiscover = () => {
     setHeroPlaying(false);
     if (discoverRef.current) {
-      const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
-      window.scrollTo({ top, behavior: 'smooth' });
+      discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -658,18 +664,35 @@ function SawaFlixContent() {
   })();
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] flex flex-col overflow-x-hidden">
-      <main className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-6">
-        <div className="flex items-center justify-start overflow-x-auto no-scrollbar pb-2 mb-3">
-          <div className="inline-flex items-center gap-2">
+    <div className="flex flex-col relative">
+      {/* YouTube-style Top Loading Bar */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ scaleX: 0, opacity: 1 }}
+            animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1], opacity: 1 }}
+            transition={{ 
+              duration: 2, 
+              times: [0, 0.2, 0.5, 0.8, 1],
+              ease: "easeInOut",
+              repeat: Infinity
+            }}
+            className="fixed top-0 left-0 right-0 h-[3px] bg-red-600 z-[9999] origin-left shadow-[0_0_15px_rgba(220,38,38,0.6)]"
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-2">
+        <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
+          <div className="inline-flex items-center gap-3">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setHeroIndex(0); setSelectedVideo(null); }}
-                className={`px-5 py-2 rounded-xl border text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'border-white/40 text-white bg-white/10'
-                    : 'border-white/5 text-gray-400 hover:border-white/20 hover:text-white hover:bg-white/5'
+                    ? 'bg-white text-black'
+                    : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
               >
                 {cat.label}
@@ -678,68 +701,106 @@ function SawaFlixContent() {
           </div>
         </div>
 
-        <section className="relative h-[85vh] sm:h-[75vh] lg:h-[80vh] rounded-[2.5rem] overflow-hidden mb-10 group shadow-2xl border border-white/5 bg-black">
+        <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] max-h-[75vh] rounded-[2.5rem] overflow-hidden mb-10 group shadow-2xl border border-white/5 bg-black">
           {currentHeroVideo && (
             <>
               <div className="absolute top-5 left-5 z-30 max-w-[55%] pointer-events-none">
                 <p className="text-white/90 text-sm font-bold leading-snug line-clamp-2 bg-black/40 backdrop-blur-sm rounded-xl px-3 py-1.5">
-                  {currentHeroVideo.title}
+                  {currentHeroVideo?.title}
                 </p>
               </div>
-              <div className="absolute inset-0 z-0">
-                <Image
-                  src={currentHeroVideo.thumbnail || `https://i.ytimg.com/vi/${currentHeroVideo.id}/maxresdefault.jpg`}
-                  alt={currentHeroVideo.title}
-                  fill className="object-cover opacity-50 scale-105 transition-opacity duration-1000"
-                  priority
-                  unoptimized
+              {/* Permanent Base Background (Matches Landing Page) */}
+              {/* Permanent Base Background (Matches Landing Page) */}
+              <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${
+                currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 ? 'opacity-0' : 'opacity-100'
+              }`}>
+                <img
+                  src="/cameroon.jpg"
+                  alt="SawaFlix Background"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
                 />
+                {/* Brand Overlay (Lightened for better visibility) */}
+                <div className="absolute inset-0 bg-black/20" />
               </div>
-              <div className="absolute inset-0 z-10">
-                {currentHeroVideo.origin === 'youtube' ? (
-                  <YouTubePlayer
-                    videoId={currentHeroVideo.id}
-                    isActive={heroPlaying}
-                    isMuted={true}
-                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+
+              {/* Dynamic Video Thumbnail Overlay */}
+              {currentHeroVideo?.thumbnail && currentHeroVideo.thumbnail.length > 5 && (
+                <div className="absolute inset-0 z-[1]">
+                  <Image
+                    src={currentHeroVideo.thumbnail}
+                    alt={currentHeroVideo.title}
+                    fill
+                    className="object-cover opacity-100 transition-opacity duration-1000"
+                    unoptimized
                   />
-                ) : (
-                  <HTML5Player
-                    videoId={currentHeroVideo.id}
-                    videoUrl={currentHeroVideo.videoUrl}
-                    isActive={heroPlaying}
-                    isMuted={true}
-                    onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
-                  />
-                )}
-              </div>
+                  {/* Light overlay to keep text legible but image visible */}
+                  <div className="absolute inset-0 bg-black/20" />
+                </div>
+              )}
+              {heroPlaying && (
+                <div className="absolute inset-0 z-10">
+                  {currentHeroVideo?.origin === 'youtube' ? (
+                    <YouTubePlayer
+                      videoId={currentHeroVideo.id}
+                      isActive={heroPlaying}
+                      isMuted={isHeroMuted}
+                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                    />
+                  ) : (
+                    <HTML5Player
+                      videoId={currentHeroVideo.id}
+                      videoUrl={currentHeroVideo.videoUrl}
+                      isActive={heroPlaying}
+                      isMuted={isHeroMuted}
+                      onPlayerReady={p => { if (heroPlaying) p.playVideo(); }}
+                    />
+                  )}
+                </div>
+              )}
             </>
           )}
 
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-black/20 to-transparent pointer-events-none z-10" />
 
-          <div className="absolute inset-0 z-20 flex items-center justify-center">
-            <button
-              onClick={scrollToDiscover}
-              className="flex flex-col items-center gap-3 group/play"
-            >
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover/play:scale-110 transition-all duration-200 shadow-white/20">
-                <Play size={32} className="text-red-600 ml-1" fill="currentColor" />
-              </div>
-              <span className="text-white text-xs font-black uppercase tracking-[0.25em] bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10">
-                Play Now
-              </span>
-            </button>
-          </div>
+          {!heroPlaying && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center">
+              <button
+                onClick={scrollToDiscover}
+                className="group/play cursor-pointer z-40 flex items-center gap-4 px-12 py-5 bg-black/40 backdrop-blur-xl rounded-lg border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl"
+              >
+                <div className="relative w-12 h-12 sm:w-16 sm:h-16 transition-transform duration-500 group-hover/play:rotate-[360deg]">
+                  <Image
+                    src="/sawaplay.png"
+                    alt="Play"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-white text-xl sm:text-3xl font-black uppercase tracking-[0.1em] leading-tight">
+                    Play Now
+                  </span>
+                  <span className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mt-0.5">
+                    Stream the latest vibes
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
+
+
 
           <button
-            onClick={() => setHeroIndex(prev => (prev === 0 ? Math.max(heroSource.length - 1, 0) : prev - 1))}
+            onClick={handleHeroPrev}
             className="absolute left-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
           >
             <ChevronLeft size={22} />
           </button>
           <button
-            onClick={nextHeroVideo}
+            onClick={handleHeroNext}
             className="absolute right-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
           >
             <ChevronRight size={22} />
@@ -762,16 +823,30 @@ function SawaFlixContent() {
           )}
         </section>
 
-        <section ref={discoverRef} className="mb-12">
-          <div className="flex items-center justify-between mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <span className="w-1.5 h-9 bg-white/60 rounded-full" />
+        <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
+            <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
-                  ? <>Results for <span className="text-white/60">"{urlQuery}"</span></>
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Results for <span className="text-white/60 font-medium">"{urlQuery}"</span></>
+                    </div>
                   : isSearchMode && selectedVideo
-                  ? <>Watching <span className="text-white/60">"{urlQuery}"</span></>
-                  : <>Discover <span className="text-white/50">{currentCategoryObj?.label}</span></>
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
+                    </div>
+                  : (
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+                        <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+                      </div>
+                      <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
+                        {currentCategoryObj?.label}
+                      </span>
+                    </div>
+                  )
                 }
               </h2>
             </div>
@@ -779,9 +854,9 @@ function SawaFlixContent() {
             {isSearchMode && selectedVideo && (
               <button
                 onClick={() => setSelectedVideo(null)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all"
+                className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
               >
-                <ChevronLeft size={14} /> All Results
+                <ChevronLeft size={14} /> Back
               </button>
             )}
           </div>
@@ -823,7 +898,7 @@ function SawaFlixContent() {
             </div>
           )}
         </section>
-      </main>
+      </div>
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

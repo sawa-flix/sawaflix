@@ -91,6 +91,9 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
+                onFocus={() => {
+                  document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 placeholder="Search titles, people, genres..."
                 className="w-full pl-10 pr-4 py-1.5 bg-black border border-white/40 rounded-sm
                            text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-1 
@@ -252,6 +255,9 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => {
+                document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               placeholder="Search titles, people, genres..."
               className="w-full pl-10 pr-4 py-2 bg-black border border-white/60 rounded-sm
                          text-white placeholder-gray-500 focus:outline-none focus:ring-1 
