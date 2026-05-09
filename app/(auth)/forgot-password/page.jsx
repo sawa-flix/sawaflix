@@ -75,7 +75,7 @@ function ForgotPasswordContent() {
                 <div>
                   <h2 className="text-xl font-bold text-white mb-2">Check Your Inbox</h2>
                   <p className="text-gray-400 text-sm leading-relaxed">
-                    If <span className="text-white font-medium">{email}</span> is registered with Sawaflix, you will receive a password reset link shortly.
+                    We have sent a password reset link to <span className="text-white font-medium">{email}</span>.
                   </p>
                   <p className="text-gray-500 text-xs mt-3">
                     Don't see it? Check your spam folder.
