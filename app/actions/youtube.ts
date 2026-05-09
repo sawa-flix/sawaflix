@@ -28,13 +28,23 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
         return response;
     } catch (error: any) {
         clearTimeout(timeoutId);
+        
         if (error.name === 'AbortError') {
             throw new Error('Backend request timed out. The server might be waking up (Render free tier). Please wait a moment and try again.');
         }
-        if (error.message === 'fetch failed') {
-            console.error(`[YouTube Action] Fetch failed for URL: ${url}`);
-            throw new Error('Unable to connect to SawaFlix backend. The server might be offline or waking up.');
+
+        // Handle low-level connection failures
+        if (error.message === 'fetch failed' || error.code === 'ECONNREFUSED' || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+            console.error(`[YouTube Action] Connection failed to: ${url}`, error);
+            
+            const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
+            const message = isLocal 
+                ? 'Unable to connect to your local SawaFlix backend. Please ensure it is running on http://localhost:5000'
+                : 'Unable to reach the SawaFlix backend. It might be offline or waking up. If you are developing locally, set NEXT_PUBLIC_API_URL to http://localhost:5000 in your .env file.';
+            
+            throw new Error(message);
         }
+
         throw error;
     }
 }
