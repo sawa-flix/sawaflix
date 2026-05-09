@@ -633,8 +633,7 @@ function SawaFlixContent() {
       setShowShorts(true);
       const t = setTimeout(() => {
         if (discoverRef.current) {
-          const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
-          window.scrollTo({ top, behavior: 'smooth' });
+          discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 250);
       return () => clearTimeout(t);
@@ -717,8 +716,7 @@ function SawaFlixContent() {
     setShowShorts(true);
     setTimeout(() => {
       if (discoverRef.current) {
-        const top = discoverRef.current.getBoundingClientRect().top + window.scrollY - 72;
-        window.scrollTo({ top, behavior: 'smooth' });
+        discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 80);
   };
@@ -860,7 +858,7 @@ function SawaFlixContent() {
 
         {showShorts && (
           <section id="discover-section" ref={discoverRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden" : "mb-12 scroll-mt-20"}>
-            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-6 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
+            <div className={`flex flex-row items-center justify-between gap-4 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
