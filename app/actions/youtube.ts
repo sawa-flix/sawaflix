@@ -12,12 +12,50 @@ async function getAuthToken() {
     return session?.access_token;
 }
 
+/**
+ * Robust fetch with timeout and better error handling
+ */
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 60000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error: any) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Backend request timed out. The server might be waking up (Render free tier). Please wait a moment and try again.');
+        }
+        if (error.message === 'fetch failed') {
+            console.error(`[YouTube Action] Fetch failed for URL: ${url}`);
+            throw new Error('Unable to connect to SawaFlix backend. The server might be offline or waking up.');
+        }
+        throw error;
+    }
+}
+
+async function handleResponse(response: Response) {
+    if (!response.ok) {
+        let errorMessage = `HTTP error ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch {}
+        throw new Error(errorMessage);
+    }
+    return response.json();
+}
+
 export async function getUnifiedFeedAction() {
     const url = `${API_BASE_URL}/api/content/unified-feed`;
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch unified feed');
-        return response.json();
+        const response = await fetchWithTimeout(url);
+        return handleResponse(response);
     } catch (error) {
         console.error('getUnifiedFeedAction error:', error);
         throw error;
@@ -43,31 +81,14 @@ export async function searchVideosAction(
     }
 
     const url = `${API_BASE_URL}/api/videos/external/youtube?${params.toString()}`;
+    console.log(`[YouTube Action] Searching videos: ${url}`);
     
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
-
-        const response = await fetch(url, {
-            signal: controller.signal
+        const response = await fetchWithTimeout(url, {
+            next: { revalidate: 3600 }
         });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            let errorMessage = `HTTP error ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch {}
-            throw new Error(errorMessage);
-        }
-
-        return response.json();
-    } catch (error: any) {
-        if (error.name === 'AbortError') {
-            throw new Error('The request timed out. The backend might be starting up.');
-        }
+        return handleResponse(response);
+    } catch (error) {
         console.error('searchVideosAction error:', error);
         throw error;
     }
@@ -80,19 +101,13 @@ export async function getVideoDetailsAction(videoId: string): Promise<VideoDetai
 
     const url = `${API_BASE_URL}/api/videos/external/youtube/${encodeURIComponent(videoId)}`;
     
-    // Rely on Backend Redis cache
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-        } catch {}
-        throw new Error(errorMessage);
+    try {
+        const response = await fetchWithTimeout(url);
+        return handleResponse(response);
+    } catch (error) {
+        console.error('getVideoDetailsAction error:', error);
+        throw error;
     }
-
-    return response.json();
 }
 
 export async function getVideoCommentsAction(videoId: string): Promise<Comment[]> {
@@ -102,61 +117,57 @@ export async function getVideoCommentsAction(videoId: string): Promise<Comment[]
 
     const url = `${API_BASE_URL}/api/videos/external/youtube/${encodeURIComponent(videoId)}/comments`;
     
-    // Rely on Backend Redis cache
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-        } catch {}
-        throw new Error(errorMessage);
+    try {
+        const response = await fetchWithTimeout(url);
+        return handleResponse(response);
+    } catch (error) {
+        console.error('getVideoCommentsAction error:', error);
+        throw error;
     }
-
-    return response.json();
 }
 
 export async function likeYouTubeVideoAction(videoId: string, origin: 'youtube' | 'sawaflix' = 'youtube') {
     if (!videoId || videoId.trim() === '') throw new Error('Video ID cannot be empty');
     const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/interactions/like`;
-    const response = await fetch(url, {
-        method: 'POST',
-        cache: 'no-store',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ videoId, origin })
-    });
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
-        throw new Error(errorMessage);
+    
+    try {
+        const response = await fetchWithTimeout(url, {
+            method: 'POST',
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ videoId, origin })
+        });
+        return handleResponse(response);
+    } catch (error) {
+        console.error('likeYouTubeVideoAction error:', error);
+        throw error;
     }
-    return response.json();
 }
 
 export async function followYouTubeChannelAction(channelId: string) {
     if (!channelId || channelId.trim() === '') throw new Error('Channel ID cannot be empty');
     const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/interactions/follow`;
-    const response = await fetch(url, {
-        method: 'POST',
-        cache: 'no-store',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ channelId })
-    });
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
-        throw new Error(errorMessage);
+    
+    try {
+        const response = await fetchWithTimeout(url, {
+            method: 'POST',
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ channelId })
+        });
+        return handleResponse(response);
+    } catch (error) {
+        console.error('followYouTubeChannelAction error:', error);
+        throw error;
     }
-    return response.json();
 }
 
 export async function commentYouTubeVideoAction(videoId: string, text: string, origin: 'youtube' | 'sawaflix' = 'youtube') {
@@ -164,19 +175,20 @@ export async function commentYouTubeVideoAction(videoId: string, text: string, o
     if (!text || text.trim() === '') throw new Error('Comment text cannot be empty');
     const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/interactions/comment`;
-    const response = await fetch(url, {
-        method: 'POST',
-        cache: 'no-store',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ videoId, commentText: text, origin })
-    });
-    if (!response.ok) {
-        let errorMessage = `HTTP error ${response.status}`;
-        try { const errorData = await response.json(); errorMessage = errorData.error || errorMessage; } catch {}
-        throw new Error(errorMessage);
+    
+    try {
+        const response = await fetchWithTimeout(url, {
+            method: 'POST',
+            cache: 'no-store',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ videoId, commentText: text, origin })
+        });
+        return handleResponse(response);
+    } catch (error) {
+        console.error('commentYouTubeVideoAction error:', error);
+        throw error;
     }
-    return response.json();
 }
