@@ -80,12 +80,29 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (error && error.message !== 'Auth session missing!') {
-     console.error('Middleware getUser error:', error.message);
+    console.error('Middleware getUser error:', error.message);
+
+    // If the refresh token is stale/invalid, the cookie is corrupted.
+    // Clear it and redirect to login — otherwise the user gets stuck in an infinite loop.
+    if (
+      error.message.includes('refresh_token_not_found') ||
+      error.message.includes('Invalid Refresh Token') ||
+      error.message.includes('does not exist')
+    ) {
+      const loginUrl = new URL('/login', request.url);
+      const response = NextResponse.redirect(loginUrl);
+      // Delete the stale auth cookie so the next visit is clean
+      const authCookieName = `sb-${supabaseUrl.replace('https://', '').split('.')[0]}-auth-token`;
+      response.cookies.delete(authCookieName);
+      response.cookies.delete(`${authCookieName}.0`);
+      response.cookies.delete(`${authCookieName}.1`);
+      return response;
+    }
   }
 
   // pathname is already extracted above
 
-  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
+  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback", "/update-password", "/forgot-password"];
   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
