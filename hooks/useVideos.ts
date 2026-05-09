@@ -51,7 +51,8 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         embedUrl: item.videoUrl || item.media_url,
         likeCount: item.likes || 0,
         commentCount: 0,
-        origin: 'sawaflix'
+        origin: 'sawaflix',
+        contentType: item.contentType || item.content_type || (item.media_url?.match(/\.(mp3|wav|ogg|flac|aac)$/i) ? 'music' : 'video')
     });
 
     const refresh = useCallback(async () => {
@@ -82,10 +83,16 @@ export function useVideos(categoryQuery: string): UseVideosResult {
 
             let finalVideos: Video[] = [];
 
+            const isDefaultFeed = categoryQuery === 'Cameroon music hits 2026';
+            const isMusicQuery = categoryQuery.toLowerCase().includes('music');
+
             // If the user is on the default feed (All 237), fetch the fast unified feed!
-            if (categoryQuery === 'Cameroon music hits 2026') {
+            if (isDefaultFeed) {
                 const response = await youtubeApi.getUnifiedFeed();
-                const sawaflixVideos = (response.data?.sawaflix || []).map(mapSawaflixItem);
+                const sawaflixVideos = (response.data?.sawaflix || [])
+                    .map(mapSawaflixItem)
+                    .filter(v => v.contentType !== 'music' && v.contentType !== 'audio'); // Exclude audio from "All"
+
                 const ytVideos = (response.data?.youtube || []).map(mapYouTubeItem);
 
                 // Mix them up for a dynamic feel
@@ -98,10 +105,24 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 // Specific category search
                 const response = await youtubeApi.searchVideos(categoryQuery, null, 10);
                 const rawList = Array.isArray(response) ? response : (response as any).items || [];
-                finalVideos = rawList
+                const ytVideos = rawList
                     .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
-                    .map(mapYouTubeItem)
-                    .sort(() => Math.random() - 0.5);
+                    .map(mapYouTubeItem);
+
+                let sawaflixVideos: Video[] = [];
+                if (isMusicQuery) {
+                    // Fetch Sawaflix music to include in music contexts
+                    try {
+                        const sfResponse = await youtubeApi.getUnifiedFeed();
+                        sawaflixVideos = (sfResponse.data?.sawaflix || [])
+                            .map(mapSawaflixItem)
+                            .filter(v => v.contentType === 'music' || v.contentType === 'audio');
+                    } catch (e) {
+                        console.error('[useVideos] Failed to fetch Sawaflix music:', e);
+                    }
+                }
+
+                finalVideos = [...ytVideos, ...sawaflixVideos].sort(() => Math.random() - 0.5);
 
                 nextPageTokenRef.current = (response as any).nextPageToken || null;
                 setHasMore(!!(response as any).nextPageToken);

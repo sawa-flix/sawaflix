@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
 import { MusicProvider } from '../MusicContext';
+import { NotificationProvider } from '../../contexts/NotificationContext';
 import BottomPlayer from '../BottomPlayer';
 
 const DashboardWrapper = ({ children }) => {
@@ -101,7 +102,8 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <MusicProvider>
-      <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
+      <NotificationProvider>
+        <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
@@ -177,6 +179,7 @@ const DashboardWrapper = ({ children }) => {
           }
         `}</style>
       </div>
+      </NotificationProvider>
     </MusicProvider>
   );
 };
