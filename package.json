@@ -6,11 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:cover": "vitest run --coverage"
+    "lint": "next lint"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.15.2",
