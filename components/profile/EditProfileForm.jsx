@@ -1,11 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Camera, User, Link as LinkIcon, BadgeCheck, AlertCircle, Save, Globe, X, Plus, Image as ImageIcon, Sparkles, CheckCircle2 } from 'lucide-react';
+import { 
+    Camera, User, Link as LinkIcon, BadgeCheck, 
+    AlertCircle, Save, Globe, X, Plus, 
+    Image as ImageIcon, Sparkles, CheckCircle2,
+    Info, Layout, Settings, UploadCloud, Trash2
+} from 'lucide-react';
 import { uploadFile } from '../../lib/verification';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, rejectionFeedback }) => {
+const EditProfileForm = ({ initialData, onSave, isSaving }) => {
     const [formData, setFormData] = useState({
         displayName: '',
         bio: '',
@@ -15,7 +20,7 @@ const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, re
     });
     const [previews, setPreviews] = useState({ profile: '', banner: '' });
     const [uploading, setUploading] = useState({ profile: false, banner: false });
-    const [socialInput, setSocialInput] = useState('');
+    const [socialInput, setSocialInput] = useState({ platform: '', url: '' });
 
     useEffect(() => {
         if (initialData) {
@@ -36,7 +41,6 @@ const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, re
     const handleAssetUpload = async (type, file) => {
         if (!file) return;
         
-        // Local preview
         const reader = new FileReader();
         reader.onload = (event) => {
             setPreviews(prev => ({ ...prev, [type]: event.target.result }));
@@ -45,7 +49,6 @@ const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, re
         
         setUploading(prev => ({ ...prev, [type]: true }));
         try {
-            // Updated to use the new backend categories
             const category = type === 'profile' ? 'profile_image' : 'cover_image';
             const res = await uploadFile(file, category);
             
@@ -63,12 +66,12 @@ const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, re
     };
 
     const addSocialLink = () => {
-        if (!socialInput || formData.socialLinks.includes(socialInput)) return;
+        if (!socialInput.platform || !socialInput.url) return;
         setFormData(prev => ({
             ...prev,
-            socialLinks: [...prev.socialLinks, socialInput]
+            socialLinks: [...prev.socialLinks, { ...socialInput }]
         }));
-        setSocialInput('');
+        setSocialInput({ platform: '', url: '' });
     };
 
     const removeSocialLink = (index) => {
@@ -84,215 +87,266 @@ const EditProfileForm = ({ initialData, onSave, isSaving, verificationStatus, re
     };
 
     return (
-        <div className="max-w-4xl mx-auto font-sans text-white antialiased pb-24">
-            <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="max-w-5xl mx-auto font-sans text-white selection:bg-red-600/30 pb-40">
+            <form onSubmit={handleSubmit} className="space-y-12">
                 
-                {/* Visual Identity Section */}
-                <div className="bg-[#0f172a] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
-                    
-                    {/* Banner Canvas */}
-                    <div className="relative h-48 sm:h-56 bg-zinc-900 group">
-                        {previews.banner ? (
-                            <img 
-                                src={previews.banner} 
-                                alt="Banner"
-                                className="w-full h-full object-cover transition-all duration-700"
-                            />
-                        ) : (
-                            <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                <ImageIcon size={48} className="text-zinc-600" />
-                            </div>
-                        )}
-                        
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                            <label className="cursor-pointer flex flex-col items-center gap-2">
-                                <div className="p-3 bg-white/10 rounded-full border border-white/25 hover:bg-white/20 transition-all">
-                                    <Camera size={24} className="text-white" />
-                                </div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Change Banner</span>
-                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleAssetUpload('banner', e.target.files[0])} />
-                            </label>
+                {/* Branding & Assets Section */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                            <Layout className="w-4 h-4 text-zinc-400" />
                         </div>
-
-                        {uploading.banner && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-40">
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="w-40 h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div 
-                                            initial={{ x: '-100%' }}
-                                            animate={{ x: '100%' }}
-                                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                                            className="w-1/2 h-full bg-red-600" 
-                                        />
-                                    </div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Uploading Banner</span>
-                                </div>
-                            </div>
-                        )}
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tight">Channel Branding</h2>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">Manage your visual identity across SawaFlix</p>
+                        </div>
                     </div>
 
-                    {/* Profile Overlay Context */}
-                    <div className="px-6 sm:px-12 pb-10 relative">
-                        {/* Avatar Hub */}
-                        <div className="relative -mt-20 sm:-mt-24 inline-block">
-                            <div className="relative group">
-                                <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full border-8 border-[#0f172a] bg-zinc-900 overflow-hidden shadow-2xl relative z-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Banner Upload Card */}
+                        <div className="lg:col-span-8 bg-[#0B0E14] border border-white/5 rounded-[2.5rem] overflow-hidden group shadow-2xl relative">
+                            <div className="relative h-64 bg-zinc-900 overflow-hidden">
+                                {previews.banner ? (
+                                    <img src={previews.banner} alt="Banner Preview" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                ) : (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-900 to-black text-zinc-700">
+                                        <ImageIcon size={48} className="mb-4 opacity-20" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.3em]">No Banner Set</p>
+                                    </div>
+                                )}
+                                
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
+                                    <label className="cursor-pointer flex flex-col items-center gap-3">
+                                        <div className="p-4 bg-white/10 rounded-full border border-white/20 hover:bg-white/20 transition-all shadow-2xl">
+                                            <UploadCloud size={28} className="text-white" />
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Change Banner</span>
+                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleAssetUpload('banner', e.target.files[0])} />
+                                    </label>
+                                </div>
+
+                                {uploading.banner && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-40 backdrop-blur-md">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+                                                <motion.div 
+                                                    initial={{ x: '-100%' }}
+                                                    animate={{ x: '100%' }}
+                                                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
+                                                    className="w-1/2 h-full bg-red-600" 
+                                                />
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Optimizing Image...</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-8 border-t border-white/5 bg-zinc-900/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-bold">Banner Image</p>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Recommended: 2048 x 1152 pixels</p>
+                                    </div>
+                                    <button type="button" className="text-[10px] font-black uppercase tracking-widest text-red-600 hover:text-red-500 transition-colors">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Profile Image Card */}
+                        <div className="lg:col-span-4 bg-[#0B0E14] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center space-y-6 group shadow-2xl">
+                            <div className="relative">
+                                <div className="w-40 h-40 rounded-[2.5rem] bg-zinc-900 overflow-hidden border-4 border-white/5 group-hover:border-white/20 transition-all duration-500 shadow-2xl relative">
                                     {previews.profile ? (
-                                        <img 
-                                            src={previews.profile} 
-                                            alt="Profile"
-                                            className="w-full h-full object-cover aspect-square"
-                                        />
+                                        <img src={previews.profile} alt="Profile Preview" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <User size={48} className="text-zinc-700" />
+                                        <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                                            <User size={48} className="opacity-20" />
                                         </div>
                                     )}
-
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 z-30 backdrop-blur-sm">
-                                        <label className="cursor-pointer flex flex-col items-center gap-1">
-                                            <Camera size={24} className="text-white" />
-                                            <span className="text-[8px] font-black uppercase tracking-widest">Update</span>
+                                    
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm cursor-pointer">
+                                        <label className="cursor-pointer flex flex-col items-center gap-2">
+                                            <Camera size={24} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest">Change</span>
                                             <input type="file" className="hidden" accept="image/*" onChange={(e) => handleAssetUpload('profile', e.target.files[0])} />
                                         </label>
                                     </div>
                                 </div>
-
                                 {uploading.profile && (
-                                    <div className="absolute inset-0 z-40 flex items-center justify-center">
-                                        <div className="w-10 h-10 border-3 border-red-600 border-t-transparent animate-spin rounded-full shadow-lg shadow-red-600/20 bg-black/40" />
+                                    <div className="absolute inset-0 bg-black/40 rounded-[2.5rem] flex items-center justify-center">
+                                        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent animate-spin rounded-full" />
                                     </div>
                                 )}
                             </div>
+                            <div className="space-y-1">
+                                <p className="text-sm font-bold">Profile Picture</p>
+                                <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest leading-relaxed">Minimum: 400 x 400 pixels</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Basic Info Section */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-8">
+                    {/* Primary Details */}
+                    <div className="lg:col-span-7 space-y-8">
+                        <div className="flex items-center gap-3 px-2">
+                            <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                                <Settings className="w-4 h-4 text-zinc-400" />
+                            </div>
+                            <h2 className="text-xl font-black uppercase tracking-tight">Basic Info</h2>
                         </div>
 
-                        {/* Profile Info Cards */}
-                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Identity Card */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-2 mb-2 p-1">
-                                    <Sparkles size={16} className="text-red-500" />
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">Identity Details</h3>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Creator Handle</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.displayName}
-                                            onChange={(e) => setFormData(p => ({ ...p, displayName: e.target.value }))}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
-                                            placeholder="Pick a handle..."
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Creator Bio</label>
-                                        <textarea 
-                                            value={formData.bio}
-                                            onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))}
-                                            rows={4}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-medium text-zinc-300 focus:border-red-600/40 transition-all outline-none resize-none leading-relaxed"
-                                            placeholder="Share your story..."
-                                        />
-                                    </div>
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Display Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.displayName}
+                                        onChange={(e) => setFormData(p => ({ ...p, displayName: e.target.value }))}
+                                        className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] pl-14 pr-6 py-5 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none shadow-inner"
+                                        placeholder="Channel Name"
+                                    />
                                 </div>
                             </div>
 
-                            {/* Social Presence Card */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-2 mb-2 p-1">
-                                    <Globe size={16} className="text-red-500" />
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">Online Presence</h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between px-1">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Bio / Description</label>
+                                    <span className="text-[9px] font-bold text-zinc-600">{formData.bio.length} / 1000</span>
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Platform Link</label>
-                                        <div className="flex gap-2">
-                                            <div className="relative flex-1">
-                                                <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                                                <input 
-                                                    type="text" 
-                                                    value={socialInput}
-                                                    onChange={(e) => setSocialInput(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSocialLink())}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-4 text-[11px] text-white focus:border-red-600/40 transition-all outline-none font-bold"
-                                                    placeholder="Spotify, YouTube, etc."
-                                                />
-                                            </div>
-                                            <button 
-                                                type="button" 
-                                                onClick={addSocialLink}
-                                                className="p-4 bg-zinc-800 rounded-xl hover:bg-red-600 transition-all active:scale-95 shadow-lg"
-                                            >
-                                                <Plus size={20} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2 pt-2">
-                                        <AnimatePresence>
-                                            {formData.socialLinks.map((link, i) => (
-                                                <motion.div 
-                                                    key={i}
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    exit={{ scale: 0.8, opacity: 0 }}
-                                                    className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] text-zinc-400 font-black group hover:border-red-600/20 transition-all"
-                                                >
-                                                    <span className="truncate max-w-[120px]">{link}</span>
-                                                    <button type="button" onClick={() => removeSocialLink(i)} className="text-zinc-600 hover:text-white transition-colors">
-                                                        <X size={14} />
-                                                    </button>
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
-                                        {formData.socialLinks.length === 0 && (
-                                            <p className="text-[10px] text-zinc-600 font-bold italic ml-1">No links added yet.</p>
-                                        )}
-                                    </div>
+                                <div className="relative">
+                                    <Info className="absolute left-6 top-6 w-4 h-4 text-zinc-600" />
+                                    <textarea 
+                                        value={formData.bio}
+                                        onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))}
+                                        rows={8}
+                                        className="w-full bg-[#0B0E14] border border-white/5 rounded-[2rem] pl-14 pr-6 py-6 text-sm font-medium text-zinc-300 focus:border-red-600/40 transition-all outline-none resize-none leading-relaxed shadow-inner"
+                                        placeholder="Tell your viewers about your channel..."
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Fixed Control Bar at Bottom */}
-                <div className="fixed bottom-0 left-0 right-0 z-50 p-6 bg-[#030712]/80 backdrop-blur-xl border-t border-white/5 shadow-2xl lg:pl-[280px]">
-                    <div className="max-w-4xl mx-auto flex items-center justify-between gap-6">
-                        <div className="hidden sm:flex items-center gap-3 text-zinc-500">
-                            <AlertCircle size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Unsaved Changes</span>
+                    {/* Social Hub Section */}
+                    <div className="lg:col-span-5 space-y-8">
+                        <div className="flex items-center gap-3 px-2">
+                            <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                                <Globe className="w-4 h-4 text-zinc-400" />
+                            </div>
+                            <h2 className="text-xl font-black uppercase tracking-tight">Social Hub</h2>
+                        </div>
+
+                        <div className="bg-[#0B0E14] border border-white/5 rounded-[2.5rem] p-8 space-y-8 shadow-2xl">
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <select 
+                                        value={socialInput.platform}
+                                        onChange={(e) => setSocialInput(p => ({ ...p, platform: e.target.value }))}
+                                        className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest outline-none focus:border-red-600/40"
+                                    >
+                                        <option value="">Platform</option>
+                                        <option value="youtube">YouTube</option>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="twitter">Twitter / X</option>
+                                        <option value="globe">Website</option>
+                                    </select>
+                                    <button 
+                                        type="button" 
+                                        onClick={addSocialLink}
+                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-black hover:bg-zinc-200 rounded-xl transition-all shadow-lg active:scale-95"
+                                    >
+                                        <Plus size={16} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Add Link</span>
+                                    </button>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    value={socialInput.url}
+                                    onChange={(e) => setSocialInput(p => ({ ...p, url: e.target.value }))}
+                                    className="w-full bg-black/40 border border-white/5 rounded-xl px-6 py-4 text-xs font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                                    placeholder="Paste URL here..."
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <AnimatePresence mode="popLayout">
+                                    {formData.socialLinks.map((link, i) => (
+                                        <motion.div 
+                                            key={i}
+                                            initial={{ scale: 0.9, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.9, opacity: 0 }}
+                                            className="flex items-center justify-between p-4 bg-zinc-900/50 border border-white/5 rounded-2xl group hover:border-red-600/20 transition-all"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-black/40 rounded-lg">
+                                                    <LinkIcon size={12} className="text-zinc-500" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{link.platform}</span>
+                                                    <span className="text-[11px] font-bold text-zinc-300 truncate max-w-[150px]">{link.url}</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => removeSocialLink(i)} 
+                                                className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                                {formData.socialLinks.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center py-10 text-center opacity-20">
+                                        <Globe size={32} className="mb-2" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No Social Links Connected</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Floating Bottom Control Bar */}
+                <motion.div 
+                    initial={{ y: 100 }}
+                    animate={{ y: 0 }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-2xl"
+                >
+                    <div className="p-4 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4">
+                        <div className="hidden sm:flex items-center gap-3 pl-6">
+                            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Review Changes</span>
                         </div>
                         
-                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
                             <button 
                                 type="button"
-                                onClick={() => window.location.href = '/dashboard'}
-                                className="flex-1 sm:flex-none px-8 py-4 bg-zinc-800 rounded-2xl font-black text-xs text-white uppercase tracking-widest hover:bg-zinc-700 transition-all active:scale-95"
+                                onClick={() => window.location.reload()}
+                                className="px-8 py-3.5 bg-zinc-800 rounded-full font-black text-[10px] text-white uppercase tracking-widest hover:bg-zinc-700 transition-all active:scale-95 border border-white/5"
                             >
-                                Cancel
+                                Revert
                             </button>
                             <button 
                                 type="submit" 
                                 disabled={isSaving || uploading.profile || uploading.banner}
-                                className="flex-1 sm:flex-none px-12 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-500 transition-all shadow-xl shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 sm:flex-none px-12 py-3.5 bg-red-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-500 transition-all shadow-[0_0_30px_rgba(220,38,38,0.3)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                             >
                                 {isSaving ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
-                                        <span>Saving...</span>
-                                    </>
+                                    <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full" />
                                 ) : (
-                                    <>
-                                        <Save size={16} />
-                                        <span>Save Profile</span>
-                                    </>
+                                    <CheckCircle2 size={16} />
                                 )}
+                                <span>Publish Changes</span>
                             </button>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </form>
         </div>
     );

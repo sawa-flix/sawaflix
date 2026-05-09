@@ -4,7 +4,6 @@ import { BACKEND_URL } from '../../lib/apiConfig';
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import LeftSidebar from './leftsidebar';
-import CreatorSidebar from './CreatorSidebar';
 import RightSidebar from './rightsidebar';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -24,38 +23,65 @@ const DashboardWrapper = ({ children }) => {
             const { createClient } = require('../../utils/supabase/client');
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const { data: { user } } = await supabase.auth.getUser(); 
             const token = session?.access_token;
             
+            // 1. Try API first
+            let apiData = null;
+            try {
+                const visitorId = localStorage.getItem('sawaflix_visitor_id');
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                    headers: {
+                        ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+                if (res.ok) apiData = await res.json();
+            } catch (apiErr) {
+                console.error("API check failed:", apiErr);
+            }
+
+            // 2. Always fetch Supabase profile as source of truth for permissions
+            let supabaseProfile = null;
+            let submissionData = null;
             if (user) {
-                // Fetch profile directly from Supabase instead of failing backend endpoint
                 const { data: profile } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
                     .single();
+                supabaseProfile = profile;
 
                 const { data: submission } = await supabase
                     .from('verification_submissions')
                     .select('status, category')
                     .eq('creator_id', user.id)
                     .maybeSingle();
-
-                const finalProfile = {
-                    ...(profile || {
-                        id: user.id,
-                        email: user.email,
-                        username: user.email?.split('@')[0],
-                    }),
-                    category: submission?.category || profile?.category || 'viewer',
-                    verificationStatus: submission?.status || 'none',
-                    verification_status: profile?.verification_status || submission?.status || 'none',
-                    role: profile?.role || 'viewer'
-                };
-
-                setUserProfile(finalProfile);
-                setVerificationStatus(finalProfile.verificationStatus);
+                submissionData = submission;
             }
+
+            // 3. Merge data, prioritizing 'approved' status
+            const finalProfile = {
+                ...(supabaseProfile || apiData || {
+                    id: user?.id,
+                    email: user?.email,
+                    username: user?.email?.split('@')[0],
+                }),
+                category: submissionData?.category || supabaseProfile?.category || apiData?.category || 'viewer'
+            };
+
+            // Define the final status by checking all possible fields
+            const statusFromSupabase = supabaseProfile?.verification_status || submissionData?.status;
+            const statusFromApi = apiData?.verification_status || apiData?.verificationStatus;
+            
+            // If ANY source says approved, then the user is approved
+            const finalStatus = (statusFromSupabase?.toLowerCase() === 'approved' || statusFromApi?.toLowerCase() === 'approved')
+                ? 'approved'
+                : (statusFromSupabase || statusFromApi || 'none');
+
+            setUserProfile(finalProfile);
+            setVerificationStatus(finalStatus);
+
         } catch (err) {
             console.error("Error checking creator status:", err);
         }
@@ -63,10 +89,7 @@ const DashboardWrapper = ({ children }) => {
     checkCreatorStatus();
   }, []);
 
-  // Determine if we should show the creator-specific layout.
-  // The middleware already blocks non-approved creators from /creator-dashboard,
-  // so we trust the pathname directly — no need to wait for the async API call.
-  const isCreatorLayout = pathname.startsWith('/creator-dashboard');
+
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -84,10 +107,10 @@ const DashboardWrapper = ({ children }) => {
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Header - Only show if NOT in creator layout mode */}
-        {!isCreatorLayout && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
+        {/* Header - Unified across all pages */}
+        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-        <div className={`relative z-10 ${isCreatorLayout ? '' : 'pt-16'}`}> 
+        <div className="relative z-10 pt-16"> 
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -102,7 +125,7 @@ const DashboardWrapper = ({ children }) => {
             />
           )}
 
-          {/* Left Sidebar — Fixed */}
+          {/* Left Sidebar — Fixed & Unified */}
           <aside
             className={`
               fixed top-16 left-0 z-50 lg:z-30
@@ -112,29 +135,22 @@ const DashboardWrapper = ({ children }) => {
               lg:translate-x-0
               overflow-y-auto scrollbar-none
               border-r border-white/5 shadow-2xl shadow-black/50
-              ${isCreatorLayout ? 'top-0 h-screen' : ''}
             `}
           >
-            {isCreatorLayout ? (
-                <CreatorSidebar userProfile={userProfile} />
-            ) : (
-                <LeftSidebar onNavigate={closeSidebar} />
-            )}
+            <LeftSidebar 
+              onNavigate={closeSidebar} 
+              verificationStatus={verificationStatus} 
+              userProfile={userProfile} 
+            />
           </aside>
 
-          {/* Right Sidebar — Fixed */}
-          {!isCreatorLayout && (
-            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
-                <RightSidebar />
-            </aside>
-          )}
+          {/* Right Sidebar — Fixed & Unified */}
+          <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+              <RightSidebar />
+          </aside>
 
           {/* Main Content Area — Scrollable center */}
-          <main className={`
-            ${isCreatorLayout ? 'h-screen lg:ml-72' : 'h-[calc(100vh-4rem)] lg:ml-72'}
-            ${!isCreatorLayout ? 'xl:mr-80' : ''}
-            overflow-y-auto bg-transparent scroll-smooth
-          `}>
+          <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto scrollbar-none bg-transparent scroll-smooth">
             <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500"> 
               {children}
             </div>
