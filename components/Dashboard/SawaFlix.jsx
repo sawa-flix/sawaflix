@@ -431,40 +431,40 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                   <p className="text-white/60 font-bold text-xs uppercase tracking-widest truncate mb-0.5">{video.channelTitle}</p>
                   <h3 className="text-white text-base font-bold leading-snug line-clamp-2">{video.title}</h3>
                 </div>
-                <div className="flex flex-col items-center gap-5 shrink-0 pointer-events-auto">
-                  <button onClick={handleLike} className="flex flex-col items-center gap-1 group/btn">
-                    <div className={`p-3.5 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
-                      <ThumbsUp size={22} className={isLiked ? 'text-white fill-white' : 'text-white'} />
+                <div className="flex flex-col items-center gap-2 shrink-0 pointer-events-auto">
+                  <button onClick={handleLike} className="flex flex-col items-center group/btn">
+                    <div className={`p-2 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
+                      <ThumbsUp size={18} className={isLiked ? 'text-white fill-white' : 'text-white'} />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg">{formatCount(displayLikes)}</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayLikes)}</span>
                   </button>
 
-                  <button className="flex flex-col items-center gap-1 group/btn">
-                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <ThumbsDown size={22} className="text-white" />
+                  <button className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <ThumbsDown size={18} className="text-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Dislike</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Dislike</span>
                   </button>
 
-                  <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center gap-1 group/btn">
-                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <MessageCircle size={22} className="text-white fill-white" />
+                  <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <MessageCircle size={18} className="text-white fill-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg">{formatCount(displayComments)}</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayComments)}</span>
                   </button>
 
-                  <button onClick={handleShare} className="flex flex-col items-center gap-1 group/btn">
-                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <Share2 size={22} className="text-white fill-white" />
+                  <button onClick={handleShare} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <Share2 size={18} className="text-white fill-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Share</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Share</span>
                   </button>
 
-                  <button className="flex flex-col items-center gap-1 group/btn">
-                    <div className="p-3.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <RotateCcw size={22} className="text-white" />
+                  <button className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <RotateCcw size={18} className="text-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg">Remix</span>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
                   </button>
                 </div>
               </div>
@@ -759,8 +759,10 @@ function SawaFlixContent() {
         )}
       </AnimatePresence>
 
-      <div className="flex-1 p-2 sm:p-6 lg:p-8 pt-0 sm:pt-2">
-        <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
+      <div className={`flex-1 pt-0 sm:pt-2 ${selectedVideo ? 'p-0' : 'p-2 sm:p-6 lg:p-8'}`}>
+        {!selectedVideo && (
+          <>
+            <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
           <div className="inline-flex items-center gap-3">
             {CATEGORIES.map(cat => (
               <button
@@ -853,6 +855,8 @@ function SawaFlixContent() {
             <ChevronRight size={22} />
           </button>
         </section>
+          </>
+        )}
 
         {showShorts && (
           <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
@@ -883,7 +887,7 @@ function SawaFlixContent() {
               </h2>
             </div>
 
-            {isSearchMode && selectedVideo && (
+            {selectedVideo && (
               <button
                 onClick={() => setSelectedVideo(null)}
                 className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
