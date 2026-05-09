@@ -859,8 +859,8 @@ function SawaFlixContent() {
         )}
 
         {showShorts && (
-          <section id="discover-section" ref={discoverRef} className="mb-12 scroll-mt-20">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
+          <section id="discover-section" ref={discoverRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden" : "mb-12 scroll-mt-20"}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-6 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                 {isSearchMode && !selectedVideo
@@ -925,7 +925,7 @@ function SawaFlixContent() {
               </div>
             </>
           ) : (
-            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
+            <div className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
               {feedVideos.map(video => (
                 <div
                   key={video.id}
