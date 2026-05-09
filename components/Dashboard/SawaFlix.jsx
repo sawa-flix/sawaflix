@@ -925,7 +925,7 @@ function SawaFlixContent() {
               </div>
             </>
           ) : (
-            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent rounded-none sm:rounded-[2rem] border border-white/5 shadow-2xl">
+            <div className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
               {feedVideos.map(video => (
                 <div
                   key={video.id}
