@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, User, Settings, ChevronDown } from 'lucide-react';
+import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,7 @@ import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import NotificationPanel from './NotificationPanel';
 
 type UserProfileData = {
   username: string | null;
@@ -134,71 +135,27 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               >
                 <Bell size={18} />
                 {userUnreadCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-lg shadow-red-600/20" />
+                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-pulse">
+                    {userUnreadCount > 99 ? '99+' : userUnreadCount}
+                  </span>
                 )}
               </button>
 
               {showUserNotifications && (
-                <div className="absolute right-0 mt-3 w-80 bg-[#0B0E14]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-3 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Notifications</h3>
-                    <div className="flex gap-4">
-                      <button 
-                        onClick={markAllUserRead}
-                        className="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase tracking-widest"
-                      >
-                        Mark all read
-                      </button>
-                      <Link 
-                        href="/dashboard/notification" 
-                        onClick={() => setShowUserNotifications(false)}
-                        className="text-[10px] text-gray-400 hover:text-white font-bold uppercase tracking-widest"
-                      >
-                        View all
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto scrollbar-none">
-                    {userNotifications.length === 0 ? (
-                      <div className="px-5 py-10 text-center text-gray-500 text-xs font-medium">
-                        No notifications yet
-                      </div>
-                    ) : (userNotifications.slice(0, 8).map(n => (
-                        <div 
-                          key={n.id} 
-                          onClick={() => {
-                            if (!n.read) markUserRead(n.id);
-                            // Potentially navigate to content
-                            if (n.contentId) router.push(`/dashboard?v=${n.contentId}`);
-                            setShowUserNotifications(false);
-                          }}
-                          className={`px-5 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group ${!n.read ? 'bg-red-600/5' : ''}`}
-                        >
-                          <div className="flex gap-3">
-                            {n.thumbnail ? (
-                              <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                                <Image src={n.thumbnail} alt="" fill className="object-cover" unoptimized />
-                              </div>
-                            ) : (
-                              <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                                n.type === 'post' ? 'bg-red-500' : 'bg-blue-500'
-                              }`} />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-bold leading-tight mb-1 ${!n.read ? 'text-white' : 'text-gray-400'}`}>
-                                {n.title}
-                              </p>
-                              <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{n.message}</p>
-                              <p className="text-[9px] text-gray-600 mt-2 font-bold uppercase tracking-tighter">
-                                {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+                <NotificationPanel 
+                  title="Notifications"
+                  notifications={userNotifications.slice(0, 10)}
+                  unreadCount={userUnreadCount}
+                  onMarkAllRead={markAllUserRead}
+                  onClose={() => setShowUserNotifications(false)}
+                  onItemClick={(id, contentId) => {
+                    markUserRead(id);
+                    if (contentId) router.push(`/dashboard?v=${contentId}`);
+                    setShowUserNotifications(false);
+                  }}
+                  viewAllHref="/dashboard/notification"
+                  accentColor="red"
+                />
               )}
             </div>
           )}
@@ -213,55 +170,23 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               >
                 <Bell size={20} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20" />
+                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-3 w-80 bg-[#0B0E14]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-3 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Notifications</h3>
-                    <button 
-                      onClick={markAllRead}
-                      className="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase tracking-widest"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto scrollbar-none">
-                    {notifications.length === 0 ? (
-                      <div className="px-5 py-10 text-center text-gray-500 text-xs font-medium">
-                        No notifications yet
-                      </div>
-                    ) : (notifications.map(n => (
-                        <div 
-                          key={n.id} 
-                          onClick={() => {
-                            if (!n.read) markRead(n.id);
-                          }}
-                          className={`px-5 py-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group ${!n.read ? 'bg-red-600/5' : ''}`}
-                        >
-                          <div className="flex gap-4">
-                            <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                              n.type === 'approved' ? 'bg-green-500' : 
-                              n.type === 'rejected' ? 'bg-red-500' : 
-                              n.type === 'new_submission' ? 'bg-yellow-500' : 'bg-blue-500'
-                            }`} />
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-bold leading-tight mb-1 ${!n.read ? 'text-white' : 'text-gray-400'}`}>
-                                {n.title}
-                              </p>
-                              <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{n.message}</p>
-                              <p className="text-[9px] text-gray-600 mt-2 font-bold uppercase tracking-tighter">
-                                {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+                <NotificationPanel 
+                  title="Admin Alerts"
+                  subtitle={`${unreadCount} pending actions`}
+                  notifications={notifications.slice(0, 10)}
+                  unreadCount={unreadCount}
+                  onMarkAllRead={markAllRead}
+                  onClose={() => setShowNotifications(false)}
+                  onItemClick={(id) => markRead(id)}
+                  accentColor="blue"
+                />
               )}
             </div>
           )}

@@ -1,11 +1,13 @@
 'use client'
 import React from 'react';
-import { Play, MoreHorizontal, BellOff } from 'lucide-react';
+import { Play, MoreHorizontal, BellOff, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationPage = () => {
+  const router = useRouter();
   const { notifications, markRead } = useNotifications();
 
   const recentNotifications = notifications.filter(n => {
@@ -19,24 +21,24 @@ const NotificationPage = () => {
   });
 
   const NotificationItem = ({ notification }) => (
-    <div 
-      className={`flex items-start px-4 py-4 border-b border-white/5 hover:bg-white/5 transition-colors group cursor-pointer ${!notification.read ? 'bg-red-500/5' : ''}`}
+    <div
+      className="flex items-start px-4 py-4 border-b border-white/5 transition-colors group cursor-pointer"
       onClick={() => markRead(notification.id)}
     >
       {/* Thumbnail (Left Side) */}
       <div className="flex-shrink-0 mr-4">
         <div className="relative w-20 h-14 sm:w-24 sm:h-16 rounded-lg overflow-hidden border border-white/10 group-hover:border-white/20 transition-all">
           {notification.thumbnail ? (
-             <Image 
-                src={notification.thumbnail} 
-                alt=""
-                fill
-                className="object-cover"
-                unoptimized
-             />
+            <Image
+              src={notification.thumbnail}
+              alt=""
+              fill
+              className="object-cover"
+              unoptimized
+            />
           ) : (
             <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-               <span className="text-red-500 font-bold text-xl">{notification.artistName?.charAt(0) || 'S'}</span>
+              <span className="text-red-500 font-bold text-xl">{notification.artistName?.charAt(0) || 'S'}</span>
             </div>
           )}
           <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex items-center justify-center">
@@ -77,7 +79,14 @@ const NotificationPage = () => {
   return (
     <div className="bg-[#0B0E14] text-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-white/5 sticky top-0 bg-[#0B0E14]/80 backdrop-blur-md z-10">
+      <div className="flex items-center gap-4 px-6 py-6 border-b border-white/5 sticky top-0 bg-[#0B0E14]/80 backdrop-blur-md z-10">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-white/10 rounded-full transition-all text-gray-400 hover:text-white"
+          aria-label="Go back"
+        >
+          <ArrowLeft size={24} />
+        </button>
         <div>
           <h1 className="text-2xl font-black uppercase tracking-tighter">Notifications</h1>
           <p className="text-gray-500 text-xs font-medium uppercase tracking-widest mt-1">Updates from your favorite artists</p>
@@ -101,7 +110,7 @@ const NotificationPage = () => {
                 <div className="px-6 py-2 mb-2">
                   <h2 className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">Recent</h2>
                 </div>
-                <div className="bg-gray-900/20 rounded-2xl overflow-hidden border border-white/5">
+                <div className="bg-[#161B22]/95 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5">
                   {recentNotifications.map((n) => (
                     <NotificationItem key={n.id} notification={n} />
                   ))}
@@ -114,7 +123,7 @@ const NotificationPage = () => {
                 <div className="px-6 py-2 mb-2">
                   <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Earlier</h2>
                 </div>
-                <div className="bg-gray-900/20 rounded-2xl overflow-hidden border border-white/5">
+                <div className="bg-[#161B22]/95 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5">
                   {olderNotifications.map((n) => (
                     <NotificationItem key={n.id} notification={n} />
                   ))}
@@ -128,4 +137,4 @@ const NotificationPage = () => {
   );
 };
 
-export default NotificationPage;
+export default NotificationPage;
