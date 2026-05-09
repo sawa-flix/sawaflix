@@ -310,7 +310,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   };
 
   return (
-    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black sm:rounded-[2rem] overflow-hidden sm:shadow-2xl sm:border border-white/5 group/vid flex flex-col">
+    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
@@ -921,7 +921,7 @@ function SawaFlixContent() {
               </div>
             </>
           ) : (
-            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent rounded-none sm:rounded-[2rem] border border-white/5 shadow-2xl">
+            <div className="w-full h-[calc(100vh-60px)] sm:h-[calc(100vh-80px)] overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
               {feedVideos.map(video => (
                 <div
                   key={video.id}
