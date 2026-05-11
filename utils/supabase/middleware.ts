@@ -162,13 +162,16 @@ export async function updateSession(request: NextRequest) {
     console.error("Middleware DB Fetch issue:", err);
   }
 
-  // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
-  if (isAuthRoute || pathname === '/') {
+  // 3. Logged in and on auth pages -> redirect to appropriate dashboard
+  // We removed pathname === '/' from here to allow users to see the landing page first
+  if (isAuthRoute) {
     const role = profile?.role || 'client';
     
+    // Default target for everyone (including creators) is the main feed
     let target = "/dashboard";
+    
+    // Admins go to their specific portal
     if (role === 'admin') target = "/admin";
-    else if (isApprovedCreator) target = "/creator-dashboard";
     
     if (isDev) console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
     return redirectWithCookies(target);

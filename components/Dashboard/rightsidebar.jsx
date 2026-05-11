@@ -38,27 +38,7 @@ const RightSidebar = () => {
 
   return (
     <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
-      {/* Category Pills */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-2">
-        {CATEGORIES.map(cat => {
-          const Icon = cat.icon;
-          const isActive = activeCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap border ${
-                isActive 
-                  ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
-                  : 'bg-white/5 text-[#AAAAAA] border-white/5 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Icon size={14} />
-              {cat.label}
-            </button>
-          );
-        })}
-      </div>
+
 
       {/* Trending Section */}
       <div className="space-y-3 mb-4">
