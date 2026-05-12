@@ -649,6 +649,7 @@ function SawaFlixContent() {
   useEffect(() => {
     if (currentTrack && currentTrack.id !== activeVideoId) {
       setShowShorts(true);
+      setSelectedVideo(currentTrack); // Ensure we enter reels mode
       setActiveVideoId(currentTrack.id);
       setTimeout(() => {
         const el = videoRefs.current.get(currentTrack.id);
