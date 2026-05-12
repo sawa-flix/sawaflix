@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
-const OG_IMAGE = 'https://i.ibb.co/4HC007J/image.png';
-const SITE_URL = 'https://sawaflixplay.vercel.app';
+const OG_IMAGE = 'https://i.ibb.co/27LNPd8v/sawaflixmusic-cover.png';
+const SITE_URL = 'https://sawaflix.com';
 const SITE_NAME = 'Sawaflix';
 
 export const defaultMetadata: Metadata = {
