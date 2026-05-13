@@ -39,6 +39,7 @@ export default function LeftSidebar({
   const pathname = usePathname();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(propProfile || null);
   const [verificationStatus, setVerificationStatus] = useState<string>(propStatus || 'none');
+  const [loading, setLoading] = useState(!propProfile);
 
   // Update local state if props change
   useEffect(() => {
@@ -46,7 +47,10 @@ export default function LeftSidebar({
   }, [propStatus]);
 
   useEffect(() => {
-    if (propProfile) setUserProfile(propProfile);
+    if (propProfile) {
+      setUserProfile(propProfile);
+      setLoading(false);
+    }
   }, [propProfile]);
 
   // Fallback fetching if props are missing (e.g. standalone usage)
@@ -54,6 +58,7 @@ export default function LeftSidebar({
     if (propStatus && propProfile) return; // Skip if we have props
 
     const fetchUserData = async () => {
+      setLoading(true);
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const { data: { user } } = await supabase.auth.getUser();
@@ -87,10 +92,11 @@ export default function LeftSidebar({
             }
         }
       }
+      setLoading(false);
     };
 
     fetchUserData();
-  }, [propStatus, propProfile, verificationStatus]);
+  }, [propStatus, propProfile]);
 
   const topItems = [
     { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
@@ -207,7 +213,18 @@ export default function LeftSidebar({
             <span className="text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 group-hover:text-white transition-colors">You</span>
             <ChevronRight size={14} className="ml-1 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
           </Link>
-          {youItems.map(renderItem)}
+          {loading ? (
+            <div className="space-y-2 px-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-4 py-2 animate-pulse">
+                  <div className="w-5 h-5 bg-white/5 rounded-full" />
+                  <div className="w-24 h-3 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            youItems.map(renderItem)
+          )}
         </div>
 
         {/* Explore Section */}
@@ -218,13 +235,27 @@ export default function LeftSidebar({
           {exploreItems.map(renderItem)}
         </div>
 
-        {verificationStatus?.toLowerCase() === 'approved' && (
+        {loading ? (
           <div className="space-y-1 mb-6">
-            <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
-              Creator Hub
-            </h3>
-            {creatorItems.map(renderItem)}
+            <div className="px-3 py-2 w-24 h-3 bg-white/5 rounded mb-4 animate-pulse ml-3" />
+            <div className="space-y-2 px-3">
+              {[1, 2].map(i => (
+                <div key={i} className="flex items-center gap-4 py-2 animate-pulse">
+                  <div className="w-5 h-5 bg-white/5 rounded" />
+                  <div className="w-28 h-3 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
+        ) : (
+          verificationStatus?.toLowerCase() === 'approved' && (
+            <div className="space-y-1 mb-6">
+              <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
+                Creator Hub
+              </h3>
+              {creatorItems.map(renderItem)}
+            </div>
+          )
         )}
 
 
