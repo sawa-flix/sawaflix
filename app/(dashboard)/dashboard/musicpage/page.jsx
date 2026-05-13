@@ -210,6 +210,16 @@ export default function MusicPage() {
   useEffect(() => {
     const shuffled = [...uniqueSongsForGrid].sort(() => 0.5 - Math.random());
     setShuffledSongs(shuffled);
+
+    // Check for id in URL to auto-play
+    const searchParams = new URLSearchParams(window.location.search);
+    const songId = searchParams.get('id');
+    if (songId) {
+      const song = uniqueSongsForGrid.find(s => s.id === songId || s.title === songId);
+      if (song) {
+        handlePlay(song);
+      }
+    }
   }, []);
 
   // Filter for the main grid

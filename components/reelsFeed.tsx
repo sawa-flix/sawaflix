@@ -28,6 +28,7 @@ interface Video {
 
 interface ReelsFeedProps {
   videos: Video[];
+  initialVideoId?: string;
 }
 
 interface VideoState {
@@ -45,8 +46,14 @@ interface Comment {
   likes: number;
 }
 
-export default function ReelsFeed({ videos }: ReelsFeedProps) {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(() => {
+    if (initialVideoId) {
+      const index = videos.findIndex(v => v.id === initialVideoId);
+      return index !== -1 ? index : 0;
+    }
+    return 0;
+  });
   const [videoStates, setVideoStates] = useState<Map<number, VideoState>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [showMuteButton, setShowMuteButton] = useState(true);
@@ -90,16 +97,16 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
         hasBeenViewed: false
       });
     });
-    // Set first video to play
+    // Set current video to play
     if (videos.length > 0) {
-      newVideoStates.set(0, {
+      newVideoStates.set(currentVideoIndex, {
         isPlaying: true,
         isMuted: false,
         hasBeenViewed: true
       });
     }
     setVideoStates(newVideoStates);
-  }, [videos]);
+  }, [videos, currentVideoIndex]);
 
   // Helper function to get producer name
   const getProducerName = (video: Video) => {

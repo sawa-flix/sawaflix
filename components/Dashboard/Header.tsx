@@ -11,6 +11,7 @@ import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import NotificationPanel from './NotificationPanel';
 
 type UserProfileData = {
@@ -26,19 +27,20 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserNotifications, setShowUserNotifications] = useState(false);
 
-  // Use admin notifications only if we are in admin mode (indicated by hideSearch)
-  const notificationContext = useAdminNotifications();
-  const { notifications, unreadCount, markRead, markAllRead } = hideSearch ? notificationContext : { notifications: [], unreadCount: 0, markRead: () => {}, markAllRead: () => {} };
-
+  // Notifications logic
+  const adminNotificationContext = useAdminNotifications();
   const userNotificationContext = useNotifications();
-  const { 
-    notifications: userNotifications, 
-    unreadCount: userUnreadCount, 
-    markRead: markUserRead, 
-    markAllRead: markAllUserRead 
-  } = userNotificationContext;
+  
+  const { notifications, unreadCount, markRead, markAllRead } = hideSearch 
+    ? adminNotificationContext 
+    : { 
+        notifications: userNotificationContext.notifications, 
+        unreadCount: userNotificationContext.unreadCount, 
+        markRead: userNotificationContext.markRead, 
+        markAllRead: userNotificationContext.markAllRead 
+      };
+
 
   const router = useRouter();
 
@@ -88,6 +90,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           </button>
 
           <div className="flex items-center space-x-3 group">
+            <div className="hidden sm:block"></div>
             <Link href="/dashboard" className="flex items-center gap-3">
               <SawaflixLogo />
             </Link>
@@ -105,7 +108,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                 onFocus={() => {
                   document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
-                placeholder="Search titles, people, genres..."
+                placeholder="Search..."
                 className="w-full pl-10 pr-4 py-1.5 bg-black border border-white/40 rounded-sm
                            text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-1 
                            focus:ring-white focus:border-white transition-all duration-300
@@ -126,74 +129,83 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
             </button>
           )}
 
-          {/* User Notifications */}
-          {!hideSearch && (
-            <div className="relative">
-              <button 
-                onClick={() => setShowUserNotifications(!showUserNotifications)}
-                className="relative p-2.5 rounded-xl cursor-pointer text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-              >
-                <Bell size={18} />
-                {userUnreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-pulse">
-                    {userUnreadCount > 99 ? '99+' : userUnreadCount}
-                  </span>
-                )}
-              </button>
-
-              {showUserNotifications && (
-                <NotificationPanel 
-                  title="Notifications"
-                  notifications={userNotifications.slice(0, 10)}
-                  unreadCount={userUnreadCount}
-                  onMarkAllRead={markAllUserRead}
-                  onClose={() => setShowUserNotifications(false)}
-                  onItemClick={(id, contentId) => {
-                    markUserRead(id);
-                    if (contentId) router.push(`/dashboard?v=${contentId}`);
-                    setShowUserNotifications(false);
-                  }}
-                  viewAllHref="/dashboard/notification"
-                  accentColor="red"
-                />
+          {/* Notifications Bell */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group"
+              aria-label="Notifications"
+            >
+              <Bell size={20} className="group-hover:scale-110 transition-transform" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-in zoom-in duration-300">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
               )}
-            </div>
-          )}
+            </button>
 
-          {/* Admin Notifications Bell */}
-          {hideSearch && (
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative"
-                aria-label="Notifications"
-              >
-                <Bell size={20} />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
+            {showNotifications && (
+              <NotificationPanel 
+                title={hideSearch ? "Admin Alerts" : "Notifications"}
+                subtitle={hideSearch ? `${unreadCount} pending actions` : `${unreadCount} new updates`}
+                notifications={notifications.slice(0, 15).map(n => ({
+                  id: n.id,
+                  type: n.type,
+                  title: n.title,
+                  message: n.message,
+                  read: n.read,
+                  timestamp: (n as any).createdAt || (n as any).timestamp,
+                  thumbnail: (n as any).thumbnail,
+                  contentId: (n as any).contentId,
+                  category: (n as any).category
+                }))}
+                unreadCount={unreadCount}
+                onMarkAllRead={markAllRead}
+                onClose={() => setShowNotifications(false)}
+                onItemClick={(id, contentId) => {
+                  const notification = notifications.find(n => n.id === id);
+                  if (markRead) markRead(id);
+                  
+                  if (notification && contentId) {
+                    const type = notification.type as string;
+                    const contentType = (notification as any).contentType;
+                    const category = (notification as any).category || '';
+                    const message = notification.message?.toLowerCase() || '';
+                    const title = notification.title?.toLowerCase() || '';
 
-              {showNotifications && (
-                <NotificationPanel 
-                  title="Admin Alerts"
-                  subtitle={`${unreadCount} pending actions`}
-                  notifications={notifications.slice(0, 10)}
-                  unreadCount={unreadCount}
-                  onMarkAllRead={markAllRead}
-                  onClose={() => setShowNotifications(false)}
-                  onItemClick={(id) => markRead(id)}
-                  accentColor="blue"
-                />
-              )}
-            </div>
-          )}
+                    // Navigation logic
+                    if (contentType === 'music') {
+                      router.push(`/dashboard/musicpage?id=${contentId}`);
+                    } else if (contentType === 'reel') {
+                      router.push(`/dashboard/reels?id=${contentId}`);
+                    } else if (message.includes('comedy') || title.includes('comedy') || category === 'comedy') {
+                      router.push(`/dashboard/youtubevids?q=${contentId}`);
+                    } else if (type === 'like' || type === 'comment' || type === 'mention' || type === 'new_post') {
+                      // Heuristic: Youtube IDs are 11 chars, UUIDs are 36
+                      if (contentId.length === 11) {
+                        router.push(`/dashboard/youtubevids?q=${contentId}`);
+                      } else {
+                        router.push(`/dashboard/movie?id=${contentId}`);
+                      }
+                    } else if (type === 'follow') {
+                      router.push(`/dashboard/profile?id=${(notification as any).actorId || contentId}`);
+                    } else {
+                      // Fallback
+                      router.push(`/dashboard/movie?id=${contentId}`);
+                    }
+                  }
+                  setShowNotifications(false);
+                }}
+                accentColor={hideSearch ? "red" : "white"}
+                viewAllHref={hideSearch ? undefined : "/dashboard/notification"}
+              />
+            )}
+          </div>
 
           <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
             <Settings size={18} />
           </Link>
+
 
           <div className="relative">
             <button
@@ -229,7 +241,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                   <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
                 </div>
                 <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-zinc-300 hover:bg-gray-700 hover:text-white transition-colors">
-                  Update profile
+                  Update Profile
                 </Link>
                 <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
                   Help & Support
@@ -285,12 +297,11 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
         />
       )}
 
-      {(showNotifications || showUserNotifications) && (
+      {showNotifications && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setShowNotifications(false);
-            setShowUserNotifications(false);
           }}
         />
       )}

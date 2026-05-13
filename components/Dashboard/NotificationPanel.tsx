@@ -25,7 +25,7 @@ interface NotificationPanelProps {
   onClose: () => void;
   onItemClick: (id: string, contentId?: string) => void;
   viewAllHref?: string;
-  accentColor?: 'red' | 'blue';
+  accentColor?: 'red' | 'blue' | 'white';
 }
 
 const NotificationPanel = ({
@@ -39,14 +39,19 @@ const NotificationPanel = ({
   viewAllHref,
   accentColor = 'red'
 }: NotificationPanelProps) => {
-  const accentBorderClass = accentColor === 'red' ? 'after:bg-red-500' : 'after:bg-blue-500';
-  const accentBgClass = accentColor === 'red' ? 'bg-red-500' : 'bg-blue-500';
-  const accentTextClass = accentColor === 'red' ? 'text-red-500' : 'text-blue-500';
-  const accentLightBgClass = accentColor === 'red' ? 'bg-red-500/10' : 'bg-blue-500/10';
-  const accentHoverClass = accentColor === 'red' ? 'hover:bg-red-500' : 'hover:bg-blue-500';
+  const accentBorderClass = accentColor === 'red' ? 'after:bg-red-500' : 'after:bg-white';
+  const accentBgClass = accentColor === 'red' ? 'bg-red-500' : 'bg-white';
+  const accentTextClass = accentColor === 'red' ? 'text-red-500' : 'text-white';
+  const accentLightBgClass = accentColor === 'red' ? 'bg-red-500/10' : 'bg-white/10';
+  const accentHoverClass = accentColor === 'red' ? 'hover:bg-red-500' : 'hover:bg-white/20';
+
+  // Specific button styles for "Mark all read"
+  const markAllReadBg = accentColor === 'red' ? 'bg-red-500/10' : 'bg-white';
+  const markAllReadText = accentColor === 'red' ? 'text-red-500' : 'text-black';
+  const markAllReadHover = accentColor === 'red' ? 'hover:bg-red-500 hover:text-white' : 'hover:bg-white/90';
 
   return (
-    <div className="absolute right-0 mt-4 w-[380px] bg-[#161B22]/95 backdrop-blur-3xl rounded-3xl shadow-[0_20px_80px_rgba(0,0,0,0.8)] border border-white/10 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+    <div className="absolute right-0 mt-4 w-[380px] bg-[#0F1217] rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
       {/* Header */}
       <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -66,7 +71,7 @@ const NotificationPanel = ({
         <div className="flex gap-2">
           <button 
             onClick={onMarkAllRead}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentLightBgClass} ${accentTextClass} ${accentHoverClass} hover:text-white transition-all text-[10px] font-bold group/btn`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${markAllReadBg} ${markAllReadText} ${markAllReadHover} transition-all text-[10px] font-bold group/btn shadow-sm`}
             type="button"
           >
             <CheckCheck size={12} className="transition-transform group-hover/btn:scale-110" />
@@ -99,7 +104,7 @@ const NotificationPanel = ({
                     </div>
                   ) : (
                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center border border-white/5 shadow-lg ${
-                      n.type === 'post' ? 'text-red-500' : 'text-blue-500'
+                      n.type === 'post' ? 'text-red-500' : 'text-white'
                     }`}>
                       <Bell size={20} />
                     </div>
