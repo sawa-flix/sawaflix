@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import {
   Play, Pause, ChevronLeft, ChevronRight,
   Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
-  X, Send, ThumbsUp, ThumbsDown, RotateCcw
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -176,7 +176,7 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgres
 };
 
 // ─── Video Feed Item ──────────────────────────────────────────────────────────
-const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
+const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onToggleFullscreen }) => {
   const [isDesktop, setIsDesktop] = useState(true);
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -191,6 +191,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   const [tapFlash, setTapFlash]     = useState(null);
   const [shareToast, setShareToast] = useState(false);
   const [newComment, setNewComment] = useState('');
+  // Fullscreen state is now passed from parent
 
   const [progress, setProgress]     = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -308,6 +309,10 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
       else { await navigator.clipboard.writeText(url); setShareToast(true); setTimeout(() => setShareToast(false), 2500); }
     } catch {}
   };
+
+  useEffect(() => {
+    const onChange = () => {}; // Sync handled by parent
+  }, []);
 
   return (
     <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
@@ -466,6 +471,13 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                     </div>
                     <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
                   </button>
+
+                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -609,6 +621,32 @@ function SawaFlixContent() {
   const [showShorts, setShowShorts]         = useState(true);
   const [heroImgIndex, setHeroImgIndex]     = useState(0);
   const { currentTrack } = useMusic();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const feedContainerRef = useRef(null);
+
+  const handleToggleFullscreen = (e) => {
+    if (e) e.stopPropagation();
+    const el = feedContainerRef.current;
+    if (!el) return;
+
+    if (!document.fullscreenElement) {
+      const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (requestMethod) requestMethod.call(el);
+    } else {
+      const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exitMethod) exitMethod.call(document);
+    }
+  };
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
+  }, []);
 
 
 
@@ -858,7 +896,7 @@ function SawaFlixContent() {
         )}
 
         {showShorts && (
-          <section id="discover-section" ref={discoverRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden" : "mb-12 scroll-mt-20"}>
+          <section id="discover-section" ref={feedContainerRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-black" : "mb-12 scroll-mt-20"}>
             <div className={`flex flex-row items-center justify-between gap-4 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
@@ -937,6 +975,8 @@ function SawaFlixContent() {
                     isActive={activeVideoId === video.id}
                     isMuted={isMuted}
                     setIsMuted={setIsMuted}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={handleToggleFullscreen}
                   />
                 </div>
               ))}
