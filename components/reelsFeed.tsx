@@ -132,7 +132,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
 
       // Create new play promise
       playPromiseRef.current = video.play();
-      
+
       await playPromiseRef.current;
       setIsLoading(false);
 
@@ -205,7 +205,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               setIsLoading(true);
               safePlay(video, index);
               setCurrentVideoIndex(index);
-              
+
               // Pause all other videos immediately
               videoRefs.current.forEach((otherVideo, otherIndex) => {
                 if (otherVideo && otherIndex !== index && videoStates.get(otherIndex)?.isPlaying) {
@@ -239,7 +239,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   // Handle scroll to switch videos
   const handleScroll = useCallback((event: React.WheelEvent) => {
     event.preventDefault();
-    
+
     if (event.deltaY > 0) {
       // Scroll down - next video
       setCurrentVideoIndex(prev => Math.min(prev + 1, videos.length - 1));
@@ -247,7 +247,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
       // Scroll up - previous video
       setCurrentVideoIndex(prev => Math.max(prev - 1, 0));
     }
-    
+
     // Show mute button temporarily when scrolling
     setShowMuteButton(true);
     if (muteTimeoutRef.current) {
@@ -339,7 +339,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
           ...currentState,
           isMuted: !currentState.isMuted
         });
-        
+
         // Update the actual video element
         const video = videoRefs.current[index];
         if (video) {
@@ -348,7 +348,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
       }
       return newStates;
     });
-    
+
     // Show mute button temporarily when toggling
     setShowMuteButton(true);
     if (muteTimeoutRef.current) {
@@ -373,14 +373,14 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   // Fixed ref callback function
   const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
     videoRefs.current[index] = el;
-    
+
     if (el) {
       // Set initial mute state from videoStates
       const videoState = videoStates.get(index);
       if (videoState) {
         el.muted = videoState.isMuted;
       }
-      
+
       // Add event listeners for each video
       el.addEventListener('ended', () => handleVideoEnd(index));
       el.addEventListener('canplay', () => {
@@ -397,11 +397,11 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
     return () => {
       videoRefs.current.forEach((video) => {
         if (video) {
-          video.removeEventListener('ended', () => {});
-          video.removeEventListener('canplay', () => {});
+          video.removeEventListener('ended', () => { });
+          video.removeEventListener('canplay', () => { });
         }
       });
-      
+
       if (muteTimeoutRef.current) {
         clearTimeout(muteTimeoutRef.current);
       }
@@ -424,7 +424,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   const handleSendComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    
+
     const newComment: Comment = {
       id: Date.now().toString(),
       author: 'You',
@@ -433,13 +433,13 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
       timestamp: 'Just now',
       likes: 0
     };
-    
+
     setComments([newComment, ...comments]);
     setCommentText('');
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="h-screen bg-black overflow-hidden relative flex flex-col lg:flex-row"
       onWheel={handleScroll}
@@ -449,8 +449,8 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
       onMouseMove={handleMouseMove}
     >
       {/* Video Content Section */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           width: showComments && isDesktop ? 'calc(100% - 400px)' : '100%',
           y: showComments && !isDesktop ? '-20%' : '0%',
           scale: showComments && !isDesktop ? 0.85 : 1
@@ -465,8 +465,8 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               className="h-full snap-start relative flex items-center justify-center bg-black"
             >
               {/* Video Player Wrapper */}
-              <motion.div 
-                animate={{ 
+              <motion.div
+                animate={{
                   scale: showComments && isDesktop ? 0.9 : 1,
                   x: showComments && isDesktop ? '-2%' : '0%'
                 }}
@@ -496,7 +496,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               {/* Action Buttons & Info - Only visible when comments are closed on mobile */}
               <AnimatePresence>
                 {(!showComments || isDesktop) && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -506,13 +506,13 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
                     <div className="absolute bottom-24 left-4 right-16 text-white">
                       <h3 className="text-lg font-bold mb-1 drop-shadow-md">{video.title}</h3>
                       <p className="text-gray-200 text-sm mb-3 line-clamp-2 max-w-[80%] drop-shadow-sm">{video.description}</p>
-                      
+
                       <div className="flex items-center space-x-3 text-sm text-gray-300">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/10 overflow-hidden">
-                          <Image 
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${getProducerName(video) || 'S'}`} 
-                            alt="Producer" 
-                            width={32} 
+                          <Image
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${getProducerName(video) || 'S'}`}
+                            alt="Producer"
+                            width={32}
                             height={32}
                           />
                         </div>
@@ -520,46 +520,46 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
                       </div>
                     </div>
 
-                    {/* Right Side Actions */}
-                    <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-6 pointer-events-auto">
-                      <button className="flex flex-col items-center text-white group">
-                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center mb-1 group-hover:bg-white/20 transition-all border border-white/5">
-                          <Heart size={24} className="hover:text-red-500 transition-colors" />
+                    {/* Right Side Actions — TikTok-style: compact, bottom-pinned */}
+                    <div className="absolute right-3 bottom-20 flex flex-col items-center gap-0 pointer-events-auto">
+                      <button className="flex flex-col items-center text-white group py-1">
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <Heart size={20} className="hover:text-red-500 transition-colors" />
                         </div>
-                        <span className="text-xs font-bold shadow-sm">24.5K</span>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">24.5K</span>
                       </button>
 
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowComments(true);
                         }}
-                        className="flex flex-col items-center text-white group"
+                        className="flex flex-col items-center text-white group py-1"
                       >
-                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center mb-1 group-hover:bg-white/20 transition-all border border-white/5">
-                          <MessageCircle size={24} />
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <MessageCircle size={20} />
                         </div>
-                        <span className="text-xs font-bold shadow-sm">{comments.length}</span>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{comments.length}</span>
                       </button>
 
-                      <button className="flex flex-col items-center text-white group">
-                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center mb-1 group-hover:bg-white/20 transition-all border border-white/5">
-                          <Share2 size={24} />
+                      <button className="flex flex-col items-center text-white group py-1">
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <Share2 size={20} />
                         </div>
-                        <span className="text-xs font-bold shadow-sm">Share</span>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">Share</span>
                       </button>
 
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleToggleMute(index);
                         }}
-                        className="flex flex-col items-center text-white group"
+                        className="flex flex-col items-center text-white group py-1"
                       >
-                        <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center mb-1 group-hover:bg-white/20 transition-all border border-white/5">
-                          {videoStates.get(index)?.isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                         </div>
-                        <span className="text-xs font-bold shadow-sm">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
                       </button>
                     </div>
                   </motion.div>
@@ -568,10 +568,10 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
 
               {/* Vertical Progress Bar */}
               <div className="absolute top-0 right-0 bottom-0 w-1 bg-white/5 pointer-events-none">
-                <div 
+                <div
                   className="w-full bg-white transition-all duration-300"
-                  style={{ 
-                    height: `${((currentVideoIndex + 1) / videos.length) * 100}%` 
+                  style={{
+                    height: `${((currentVideoIndex + 1) / videos.length) * 100}%`
                   }}
                 />
               </div>
@@ -604,7 +604,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
             )}
 
             {/* Comment Box */}
-            <motion.div 
+            <motion.div
               initial={isDesktop ? { x: '100%' } : { y: '100%' }}
               animate={isDesktop ? { x: 0 } : { y: 0 }}
               exit={isDesktop ? { x: '100%' } : { y: '100%' }}
@@ -615,11 +615,10 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               onDragEnd={(_, info) => {
                 if (info.offset.y > 150) setShowComments(false);
               }}
-              className={`fixed lg:relative z-50 bg-[#0F1117] border-white/10 flex flex-col shadow-2xl ${
-                isDesktop 
-                  ? 'h-screen w-[400px] border-l' 
-                  : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
-              }`}
+              className={`fixed lg:relative z-50 bg-[#0F1117] border-white/10 flex flex-col shadow-2xl ${isDesktop
+                ? 'h-screen w-[400px] border-l'
+                : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
+                }`}
             >
               {/* Drag Handle (Mobile) */}
               {!isDesktop && (
@@ -631,7 +630,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               {/* Header */}
               <div className="flex items-center justify-between px-6 pb-4 pt-2 border-b border-white/5">
                 <h3 className="text-white font-bold text-lg">Comments ({comments.length})</h3>
-                <button 
+                <button
                   onClick={() => setShowComments(false)}
                   className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white"
                 >
@@ -644,11 +643,11 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
                 {comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-4">
                     <div className="flex-shrink-0">
-                      <Image 
-                        src={comment.avatar} 
-                        alt={comment.author} 
-                        width={40} 
-                        height={40} 
+                      <Image
+                        src={comment.avatar}
+                        alt={comment.author}
+                        width={40}
+                        height={40}
                         className="rounded-full ring-2 ring-white/5"
                       />
                     </div>
@@ -673,14 +672,14 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               {/* Input Area */}
               <form onSubmit={handleSendComment} className="p-6 bg-[#161922] border-t border-white/5 pb-10 lg:pb-6">
                 <div className="flex items-center space-x-3">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add a comment..."
                     className="flex-1 bg-white/5 border border-white/10 rounded-full py-3 px-5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                   />
-                  <button 
+                  <button
                     type="submit"
                     disabled={!commentText.trim()}
                     className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white disabled:opacity-50 disabled:bg-gray-700 transition-all hover:bg-blue-500 shadow-lg shadow-blue-600/20"

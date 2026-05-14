@@ -151,18 +151,26 @@ export async function resetPassword(formData) {
       return { error: 'Please enter a valid email address.' };
     }
 
-    // Call our OWN backend which sends a branded Sawaflix email via Resend
-    // This avoids Supabase's default ugly noreply@mail.app.supabase.io email
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com';
+    // Smart environment routing: Use localhost:5000 in dev, fallback to Render in prod
+    const isDev = process.env.NODE_ENV === 'development';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
     const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    console.log('🟡 Sending password reset via backend to:', email);
+    console.log(`🟡 Sending password reset via backend to: ${email} at ${cleanBackendUrl}`);
 
     const res = await fetch(`${cleanBackendUrl}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.toString().trim() }),
     });
+
+    // Guard: Backend might return an HTML error page (e.g., 404 if not deployed, or 502)
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      console.error('🔴 Backend returned non-JSON response. Status:', res.status);
+      return { error: 'Could not reach the email service. Please ensure the backend is running and updated.' };
+    }
 
     const data = await res.json();
 
@@ -179,7 +187,7 @@ export async function resetPassword(formData) {
 
   } catch (error) {
     console.error('🔴 Unexpected reset password error:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
+    return { error: 'An unexpected connection error occurred. Please try again.' };
   }
 }
 

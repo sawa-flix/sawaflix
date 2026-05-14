@@ -21,7 +21,7 @@ const ReelCard = ({ reel, index }) => {
 
   return (
     <div 
-      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/20"
+      className="group relative overflow-hidden rounded-2xl transition-all duration-300"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

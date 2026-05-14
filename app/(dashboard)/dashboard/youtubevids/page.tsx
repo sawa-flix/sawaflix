@@ -116,7 +116,7 @@ function CameroonReelsContent() {
 
   const handleShare = useCallback(async (videoId: string) => {
     try {
-      const shareUrl = `https://sawaflixplay.vercel.app/dashboard/youtubevids?q=${videoId}`;
+      const shareUrl = `https://sawaflix.com/dashboard/youtubevids?q=${videoId}`;
       if (navigator.share) {
         await navigator.share({
           title: 'SawaFlix Video',

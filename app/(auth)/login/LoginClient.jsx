@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signInWithPassword, resetPassword, checkAuth } from '@/app/(auth)/actions';
+import { signInWithPassword, checkAuth } from '@/app/(auth)/actions';
 import { createClient } from '@/utils/supabase/client';
 
 import { Suspense } from 'react';
@@ -38,9 +38,7 @@ const AuthButton = ({ children, isLoading, variant = 'primary', className = '', 
 function LoginContent() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [resetMessage, setResetMessage] = useState(null);
   const [email, setEmail] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +50,6 @@ function LoginContent() {
   const handleGoogleSignIn = async () => {
     setError(null);
     setSuccessMessage(null);
-    setResetMessage(null);
     setIsGoogleLoading(true);
 
     try {
@@ -137,7 +134,6 @@ function LoginContent() {
     // Reset state before attempt
     setError(null);
     setSuccessMessage(null);
-    setResetMessage(null);
     setIsLoading(true);
     setIsRedirecting(false);
 
@@ -167,41 +163,6 @@ function LoginContent() {
       console.error('Login error:', err);
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
-    }
-  };
-
-  /**
-   * Handle Password Reset
-   */
-  const handleResetPassword = async (event) => {
-    event.preventDefault();
-    setError(null);
-    setSuccessMessage(null);
-    setResetMessage(null);
-    setIsResetting(true);
-
-    if (!email) {
-      setError('Please enter your email to reset the password.');
-      setIsResetting(false);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('email', email);
-
-    try {
-      const result = await resetPassword(formData);
-
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        setResetMessage(result.message || '✅ Password reset link sent to your email.');
-        setEmail('');
-      }
-    } catch (err) {
-      setError('Failed to send reset email. Please try again.');
-    } finally {
-      setIsResetting(false);
     }
   };
 
@@ -256,12 +217,6 @@ function LoginContent() {
               {error && !isRedirecting && (
                 <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg animate-fadeIn text-red-400 text-sm text-center">
                   {error}
-                </div>
-              )}
-
-              {resetMessage && !isRedirecting && (
-                <div className="p-3 bg-blue-900/30 border border-blue-700 rounded-lg animate-fadeIn text-blue-400 text-sm text-center">
-                  {resetMessage}
                 </div>
               )}
             </div>
@@ -322,14 +277,12 @@ function LoginContent() {
                       />
                       Remember me
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleResetPassword}
-                      disabled={isResetting || isLoading || isGoogleLoading}
-                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 hover:underline disabled:text-gray-500 disabled:cursor-not-allowed"
+                    <Link
+                      href="/forgot-password"
+                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 hover:underline"
                     >
-                      {isResetting ? 'Sending...' : 'Forgot password?'}
-                    </button>
+                      Forgot password?
+                    </Link>
                   </div>
 
                   <AuthButton type="submit" isLoading={isLoading || isGoogleLoading}>
