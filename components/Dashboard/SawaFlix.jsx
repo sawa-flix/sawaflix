@@ -598,8 +598,19 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
 };
 
 // ─── Main Dashboard Content ───────────────────────────────────────────────────────────
-function SawaFlixContent() {
-  const [activeCategory, setActiveCategory] = useState("all");
+function SawaFlixContent({ videoId: videoIdProp }) {
+  const searchParams = useSearchParams();
+  const catParam = searchParams.get('cat');
+  const videoIdParam = searchParams.get('videoId');
+  const videoId = videoIdProp || videoIdParam;
+
+  const [activeCategory, setActiveCategory] = useState(catParam || "all");
+
+  useEffect(() => {
+    if (catParam && catParam !== activeCategory) {
+      setActiveCategory(catParam);
+    }
+  }, [catParam]);
   const [isMuted, setIsMuted]               = useState(true);
   const [activeVideoId, setActiveVideoId]   = useState(null);
   const [heroIndex, setHeroIndex]           = useState(0);
@@ -615,9 +626,9 @@ function SawaFlixContent() {
   const observerRef  = useRef(null);
   const videoRefs    = useRef(new Map());
   const discoverRef  = useRef(null);
+  const feedScrollRef = useRef(null);
 
   const router       = useRouter();
-  const searchParams = useSearchParams();
   const urlQuery     = searchParams.get('q') || '';
 
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
@@ -659,6 +670,12 @@ function SawaFlixContent() {
       }, 100);
     }
   }, [currentTrack]);
+
+  useEffect(() => {
+    if (selectedVideo && feedScrollRef.current) {
+      feedScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedVideo]);
 
   useEffect(() => {
     if (!videos.length) return;
@@ -722,11 +739,69 @@ function SawaFlixContent() {
     }, 80);
   };
 
+  // Handle direct video navigation from videoId prop
+  useEffect(() => {
+    if (!videoId || selectedVideo?.id === videoId) return;
+
+    const selectVideo = async () => {
+      // 1. Check if the video is already in the loaded feed
+      const found = videos.find(v => v.id === videoId);
+      if (found) {
+        handleCardClick(found);
+        return;
+      }
+
+      // 2. If not found and it looks like a YouTube ID (11 chars), fetch details
+      if (videoId.length === 11) {
+        if (!loading) {
+          try {
+            const details = await youtubeApi.getVideoDetails(videoId);
+            if (details) {
+              const videoObj = {
+                id: details.id,
+                title: details.title,
+                thumbnail: `https://i.ytimg.com/vi/${details.id}/maxresdefault.jpg`,
+                channelTitle: details.channelTitle || 'YouTube',
+                origin: 'youtube',
+                viewCount: details.viewCount,
+                likeCount: details.likeCount,
+                commentCount: details.commentCount,
+                publishedAt: details.publishedAt,
+                videoUrl: `https://www.youtube.com/watch?v=${details.id}`,
+                embedUrl: `https://www.youtube.com/embed/${details.id}`,
+              };
+              handleCardClick(videoObj);
+            }
+          } catch (err) {
+            console.error('Failed to fetch YouTube video details:', err);
+          }
+        }
+      } else {
+        // 3. It's a SawaFlix Native ID. Fetch it from our new API.
+        try {
+          const res = await fetch(`/api/videos/${videoId}`);
+          if (res.ok) {
+            const videoObj = await res.json();
+            handleCardClick(videoObj);
+          } else {
+            console.warn(`[SawaFlix] Native video ${videoId} not found via API.`);
+          }
+        } catch (err) {
+          console.error('Failed to fetch native video details:', err);
+        }
+      }
+    };
+
+    selectVideo();
+  }, [videoId, videos, loading, selectedVideo?.id]);
+
   const isSearchMode = !!urlQuery;
 
   const feedVideos = (() => {
     let list = videos;
-    if (isSearchMode && selectedVideo) {
+    
+    // If a video is selected (via click or notification), ensure it's at the top
+    if (selectedVideo) {
       const rest = videos.filter(v => v.id !== selectedVideo.id);
       list = [selectedVideo, ...rest];
     }
@@ -924,7 +999,10 @@ function SawaFlixContent() {
               </div>
             </>
           ) : (
-            <div className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
+            <div 
+              ref={feedScrollRef}
+              className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent"
+            >
               {feedVideos.map(video => (
                 <div
                   key={video.id}
@@ -961,14 +1039,14 @@ function SawaFlixContent() {
   );
 }
 
-export default function SawaFlix() {
+export default function SawaFlix({ videoId }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-white/40 animate-spin" />
       </div>
     }>
-      <SawaFlixContent />
+      <SawaFlixContent videoId={videoId} />
     </Suspense>
   );
 }

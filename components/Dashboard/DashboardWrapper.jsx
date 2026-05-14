@@ -24,22 +24,42 @@ const DashboardWrapper = ({ children }) => {
             const { createClient } = require('../../utils/supabase/client');
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); 
+            const user = session?.user;
             const token = session?.access_token;
             
             // 1. Try API first
             let apiData = null;
             try {
+                console.log("Fetching profile from:", `${BACKEND_URL}/api/creator/profile`);
                 const visitorId = localStorage.getItem('sawaflix_visitor_id');
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
-                    headers: {
-                        ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                
+                let res;
+                let retryCount = 0;
+                const maxRetries = 2;
+                
+                while (retryCount <= maxRetries) {
+                    try {
+                        res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                            headers: {
+                                ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                            }
+                        });
+                        break; // Success!
+                    } catch (fetchErr) {
+                        retryCount++;
+                        if (retryCount > maxRetries) throw fetchErr;
+                        console.warn(`Fetch retry ${retryCount}/${maxRetries}...`);
+                        await new Promise(r => setTimeout(r, 1000 * retryCount));
                     }
-                });
-                if (res.ok) apiData = await res.json();
+                }
+                if (res.ok) {
+                    apiData = await res.json();
+                } else {
+                    console.warn("Backend profile fetch returned non-ok status:", res.status);
+                }
             } catch (apiErr) {
-                console.error("API check failed:", apiErr);
+                console.error("API check failed (likely network error or timeout):", apiErr);
             }
 
             // 2. Always fetch Supabase profile as source of truth for permissions

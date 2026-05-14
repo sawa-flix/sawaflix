@@ -31,8 +31,8 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { data, error: fetchError } = await supabase
@@ -56,8 +56,8 @@ export function useNotifications() {
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { count, error: countError } = await supabase
@@ -69,9 +69,12 @@ export function useNotifications() {
       if (countError) throw countError;
       setUnreadCount(count || 0);
     } catch (err: any) {
+      // Quietly log session-related errors as they are often transient lock issues
+      if (err.message?.includes('Lock broken')) {
+        console.warn('Unread count fetch postponed: session lock conflict');
+        return;
+      }
       console.error('Error fetching unread count:', err);
-      // Log more details if it's a Supabase error
-      if (err.message) console.error('Count error message:', err.message);
     }
   }, [supabase]);
 
@@ -95,7 +98,8 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { error: updateError } = await supabase
@@ -136,7 +140,8 @@ export function useNotifications() {
     let channel: any;
 
     const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       channel = supabase
@@ -188,12 +193,20 @@ export function useNotifications() {
             fetchUnreadCount();
           }
         )
-        .subscribe((status) => {
+        .subscribe((status, err) => {
           if (status === 'SUBSCRIBED') {
             console.log('Subscribed to notifications realtime');
           }
           if (status === 'CHANNEL_ERROR') {
-            console.error('Realtime subscription error');
+            console.error('Realtime subscription error:', err || 'Check if Realtime is enabled for "notifications" table in Supabase dashboard');
+            
+            // Attempt one retry after a delay
+            setTimeout(() => {
+              if (channel) {
+                console.log('Attempting to reconnect to realtime...');
+                channel.subscribe();
+              }
+            }, 3000);
           }
         });
     };

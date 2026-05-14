@@ -12,6 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { Notification, NotificationType } from '@/types/notification';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -31,11 +32,19 @@ const getIcon = (type: NotificationType) => {
   }
 };
 
+import { useRouter } from 'next/navigation';
+
 export const NotificationItem: React.FC<NotificationItemProps> = ({ 
   notification, 
   onMarkRead, 
   onDelete 
 }) => {
+  const { handleNotificationClick } = useNotifications();
+
+  const handleClick = () => {
+    handleNotificationClick(notification);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, x: -10 }}
@@ -43,7 +52,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       exit={{ opacity: 0, x: 10, transition: { duration: 0.2 } }}
       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
       className={`relative group flex items-center p-4 gap-4 transition-all cursor-pointer select-none ${!notification.read ? 'bg-white/[0.03]' : ''}`}
-      onClick={() => !notification.read && onMarkRead(notification.id)}
+      onClick={handleClick}
     >
       {/* Indicator for Unread */}
       {!notification.read && (

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const NotificationPage = () => {
   const router = useRouter();
-  const { notifications, markAsRead, markAllAsRead, deleteNotification, loading } = useNotifications();
+  const { notifications, markAsRead, markAllAsRead, deleteNotification, loading, handleNotificationClick } = useNotifications();
 
   const { recentNotifications, olderNotifications } = useMemo(() => {
     const now = Date.now();
@@ -28,21 +28,7 @@ const NotificationPage = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}
       className={`relative flex items-center px-6 py-5 border-b border-white/[0.03] transition-all group cursor-pointer hover:bg-white/[0.02] ${!notification.read ? 'bg-white/[0.02]' : ''}`}
-      onClick={() => {
-        if (!notification.read) markAsRead(notification.id);
-        const contentId = notification.contentId;
-        if (contentId) {
-          if (notification.type === 'like' || notification.type === 'comment' || notification.type === 'mention') {
-            router.push(`/dashboard/movie?id=${contentId}`);
-          } else if (notification.type === 'music_interaction') {
-            router.push(`/dashboard/musicpage?id=${contentId}`);
-          } else if (notification.type === 'reel_interaction') {
-            router.push(`/dashboard/reels?id=${contentId}`);
-          } else if (notification.type === 'follow') {
-            router.push(`/dashboard/profile?id=${notification.actorId || contentId}`);
-          }
-        }
-      }}
+      onClick={() => handleNotificationClick(notification)}
     >
       {/* Unread Indicator */}
       {!notification.read && (

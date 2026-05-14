@@ -32,14 +32,9 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const adminNotificationContext = useAdminNotifications();
   const userNotificationContext = useNotifications();
   
-  const { notifications, unreadCount, markRead, markAllRead } = hideSearch 
-    ? adminNotificationContext 
-    : { 
-        notifications: userNotificationContext.notifications, 
-        unreadCount: userNotificationContext.unreadCount, 
-        markRead: userNotificationContext.markRead, 
-        markAllRead: userNotificationContext.markAllRead 
-      };
+  const { notifications, unreadCount, markRead, markAllRead, handleNotificationClick } = hideSearch 
+    ? { ...adminNotificationContext, handleNotificationClick: () => {} } 
+    : userNotificationContext;
 
 
   const router = useRouter();
@@ -47,7 +42,8 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   useEffect(() => {
     const fetchUserData = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       setCurrentUser(user);
 
       if (user) {
@@ -162,37 +158,10 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                 unreadCount={unreadCount}
                 onMarkAllRead={markAllRead}
                 onClose={() => setShowNotifications(false)}
-                onItemClick={(id, contentId) => {
+                onItemClick={(id) => {
                   const notification = notifications.find(n => n.id === id);
-                  if (markRead) markRead(id);
-                  
-                  if (notification && contentId) {
-                    const type = notification.type as string;
-                    const contentType = (notification as any).contentType;
-                    const category = (notification as any).category || '';
-                    const message = notification.message?.toLowerCase() || '';
-                    const title = notification.title?.toLowerCase() || '';
-
-                    // Navigation logic
-                    if (contentType === 'music') {
-                      router.push(`/dashboard/musicpage?id=${contentId}`);
-                    } else if (contentType === 'reel') {
-                      router.push(`/dashboard/reels?id=${contentId}`);
-                    } else if (message.includes('comedy') || title.includes('comedy') || category === 'comedy') {
-                      router.push(`/dashboard/youtubevids?q=${contentId}`);
-                    } else if (type === 'like' || type === 'comment' || type === 'mention' || type === 'new_post') {
-                      // Heuristic: Youtube IDs are 11 chars, UUIDs are 36
-                      if (contentId.length === 11) {
-                        router.push(`/dashboard/youtubevids?q=${contentId}`);
-                      } else {
-                        router.push(`/dashboard/movie?id=${contentId}`);
-                      }
-                    } else if (type === 'follow') {
-                      router.push(`/dashboard/profile?id=${(notification as any).actorId || contentId}`);
-                    } else {
-                      // Fallback
-                      router.push(`/dashboard/movie?id=${contentId}`);
-                    }
+                  if (notification) {
+                    handleNotificationClick(notification as any);
                   }
                   setShowNotifications(false);
                 }}

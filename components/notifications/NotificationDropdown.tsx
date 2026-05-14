@@ -8,7 +8,8 @@ export const NotificationDropdown: React.FC = () => {
     notifications, 
     unreadCount, 
     markRead, 
-    markAllRead 
+    markAllRead,
+    handleNotificationClick
   } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -51,7 +52,13 @@ export const NotificationDropdown: React.FC = () => {
             if (elem) elem.blur();
             setIsOpen(false);
           }}
-          onItemClick={(id) => markRead(id)}
+          onItemClick={(id) => {
+            const notification = notifications.find(n => n.id === id);
+            if (notification) {
+              handleNotificationClick(notification);
+            }
+            setIsOpen(false);
+          }}
           accentColor="blue"
           viewAllHref="/dashboard/notification"
         />
