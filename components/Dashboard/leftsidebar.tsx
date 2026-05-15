@@ -227,19 +227,8 @@ export default function LeftSidebar({
           </div>
         )}
 
-        <div className="pt-4 mt-auto border-t border-white/5">
-          <div className="grid grid-cols-2 gap-2 text-[10px] font-black uppercase tracking-widest">
-            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
-              <div className="text-white mb-1">128</div>
-              <div className="text-zinc-600">Movies</div>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
-              <div className="text-white mb-1">64</div>
-              <div className="text-zinc-600">Songs</div>
-            </div>
-          </div>
-        </div>
+
       </nav>
     </div>
   );
-}
+}

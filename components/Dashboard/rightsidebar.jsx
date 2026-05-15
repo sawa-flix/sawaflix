@@ -1,10 +1,21 @@
+import React, { useState } from 'react';
 import { useVideos } from '@/hooks/useVideos';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Music, Laugh, Newspaper, Zap } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import Image from 'next/image';
 
+const CATEGORIES = [
+  { id: "music",  label: "Music",   icon: Music,     query: "Trending Cameroon Music 2026" },
+  { id: "comedy", label: "Comedy",  icon: Laugh,     query: "Cameroon comedy viral 2026" },
+  { id: "news",   label: "News",    icon: Newspaper, query: "Cameroon news shorts today" },
+  { id: "viral",  label: "Viral",   icon: Zap,       query: "Cameroon viral reels 2026" },
+];
+
 const RightSidebar = () => {
-  const { videos, loading, error } = useVideos("Trending Cameroon Music 2026");
+  const [activeCategory, setActiveCategory] = useState("music");
+  
+  const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
+  const { videos, loading, error } = useVideos(currentCategory.query);
   const { playTrack } = useMusic();
 
   const featuredVideo = videos[0] || null;
@@ -23,87 +34,99 @@ const RightSidebar = () => {
     video: null
   };
 
-  const aiRecommendations = videos.slice(1, 7);
+  const aiRecommendations = videos.slice(1, 8);
 
   return (
     <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
-      {/* Trending Music Section */}
-      <div className="space-y-2 mb-2">
-        <h3 className="px-2 py-1 text-[15px] font-bold text-white">Trending Now</h3>
+
+
+      {/* Trending Section */}
+      <div className="space-y-3 mb-4">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-[14px] font-black uppercase tracking-widest text-white/40">Trending</h3>
+          <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+        </div>
+        
         <div 
           onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
-          className="group cursor-pointer rounded-xl p-2 hover:bg-white/10 transition-all duration-200"
+          className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
         >
-          <div className="relative w-full h-40 rounded-xl overflow-hidden mb-3">
+          <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
             <Image
               src={trendingMusic.image}
-              alt="Trending Music"
+              alt="Trending"
               fill
               sizes="(max-width: 768px) 100vw, 320px"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
               priority
+              unoptimized
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="absolute bottom-3 left-3 right-3">
+               <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
+               <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
+                 {trendingMusic.title}
+               </h2>
+            </div>
           </div>
-          <h2 className="text-sm font-semibold text-white line-clamp-2 mb-1 leading-snug">
-            {trendingMusic.title}
-          </h2>
-          <div className="flex items-center gap-3 text-xs text-[#AAAAAA] mb-3">
-             <span>{trendingMusic.views} views</span>
-             <span>•</span>
-             <span>{trendingMusic.likes} likes</span>
+          
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-3 text-[10px] font-bold text-[#AAAAAA] uppercase tracking-wider">
+               <span>{trendingMusic.views} views</span>
+               <span>•</span>
+               <span>{trendingMusic.likes} likes</span>
+            </div>
+            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+               <Zap size={14} className="fill-current" />
+            </div>
           </div>
-          <button className="w-full py-2 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all duration-200 text-sm">
-            View Profile
-          </button>
         </div>
       </div>
 
-      <div className="border-t border-white/10 my-2"></div>
+      <div className="h-px bg-white/5 my-4" />
 
-      {/* AI Recommended Versions */}
-      <div className="space-y-2 mb-2">
-        <h3 className="px-2 py-1 text-[15px] font-bold text-white">Recommended</h3>
+      {/* Recommendations */}
+      <div className="space-y-4 mb-6">
+        <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">Suggested for you</h3>
         {loading ? (
-           <div className="flex items-center justify-center py-6">
-             <Loader2 className="w-6 h-6 text-[#AAAAAA] animate-spin" />
+           <div className="flex flex-col gap-4">
+             {[1,2,3,4].map(i => (
+               <div key={i} className="flex gap-3 animate-pulse">
+                 <div className="w-[100px] h-[56px] bg-white/5 rounded-lg" />
+                 <div className="flex-1 py-1">
+                   <div className="h-3 bg-white/5 rounded w-full mb-2" />
+                   <div className="h-2 bg-white/5 rounded w-1/2" />
+                 </div>
+               </div>
+             ))}
            </div>
         ) : (
-           <div className="flex flex-col gap-1">
+           <div className="flex flex-col gap-2">
              {aiRecommendations.map((video) => (
                <div
                  key={video.id}
                  onClick={() => playTrack(video, videos)}
-                 className="flex gap-3 p-2 rounded-xl hover:bg-white/10 transition-all duration-200 cursor-pointer group"
+                 className="flex gap-3 p-2 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer group"
                >
-                 <div className="relative w-[120px] h-[68px] rounded-lg overflow-hidden shrink-0">
+                 <div className="relative w-[100px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
                    <Image
                      src={video.thumbnail}
                      alt={video.title}
                      fill
-                     sizes="120px"
-                     className="object-cover group-hover:scale-105 transition-transform duration-300"
+                     sizes="100px"
+                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                     unoptimized
                    />
+                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                  </div>
                  <div className="flex-1 min-w-0 py-0.5">
-                   <h4 className="text-sm font-semibold text-white line-clamp-2 mb-1 leading-tight">{video.title}</h4>
-                   <p className="text-xs text-[#AAAAAA] truncate">{video.channelTitle || 'Artist'}</p>
+                   <h4 className="text-xs font-bold text-white line-clamp-2 mb-1 leading-tight group-hover:text-white/90">{video.title}</h4>
+                   <p className="text-[10px] text-[#AAAAAA] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
                  </div>
                </div>
              ))}
            </div>
         )}
-      </div>
-
-      <div className="border-t border-white/10 my-2"></div>
-
-      {/* Quick Actions */}
-      <div className="space-y-1 mb-4">
-        <h3 className="px-2 py-2 text-[15px] font-bold text-white">Quick Actions</h3>
-        {['Create Playlist', 'Import Music', 'Shuffle All'].map(action => (
-          <button key={action} className="w-full text-left px-3 py-2.5 text-sm font-medium text-[#AAAAAA] hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 cursor-pointer">
-            {action}
-          </button>
-        ))}
       </div>
     </div>
   );
