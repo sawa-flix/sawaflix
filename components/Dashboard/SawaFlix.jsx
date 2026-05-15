@@ -837,7 +837,7 @@ function SawaFlixContent() {
                 className="w-full h-full object-cover"
               />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+            {/* Removed dark overlay to make banner clearer */}
             
             {/* Slide Indicators */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
@@ -859,10 +859,10 @@ function SawaFlixContent() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handlePlayNow}
-                className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.4)] group relative overflow-hidden transition-all duration-500 cursor-pointer"
+                className="w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group relative overflow-hidden transition-all duration-500 cursor-pointer"
               >
                 <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
-                <Play size={42} className="text-black group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
+                <Play size={42} className="text-white group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
                 
                 {/* Pulsing Outer Ring */}
                 <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
