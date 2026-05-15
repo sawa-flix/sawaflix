@@ -97,9 +97,14 @@ async function handleResponse(response: Response) {
 }
 
 export async function getUnifiedFeedAction() {
+    const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/content/unified-feed`;
     try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        });
         return handleResponse(response);
     } catch (error: any) {
         console.error('getUnifiedFeedAction error:', error);

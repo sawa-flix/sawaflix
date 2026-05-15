@@ -26,7 +26,7 @@ export default function EditProfilePage() {
                 const { data: { user } } = await supabase.auth.getUser(); 
                 const token = session?.access_token;
 
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
                   headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                   }
@@ -54,7 +54,7 @@ export default function EditProfilePage() {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
 
-            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+            const res = await fetch(`${BACKEND_URL}/api/user/profile`, {
                 method: 'PUT',
                 headers: { 
                   'Content-Type': 'application/json',

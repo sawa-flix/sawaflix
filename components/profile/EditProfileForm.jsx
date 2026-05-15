@@ -5,7 +5,8 @@ import {
     Camera, User, Link as LinkIcon, BadgeCheck, 
     AlertCircle, Save, Globe, X, Plus, 
     Image as ImageIcon, Sparkles, CheckCircle2,
-    Info, Layout, Settings, UploadCloud, Trash2
+    Info, Layout, Settings, UploadCloud, Trash2,
+    MapPin, Users, Home
 } from 'lucide-react';
 import { uploadFile } from '../../lib/verification';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +17,10 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
         bio: '',
         profileImage: '',
         bannerImage: '',
-        socialLinks: []
+        socialLinks: [],
+        region: '',
+        ethnicGroup: '',
+        village: ''
     });
     const [previews, setPreviews] = useState({ profile: '', banner: '' });
     const [uploading, setUploading] = useState({ profile: false, banner: false });
@@ -29,7 +33,10 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                 bio: initialData.bio || '',
                 profileImage: initialData.profileImage || '',
                 bannerImage: initialData.bannerImage || '',
-                socialLinks: initialData.socialLinks || []
+                socialLinks: initialData.socialLinks || [],
+                region: initialData.region || '',
+                ethnicGroup: initialData.ethnicGroup || '',
+                village: initialData.village || ''
             });
             setPreviews({
                 profile: initialData.profileImage || '',
@@ -228,6 +235,76 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Cultural Identity / Personalization Section */}
+                    <div className="lg:col-span-12 space-y-8 pt-8">
+                        <div className="flex items-center gap-3 px-2">
+                            <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                                <Sparkles className="w-4 h-4 text-red-500" />
+                            </div>
+                            <h2 className="text-xl font-black uppercase tracking-tight">Cultural Identity</h2>
+                        </div>
+
+                        <div className="bg-[#0B0E14] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {/* Region */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Region of Origin</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-red-500 transition-colors" />
+                                        <select 
+                                            value={formData.region}
+                                            onChange={(e) => setFormData(p => ({ ...p, region: e.target.value }))}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-14 pr-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="">Select Region</option>
+                                            <option value="Adamawa">Adamawa</option>
+                                            <option value="Centre">Centre</option>
+                                            <option value="East">East</option>
+                                            <option value="Far North">Far North</option>
+                                            <option value="Littoral">Littoral</option>
+                                            <option value="North">North</option>
+                                            <option value="Northwest">Northwest</option>
+                                            <option value="South">South</option>
+                                            <option value="Southwest">Southwest</option>
+                                            <option value="West">West</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Ethnic Group */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Ethnic Group / Tribe</label>
+                                    <div className="relative">
+                                        <Users className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.ethnicGroup}
+                                            onChange={(e) => setFormData(p => ({ ...p, ethnicGroup: e.target.value }))}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-14 pr-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                                            placeholder="e.g. Sawa, Bamileke, Beti"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Village */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Village</label>
+                                    <div className="relative">
+                                        <Home className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                                        <input 
+                                            type="text" 
+                                            value={formData.village}
+                                            onChange={(e) => setFormData(p => ({ ...p, village: e.target.value }))}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-14 pr-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                                            placeholder="Your home village"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-6 italic">* This information helps us personalize your Sawaflix experience and celebrate your heritage.</p>
                         </div>
                     </div>
 

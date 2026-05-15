@@ -83,7 +83,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             let finalVideos: Video[] = [];
 
             // If the user is on the default feed (All 237), fetch the fast unified feed!
-            if (categoryQuery === 'Cameroon music hits 2026') {
+            if (categoryQuery === 'Cameroon shorts viral 2026') {
                 const response = await youtubeApi.getUnifiedFeed();
                 const sawaflixVideos = (response.data?.sawaflix || []).map(mapSawaflixItem);
                 const ytVideos = (response.data?.youtube || []).map(mapYouTubeItem);
@@ -143,7 +143,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         try {
             // When infinite scrolling after unified feed, fallback to regular youtube search
             const tokenToUse = nextPageTokenRef.current === 'use-youtube-fallback' ? null : nextPageTokenRef.current;
-            const queryToUse = categoryQuery === 'Cameroon music hits 2026' ? 'trending entertainment Cameroon' : categoryQuery;
+            const queryToUse = categoryQuery === 'Cameroon shorts viral 2026' ? 'trending entertainment Cameroon' : categoryQuery;
 
             const response = await youtubeApi.searchVideos(queryToUse, tokenToUse, 10);
             const rawList = Array.isArray(response) ? response : (response as any).items || [];

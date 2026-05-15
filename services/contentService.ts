@@ -16,12 +16,17 @@ export const contentService = {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
-    const response = await fetch(`${BACKEND_URL}/api/content/${category}/upload`, {
+    // Add category to formData if not already present
+    if (!formData.has('category')) {
+      formData.append('category', category);
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/content/upload`, {
       method: 'POST',
       headers: {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: formData, // FormData handles 'Content-Type': 'multipart/form-data' automatically
+      body: formData,
     });
 
     if (!response.ok) {
@@ -35,10 +40,9 @@ export const contentService = {
   /**
    * Update existing content (PUT)
    * @param id - The ID of the content to update
-   * @param category - The category of the content
    * @param details - Object containing the fields to update
    */
-  async updateContent(id: string, category: string, details: any) {
+  async updateContent(id: string, details: any) {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -49,10 +53,7 @@ export const contentService = {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: JSON.stringify({
-        ...details,
-        category // Backend often needs the category to know which table to update
-      }),
+      body: JSON.stringify(details),
     });
 
     if (!response.ok) {

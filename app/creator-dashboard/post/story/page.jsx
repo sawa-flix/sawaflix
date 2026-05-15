@@ -10,11 +10,15 @@ import {
     FileText,
     Music,
     X,
-    CheckCircle2,
-    Loader2,
     AlertCircle,
-    Save
+    Save,
+    MapPin,
+    Users,
+    Home,
+    Sparkles,
+    ChevronDown
 } from 'lucide-react';
+import { contentService } from '@/services/contentService';
 
 
 // --- Sub-component: FileUploadZone (Native Implementation) ---
@@ -105,10 +109,10 @@ const FileUploadZone = ({ title, icon: Icon, accept, file, onFileSelect, onRemov
 export default function PostStoryPage() {
     // --- Form State ---
     const [formData, setFormData] = useState({
-        title: '',
-        ethnicGroup: '',
         description: '',
         significance: '',
+        region: '',
+        village: ''
     });
     const [mediaFiles, setMediaFiles] = useState({
         cover: null,
@@ -169,32 +173,18 @@ export default function PostStoryPage() {
             const contentType = mediaFiles.audio ? 'audio' : 'text';
             payload.append('content_type', contentType);
             payload.append('languages', 'English');
+            payload.append('region', formData.region);
+            payload.append('ethnic_group', formData.ethnicGroup);
+            payload.append('village', formData.village);
 
             if (mediaFiles.cover) payload.append('cover', mediaFiles.cover);
             if (mediaFiles.audio) payload.append('media', mediaFiles.audio);
 
-            const supabase = createClient();
-            const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
-            const token = session?.access_token;
+            const result = await contentService.uploadContent('stories', payload);
 
-            const res = await fetch(`${BACKEND_URL}/api/content/stories/upload`, {
-                method: 'POST',
-                headers: {
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                },
-                body: payload,
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-                setMessage({ type: 'success', text: 'Story published successfully! Redirecting...' });
-                localStorage.removeItem('sawaflix_story_draft');
-                setTimeout(() => window.location.href = '/creator-dashboard/content', 2000);
-            } else {
-                setMessage({ type: 'error', text: result.error || 'Upload failed' });
-            }
+            setMessage({ type: 'success', text: 'Story published successfully! Redirecting...' });
+            localStorage.removeItem('sawaflix_story_draft');
+            setTimeout(() => window.location.href = '/creator-dashboard/content', 2000);
         } catch (err) {
             setMessage({ type: 'error', text: 'Network connection error' });
         } finally {
@@ -279,6 +269,74 @@ export default function PostStoryPage() {
                                     placeholder="Enter the description"
                                     className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600 resize-none leading-relaxed"
                                 />
+                            </div>
+
+                            {/* Cultural Metadata Section */}
+                            <div className="lg:col-span-2 mt-4 border-t border-gray-800/60 pt-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Sparkles className="w-4 h-4 text-red-500" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Cultural Attribution</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {/* Region */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-300 ml-1">Region</label>
+                                        <div className="relative group">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-red-500 transition-colors" />
+                                            <select
+                                                name="region"
+                                                value={formData.region}
+                                                onChange={handleInputChange}
+                                                className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 pl-12 pr-5 text-sm text-white focus:border-red-500/50 outline-none transition-all appearance-none cursor-pointer"
+                                            >
+                                                <option value="">Select Region</option>
+                                                <option value="Adamawa">Adamawa</option>
+                                                <option value="Centre">Centre</option>
+                                                <option value="East">East</option>
+                                                <option value="Far North">Far North</option>
+                                                <option value="Littoral">Littoral</option>
+                                                <option value="North">North</option>
+                                                <option value="Northwest">Northwest</option>
+                                                <option value="South">South</option>
+                                                <option value="Southwest">Southwest</option>
+                                                <option value="West">West</option>
+                                            </select>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                <ChevronDown size={14} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ethnic Group (Mapped to current ethnicGroup) */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-300 ml-1">Ethnic Group</label>
+                                        <div className="relative group">
+                                            <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-red-500 transition-colors" />
+                                            <input
+                                                name="ethnicGroup"
+                                                value={formData.ethnicGroup}
+                                                onChange={handleInputChange}
+                                                placeholder="e.g. Sawa"
+                                                className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 pl-12 pr-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Village */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-gray-300 ml-1">Village</label>
+                                        <div className="relative group">
+                                            <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-red-500 transition-colors" />
+                                            <input
+                                                name="village"
+                                                value={formData.village}
+                                                onChange={handleInputChange}
+                                                placeholder="Enter village"
+                                                className="w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 pl-12 pr-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
