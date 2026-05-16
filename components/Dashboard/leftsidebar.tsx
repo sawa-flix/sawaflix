@@ -15,6 +15,7 @@ import {
   FileText,
   Workflow,
   Wallet,
+  Heart,
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -112,6 +113,7 @@ export default function LeftSidebar({
       route: '/dashboard/profile', 
       badge: null 
     },
+    { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ];

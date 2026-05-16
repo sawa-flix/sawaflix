@@ -15,6 +15,9 @@ import { YouTubePlayer } from '../YoutubePlayer';
 import { youtubeApi } from '@/services/youtubeApi';
 import SawaflixLogo from '../SawaflixLogo';
 import { useMusic } from '../MusicContext';
+import FavoriteButton from '../common/FavoriteButton';
+import { playbackService } from '@/services/playbackService';
+import { PremiumPaywall } from '../PremiumPaywall';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -71,7 +74,8 @@ const SearchResultCard = ({ video, onPlay, isShort = false }) => (
       </div>
 
       {/* Duration/Status Badge */}
-      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm rounded text-[10px] font-bold text-white tracking-wider">
+      <div className="absolute bottom-2 right-2 flex items-center gap-1.5 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm rounded text-[10px] font-bold text-white tracking-wider">
+        {video.restriction?.mustPay && <Lock size={10} className="text-yellow-500 fill-yellow-500" />}
         {isShort ? 'Saw' : (video.duration || '4:20')}
       </div>
     </div>
@@ -115,7 +119,7 @@ const SkeletonCard = ({ isShort }) => (
 );
 
 // ─── HTML5 Player ─────────────────────────────────────────────────────────────
-const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgress, onPlayerReady }) => {
+const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, restriction, onProgress, onPlayerReady, onRestrictionReached }) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -125,7 +129,14 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgres
     // Provide the YouTube-like API to the parent
     if (onPlayerReady) {
       onPlayerReady({
-        seekTo: (time) => { el.currentTime = time; },
+        seekTo: (time) => { 
+          // Seek protection
+          if (restriction?.mustPay && time > restriction.limitSeconds) {
+            el.currentTime = restriction.limitSeconds;
+          } else {
+            el.currentTime = time;
+          }
+        },
         playVideo: () => { el.play().catch(() => {}); },
         pauseVideo: () => { el.pause(); },
         getCurrentTime: () => el.currentTime,
@@ -134,18 +145,23 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgres
         unMute: () => { el.muted = false; }
       });
     }
-  }, [onPlayerReady]);
+  }, [onPlayerReady, restriction]);
 
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     
     if (isActive && !isPaused) {
+      // Check restriction before playing
+      if (restriction?.mustPay && el.currentTime >= restriction.limitSeconds) {
+        onRestrictionReached?.();
+        return;
+      }
       el.play().catch(() => {});
     } else {
       el.pause();
     }
-  }, [isActive, isPaused]);
+  }, [isActive, isPaused, restriction, onRestrictionReached]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -163,6 +179,15 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgres
       onTimeUpdate={(e) => {
         const ct = e.target.currentTime;
         const dur = e.target.duration || 1;
+
+        // Enforce restriction
+        if (restriction?.mustPay && ct >= restriction.limitSeconds) {
+          e.target.pause();
+          e.target.currentTime = restriction.limitSeconds;
+          onRestrictionReached?.();
+          return;
+        }
+
         if (onProgress) {
           const remaining = Math.max(0, Math.floor(dur - ct));
           const mins = Math.floor(remaining / 60);
@@ -198,6 +223,11 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   const [isDragging, setIsDragging] = useState(false);
   const scrubberRef   = useRef(null);
 
+  // Playback Monetization State
+  const [playbackInfo, setPlaybackInfo] = useState(null);
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
+  const [isPlaybackLoading, setIsPlaybackLoading] = useState(false);
+
   const playerRef     = useRef(null);
   const lastTapRef    = useRef({ time: 0, side: null });
   const flashTimer    = useRef(null);
@@ -208,6 +238,40 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
 
   // Determine if this is a Sawaflix-origin video or YouTube
   const videoOrigin = video.origin === 'sawaflix' ? 'sawaflix' : 'youtube';
+
+  // Fetch Playback Source through Gatekeeper when video becomes active
+  useEffect(() => {
+    if (isActive) {
+      const fetchPlayback = async () => {
+        setIsPlaybackLoading(true);
+        try {
+          // Provide fallback URL for YouTube or local Sawaflix content
+          const fallback = video.videoUrl || (videoOrigin === 'youtube' ? `https://www.youtube.com/watch?v=${video.id}` : null);
+          const info = await playbackService.getPlaybackSource(video.id, fallback);
+          setPlaybackInfo(info);
+        } catch (err) {
+          console.error('[Playback] Gatekeeper Error:', err);
+        } finally {
+          setIsPlaybackLoading(false);
+        }
+      };
+      fetchPlayback();
+    }
+  }, [isActive, video.id, video.videoUrl, videoOrigin]);
+
+  const handleUnlock = async (method) => {
+    // In a real app, you'd initiate the payment with the provider here.
+    // We'll simulate a successful payment after 3 seconds.
+    try {
+      // Simulate verification after a delay
+      const info = await playbackService.verifyPayment(video.id, `sim-${Date.now()}`);
+      setPlaybackInfo(info);
+      setIsPaywallOpen(false);
+      setIsPaused(false); // Resume playback
+    } catch (err) {
+      console.error('Unlock failed:', err);
+    }
+  };
 
   const displayLikes    = isActive && stats ? (parseInt(stats.likeCount) || likeCount) : likeCount;
   const displayComments = isActive && stats ? stats.commentCount : video.commentCount;
@@ -309,6 +373,17 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
     } catch {}
   };
 
+  const handlePlayerReady = useCallback((p) => {
+    playerRef.current = p;
+    setDuration(p.getDuration());
+    if (isActive) p.playVideo();
+  }, [isActive]);
+
+  const handleRestrictionReached = useCallback(() => {
+    setIsPaywallOpen(true);
+    setIsPaused(true);
+  }, []);
+
   return (
     <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
       {/* ── Main Video Area ── */}
@@ -333,9 +408,11 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
             <YouTubePlayer
               videoId={video.id}
               isActive={isActive}
-              isPaused={isPaused}
+              isPaused={isPaused || isPaywallOpen}
               isMuted={isMuted}
-              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              restriction={playbackInfo?.restriction}
+              onRestrictionReached={handleRestrictionReached}
+              onPlayerReady={handlePlayerReady}
               onProgress={(pct, _tLeft, ct, dur) => {
                 if (!isDragging) {
                   setProgress(pct);
@@ -347,11 +424,13 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
           ) : (
             <HTML5Player
               videoId={video.id}
-              videoUrl={video.videoUrl}
+              videoUrl={playbackInfo?.playbackUrl || video.videoUrl}
               isActive={isActive}
-              isPaused={isPaused}
+              isPaused={isPaused || isPaywallOpen}
               isMuted={isMuted}
-              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              restriction={playbackInfo?.restriction}
+              onRestrictionReached={handleRestrictionReached}
+              onPlayerReady={handlePlayerReady}
               onProgress={(pct, _tLeft, ct, dur) => {
                 if (!isDragging) {
                   setProgress(pct);
@@ -438,6 +517,12 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                     </div>
                     <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayLikes)}</span>
                   </button>
+
+                  <FavoriteButton 
+                    content={video} 
+                    iconSize={18}
+                    showLabel
+                  />
 
                   <button className="flex flex-col items-center group/btn">
                     <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
@@ -593,6 +678,29 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Playback Loading Skeleton */}
+      <AnimatePresence>
+        {isPlaybackLoading && (
+          <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center">
+            <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-4" />
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Initializing Secure Stream...</p>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Paywall Modal */}
+      <PremiumPaywall 
+        isOpen={isPaywallOpen}
+        onClose={() => setIsPaywallOpen(false)}
+        movie={{
+          title: video.title,
+          image: video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`,
+          id: video.id
+        }}
+        limitSeconds={playbackInfo?.restriction?.limitSeconds || 0}
+        onUnlockSuccess={handleUnlock}
+      />
     </div>
   );
 };
@@ -627,6 +735,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
   const videoRefs    = useRef(new Map());
   const discoverRef  = useRef(null);
   const feedScrollRef = useRef(null);
+  const lastAutoSelectedId = useRef(null);
 
   const router       = useRouter();
   const urlQuery     = searchParams.get('q') || '';
@@ -741,7 +850,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
 
   // Handle direct video navigation from videoId prop
   useEffect(() => {
-    if (!videoId || selectedVideo?.id === videoId) return;
+    if (!videoId || selectedVideo?.id === videoId || lastAutoSelectedId.current === videoId) return;
 
     const selectVideo = async () => {
       // 1. Check if the video is already in the loaded feed
@@ -793,6 +902,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     };
 
     selectVideo();
+    lastAutoSelectedId.current = videoId;
   }, [videoId, videos, loading, selectedVideo?.id]);
 
   const isSearchMode = !!urlQuery;
@@ -963,7 +1073,13 @@ function SawaFlixContent({ videoId: videoIdProp }) {
 
             {selectedVideo && (
               <button
-                onClick={() => setSelectedVideo(null)}
+                onClick={() => {
+                  if (videoId) {
+                    router.push('/dashboard');
+                  } else {
+                    setSelectedVideo(null);
+                  }
+                }}
                 className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
               >
                 <ChevronLeft size={14} /> Back

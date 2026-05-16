@@ -10,7 +10,9 @@ import Link from 'next/link';
 
 import { MusicProvider } from '../MusicContext';
 import { NotificationProvider } from '../../contexts/NotificationContext';
+import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import BottomPlayer from '../BottomPlayer';
+import MobileBottomNav from './MobileBottomNav';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
@@ -123,6 +125,7 @@ const DashboardWrapper = ({ children }) => {
   return (
     <MusicProvider>
       <NotificationProvider>
+        <FavoriteProvider>
         <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
@@ -191,6 +194,9 @@ const DashboardWrapper = ({ children }) => {
         {/* Persistent Player */}
         <BottomPlayer />
 
+        {/* Mobile Navigation */}
+        <MobileBottomNav />
+
         <style jsx global>{`
           /* Hide scrollbars */
           .scrollbar-none::-webkit-scrollbar {
@@ -208,6 +214,7 @@ const DashboardWrapper = ({ children }) => {
           }
         `}</style>
       </div>
+        </FavoriteProvider>
       </NotificationProvider>
     </MusicProvider>
   );
