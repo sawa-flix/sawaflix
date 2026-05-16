@@ -661,7 +661,7 @@ function SawaFlixContent() {
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
-  const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
+  const { videos, loading, error, loadMore, hasMore, isRefreshing } = useVideos(fetchQuery);
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
@@ -781,18 +781,35 @@ function SawaFlixContent() {
     <div className="flex flex-col relative">
       {/* YouTube-style Top Loading Bar */}
       <AnimatePresence>
-        {loading && (
+        {isRefreshing && (
           <motion.div
             initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1], opacity: 1 }}
-            transition={{ 
-              duration: 2, 
-              times: [0, 0.2, 0.5, 0.8, 1],
-              ease: "easeInOut",
-              repeat: Infinity
+            animate={{ 
+              scaleX: 0.94, 
+              opacity: 1,
+              transition: { 
+                duration: 30, // Slow crawl to 94% over 30 seconds
+                ease: [0.1, 0.05, 0.03, 0.01] 
+              } 
             }}
-            className="fixed top-0 left-0 right-0 h-[3px] bg-red-600 z-[9999] origin-left shadow-[0_0_15px_rgba(220,38,38,0.6)]"
-          />
+            exit={{ 
+              scaleX: 1, 
+              opacity: 0, 
+              transition: { duration: 0.4, ease: "easeOut" } 
+            }}
+            className="fixed top-16 left-0 right-0 h-[3.5px] bg-gradient-to-r from-red-700 via-red-500 to-red-600 z-[9999] origin-left shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+          >
+            {/* The "Peg" / Glow at the tip (Premium YouTube Detail) */}
+            <div className="absolute right-0 top-0 h-full w-[120px] shadow-[0_0_15px_#ff0000,0_0_8px_#ff0000] opacity-100 rotate-[2deg] translate-y-[-4px]" />
+            
+            {/* Moving shine effect for extra polish */}
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
