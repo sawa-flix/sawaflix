@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp } from 'lucide-react';
+import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -54,6 +54,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [isDesktop, setIsDesktop] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -363,6 +364,45 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     }, 3000);
   };
 
+  // Fullscreen toggle handler
+  const handleToggleFullscreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen(); // Safari
+      } else if ((container as any).msRequestFullscreen) {
+        (container as any).msRequestFullscreen(); // IE/Edge
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  }, []);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    };
+  }, []);
+
   // Fixed ref callback function
   const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
     videoRefs.current[index] = el;
@@ -553,6 +593,19 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
                           {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                         </div>
                         <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleFullscreen();
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
                       </button>
                     </div>
                   </motion.div>

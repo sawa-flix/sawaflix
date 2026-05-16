@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import {
   Play, Pause, ChevronLeft, ChevronRight,
   Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
-  X, Send, ThumbsUp, ThumbsDown, RotateCcw
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -176,7 +176,7 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgres
 };
 
 // ─── Video Feed Item ──────────────────────────────────────────────────────────
-const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
+const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onToggleFullscreen }) => {
   const [isDesktop, setIsDesktop] = useState(true);
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -191,6 +191,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
   const [tapFlash, setTapFlash]     = useState(null);
   const [shareToast, setShareToast] = useState(false);
   const [newComment, setNewComment] = useState('');
+  // Fullscreen state is now passed from parent
 
   const [progress, setProgress]     = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -308,6 +309,10 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
       else { await navigator.clipboard.writeText(url); setShareToast(true); setTimeout(() => setShareToast(false), 2500); }
     } catch {}
   };
+
+  useEffect(() => {
+    const onChange = () => {}; // Sync handled by parent
+  }, []);
 
   return (
     <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
@@ -466,6 +471,13 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted }) => {
                     </div>
                     <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
                   </button>
+
+                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -609,6 +621,32 @@ function SawaFlixContent() {
   const [showShorts, setShowShorts]         = useState(true);
   const [heroImgIndex, setHeroImgIndex]     = useState(0);
   const { currentTrack } = useMusic();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const feedContainerRef = useRef(null);
+
+  const handleToggleFullscreen = (e) => {
+    if (e) e.stopPropagation();
+    const el = feedContainerRef.current;
+    if (!el) return;
+
+    if (!document.fullscreenElement) {
+      const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (requestMethod) requestMethod.call(el);
+    } else {
+      const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exitMethod) exitMethod.call(document);
+    }
+  };
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
+  }, []);
 
 
 
@@ -623,7 +661,7 @@ function SawaFlixContent() {
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
-  const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
+  const { videos, loading, error, loadMore, hasMore, isRefreshing } = useVideos(fetchQuery);
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
@@ -743,18 +781,35 @@ function SawaFlixContent() {
     <div className="flex flex-col relative">
       {/* YouTube-style Top Loading Bar */}
       <AnimatePresence>
-        {loading && (
+        {isRefreshing && (
           <motion.div
             initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1], opacity: 1 }}
-            transition={{ 
-              duration: 2, 
-              times: [0, 0.2, 0.5, 0.8, 1],
-              ease: "easeInOut",
-              repeat: Infinity
+            animate={{ 
+              scaleX: 0.94, 
+              opacity: 1,
+              transition: { 
+                duration: 30, // Slow crawl to 94% over 30 seconds
+                ease: [0.1, 0.05, 0.03, 0.01] 
+              } 
             }}
-            className="fixed top-0 left-0 right-0 h-[3px] bg-red-600 z-[9999] origin-left shadow-[0_0_15px_rgba(220,38,38,0.6)]"
-          />
+            exit={{ 
+              scaleX: 1, 
+              opacity: 0, 
+              transition: { duration: 0.4, ease: "easeOut" } 
+            }}
+            className="fixed top-16 left-0 right-0 h-[3.5px] bg-gradient-to-r from-red-700 via-red-500 to-red-600 z-[9999] origin-left shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+          >
+            {/* The "Peg" / Glow at the tip (Premium YouTube Detail) */}
+            <div className="absolute right-0 top-0 h-full w-[120px] shadow-[0_0_15px_#ff0000,0_0_8px_#ff0000] opacity-100 rotate-[2deg] translate-y-[-4px]" />
+            
+            {/* Moving shine effect for extra polish */}
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -802,7 +857,7 @@ function SawaFlixContent() {
                   className="w-full h-full object-cover"
                 />
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+              {/* Removed dark overlay to make banner clearer */}
               
               {/* Slide Indicators */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
@@ -824,10 +879,10 @@ function SawaFlixContent() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handlePlayNow}
-                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.4)] group relative overflow-hidden transition-all duration-500 cursor-pointer"
+                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group relative overflow-hidden transition-all duration-500 cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
-                  <Play size={42} className="text-black group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
+                  <Play size={42} className="text-white group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
                   
                   {/* Pulsing Outer Ring */}
                   <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
@@ -862,7 +917,7 @@ function SawaFlixContent() {
         )}
 
         {showShorts && (
-          <section id="discover-section" ref={discoverRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden" : "mb-12 scroll-mt-20"}>
+          <section id="discover-section" ref={feedContainerRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-black" : "mb-12 scroll-mt-20"}>
             <div className={`flex flex-row items-center justify-between gap-4 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
             <div className="flex items-center">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
@@ -941,6 +996,8 @@ function SawaFlixContent() {
                     isActive={activeVideoId === video.id}
                     isMuted={isMuted}
                     setIsMuted={setIsMuted}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={handleToggleFullscreen}
                   />
                 </div>
               ))}
