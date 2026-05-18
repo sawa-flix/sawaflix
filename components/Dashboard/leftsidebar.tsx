@@ -207,6 +207,14 @@ export default function LeftSidebar({
           {topItems.map(renderItem)}
         </div>
 
+        {/* Explore Section */}
+        <div className="space-y-1 mb-6">
+          <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
+            Explore
+          </h3>
+          {exploreItems.map(renderItem)}
+        </div>
+
         {/* You Section */}
         <div className="space-y-1 mb-6">
           <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer w-fit mb-2">
@@ -225,14 +233,6 @@ export default function LeftSidebar({
           ) : (
             youItems.map(renderItem)
           )}
-        </div>
-
-        {/* Explore Section */}
-        <div className="space-y-1 mb-6">
-          <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
-            Explore
-          </h3>
-          {exploreItems.map(renderItem)}
         </div>
 
         {loading ? (
