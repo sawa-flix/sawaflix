@@ -147,7 +147,6 @@ export default function LeftSidebar({
 
   const creatorItems = [
     { name: 'Post', icon: LayoutGrid, id: 'post', route: '/creator-dashboard', badge: null },
-    { name: 'Upload New', icon: Upload, id: 'upload', route: '/creator-dashboard/post/upload', badge: null },
     { name: 'My Content', icon: Film, id: 'my-content', route: '/creator-dashboard/content', badge: null },
     { name: 'Analytics', icon: BarChart2, id: 'analytics', route: '/creator-dashboard/analytics', badge: null },
     { name: 'Comments', icon: MessageSquare, id: 'comments', route: '/creator-dashboard/comments', badge: null },
