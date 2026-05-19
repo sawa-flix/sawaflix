@@ -3,6 +3,7 @@ import React from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, RefreshCw, VolumeX } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
@@ -43,8 +44,11 @@ export default function BottomPlayer() {
     seekTo
   } = useMusic();
 
-  // If no track is loaded, don't render the player
-  if (!currentTrack) return null;
+  const pathname = usePathname();
+  const isReelsPage = pathname === '/dashboard' || pathname?.includes('/reels') || pathname?.includes('/contentreels');
+
+  // If no track is loaded or we are on a reels page, don't render the player
+  if (!currentTrack || isReelsPage) return null;
 
   const handleSeek = (e) => {
     const newTime = parseFloat(e.target.value);
