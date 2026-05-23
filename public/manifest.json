@@ -1,13 +1,13 @@
 {
   "name": "SawaFlix",
   "short_name": "Sawaflix",
-  "description": "Preserving culture",
+  "description": "Preserving Culturee",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#ffffff",
-  "theme_color": "#b80000",
+  "background_color": "#d60000",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "icons/icon-48x48.png",

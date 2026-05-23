@@ -9,7 +9,7 @@ const withSerwist = withSerwistInit({
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
   maximumFileSizeToCacheInBytes: 5000000,
-  disable: false,
+  disable: process.env.NODE_ENV === 'development',
 });
 
 /** @type {import('next').NextConfig} */
