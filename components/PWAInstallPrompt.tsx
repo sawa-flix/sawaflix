@@ -107,7 +107,7 @@ export default function PWAInstallPrompt() {
         >
           <button 
             onClick={handleDismiss}
-            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors"
+            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors cursor-pointer"
             aria-label="Dismiss"
           >
             <X size={16} />
@@ -126,14 +126,14 @@ export default function PWAInstallPrompt() {
           <div className="flex gap-3 mt-1">
             <button
               onClick={handleInstallClick}
-              className="flex-1 bg-[#b80000] hover:bg-[#a00000] text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-[#b80000] hover:bg-[#a00000] text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <Download size={16} />
               Install
             </button>
             <button
               onClick={handleDismiss}
-              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors"
+              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors cursor-pointer"
             >
               Later
             </button>

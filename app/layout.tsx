@@ -114,7 +114,6 @@ export default function RootLayout({
         </AdminNotificationProvider>
         <PWAInstallPrompt />
         <NotificationPrompt />
-        <Toaster position="bottom-center" />
       </body>
     </html>
   )

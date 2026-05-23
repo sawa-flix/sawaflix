@@ -47,7 +47,7 @@ export default function NotificationPrompt() {
         >
           <button 
             onClick={handleDismiss}
-            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors"
+            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors cursor-pointer"
             aria-label="Dismiss"
           >
             <X size={16} />
@@ -66,14 +66,14 @@ export default function NotificationPrompt() {
           <div className="flex gap-3 mt-1">
             <button
               onClick={handleEnable}
-              className="flex-1 bg-white hover:bg-gray-200 text-black font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-white hover:bg-gray-200 text-black font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <Bell size={16} />
               Enable
             </button>
             <button
               onClick={handleDismiss}
-              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors"
+              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors cursor-pointer"
             >
               Maybe Later
             </button>
