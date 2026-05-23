@@ -1,7 +1,8 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AdminNotificationProvider } from '../contexts/AdminNotificationContext';
 import NextTopLoader from 'nextjs-toploader';
+import PWAInstallPrompt from '../components/PWAInstallPrompt';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -82,6 +83,16 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   category: 'entertainment',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Sawaflix',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#b80000',
 };
 
 export default function RootLayout({
@@ -100,6 +111,7 @@ export default function RootLayout({
         <AdminNotificationProvider>
           {children}
         </AdminNotificationProvider>
+        <PWAInstallPrompt />
       </body>
     </html>
   )
