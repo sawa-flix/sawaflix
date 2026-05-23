@@ -9,6 +9,7 @@ const withSerwist = withSerwistInit({
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
   maximumFileSizeToCacheInBytes: 5000000,
+  disable: false,
 });
 
 /** @type {import('next').NextConfig} */

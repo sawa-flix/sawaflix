@@ -73,16 +73,17 @@ export default function PWAInstallPrompt() {
         localStorage.setItem('sawaflix_pwa_installed', 'true');
       }
     } else {
-      // No native prompt available — guide the user
-      // On Chrome desktop: the install icon is in the address bar
-      // On mobile: "Add to Home Screen" in the browser menu
-      alert(
-        'To install Sawaflix:\n\n' +
-        '• Chrome Desktop: Click the install icon (⊕) in the address bar\n' +
-        '• Android: Tap the ⋮ menu → "Install app"\n' +
-        '• iOS Safari: Tap the share icon → "Add to Home Screen"'
-      );
-      setShowPrompt(false);
+      // If we don't have the prompt, show a sleeker in-app instruction instead of an alert
+      // or simply focus the user on the browser's install icon
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(userAgent);
+      
+      if (isIOS) {
+        alert('To install: tap the Share icon at the bottom, then "Add to Home Screen"');
+      } else {
+        // Just hide the prompt if we can't programmatically install and it's desktop
+        setShowPrompt(false);
+      }
     }
   };
 
@@ -98,59 +99,56 @@ export default function PWAInstallPrompt() {
     <AnimatePresence>
       {showPrompt && (
         <motion.div
-          initial={{ opacity: 0, y: 80, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 80, scale: 0.9 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 250, mass: 1.2 }}
-          className="fixed bottom-6 left-6 z-[9999] w-[360px] max-w-[calc(100vw-3rem)] rounded-2xl bg-[#0B0E14]/95 backdrop-blur-xl border border-white/10 shadow-2xl p-5 flex flex-col gap-4 overflow-hidden"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 20px rgba(184, 0, 0, 0.15)',
-          }}
+          initial={{ opacity: 0, x: 50, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 50, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 1 }}
+          className="fixed bottom-6 right-6 z-[9999] w-[340px] max-w-[calc(100vw-3rem)] rounded-2xl bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(184,0,0,0.1)] p-4 flex flex-col gap-3 overflow-hidden"
         >
           {/* Subtle background glow effect */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#b80000]/10 to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#b80000]/10 rounded-full blur-3xl pointer-events-none" />
 
           <button 
             onClick={handleDismiss}
-            className="absolute top-3 right-3 text-gray-500 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all z-20"
+            className="absolute top-2 right-2 text-gray-500 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all z-20"
             aria-label="Dismiss"
           >
             <X size={16} />
           </button>
           
-          <div className="flex items-center gap-4 pr-6 relative z-10">
+          <div className="flex items-start gap-4 pr-6 relative z-10">
             <motion.div 
               initial={{ rotate: -10 }}
               animate={{ rotate: 0 }}
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: 'spring', damping: 15 }}
-              className="w-14 h-14 bg-gradient-to-br from-[#e60000] to-[#8a0000] rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-[#b80000]/20"
+              className="w-12 h-12 mt-1 bg-gradient-to-br from-[#e60000] to-[#8a0000] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#b80000]/20"
             >
-              <Smartphone size={26} className="text-white" />
+              <Smartphone size={22} className="text-white" />
             </motion.div>
-            <div>
-              <h3 className="text-white font-bold text-lg leading-tight tracking-tight">Install Sawaflix</h3>
-              <p className="text-gray-400 text-sm mt-1 leading-snug">Offline mode, zero load times, and instant access.</p>
+            <div className="flex flex-col">
+              <h3 className="text-white font-bold text-base leading-tight tracking-tight">Get the Sawaflix App</h3>
+              <p className="text-gray-400 text-xs mt-1 leading-snug">Install for zero load times and an immersive offline experience.</p>
             </div>
           </div>
           
-          <div className="flex gap-3 mt-1 relative z-10">
+          <div className="flex gap-2 mt-1 relative z-10">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={handleInstallClick}
-              className="flex-[3] bg-white text-black font-semibold py-2.5 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 shadow-lg shadow-white/10 hover:bg-gray-100"
+              className="flex-1 bg-white text-black font-semibold py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-lg hover:bg-gray-200"
             >
-              <Download size={16} className="text-[#b80000]" />
-              Get App
+              <Download size={14} className="text-[#b80000]" />
+              Install Now
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
               whileTap={{ scale: 0.97 }}
               onClick={handleDismiss}
-              className="flex-[2] bg-white/5 text-gray-300 font-medium py-2.5 px-4 rounded-xl text-sm transition-all border border-white/5"
+              className="flex-1 bg-transparent text-gray-400 font-medium py-2 px-3 rounded-lg text-sm transition-all hover:text-white"
             >
-              Later
+              Maybe Later
             </motion.button>
           </div>
         </motion.div>
