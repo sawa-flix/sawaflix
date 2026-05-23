@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { AdminNotificationProvider } from '../contexts/AdminNotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
+import NotificationPrompt from '@/components/NotificationPrompt';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -112,6 +113,8 @@ export default function RootLayout({
           {children}
         </AdminNotificationProvider>
         <PWAInstallPrompt />
+        <NotificationPrompt />
+        <Toaster position="bottom-center" />
       </body>
     </html>
   )
