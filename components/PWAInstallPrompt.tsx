@@ -34,10 +34,10 @@ export default function PWAInstallPrompt() {
       e.preventDefault();
       // Stash the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Wait a few seconds before showing the prompt so it's not jarring
+      // Wait a short moment before showing the prompt so it's not jarring
       setTimeout(() => {
         setShowPrompt(true);
-      }, 3000);
+      }, 1000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

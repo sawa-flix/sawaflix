@@ -8,7 +8,6 @@ const __dirname = path.dirname(__filename);
 const withSerwist = withSerwistInit({
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development',
   maximumFileSizeToCacheInBytes: 5000000,
 });
 
