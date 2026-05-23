@@ -18,22 +18,26 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
 
-      if (user) {
-        const { data: profileData, error } = await supabase
-        .from('users')
-        .select('username, role')
-        .eq('id', user.id)
-        .single<UserData>();
+        if (user) {
+          const { data: profileData, error } = await supabase
+          .from('users')
+          .select('username, role')
+          .eq('id', user.id)
+          .single<UserData>();
 
-        if (error) {
-          console.error('error fetching user:', error.message);
-        } else if (profileData) {
-          setUserProfile(profileData);
+          if (error) {
+            console.error('error fetching user:', error.message);
+          } else if (profileData) {
+            setUserProfile(profileData);
+          }
         }
+      } catch (error) {
+        console.error('error fetching user:', error);
       }
     };
     fetchUser();
