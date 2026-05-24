@@ -60,6 +60,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const muteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pushedStateRef = useRef(false);
 
   // Check if desktop for responsive layout
   useEffect(() => {
@@ -364,22 +365,36 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     }, 3000);
   };
 
-  // Fullscreen toggle handler
+  // Fullscreen toggle handler – now uses document.fullscreenElement check and updates state explicitly
   const handleToggleFullscreen = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    if (!document.fullscreenElement) {
-      // Enter fullscreen
+    // Determine current fullscreen state using any vendor-prefixed property
+    const isCurrentlyFull = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+
+    if (!isCurrentlyFull) {
+      // Enter fullscreen on the container
       if (container.requestFullscreen) {
         container.requestFullscreen();
+        history.pushState({ reelFullscreen: true }, '');
+        pushedStateRef.current = true;
       } else if ((container as any).webkitRequestFullscreen) {
         (container as any).webkitRequestFullscreen(); // Safari
+        history.pushState({ reelFullscreen: true }, '');
+        pushedStateRef.current = true;
       } else if ((container as any).msRequestFullscreen) {
         (container as any).msRequestFullscreen(); // IE/Edge
+        history.pushState({ reelFullscreen: true }, '');
+        pushedStateRef.current = true;
       }
     } else {
-      // Exit fullscreen
+      // Exit fullscreen and update UI state
       if (document.exitFullscreen) {
         document.exitFullscreen();
       } else if ((document as any).webkitExitFullscreen) {
@@ -390,16 +405,59 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     }
   }, []);
 
-  // Listen for fullscreen changes
+  // Update fullscreen change listener to handle vendor-prefixed properties
   useEffect(() => {
     const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFull = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isFull);
+
+      // If the user exited fullscreen (e.g. by pressing Esc key),
+      // we need to clean up the history state if we pushed one.
+      if (!isFull && pushedStateRef.current) {
+        pushedStateRef.current = false;
+        if (history.state && history.state.reelFullscreen) {
+          history.back();
+        }
+      }
     };
     document.addEventListener('fullscreenchange', onFullscreenChange);
     document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('MSFullscreenChange', onFullscreenChange);
+
+    // Cleanup on unmount – ensure we exit fullscreen if still active
     return () => {
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', onFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', onFullscreenChange);
+
+      // Exit any lingering fullscreen state unconditionally
+      try {
+        if (
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement
+        ) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            (document as any).webkitExitFullscreen();
+          } else if ((document as any).mozCancelFullScreen) {
+            (document as any).mozCancelFullScreen();
+          } else if ((document as any).msExitFullscreen) {
+            (document as any).msExitFullscreen();
+          }
+        }
+      } catch (e) {
+        console.error("Error exiting fullscreen on unmount:", e);
+      }
     };
   }, []);
 
@@ -424,6 +482,35 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
       });
     }
   };
+
+  // Exit fullscreen on browser back navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const isFull = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      if (isFull) {
+        try {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            (document as any).webkitExitFullscreen();
+          } else if ((document as any).msExitFullscreen) {
+            (document as any).msExitFullscreen();
+          }
+        } catch (e) {
+          console.error("Error exiting fullscreen on popstate:", e);
+        }
+      }
+      pushedStateRef.current = false;
+      setIsFullscreen(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Clean up event listeners and timeouts
   useEffect(() => {
