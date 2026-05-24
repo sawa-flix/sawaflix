@@ -1,8 +1,16 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import withSerwistInit from '@serwist/next';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  maximumFileSizeToCacheInBytes: 5000000,
+  disable: process.env.NODE_ENV === 'development',
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -83,4 +91,4 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
   },
 }
-export default nextConfig;
+export default withSerwist(nextConfig);
