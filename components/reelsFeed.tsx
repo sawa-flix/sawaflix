@@ -54,7 +54,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [isDesktop, setIsDesktop] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -365,101 +365,43 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     }, 3000);
   };
 
-  // Fullscreen toggle handler – now uses document.fullscreenElement check and updates state explicitly
-  const handleToggleFullscreen = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Determine current fullscreen state using any vendor-prefixed property
-    const isCurrentlyFull = !!(
-      document.fullscreenElement ||
-      (document as any).webkitFullscreenElement ||
-      (document as any).mozFullScreenElement ||
-      (document as any).msFullscreenElement
-    );
-
-    if (!isCurrentlyFull) {
-      // Enter fullscreen on the container
-      if (container.requestFullscreen) {
-        container.requestFullscreen();
-        history.pushState({ reelFullscreen: true }, '');
-        pushedStateRef.current = true;
-      } else if ((container as any).webkitRequestFullscreen) {
-        (container as any).webkitRequestFullscreen(); // Safari
-        history.pushState({ reelFullscreen: true }, '');
-        pushedStateRef.current = true;
-      } else if ((container as any).msRequestFullscreen) {
-        (container as any).msRequestFullscreen(); // IE/Edge
-        history.pushState({ reelFullscreen: true }, '');
-        pushedStateRef.current = true;
+  // Modal toggle handler – opens/closes custom overlay and updates history state
+  const handleToggleModal = useCallback(() => {
+    if (!isModalOpen) {
+      setIsModalOpen(true);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ reelModal: true }, '');
       }
+      pushedStateRef.current = true;
     } else {
-      // Exit fullscreen and update UI state
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+      setIsModalOpen(false);
+      // Pop the history state if we added one
+      if (typeof window !== 'undefined' && window.history.state && window.history.state.reelModal) {
+        window.history.back();
       }
     }
-  }, []);
+  }, [isModalOpen]);
 
-  // Update fullscreen change listener to handle vendor-prefixed properties
+  // Listen for browser back navigation & Escape key to close modal if open
   useEffect(() => {
-    const onFullscreenChange = () => {
-      const isFull = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-      setIsFullscreen(isFull);
-
-      // If the user exited fullscreen (e.g. by pressing Esc key),
-      // we need to clean up the history state if we pushed one.
-      if (!isFull && pushedStateRef.current) {
-        pushedStateRef.current = false;
-        if (history.state && history.state.reelFullscreen) {
-          history.back();
-        }
+    const handlePopState = () => {
+      if (isModalOpen) {
+        setIsModalOpen(false);
+      }
+      pushedStateRef.current = false;
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        handleToggleModal();
       }
     };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-    document.addEventListener('mozfullscreenchange', onFullscreenChange);
-    document.addEventListener('MSFullscreenChange', onFullscreenChange);
-
-    // Cleanup on unmount – ensure we exit fullscreen if still active
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', onFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', onFullscreenChange);
-
-      // Exit any lingering fullscreen state unconditionally
-      try {
-        if (
-          document.fullscreenElement ||
-          (document as any).webkitFullscreenElement ||
-          (document as any).mozFullScreenElement ||
-          (document as any).msFullscreenElement
-        ) {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen();
-          } else if ((document as any).mozCancelFullScreen) {
-            (document as any).mozCancelFullScreen();
-          } else if ((document as any).msExitFullscreen) {
-            (document as any).msExitFullscreen();
-          }
-        }
-      } catch (e) {
-        console.error("Error exiting fullscreen on unmount:", e);
-      }
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [isModalOpen, handleToggleModal]);
 
   // Fixed ref callback function
   const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
@@ -482,35 +424,6 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
       });
     }
   };
-
-  // Exit fullscreen on browser back navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      const isFull = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-      if (isFull) {
-        try {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen();
-          } else if ((document as any).msExitFullscreen) {
-            (document as any).msExitFullscreen();
-          }
-        } catch (e) {
-          console.error("Error exiting fullscreen on popstate:", e);
-        }
-      }
-      pushedStateRef.current = false;
-      setIsFullscreen(false);
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
 
   // Clean up event listeners and timeouts
   useEffect(() => {
@@ -561,7 +474,11 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
   return (
     <div
       ref={containerRef}
-      className="h-screen bg-black overflow-hidden relative flex flex-col lg:flex-row"
+      className={`h-screen bg-black overflow-hidden flex flex-col lg:flex-row ${
+        isModalOpen
+          ? 'fixed inset-0 z-[100] w-screen h-screen bg-[#0B0E14]/95 backdrop-blur-md'
+          : 'relative'
+      }`}
       onWheel={handleScroll}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -685,14 +602,16 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleFullscreen();
+                          handleToggleModal();
                         }}
                         className="flex flex-col items-center text-white group py-1"
                       >
                         <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                          {isModalOpen ? <Minimize size={20} /> : <Maximize size={20} />}
+
                         </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isModalOpen ? 'Close' : 'Open'}
+</span>
                       </button>
                     </div>
                   </motion.div>
