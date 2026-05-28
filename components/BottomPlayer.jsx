@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, RefreshCw, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, RefreshCw, VolumeX, X } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import dynamic from 'next/dynamic';
 
@@ -40,7 +40,9 @@ export default function BottomPlayer() {
     setVolume,
     muted,
     toggleMute,
-    seekTo
+    seekTo,
+    isVideoMode,
+    closePlayer
   } = useMusic();
 
   // If no track is loaded, don't render the player
@@ -58,31 +60,42 @@ export default function BottomPlayer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-[#0f1729]/95 backdrop-blur-md border-t border-gray-800 text-white px-4 py-3 z-50 transition-all duration-300">
-      {/* Hidden React Player */}
-      <div className="hidden">
-        <ReactPlayer
-          ref={playerRef}
-          url={normalizeUrl(currentTrack.src)}
-          playing={isPlaying}
-          volume={volume}
-          muted={muted}
-          onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
-          onDuration={(d) => setDuration(d)}
-          onEnded={playNext}
-          width="0"
-          height="0"
-          config={{
-            youtube: {
-              playerVars: { showinfo: 0, controls: 0, autoplay: 1 }
-            },
-            file: {
-              errorMessage: 'Error playing file'
-            }
-          }}
-        />
-      </div>
+      {/* Hidden React Player (Only render if NOT in video mode to prevent double audio) */}
+      {!isVideoMode && (
+        <div className="hidden">
+          <ReactPlayer
+            ref={playerRef}
+            url={normalizeUrl(currentTrack.src)}
+            playing={isPlaying}
+            volume={volume}
+            muted={muted}
+            onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
+            onDuration={(d) => setDuration(d)}
+            onEnded={playNext}
+            width="0"
+            height="0"
+            config={{
+              youtube: {
+                playerVars: { showinfo: 0, controls: 0, autoplay: 1 }
+              },
+              file: {
+                errorMessage: 'Error playing file'
+              }
+            }}
+          />
+        </div>
+      )}
 
-      <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+      <div className="flex items-center justify-between max-w-screen-xl mx-auto relative">
+        {/* Close Button overlay top right corner of the player slightly above it or just in line */}
+        <button 
+          onClick={closePlayer} 
+          className="absolute -top-6 right-0 bg-gray-800/80 hover:bg-red-600 text-gray-300 hover:text-white rounded-t-lg px-2 py-1 transition-colors cursor-pointer"
+          title="Close Player"
+        >
+          <X size={16} />
+        </button>
+
         {/* Track Info */}
         <div className="flex items-center gap-4 w-1/4 min-w-0">
           <div className="relative w-14 h-14 rounded-md overflow-hidden bg-gray-800 flex-shrink-0 shadow-lg">
@@ -106,7 +119,7 @@ export default function BottomPlayer() {
               {currentTrack.artist}
             </p>
           </div>
-          <button className="text-gray-400 hover:text-red-500 transition-colors ml-2 flex-shrink-0">
+          <button className="text-gray-400 hover:text-red-500 transition-colors ml-2 flex-shrink-0 cursor-pointer">
             <Heart size={18} />
           </button>
         </div>
@@ -114,19 +127,19 @@ export default function BottomPlayer() {
         {/* Player Controls */}
         <div className="flex flex-col items-center w-2/4 max-w-xl px-4">
           <div className="flex items-center gap-6 mb-1">
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button className="text-gray-400 hover:text-white transition-colors cursor-pointer">
               <RefreshCw size={16} />
             </button>
             <button
               onClick={playPrev}
-              className="text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-95"
+              className="text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-95 cursor-pointer"
             >
               <SkipBack size={24} fill="currentColor" />
             </button>
 
             <button
               onClick={togglePlay}
-              className="bg-white text-black p-2 rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/20"
+              className="bg-white text-black p-2 rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-white/20 cursor-pointer"
             >
               {isPlaying ? (
                 <Pause size={24} fill="black" />
@@ -137,11 +150,11 @@ export default function BottomPlayer() {
 
             <button
               onClick={playNext}
-              className="text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-95"
+              className="text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-95 cursor-pointer"
             >
               <SkipForward size={24} fill="currentColor" />
             </button>
-            <button className="text-gray-400 hover:text-white transition-colors">
+            <button className="text-gray-400 hover:text-white transition-colors cursor-pointer">
               <span className="text-xs border border-currentColor rounded px-1">HD</span>
             </button>
           </div>
@@ -162,8 +175,8 @@ export default function BottomPlayer() {
         </div>
 
         {/* Volume Controls */}
-        <div className="flex items-center justify-end gap-3 w-1/4 min-w-0">
-          <button onClick={toggleMute} className="text-gray-400 hover:text-white flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 w-1/4 min-w-0 pr-4">
+          <button onClick={toggleMute} className="text-gray-400 hover:text-white flex-shrink-0 cursor-pointer">
             {muted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
           <input
