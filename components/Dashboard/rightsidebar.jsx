@@ -47,40 +47,44 @@ const RightSidebar = () => {
           <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
         </div>
         
-        <div 
-          onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
-          className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
-        >
-          <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
-            <Image
-              src={trendingMusic.image}
-              alt="Trending"
-              fill
-              sizes="(max-width: 768px) 100vw, 320px"
-              className="object-cover transition-transform duration-700 group-hover:scale-110"
-              priority
-              unoptimized
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3">
-               <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
-               <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
-                 {trendingMusic.title}
-               </h2>
+        {loading && !featuredVideo ? (
+          <div className="w-full h-56 rounded-2xl bg-white/5 animate-pulse" />
+        ) : (
+          <div 
+            onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
+            className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
+          >
+            <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
+              <Image
+                src={trendingMusic.image}
+                alt="Trending"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                priority
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                 <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
+                 <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
+                   {trendingMusic.title}
+                 </h2>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-3 text-[10px] font-bold text-[#AAAAAA] uppercase tracking-wider">
+                 <span>{trendingMusic.views} views</span>
+                 <span>•</span>
+                 <span>{trendingMusic.likes} likes</span>
+              </div>
+              <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                 <Zap size={14} className="fill-current" />
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-3 text-[10px] font-bold text-[#AAAAAA] uppercase tracking-wider">
-               <span>{trendingMusic.views} views</span>
-               <span>•</span>
-               <span>{trendingMusic.likes} likes</span>
-            </div>
-            <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-               <Zap size={14} className="fill-current" />
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="h-px bg-white/5 my-4" />
@@ -90,12 +94,12 @@ const RightSidebar = () => {
         <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">Suggested for you</h3>
         {loading ? (
            <div className="flex flex-col gap-4">
-             {[1,2,3,4].map(i => (
-               <div key={i} className="flex gap-3 animate-pulse">
-                 <div className="w-[100px] h-[56px] bg-white/5 rounded-lg" />
-                 <div className="flex-1 py-1">
-                   <div className="h-3 bg-white/5 rounded w-full mb-2" />
-                   <div className="h-2 bg-white/5 rounded w-1/2" />
+             {[1,2,3,4,5,6].map(i => (
+               <div key={i} className="flex gap-3 animate-pulse px-2">
+                 <div className="w-[100px] h-[56px] bg-white/5 rounded-lg shrink-0" />
+                 <div className="flex-1 py-1 space-y-2">
+                   <div className="h-3 bg-white/5 rounded w-full" />
+                   <div className="h-2 bg-white/5 rounded w-2/3" />
                  </div>
                </div>
              ))}
