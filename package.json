@@ -18,7 +18,7 @@
     "@sanity/ui": "^3.1.14",
     "@sendgrid/mail": "^8.1.6",
     "@supabase/ssr": "^0.10.3",
-    "@supabase/supabase-js": "^2.55.0",
+    "@supabase/supabase-js": "^2.106.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
     "browser-image-compression": "^2.0.2",

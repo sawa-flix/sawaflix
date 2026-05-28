@@ -138,11 +138,8 @@ export async function searchVideosAction(
         return handleResponse(response);
     } catch (error: any) {
         console.error('searchVideosAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE') {
-            // Return mock videos so the UI doesn't crash
-            return { items: MOCK_VIDEOS, nextPageToken: null };
-        }
-        throw error;
+        // Return mock videos so the UI stays functional even when backend search is unavailable.
+        return { items: MOCK_VIDEOS, nextPageToken: null };
     }
 }
 

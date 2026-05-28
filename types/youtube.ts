@@ -8,9 +8,11 @@ export interface Video {
     publishedAt: string;
     videoUrl: string;
     embedUrl: string;
-    likeCount?: string;
-    commentCount?: string;
-    viewCount?: string;
+    likeCount?: string | number;
+    commentCount?: string | number;
+    viewCount?: string | number;
+    origin?: 'youtube' | 'sawaflix';
+    tier?: string;
 }
 
 export interface VideoSearchResponse {

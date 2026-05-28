@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useVideos } from '@/hooks/useVideos';
+import { useWeightedFeed } from '@/hooks/useWeightedFeed';
 import { useComments } from '@/hooks/useComments';
 import { useVideoStats } from '@/hooks/useVideoStats';
 import { YouTubePlayer } from '../YoutubePlayer';
@@ -661,7 +662,16 @@ function SawaFlixContent() {
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
-  const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
+  const { videos: regularVideos, loading: regularLoading, error: regularError, loadMore: regularLoadMore, hasMore: regularHasMore } = useVideos(fetchQuery);
+  const { videos: weightedVideos, loading: weightedLoading, error: weightedError, loadMore: weightedLoadMore, hasMore: weightedHasMore } = useWeightedFeed();
+
+  const useWeighted = activeCategory === 'all' && !urlQuery;
+
+  const videos = useWeighted ? weightedVideos : regularVideos;
+  const loading = useWeighted ? weightedLoading : regularLoading;
+  const error = useWeighted ? weightedError : regularError;
+  const loadMore = useWeighted ? weightedLoadMore : regularLoadMore;
+  const hasMore = useWeighted ? weightedHasMore : regularHasMore;
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];

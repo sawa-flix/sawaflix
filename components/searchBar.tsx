@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
 import SearchHistory from "./SearchHistory";
@@ -38,7 +38,10 @@ export default function SearchBar({
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { history, loading: historyLoading, removeHistoryItem, clearHistory } = useSearchHistory();
+  const { history, loading: historyLoading, removeHistoryItem, clearHistory, saveHistoryItem } = useSearchHistory();
+
+  console.log('[SearchBar] Render - isFocused:', isFocused, 'query:', `"${query}"`, 'historyLoading:', historyLoading, 'history.length:', history.length);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -50,16 +53,19 @@ export default function SearchBar({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim().length >= minQueryLength) {
-      onSearch(query.trim());
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length >= minQueryLength) {
+      onSearch(trimmedQuery);
+      await saveHistoryItem(trimmedQuery);
     }
   };
 
-  const handleHistorySelect = (historyQuery: string) => {
+  const handleHistorySelect = async (historyQuery: string) => {
     setQuery(historyQuery);
     onSearch(historyQuery);
+    await saveHistoryItem(historyQuery);
     setIsFocused(false);
   };
 
@@ -71,12 +77,18 @@ export default function SearchBar({
   const showHistory = isFocused && query.trim() === "" && !loading;
   const showResults = query.trim().length >= minQueryLength && (results.length > 0 || loading || error);
 
+  console.log('[SearchBar] showHistory:', showHistory, 'showResults:', showResults);
+  console.log('[SearchBar] showHistory logic - isFocused:', isFocused, 'query empty:', query.trim() === "", 'loading:', loading);
+
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
+            id="search-input"
+            name="search"
+            aria-label="Search"
             ref={inputRef}
             type="text"
             value={query}

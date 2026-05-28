@@ -8,16 +8,19 @@ import {
   useMotionValueEvent,
   AnimatePresence,
 } from "framer-motion";
-import { Menu, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Menu, X, Search } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import SawaflixLogo from "./SawaflixLogo";
+import SearchBar from "./searchBar";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const pathname = usePathname();
+  const router = useRouter();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -74,6 +77,15 @@ export default function Navbar() {
 
           {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
+            {/* Search Icon */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="text-gray-300 hover:text-white cursor-pointer transition-colors p-1.5 hover:bg-white/10 rounded-full"
+              aria-label="Search"
+            >
+              <Search size={20} />
+            </button>
+
             {/* Language Selector Styled Button */}
             <div className="relative">
               <button className="flex items-center gap-2 px-4 py-1 bg-black/30 border border-white/40 rounded text-white text-sm font-medium hover:bg-black/50 transition-all cursor-pointer">
@@ -93,7 +105,16 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Button */}
-          <div className="-mr-2 flex md:hidden">
+          <div className="-mr-2 flex md:hidden items-center">
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="text-gray-300 hover:text-white cursor-pointer transition-colors p-1.5 hover:bg-white/10 rounded-full mr-2"
+              aria-label="Search"
+            >
+              <Search size={20} />
+            </button>
+
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none"
@@ -143,6 +164,53 @@ export default function Navbar() {
                 </Link>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Global Search Overlay Modal */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setIsSearchOpen(false)}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsSearchOpen(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-white cursor-pointer p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all active:scale-95"
+            >
+              <X size={24} />
+            </button>
+
+            {/* Search Content Container */}
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="w-full max-w-2xl bg-gray-900/90 backdrop-blur-xl border border-gray-800 p-8 rounded-2xl shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-black text-white tracking-tight">Search SawaFlix</h2>
+                <p className="text-xs text-gray-400 mt-1">Discover cultural movies, music hits, and living traditions</p>
+              </div>
+
+              <SearchBar
+                onSearch={(q) => {
+                  router.push(`/dashboard?q=${encodeURIComponent(q)}`);
+                  setIsSearchOpen(false);
+                }}
+                loading={false}
+                results={[]}
+                error={null}
+                placeholder="Search movies, music, stories..."
+                minQueryLength={2}
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

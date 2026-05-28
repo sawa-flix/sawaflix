@@ -15,6 +15,7 @@ interface UseSearchHistoryReturn {
   loadHistory: () => Promise<void>;
   removeHistoryItem: (id: string) => Promise<void>;
   clearHistory: () => Promise<void>;
+  saveHistoryItem: (query: string) => Promise<void>;
 }
 
 export function useSearchHistory(): UseSearchHistoryReturn {
@@ -24,14 +25,19 @@ export function useSearchHistory(): UseSearchHistoryReturn {
 
   const loadHistory = useCallback(async () => {
     try {
+      console.log('[useSearchHistory] Starting loadHistory...');
       setLoading(true);
       setError(null);
       const data = await searchHistoryService.fetchSearchHistory();
+      console.log('[useSearchHistory] Received data:', data);
       // Response is an array of history items
       setHistory(Array.isArray(data) ? data : []);
+      console.log('[useSearchHistory] History set to:', Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load search history');
-      console.error('Error loading search history:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load search history';
+      setError(errorMsg);
+      console.error('[useSearchHistory] ERROR loading search history:', err);
+      console.error('[useSearchHistory] Error message:', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -65,6 +71,32 @@ export function useSearchHistory(): UseSearchHistoryReturn {
     }
   }, [loadHistory]);
 
+  const saveHistoryItem = useCallback(async (query: string) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    try {
+      setError(null);
+      const savedItem = await searchHistoryService.saveSearchHistoryItem(trimmedQuery);
+      setHistory(prev => {
+        const filtered = prev.filter(item => item.search_query.toLowerCase() !== trimmedQuery.toLowerCase());
+        const newHistory = [
+          savedItem || {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+            user_id: 'local',
+            search_query: trimmedQuery,
+            searched_at: new Date().toISOString()
+          },
+          ...filtered
+        ];
+        return newHistory.slice(0, 20);
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save history item');
+      console.error('[useSearchHistory] Error saving history item:', err);
+    }
+  }, []);
+
   // Auto-load history on mount
   useEffect(() => {
     loadHistory();
@@ -76,6 +108,7 @@ export function useSearchHistory(): UseSearchHistoryReturn {
     error,
     loadHistory,
     removeHistoryItem,
-    clearHistory
+    clearHistory,
+    saveHistoryItem
   };
 }
