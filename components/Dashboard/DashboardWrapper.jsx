@@ -15,6 +15,7 @@ const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState('none');
+  const [userRole, setUserRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
   React.useEffect(() => {
@@ -79,8 +80,12 @@ const DashboardWrapper = ({ children }) => {
                 ? 'approved'
                 : (statusFromSupabase || statusFromApi || 'none');
 
+            // Get user role from Supabase profile
+            const userRoleFromDB = supabaseProfile?.role || null;
+
             setUserProfile(finalProfile);
             setVerificationStatus(finalStatus);
+            setUserRole(userRoleFromDB);
 
         } catch (err) {
             console.error("Error checking creator status:", err);
@@ -139,7 +144,8 @@ const DashboardWrapper = ({ children }) => {
           >
             <LeftSidebar 
               onNavigate={closeSidebar} 
-              verificationStatus={verificationStatus} 
+              verificationStatus={verificationStatus}
+              userRole={userRole}
               userProfile={userProfile} 
             />
           </aside>
