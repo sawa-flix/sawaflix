@@ -6,9 +6,10 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { ProfileFormSkeleton } from '@/components/Dashboard/Skeletons';
-import { ChevronLeft, CheckCircle, Plus } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Plus, Sparkles, ArrowLeft } from 'lucide-react';
 import StatusModal from '@/components/Dashboard/StatusModal';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function EditProfilePage() {
     const [profile, setProfile] = useState(null);
@@ -22,10 +23,10 @@ export default function EditProfilePage() {
             try {
                 const supabase = createClient();
                 const { data: { session } } = await supabase.auth.getSession();
-                const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+                const { data: { user } } = await supabase.auth.getUser(); 
                 const token = session?.access_token;
 
-                const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
                   headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                   }
@@ -51,7 +52,6 @@ export default function EditProfilePage() {
         try {
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
             const token = session?.access_token;
 
             const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
@@ -63,9 +63,12 @@ export default function EditProfilePage() {
                 body: JSON.stringify(updatedData),
             });
 
-            if (!res.ok) throw new Error('Failed to save profile');
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.details || errorData.error || 'Failed to save profile');
+            }
             
-            showModal('success', 'Profile Updated', 'Your identity has been successfully synchronized.');
+            showModal('success', 'Identity Synchronized', 'Your profile updates have been successfully pushed to the Sawa Network.');
         } catch (err) {
             console.error(err);
             showModal('error', 'Update Failed', err.message || 'There was an error saving your changes. Please try again.');
@@ -76,9 +79,12 @@ export default function EditProfilePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#030712] py-12 px-4 scrollbar-hide flex flex-col items-center">
-                <div className="w-full max-w-4xl space-y-6">
-                    <div className="w-48 h-4 bg-zinc-800 rounded animate-pulse mb-6" />
+            <div className="min-h-screen bg-[#06080C] py-20 px-6 flex flex-col items-center">
+                <div className="w-full max-w-4xl space-y-12">
+                    <div className="space-y-4">
+                        <div className="w-32 h-4 bg-zinc-900 rounded-full animate-pulse" />
+                        <div className="w-64 h-10 bg-zinc-900 rounded-2xl animate-pulse" />
+                    </div>
                     <ProfileFormSkeleton />
                 </div>
             </div>
@@ -86,33 +92,48 @@ export default function EditProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0f1729] selection:bg-red-500/30 font-sans">
-            <div className="max-w-4xl mx-auto space-y-6 pt-6 px-4 relative">
+        <div className="min-h-screen bg-[#06080C] selection:bg-red-500/30 font-sans pb-32">
+            <div className="max-w-5xl mx-auto pt-16 px-6 relative">
                 {/* Visual Status Confirmation */}
                 <StatusModal 
                     isOpen={modalConfig.show}
                     onClose={() => {
                         setModalConfig(prev => ({ ...prev, show: false }));
-                        if (modalConfig.type === 'success') router.push('/dashboard');
+                        if (modalConfig.type === 'success') router.push('/dashboard/profile');
                     }}
                     type={modalConfig.type}
                     title={modalConfig.title}
                     message={modalConfig.message}
                 />
 
-                <div className="flex items-center justify-between border-b border-white/5 pb-8 pt-4">
-                    <div>
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-12 mb-12"
+                >
+                    <div className="space-y-4">
                         <Link 
-                            href="/dashboard"
-                            className="flex items-center gap-2 text-zinc-500 hover:text-red-500 text-sm font-bold mb-2 transition-colors group"
+                            href="/dashboard/profile"
+                            className="flex items-center gap-2 text-zinc-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all group"
                         >
-                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
+                            Back to Profile
                         </Link>
-                        <h1 className="text-3xl font-black text-white tracking-tight">Update <span className="text-red-600">profile</span></h1>
+                        <div className="space-y-1">
+                            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic">
+                                Customize <span className="text-red-600">Identity</span>
+                            </h1>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Manage your public presence and brand aesthetics</p>
+                        </div>
                     </div>
-                </div>
 
-                <div className="transition-all duration-500">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/20 rounded-xl">
+                        <Sparkles className="w-3.5 h-3.5 text-red-600" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-red-500">Live Customization</span>
+                    </div>
+                </motion.div>
+
+                <div className="transition-all duration-700">
                     <EditProfileForm 
                         initialData={profile} 
                         onSave={handleSave} 
@@ -122,27 +143,32 @@ export default function EditProfilePage() {
                     />
                 </div>
 
-                {/* Fixed Rectangular 'Be a Creator' Action Bar - Restricted to Profile Page */}
+                {/* Creator Program Call-to-Action */}
                 {profile?.verificationStatus === 'none' && (
-                  <div className="fixed bottom-24 left-0 right-0 z-40 bg-zinc-950/80 backdrop-blur-2xl border-t border-red-600/30 shadow-[0_-30px_60px_-20px_rgba(220,38,38,0.4)] animate-in slide-in-from-bottom duration-500">
-                    <div className="max-w-7xl mx-auto px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-                          <span className="text-white font-black text-sm">sf+</span>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-20 p-1 bg-gradient-to-r from-red-600/20 via-zinc-800 to-red-900/20 rounded-[3rem] shadow-2xl"
+                  >
+                    <div className="bg-[#0B0E14] rounded-[2.8rem] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-10">
+                      <div className="flex items-center gap-6">
+                        <div className="w-20 h-20 bg-red-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-red-600/20">
+                          <Sparkles className="text-white w-10 h-10" />
                         </div>
-                        <div className="space-y-1">
-                          <h5 className="text-white font-black text-sm tracking-wide">Ready to launch?</h5>
-                          <p className="text-zinc-500 text-xs font-bold">Verified creators reach 10x more fans instantly</p>
+                        <div className="space-y-2 text-center md:text-left">
+                          <h5 className="text-2xl font-black text-white tracking-tight uppercase italic">Join the Creator Network</h5>
+                          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest max-w-sm">Unlock premium tools, monetization, and advanced analytics for your channel.</p>
                         </div>
                       </div>
                       <Link 
                         href="/creator/verify" 
-                        className="w-full sm:w-auto px-12 py-4 bg-red-600 hover:bg-red-700 text-white font-black tracking-wide text-sm transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(220,38,38,0.4)] flex items-center justify-center gap-3 group rounded-xl"
+                        className="w-full md:w-auto px-12 py-5 bg-red-600 hover:bg-red-500 text-white font-black tracking-[0.2em] text-xs uppercase transition-all shadow-2xl shadow-red-600/20 flex items-center justify-center gap-4 group rounded-2xl active:scale-95"
                       >
-                        create <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
+                        Apply Now <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
             </div>
         </div>

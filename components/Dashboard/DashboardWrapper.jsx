@@ -4,7 +4,6 @@ import { BACKEND_URL } from '../../lib/apiConfig';
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import LeftSidebar from './leftsidebar';
-import CreatorSidebar from './CreatorSidebar';
 import RightSidebar from './rightsidebar';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -24,21 +23,65 @@ const DashboardWrapper = ({ children }) => {
             const { createClient } = require('../../utils/supabase/client');
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const { data: { user } } = await supabase.auth.getUser(); 
             const token = session?.access_token;
             
-            const visitorId = localStorage.getItem('sawaflix_visitor_id');
-            const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
-                headers: {
-                    ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setUserProfile(data);
-                setVerificationStatus(data.verificationStatus);
+            // 1. Try API first
+            let apiData = null;
+            try {
+                const visitorId = localStorage.getItem('sawaflix_visitor_id');
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                    headers: {
+                        ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+                if (res.ok) apiData = await res.json();
+            } catch (apiErr) {
+                console.error("API check failed:", apiErr);
             }
+
+            // 2. Always fetch Supabase profile as source of truth for permissions
+            let supabaseProfile = null;
+            let submissionData = null;
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                supabaseProfile = profile;
+
+                const { data: submission } = await supabase
+                    .from('verification_submissions')
+                    .select('status, category')
+                    .eq('creator_id', user.id)
+                    .maybeSingle();
+                submissionData = submission;
+            }
+
+            // 3. Merge data, prioritizing 'approved' status
+            const finalProfile = {
+                ...(supabaseProfile || apiData || {
+                    id: user?.id,
+                    email: user?.email,
+                    username: user?.email?.split('@')[0],
+                }),
+                category: submissionData?.category || supabaseProfile?.category || apiData?.category || 'viewer'
+            };
+
+            // Define the final status by checking all possible fields
+            const statusFromSupabase = supabaseProfile?.verification_status || submissionData?.status;
+            const statusFromApi = apiData?.verification_status || apiData?.verificationStatus;
+            
+            // If ANY source says approved, then the user is approved
+            const finalStatus = (statusFromSupabase?.toLowerCase() === 'approved' || statusFromApi?.toLowerCase() === 'approved')
+                ? 'approved'
+                : (statusFromSupabase || statusFromApi || 'none');
+
+            setUserProfile(finalProfile);
+            setVerificationStatus(finalStatus);
+
         } catch (err) {
             console.error("Error checking creator status:", err);
         }
@@ -46,9 +89,7 @@ const DashboardWrapper = ({ children }) => {
     checkCreatorStatus();
   }, []);
 
-  // Determine if we should show the creator-specific layout
-  // Only use Creator layout for approved creators on the creator-dashboard path
-  const isCreatorLayout = pathname.startsWith('/creator-dashboard') && verificationStatus === 'approved';
+
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -60,15 +101,20 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <MusicProvider>
-      <div className="min-h-screen bg-[#0B0E14]">
-        {/* Header - Only show if NOT in creator layout mode */}
-        {!isCreatorLayout && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
+      <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
+        {/* Texture overlay without colored glows */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
+        </div>
 
-        <div className={`flex ${isCreatorLayout ? 'pt-0' : 'pt-16'}`}> 
+        {/* Header - Unified across all pages */}
+        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+        <div className="relative z-10 pt-16"> 
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-md transition-all duration-500"
               onClick={closeSidebar}
               role="button"
               tabIndex={0}
@@ -79,37 +125,44 @@ const DashboardWrapper = ({ children }) => {
             />
           )}
 
-          {/* Left Sidebar */}
+          {/* Left Sidebar — Fixed & Unified */}
           <aside
             className={`
-              fixed lg:sticky top-0 left-0 z-50 lg:z-auto
-              w-64 h-screen bg-[#0B0E14]
-              transform transition-transform duration-300 ease-in-out
+              fixed top-16 left-0 z-50 lg:z-30
+              w-72 h-[calc(100vh-4rem)] bg-[#0B0E14]/80 backdrop-blur-xl
+              transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-              lg:translate-x-0 lg:block
+              lg:translate-x-0
               overflow-y-auto scrollbar-none
-              border-r border-white/5
+              border-r border-white/5 shadow-2xl shadow-black/50
             `}
           >
-            {isCreatorLayout ? (
-                <CreatorSidebar userProfile={userProfile} />
-            ) : (
-                <LeftSidebar onNavigate={closeSidebar} />
-            )}
+            <LeftSidebar 
+              onNavigate={closeSidebar} 
+              verificationStatus={verificationStatus} 
+              userProfile={userProfile} 
+            />
           </aside>
 
-          {/* Main Content Area */}
-          <main className={`flex-1 ${isCreatorLayout ? 'min-h-screen' : 'min-h-[calc(100vh-4rem)]'} overflow-auto bg-[#0B0E14] rounded-tl-3xl rounded-bl-3xl`}>
-            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-full pb-32"> 
-              {children}
-            </div>
-          </main>
+          {/* Right Sidebar — Fixed & Unified */}
+          <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+              <RightSidebar />
+          </aside>
 
-          {/* Right Sidebar - Only show for normal user dashboard */}
-          {!isCreatorLayout && (
-            <aside className="hidden xl:block w-80 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto scrollbar-none border-l border-white/5">
-                <RightSidebar />
-            </aside>
+          {/* Main Content Area — Scrollable center */}
+          {pathname?.includes('/reels') ? (
+            // Reels: break out of ALL layout chrome, fill full remaining space
+            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-hidden bg-transparent">
+              <div className="h-full w-full p-0 m-0">
+                {children}
+              </div>
+            </main>
+          ) : (
+            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto scrollbar-none bg-transparent scroll-smooth">
+              <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500">
+                {children}
+              </div>
+            </main>
           )}
         </div>
 

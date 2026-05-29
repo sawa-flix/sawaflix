@@ -9,7 +9,8 @@ interface UseCommentsResult {
     error: string | null;
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
-    refetch: () => Promise<void>;  // ✅ Add refetch to the interface
+    refetch: () => Promise<void>;
+    addComment: (comment: Comment) => void; // ✅ Optimistic add
 }
 
 export function useComments(videoId: string | null): UseCommentsResult {
@@ -52,12 +53,18 @@ export function useComments(videoId: string | null): UseCommentsResult {
         await fetchComments();
     }, [fetchComments]);
 
+    // Optimistic add — prepend the new comment to the top of the list immediately
+    const addComment = useCallback((comment: Comment) => {
+        setComments(prev => [comment, ...prev]);
+    }, []);
+
     return {
         comments,
         loading,
         error,
         isOpen,
         setIsOpen: handleSetIsOpen,
-        refetch,  // ✅ Now refetch is returned
+        refetch,
+        addComment,
     };
 }

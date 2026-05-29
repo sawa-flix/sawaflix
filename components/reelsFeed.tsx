@@ -2,6 +2,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize } from 'lucide-react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Video {
   id: string;
@@ -33,15 +36,50 @@ interface VideoState {
   hasBeenViewed: boolean;
 }
 
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  avatar: string;
+  timestamp: string;
+  likes: number;
+}
+
 export default function ReelsFeed({ videos }: ReelsFeedProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [videoStates, setVideoStates] = useState<Map<number, VideoState>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [showMuteButton, setShowMuteButton] = useState(true);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isDesktop, setIsDesktop] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const muteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if desktop for responsive layout
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
+
+  // Generate some dummy comments for demonstration
+  useEffect(() => {
+    setComments([
+      { id: '1', author: 'Alex King', text: 'This content is fire! 🔥', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', timestamp: '2h', likes: 24 },
+      { id: '2', author: 'Sarah J', text: 'Love the cinematography here.', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah', timestamp: '1h', likes: 12 },
+      { id: '3', author: 'Mike Ross', text: 'Where was this filmed?', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike', timestamp: '30m', likes: 5 },
+      { id: '4', author: 'Elena P', text: 'Sawaflix is getting better and better!', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena', timestamp: '10m', likes: 8 },
+    ]);
+  }, []);
 
   // Initialize video states
   useEffect(() => {
@@ -88,7 +126,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
 
       // Create new play promise
       playPromiseRef.current = video.play();
-      
+
       await playPromiseRef.current;
       setIsLoading(false);
 
@@ -161,7 +199,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
               setIsLoading(true);
               safePlay(video, index);
               setCurrentVideoIndex(index);
-              
+
               // Pause all other videos immediately
               videoRefs.current.forEach((otherVideo, otherIndex) => {
                 if (otherVideo && otherIndex !== index && videoStates.get(otherIndex)?.isPlaying) {
@@ -195,7 +233,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
   // Handle scroll to switch videos
   const handleScroll = useCallback((event: React.WheelEvent) => {
     event.preventDefault();
-    
+
     if (event.deltaY > 0) {
       // Scroll down - next video
       setCurrentVideoIndex(prev => Math.min(prev + 1, videos.length - 1));
@@ -203,7 +241,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
       // Scroll up - previous video
       setCurrentVideoIndex(prev => Math.max(prev - 1, 0));
     }
-    
+
     // Show mute button temporarily when scrolling
     setShowMuteButton(true);
     if (muteTimeoutRef.current) {
@@ -295,7 +333,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
           ...currentState,
           isMuted: !currentState.isMuted
         });
-        
+
         // Update the actual video element
         const video = videoRefs.current[index];
         if (video) {
@@ -304,7 +342,7 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
       }
       return newStates;
     });
-    
+
     // Show mute button temporarily when toggling
     setShowMuteButton(true);
     if (muteTimeoutRef.current) {
@@ -326,17 +364,56 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     }, 3000);
   };
 
+  // Fullscreen toggle handler
+  const handleToggleFullscreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen(); // Safari
+      } else if ((container as any).msRequestFullscreen) {
+        (container as any).msRequestFullscreen(); // IE/Edge
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  }, []);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+    };
+  }, []);
+
   // Fixed ref callback function
   const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
     videoRefs.current[index] = el;
-    
+
     if (el) {
       // Set initial mute state from videoStates
       const videoState = videoStates.get(index);
       if (videoState) {
         el.muted = videoState.isMuted;
       }
-      
+
       // Add event listeners for each video
       el.addEventListener('ended', () => handleVideoEnd(index));
       el.addEventListener('canplay', () => {
@@ -353,11 +430,11 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
     return () => {
       videoRefs.current.forEach((video) => {
         if (video) {
-          video.removeEventListener('ended', () => {});
-          video.removeEventListener('canplay', () => {});
+          video.removeEventListener('ended', () => { });
+          video.removeEventListener('canplay', () => { });
         }
       });
-      
+
       if (muteTimeoutRef.current) {
         clearTimeout(muteTimeoutRef.current);
       }
@@ -377,201 +454,300 @@ export default function ReelsFeed({ videos }: ReelsFeedProps) {
 
   const currentVideoState = videoStates.get(currentVideoIndex);
 
+  const handleSendComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      author: 'You',
+      text: commentText,
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You',
+      timestamp: 'Just now',
+      likes: 0
+    };
+
+    setComments([newComment, ...comments]);
+    setCommentText('');
+  };
+
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="h-screen bg-black overflow-hidden relative"
+      className="h-screen bg-black overflow-hidden relative flex flex-col lg:flex-row"
       onWheel={handleScroll}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseMove={handleMouseMove}
     >
-      {/* Video Container */}
-      <div className="h-full snap-y snap-mandatory overflow-y-scroll scrollbar-hide">
-        {videos.map((video, index) => (
-          <div
-            key={video.id}
-            className="h-full snap-start relative flex items-center justify-center"
-          >
-            {/* Video Player */}
-            <video
-              ref={setVideoRef(index)}
-              className="h-full w-full object-cover"
-              loop={false}
-              playsInline
-              preload="auto"
-              onClick={() => {
-                const videoState = videoStates.get(index);
-                if (videoState?.isPlaying) {
-                  safePause(videoRefs.current[index]!, index);
-                } else {
-                  setIsLoading(true);
-                  safePlay(videoRefs.current[index]!, index);
-                }
-              }}
+      {/* Video Content Section */}
+      <motion.div
+        animate={{
+          width: showComments && isDesktop ? 'calc(100% - 400px)' : '100%',
+          y: showComments && !isDesktop ? '-20%' : '0%',
+          scale: showComments && !isDesktop ? 0.85 : 1
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="h-full relative overflow-hidden"
+      >
+        <div className="h-full snap-y snap-mandatory overflow-y-scroll scrollbar-hide">
+          {videos.map((video, index) => (
+            <div
+              key={video.id}
+              className="h-full snap-start relative flex items-center justify-center bg-black"
             >
-              <source src={video.video_url} type={video.mime_type} />
-              Your browser does not support the video tag.
-            </video>
-
-            {/* Loading Spinner */}
-            {isLoading && index === currentVideoIndex && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-
-            {/* Large Mute/Unmute Button (Center) - Only for current video */}
-            {showMuteButton && index === currentVideoIndex && (
-              <button 
-                onClick={() => handleToggleMute(currentVideoIndex)}
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 bg-black/50 rounded-full p-4 transition-all duration-200 hover:bg-black/70"
+              {/* Video Player Wrapper */}
+              <motion.div
+                animate={{
+                  scale: showComments && isDesktop ? 0.9 : 1,
+                  x: showComments && isDesktop ? '-2%' : '0%'
+                }}
+                className="relative h-full w-full flex items-center justify-center"
               >
-                {currentVideoState?.isMuted ? (
-                  <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3.63 3.63a.996.996 0 000 1.41L7.29 9H6c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1.29l3.66 3.66c.39.39 1.02.39 1.41 0l5.34-5.34-7.07-7.07-5.34 5.34zM14 7v10c0 .55-.45 1-1 1s-1-.45-1-1v-3.17l-2-2V14h-.17l-2-2H8V9.17l-2-2V7c0-.55.45-1 1-1h6c.55 0 1 .45 1 1zm4 0v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z"/>
-                  </svg>
-                ) : (
-                  <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                  </svg>
-                )}
-              </button>
-            )}
+                <video
+                  ref={setVideoRef(index)}
+                  className="h-full w-full object-contain lg:object-cover max-h-screen"
+                  loop={false}
+                  playsInline
+                  preload="auto"
+                  onClick={() => {
+                    const videoState = videoStates.get(index);
+                    if (videoState?.isPlaying) {
+                      safePause(videoRefs.current[index]!, index);
+                    } else {
+                      setIsLoading(true);
+                      safePlay(videoRefs.current[index]!, index);
+                    }
+                  }}
+                >
+                  <source src={video.video_url} type={video.mime_type} />
+                  Your browser does not support the video tag.
+                </video>
+              </motion.div>
 
-            {/* Video Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
-              
-              {/* Bottom Info */}
-              <div className="absolute bottom-20 left-4 right-4 text-white">
-                <h3 className="text-xl font-bold mb-2 line-clamp-2">{video.title}</h3>
-                <p className="text-gray-200 text-sm mb-3 line-clamp-2">{video.description}</p>
-                
-                <div className="flex items-center space-x-4 text-sm text-gray-300">
-                  {getProducerName(video) && (
-                    <span>By {getProducerName(video)}</span>
-                  )}
-                  {video.featured_actors && (
-                    <span>• {video.featured_actors}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Side Actions */}
-              <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-6">
-                {/* Like Button */}
-                <button className="flex flex-col items-center text-white">
-                  <div className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                  </div>
-                  <span className="text-xs">24.5K</span>
-                </button>
-
-                {/* Comment Button */}
-                <button className="flex flex-col items-center text-white">
-                  <div className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h11c.55 0 1-.45 1-1z"/>
-                    </svg>
-                  </div>
-                  <span className="text-xs">1.2K</span>
-                </button>
-
-                {/* Share Button */}
-                <button className="flex flex-col items-center text-white">
-                  <div className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
-                    </svg>
-                  </div>
-                  <span className="text-xs">Share</span>
-                </button>
-
-                {/* Mute/Unmute Button (Small in action bar) - Only for current video */}
-                {index === currentVideoIndex && (
-                  <button 
-                    onClick={() => handleToggleMute(currentVideoIndex)}
-                    className="flex flex-col items-center text-white"
+              {/* Action Buttons & Info - Only visible when comments are closed on mobile */}
+              <AnimatePresence>
+                {(!showComments || isDesktop) && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none"
                   >
-                    <div className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1">
-                      {currentVideoState?.isMuted ? (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M3.63 3.63a.996.996 0 000 1.41L7.29 9H6c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1.29l3.66 3.66c.39.39 1.02.39 1.41 0l5.34-5.34-7.07-7.07-5.34 5.34zM14 7v10c0 .55-.45 1-1 1s-1-.45-1-1v-3.17l-2-2V14h-.17l-2-2H8V9.17l-2-2V7c0-.55.45-1 1-1h6c.55 0 1 .45 1 1zm4 0v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z"/>
-                        </svg>
-                      ) : (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                        </svg>
-                      )}
+                    {/* Bottom Info */}
+                    <div className="absolute bottom-24 left-4 right-16 text-white">
+                      <h3 className="text-lg font-bold mb-1 drop-shadow-md">{video.title}</h3>
+                      <p className="text-gray-200 text-sm mb-3 line-clamp-2 max-w-[80%] drop-shadow-sm">{video.description}</p>
+
+                      <div className="flex items-center space-x-3 text-sm text-gray-300">
+                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/10 overflow-hidden">
+                          <Image
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${getProducerName(video) || 'S'}`}
+                            alt="Producer"
+                            width={32}
+                            height={32}
+                          />
+                        </div>
+                        <span className="font-medium text-white">{getProducerName(video) || 'Anonymous'}</span>
+                      </div>
                     </div>
-                    <span className="text-xs">{currentVideoState?.isMuted ? 'Unmute' : 'Mute'}</span>
-                  </button>
+
+                    {/* Right Side Actions — TikTok-style: compact, bottom-pinned */}
+                    <div className="absolute right-3 bottom-20 flex flex-col items-center gap-0 pointer-events-auto">
+                      <button className="flex flex-col items-center text-white group py-1">
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <Heart size={20} className="hover:text-red-500 transition-colors" />
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">24.5K</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowComments(true);
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <MessageCircle size={20} />
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{comments.length}</span>
+                      </button>
+
+                      <button className="flex flex-col items-center text-white group py-1">
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          <Share2 size={20} />
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">Share</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleMute(index);
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleFullscreen();
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                      </button>
+                    </div>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
 
-              {/* Top Controls */}
-              <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <span className="text-white font-semibold">Reels</span>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  {/* Play/Pause Button - Only for current video */}
-                  {index === currentVideoIndex && (
-                    <button 
-                      onClick={() => {
-                        const videoState = videoStates.get(index);
-                        if (videoState?.isPlaying) {
-                          safePause(videoRefs.current[index]!, index);
-                        } else {
-                          setIsLoading(true);
-                          safePlay(videoRefs.current[index]!, index);
-                        }
-                      }}
-                      className="text-white"
-                    >
-                      {currentVideoState?.isPlaying ? (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                        </svg>
-                      ) : (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Progress Indicator */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gray-600">
-                <div 
-                  className="h-full bg-white transition-all duration-100"
-                  style={{ 
-                    width: `${((currentVideoIndex + 1) / videos.length) * 100}%` 
+              {/* Vertical Progress Bar */}
+              <div className="absolute top-0 right-0 bottom-0 w-1 bg-white/5 pointer-events-none">
+                <div
+                  className="w-full bg-white transition-all duration-300"
+                  style={{
+                    height: `${((currentVideoIndex + 1) / videos.length) * 100}%`
                   }}
                 />
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Navigation Hints */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-        {videos.map((_, index) => (
-          <div
-            key={index}
-            className={`h-1 rounded-full transition-all duration-300 ${
-              index === currentVideoIndex ? 'bg-white w-8' : 'bg-gray-500 w-2'
-            }`}
-          />
-        ))}
-      </div>
+        {/* Top Controls Overlay (Fixed) */}
+        <div className="absolute top-6 left-6 flex items-center space-x-3 pointer-events-none z-40">
+          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
+            <Play size={18} fill="white" className="ml-0.5" />
+          </div>
+          <span className="text-white font-black tracking-tighter text-xl uppercase">Reels</span>
+        </div>
+      </motion.div>
+
+      {/* Comment Section */}
+      <AnimatePresence>
+        {showComments && (
+          <>
+            {/* Backdrop for Mobile */}
+            {!isDesktop && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowComments(false)}
+                className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+              />
+            )}
+
+            {/* Comment Box */}
+            <motion.div
+              initial={isDesktop ? { x: '100%' } : { y: '100%' }}
+              animate={isDesktop ? { x: 0 } : { y: 0 }}
+              exit={isDesktop ? { x: '100%' } : { y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              drag={isDesktop ? false : "y"}
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 150) setShowComments(false);
+              }}
+              className={`fixed lg:relative z-50 bg-[#0F1117] border-white/10 flex flex-col shadow-2xl ${isDesktop
+                ? 'h-screen w-[400px] border-l'
+                : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
+                }`}
+            >
+              {/* Drag Handle (Mobile) */}
+              {!isDesktop && (
+                <div className="w-full flex justify-center py-3">
+                  <div className="w-10 h-1.5 bg-white/20 rounded-full" />
+                </div>
+              )}
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 pb-4 pt-2 border-b border-white/5">
+                <h3 className="text-white font-bold text-lg">Comments ({comments.length})</h3>
+                <button
+                  onClick={() => setShowComments(false)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Comments List */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex space-x-4">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={comment.avatar}
+                        alt={comment.author}
+                        width={40}
+                        height={40}
+                        className="rounded-full ring-2 ring-white/5"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-white font-bold text-sm">{comment.author}</span>
+                        <span className="text-gray-500 text-xs">{comment.timestamp}</span>
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed">{comment.text}</p>
+                      <div className="flex items-center mt-2 space-x-4">
+                        <button className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors">
+                          <Heart size={14} />
+                          <span className="text-xs">{comment.likes}</span>
+                        </button>
+                        <button className="text-gray-500 hover:text-white text-xs font-medium">Reply</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Input Area */}
+              <form onSubmit={handleSendComment} className="p-6 bg-[#161922] border-t border-white/5 pb-10 lg:pb-6">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded-full py-3 px-5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!commentText.trim()}
+                    className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white disabled:opacity-50 disabled:bg-gray-700 transition-all hover:bg-blue-500 shadow-lg shadow-blue-600/20"
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <style jsx global>{`
+        @keyframes ping-once {
+          0% { transform: scale(0.6); opacity: 1; }
+          100% { transform: scale(1.4); opacity: 0; }
+        }
+        .animate-ping-once { animation: ping-once 0.8s cubic-bezier(0, 0, 0.2, 1) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }

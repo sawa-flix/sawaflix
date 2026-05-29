@@ -8,6 +8,13 @@ const inputClass = (hasError) =>
             : 'border-white/10 focus:ring-red-600/20 focus:border-red-500/50'
     } shadow-inner`;
 
+const textAreaClass = (hasError) =>
+    `w-full text-white text-sm font-bold placeholder-zinc-600 focus:outline-none resize-none rounded-2xl px-5 py-4 bg-white/5 border hover:bg-white/10 transition-all ${
+        hasError
+            ? 'border-red-500/50 focus:ring-red-500/30'
+            : 'border-white/10 focus:ring-red-600/20 focus:border-red-500/50'
+    } shadow-inner`;
+
 const FieldError = ({ message }) => message ? (
     <p className="text-red-400 text-[10px] mt-2 ml-2 font-black uppercase tracking-widest flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1">
         <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
@@ -54,7 +61,7 @@ const Step2Identity = ({ data, updateData, errors = {} }) => {
                         name="legalName"
                         value={data.legalName || ''}
                         onChange={handleChange}
-                        placeholder="Your legal name"
+                        placeholder="Your full legal name"
                         className={inputClass(!!errors.legalName)}
                     />
                     <FieldError message={errors.legalName} />
@@ -69,10 +76,39 @@ const Step2Identity = ({ data, updateData, errors = {} }) => {
                         name="creatorName"
                         value={data.creatorName || ''}
                         onChange={handleChange}
-                        placeholder="Stage name or handle"
+                        placeholder="Main creator handle"
                         className={inputClass(!!errors.creatorName)}
                     />
                     <FieldError message={errors.creatorName} />
+                </div>
+
+                <div className="col-span-1">
+                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">
+                        Date of Birth <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={data.dateOfBirth || ''}
+                        onChange={handleChange}
+                        className={inputClass(!!errors.dateOfBirth)}
+                    />
+                    <FieldError message={errors.dateOfBirth} />
+                </div>
+
+                <div className="col-span-1">
+                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">
+                        Stage Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="stage_name"
+                        value={data.stage_name || ''}
+                        onChange={handleChange}
+                        placeholder="Your stage name or alias"
+                        className={inputClass(!!errors.stage_name)}
+                    />
+                    <FieldError message={errors.stage_name} />
                 </div>
 
                 <div className="col-span-1 sm:col-span-2">
@@ -111,34 +147,19 @@ const Step2Identity = ({ data, updateData, errors = {} }) => {
                     <FieldError message={errors.ethnicGroup} />
                 </div>
 
-                <div className="col-span-1">
+                <div className="col-span-1 sm:col-span-2">
                     <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">
-                        Phone <span className="text-red-500">*</span>
+                        Personal Bio <span className="text-red-500">*</span>
                     </label>
-                    <input
-                        type="tel"
-                        name="phone"
-                        value={data.phone || ''}
+                    <textarea
+                        name="bio"
+                        value={data.bio || ''}
                         onChange={handleChange}
-                        placeholder="+1 (555) 000-0000"
-                        className={inputClass(!!errors.phone)}
+                        placeholder="Tell us a bit about your background and story..."
+                        rows={4}
+                        className={textAreaClass(!!errors.bio)}
                     />
-                    <FieldError message={errors.phone} />
-                </div>
-
-                <div className="col-span-1">
-                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">
-                        Email <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={data.email || ''}
-                        onChange={handleChange}
-                        placeholder="creator@example.com"
-                        className={inputClass(!!errors.email)}
-                    />
-                    <FieldError message={errors.email} />
+                    <FieldError message={errors.bio} />
                 </div>
             </div>
 
@@ -150,7 +171,7 @@ const Step2Identity = ({ data, updateData, errors = {} }) => {
                 </div>
                 <div className="pt-0.5">
                     <h4 className="font-black text-zinc-300 text-xs tracking-wider uppercase mb-1.5">Privacy First</h4>
-                    <p className="text-xs text-zinc-500 leading-relaxed font-medium">Your legal details are securely stored. Only your Creator Name is shown to the public.</p>
+                    <p className="text-xs text-zinc-500 leading-relaxed font-medium">Your legal details are securely stored. Only your Stage Name and Bio are shown to the public.</p>
                 </div>
             </div>
         </div>

@@ -21,14 +21,41 @@ export function useVideos(categoryQuery: string): UseVideosResult {
     const [error, setError] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
 
-    // Use refs to track pagination without causing re-renders
     const nextPageTokenRef = useRef<string | null>(null);
     const isLoadingRef = useRef(false);
     const currentCategoryRef = useRef(categoryQuery);
 
-    // Refresh: Reset and fetch first page
+    const mapYouTubeItem = (item: any): Video => ({
+        id: typeof item.id === 'object' ? item.id.videoId : item.id,
+        title: item.snippet?.title || item.title,
+        description: item.snippet?.description || item.description,
+        thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
+        channelId: item.snippet?.channelId || item.channelId,
+        channelTitle: item.snippet?.channelTitle || item.channelTitle,
+        publishedAt: item.snippet?.publishedAt || item.publishedAt,
+        videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+        embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
+        likeCount: item.statistics?.likeCount || item.likeCount,
+        commentCount: item.statistics?.commentCount || item.commentCount,
+        origin: 'youtube'
+    });
+
+    const mapSawaflixItem = (item: any): Video => ({
+        id: item.id,
+        title: item.title,
+        description: item.description || '',
+        thumbnail: item.thumbnail || item.cover_url,
+        channelId: 'sawaflix',
+        channelTitle: 'Sawaflix',
+        publishedAt: item.created_at || item.publishedAt,
+        videoUrl: item.videoUrl || item.media_url,
+        embedUrl: item.videoUrl || item.media_url,
+        likeCount: item.likes || 0,
+        commentCount: 0,
+        origin: 'sawaflix'
+    });
+
     const refresh = useCallback(async () => {
-        // Prevent multiple refreshes
         if (isLoadingRef.current) return;
 
         setIsRefreshing(true);
@@ -36,125 +63,104 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         isLoadingRef.current = true;
 
         try {
-            // Reset all state
-            setVideos([]);
+            // Check cache first so the UI instantly shows videos without loaders
+            const CACHE_KEY = `sawaflix:feed:${categoryQuery.replace(/\s+/g, '_')}`;
+            if (videos.length === 0) {
+                try {
+                    const cachedStr = localStorage.getItem(CACHE_KEY);
+                    if (cachedStr) {
+                        const parsed = JSON.parse(cachedStr);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setVideos(parsed);
+                        }
+                    }
+                } catch (e) {}
+            }
+
             nextPageTokenRef.current = null;
             setHasMore(true);
             currentCategoryRef.current = categoryQuery;
 
-            // Fetch first page
-            const response = await youtubeApi.searchVideos(categoryQuery, null, 7);
+            let finalVideos: Video[] = [];
 
-            const rawList = Array.isArray(response) ? response : (response as any).items || [];
-            
-            if (rawList.length === 0 && !Array.isArray(response)) {
-                const apiError = (response as any)?.error?.message || 'No videos found';
-                throw new Error(apiError);
+            // If the user is on the default feed (All 237), fetch the fast unified feed!
+            if (categoryQuery === 'Cameroon music hits 2026') {
+                const response = await youtubeApi.getUnifiedFeed();
+                const sawaflixVideos = (response.data?.sawaflix || []).map(mapSawaflixItem);
+                const ytVideos = (response.data?.youtube || []).map(mapYouTubeItem);
+
+                // Mix them up for a dynamic feel
+                finalVideos = [...sawaflixVideos, ...ytVideos].sort(() => Math.random() - 0.5);
+                
+                // Set the token so infinite scroll knows to continue with YouTube search
+                nextPageTokenRef.current = 'use-youtube-fallback'; 
+                setHasMore(true);
+            } else {
+                // Specific category search
+                const response = await youtubeApi.searchVideos(categoryQuery, null, 10);
+                const rawList = Array.isArray(response) ? response : (response as any).items || [];
+                finalVideos = rawList
+                    .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
+                    .map(mapYouTubeItem)
+                    .sort(() => Math.random() - 0.5);
+
+                nextPageTokenRef.current = (response as any).nextPageToken || null;
+                setHasMore(!!(response as any).nextPageToken);
             }
 
-            const videoList = rawList.map((item: any) => ({
-                id: typeof item.id === 'object' ? item.id.videoId : item.id,
-                title: item.snippet?.title || item.title,
-                description: item.snippet?.description || item.description,
-                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
-                channelId: item.snippet?.channelId || item.channelId,
-                channelTitle: item.snippet?.channelTitle || item.channelTitle,
-                publishedAt: item.snippet?.publishedAt || item.publishedAt,
-                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                likeCount: item.statistics?.likeCount || item.likeCount,
-                commentCount: item.statistics?.commentCount || item.commentCount,
-            }));
+            if (finalVideos.length === 0) {
+                throw new Error('No videos found');
+            }
 
-            // TikTok Effect: Shuffle the videos so the feed feels fresh and dynamic 
-            // every time the user opens the app, even while using the 1-hour cache!
-            const shuffledVideos = [...videoList].sort(() => Math.random() - 0.5);
+            // Ensure we don't completely wipe out the user's current view if background fetch was quick
+            setVideos(finalVideos);
+            
+            // Save to LocalStorage for instant load next time
+            try {
+                const CACHE_KEY = `sawaflix:feed:${categoryQuery.replace(/\s+/g, '_')}`;
+                localStorage.setItem(CACHE_KEY, JSON.stringify(finalVideos));
+            } catch (e) {}
 
-            setVideos(shuffledVideos);
-            nextPageTokenRef.current = (response as any).nextPageToken || null;
-            setHasMore(!!(response as any).nextPageToken);
-
-            console.log(`[useVideos] Refreshed: ${videoList.length} videos, hasMore: ${!!(response as any).nextPageToken}`);
+            console.log(`[useVideos] Refreshed: ${finalVideos.length} videos`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to refresh videos';
             setError(errorMessage);
-            console.error('[useVideos] Refresh failed:', err); // Log the full error object for better debugging
+            console.error('[useVideos] Refresh failed:', err);
         } finally {
             setIsRefreshing(false);
             isLoadingRef.current = false;
         }
     }, [categoryQuery]);
 
-    // Load more: Append next page
     const loadMore = useCallback(async () => {
-        // Don't load if:
-        // 1. Already loading
-        // 2. No more videos
-        // 3. No next page token
-        // 4. Category changed during load
-        if (isLoadingRef.current) {
-            console.log('[useVideos] Already loading, skipping');
-            return;
-        }
-
-        if (!hasMore) {
-            console.log('[useVideos] No more videos, skipping');
-            return;
-        }
-
-        if (!nextPageTokenRef.current) {
-            console.log('[useVideos] No next page token, skipping');
-            return;
-        }
-
-        if (currentCategoryRef.current !== categoryQuery) {
-            console.log('[useVideos] Category changed, skipping loadMore');
-            return;
-        }
+        if (isLoadingRef.current) return;
+        if (!hasMore) return;
+        if (!nextPageTokenRef.current) return;
+        if (currentCategoryRef.current !== categoryQuery) return;
 
         setLoading(true);
         isLoadingRef.current = true;
 
         try {
-            console.log('[useVideos] Loading more with token:', nextPageTokenRef.current);
+            // When infinite scrolling after unified feed, fallback to regular youtube search
+            const tokenToUse = nextPageTokenRef.current === 'use-youtube-fallback' ? null : nextPageTokenRef.current;
+            const queryToUse = categoryQuery === 'Cameroon music hits 2026' ? 'trending entertainment Cameroon' : categoryQuery;
 
-            const response = await youtubeApi.searchVideos(
-                categoryQuery,
-                nextPageTokenRef.current,
-                7
-            );
-            
+            const response = await youtubeApi.searchVideos(queryToUse, tokenToUse, 10);
             const rawList = Array.isArray(response) ? response : (response as any).items || [];
-
-            if (rawList.length === 0 && !Array.isArray(response)) {
-                throw new Error('Invalid data received while loading more videos');
-            }
             
-            const videoList = rawList.map((item: any) => ({
-                id: typeof item.id === 'object' ? item.id.videoId : item.id,
-                title: item.snippet?.title || item.title,
-                description: item.snippet?.description || item.description,
-                thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
-                channelId: item.snippet?.channelId || item.channelId,
-                channelTitle: item.snippet?.channelTitle || item.channelTitle,
-                publishedAt: item.snippet?.publishedAt || item.publishedAt,
-                videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-                likeCount: item.statistics?.likeCount || item.likeCount,
-                commentCount: item.statistics?.commentCount || item.commentCount,
-            }));
+            const newVideos = rawList
+                .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
+                .map(mapYouTubeItem);
 
             setVideos(prev => {
-                // Prevent duplicates by checking IDs
                 const existingIds = new Set(prev.map(v => v.id));
-                const newVideos = videoList.filter(v => !existingIds.has(v.id));
-                return [...prev, ...newVideos];
+                const uniqueNew = newVideos.filter((v: Video) => !existingIds.has(v.id));
+                return [...prev, ...uniqueNew];
             });
 
             nextPageTokenRef.current = (response as any).nextPageToken || null;
             setHasMore(!!(response as any).nextPageToken);
-
-            console.log(`[useVideos] Loaded more: ${videoList.length} new videos, hasMore: ${!!(response as any).nextPageToken}`);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to load more videos';
             setError(errorMessage);
@@ -165,9 +171,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         }
     }, [categoryQuery, hasMore]);
 
-    // Refresh when category changes
     useEffect(() => {
-        console.log('[useVideos] Category changed to:', categoryQuery);
         refresh();
     }, [categoryQuery, refresh]);
 

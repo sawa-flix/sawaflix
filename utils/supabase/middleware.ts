@@ -8,6 +8,13 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const { pathname } = request.nextUrl;
+
+  // Skip middleware completely for the auth callback to prevent cookie interference during PKCE exchange
+  if (pathname.startsWith('/auth/callback')) {
+    return supabaseResponse;
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -23,34 +30,42 @@ export async function updateSession(request: NextRequest) {
     supabaseAnonKey,
     {
       cookies: {
-        get(name) {
-          return request.cookies.get(name)?.value;
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-        set(name, value, options) {
-          request.cookies.set({ name, value, ...options });
-          supabaseResponse = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          supabaseResponse.cookies.set({ name, value, ...options });
-        },
-        remove(name, options) {
-          request.cookies.set({ name, value: '', ...options });
-          supabaseResponse = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          supabaseResponse.cookies.set({ name, value: '', ...options });
-        },
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
@@ -64,13 +79,41 @@ export async function updateSession(request: NextRequest) {
     console.log(`[Middleware] Cookies present but no user!`, request.cookies.getAll().map(c => c.name));
   }
 
-  if (error) {
-     console.error('Middleware getUser error:', error.message);
+  if (error && error.message !== 'Auth session missing!') {
+    console.error('Middleware getUser error:', error.message);
+
+    // If the refresh token is stale/invalid, the cookie is corrupted.
+    // Clear it and redirect to login — otherwise the user gets stuck in an infinite loop.
+    if (
+      error.message.includes('refresh_token_not_found') ||
+      error.message.includes('Invalid Refresh Token') ||
+      error.message.includes('does not exist')
+    ) {
+      const loginUrl = new URL('/login', request.url);
+      const response = NextResponse.redirect(loginUrl);
+      // Delete the stale auth cookie so the next visit is clean
+      const authCookieName = `sb-${supabaseUrl.replace('https://', '').split('.')[0]}-auth-token`;
+      response.cookies.delete(authCookieName);
+      response.cookies.delete(`${authCookieName}.0`);
+      response.cookies.delete(`${authCookieName}.1`);
+      return response;
+    }
   }
 
-  const { pathname } = request.nextUrl;
+  // pathname is already extracted above
 
-  const publicRoutes = ["/login", "/sign-up", "/sign-in", "/verify-otp", "/auth/callback"];
+  const publicRoutes = [
+    "/login", 
+    "/sign-up", 
+    "/sign-in", 
+    "/verify-otp", 
+    "/auth/callback", 
+    "/update-password", 
+    "/forgot-password",
+    "/dashboard/blogs",
+    "/artistpage",
+    "/home"
+  ];
   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
@@ -130,13 +173,16 @@ export async function updateSession(request: NextRequest) {
     console.error("Middleware DB Fetch issue:", err);
   }
 
-  // 3. Logged in and on auth pages (or home) -> redirect to appropriate dashboard
-  if (isAuthRoute || pathname === '/') {
+  // 3. Logged in and on auth pages -> redirect to appropriate dashboard
+  // We removed pathname === '/' from here to allow users to see the landing page first
+  if (isAuthRoute) {
     const role = profile?.role || 'client';
     
+    // Default target for everyone (including creators) is the main feed
     let target = "/dashboard";
+    
+    // Admins go to their specific portal
     if (role === 'admin') target = "/admin";
-    else if (isApprovedCreator) target = "/creator-dashboard";
     
     if (isDev) console.log(`Auth route ${pathname}. Logged in as ${role}. Redirecting to ${target}`);
     return redirectWithCookies(target);
@@ -145,8 +191,14 @@ export async function updateSession(request: NextRequest) {
   // 4. Missing profile safety
   if (!profile) return supabaseResponse;
 
-  // 5. OTP Check for all users except admins
-  if (profile.role !== 'admin' && profile.verification_status !== "approved") {
+  // 5. OTP Check for all users except admins and OAuth users
+  // OAuth users (Google, GitHub, etc.) are pre-verified by the provider — skip OTP
+  // We also allow 'pending' status to bypass OTP because it means they've verified their email
+  // but are waiting for admin approval (for creators).
+  const isOAuthUser = user?.app_metadata?.provider && user.app_metadata.provider !== 'email';
+  const isVerified = profile.verification_status === "approved" || profile.verification_status === "pending";
+  
+  if (profile.role !== 'admin' && !isOAuthUser && !isVerified) {
       if (isPublicRoute) return supabaseResponse;
       if (pathname.startsWith("/creator/verify")) return supabaseResponse;
       if (pathname.startsWith("/creator/pending")) return supabaseResponse;

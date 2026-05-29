@@ -146,47 +146,48 @@ export async function resetPassword(formData) {
       return { error: 'Email is required' };
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.toString().trim())) {
       return { error: 'Please enter a valid email address.' };
     }
 
-    const supabase = await createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // Smart environment routing: Use localhost:5000 in dev, fallback to Render in prod
+    const isDev = process.env.NODE_ENV === 'development';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
+    const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    console.log('🟡 Sending password reset email to:', email);
-    console.log('🟡 Site URL:', origin);
+    console.log(`🟡 Sending password reset via backend to: ${email} at ${cleanBackendUrl}`);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.toString().trim(), {
-      redirectTo: `${origin}/auth/callback`,
+    const res = await fetch(`${cleanBackendUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.toString().trim() }),
     });
 
-    if (error) {
-      console.error("🔴 Password reset error:", error.message);
-
-      // User-friendly error messages
-      let userMessage = error.message;
-      if (error.message.includes('rate limit')) {
-        userMessage = 'Too many attempts. Please try again in a few minutes.';
-      } else if (error.message.includes('not found')) {
-        userMessage = 'No account found with this email address.';
-      } else if (error.message.includes('email')) {
-        userMessage = 'Please enter a valid email address.';
-      }
-
-      return { error: userMessage };
+    // Guard: Backend might return an HTML error page (e.g., 404 if not deployed, or 502)
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      console.error('🔴 Backend returned non-JSON response. Status:', res.status);
+      return { error: 'Could not reach the email service. Please ensure the backend is running and updated.' };
     }
 
-    console.log('✅ Password reset email sent successfully');
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('🔴 Backend forgot-password error:', data);
+      return { error: data.error || 'Failed to send reset email. Please try again.' };
+    }
+
+    console.log('✅ Password reset email sent via backend');
     return {
       success: true,
-      message: 'Check your email for the password reset link. It may take a minute to arrive.'
+      message: 'Check your email for the Sawaflix password reset link. It may take a minute to arrive.',
     };
 
   } catch (error) {
     console.error('🔴 Unexpected reset password error:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
+    return { error: 'An unexpected connection error occurred. Please try again.' };
   }
 }
 

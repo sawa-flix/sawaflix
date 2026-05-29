@@ -26,7 +26,7 @@ const RecommendationCard = ({ rec, index }) => (
       <p className="text-gray-400 text-xs line-clamp-2">{rec.description}</p>
 
       <Link href={rec.link}>
-        <button className="w-full py-2 bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
+        <button className="w-full py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-600/20 font-black text-[10px] rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-[0.2em]">
           Explore
           <ArrowRight className="w-3 h-3" />
         </button>

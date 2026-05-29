@@ -70,13 +70,16 @@ const Navbar = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       handleSearch(e);
                     }
                   }}
                   placeholder="Search movies, music and more..."
-                  className="w-full pl-12 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300"
+                  className="w-full pl-12 pr-4 py-2.5 bg-black/40 border border-white/20 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all duration-300"
                 />
               </div>
             </div>
@@ -175,7 +178,10 @@ const Navbar = () => {
             <div className="flex items-center gap-1">
               {/* Search Icon - Always visible */}
               <button
-                onClick={handleSearch}
+                onClick={(e) => {
+                  handleSearch(e);
+                  document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-full transition-all duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

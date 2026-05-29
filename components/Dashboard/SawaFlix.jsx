@@ -1,154 +1,1035 @@
 'use client'
-import React, { useState } from 'react';
-import { Play, Star } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import {
+  Play, Pause, ChevronLeft, ChevronRight,
+  Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+import { useVideos } from '@/hooks/useVideos';
+import { useComments } from '@/hooks/useComments';
+import { useVideoStats } from '@/hooks/useVideoStats';
+import { YouTubePlayer } from '../YoutubePlayer';
+import { youtubeApi } from '@/services/youtubeApi';
+import SawaflixLogo from '../SawaflixLogo';
+import { useMusic } from '../MusicContext';
 
-const SawaFlix = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+// ─── Constants ────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id: "all",    label: "Sawas",   query: "Cameroon shorts viral 2026" },
+  { id: "music",  label: "Music",   query: "Cameroon music shorts hits" },
+  { id: "comedy", label: "Comedy",  query: "Cameroon comedy shorts" },
+  { id: "news",   label: "News",    query: "Cameroon news shorts today" },
+];
 
-  // Sample data
-  const trendingContent = [
-    { id: 1, title: "ARCADIAN", type: "movie", rating: 8.5, image: "/0.jpg", genre: "Sci-Fi" },
-    { id: 2, title: "Lunar Hits", type: "music", rating: 9.2, image: "/1.jpg", genre: "Electronic" },
-    { id: 3, title: "Dune: Part Two", type: "movie", rating: 9.1, image: "/10.jpg", genre: "Action" },
-    { id: 4, title: "Midnight Jazz", type: "music", rating: 8.8, image: "/6.jpg", genre: "Jazz" },
-    { id: 5, title: "Avatar 3", type: "movie", rating: 9.3, image: "/3.jpg", genre: "Adventure" },
-    { id: 6, title: "Summer Beats", type: "music", rating: 8.7, image: "/5.jpg", genre: "Pop" }
-  ];
+const HERO_IMAGES = [
+  "https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png",
+  "https://i.ibb.co/k2B50hDM/sawaflixcomedy.png",
+  "https://i.ibb.co/j9c5rNnH/Chat-GPT-Image-May-6-2026-02-01-09-PM.png"
+];
 
-  const movieRecommendations = [
-    { id: 1, title: "The Ultimatum 4", rating: 4.5, image: "/movie.jpg", year: "2024" },
-    { id: 2, title: "Black Panther", rating: 4.8, image: "/movfy3.jpg", year: "2023" },
-    { id: 3, title: "Action Movie", rating: 4.2, image: "/vid.jpg", year: "2024" },
-    { id: 4, title: "Thriller Movie", rating: 4.6, image: "/wed-image 1.jpg", year: "2024" }
-  ];
+function formatCount(n) {
+  if (!n) return '0';
+  const num = parseInt(n, 10);
+  if (isNaN(num)) return '0';
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+  if (num >= 1_000)     return (num / 1_000).toFixed(1) + 'K';
+  return String(num);
+}
 
-  const musicRecommendations = [
-    { id: 1, title: "Hit Songs 2024", artist: "Various Artists", image: "/r1.jpg", plays: "1.2M" },
-    { id: 2, title: "Midnight Vibes", artist: "DJ Shadow", image: "/r2.jpg", plays: "890K" },
-    { id: 3, title: "Pop Classics", artist: "Top Artists", image: "/pic1.jpg", plays: "2.1M" },
-    { id: 4, title: "Rock Anthems", artist: "Rock Legends", image: "/r4.jpg", plays: "1.5M" }
-  ];
+function fmtTime(secs) {
+  if (!secs || isNaN(secs)) return '0:00';
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
 
-  const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
-
-  const ContentCard = ({ item, type }) => (
-    <div className="group relative bg-gray-800 rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
-      <div className="relative">
-        <img src={item.image} alt={item.title} className="w-full h-48 sm:h-56 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <button className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-700 cursor-pointer">
-          <Play size={20} className="text-white fill-current" />
-        </button>
-        <div className="absolute top-3 right-3 bg-black/60 rounded-full px-2 py-1">
-          <div className="flex items-center text-yellow-400 text-sm">
-            <Star size={14} className="mr-1 fill-current" />
-            <span>{type === 'movie' ? item.rating : '★★★★★'}</span>
-          </div>
-        </div>
-      </div>
-      <div className="p-4">
-        <h3 className="text-white font-semibold text-sm sm:text-base mb-1 truncate">{item.title}</h3>
-        <p className="text-gray-400 text-xs sm:text-sm">
-          {type === 'movie' ? `${item.year || '2024'} • ${item.genre || 'Movie'}` : `${item.artist} • ${item.plays || 'Music'}`}
-        </p>
-      </div>
-    </div>
-  );
-
-  const HeroSection = () => (
-    <div className="relative h-72 sm:h-80 lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden mb-8 group">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500"
-        style={{ backgroundImage: "url('https://i.ibb.co/N2c9XWpL/Fang-beti-Slider.jpg')" }}
+// ─── Search Result Card ───────────────────────
+const SearchResultCard = ({ video, onPlay, isShort = false }) => (
+  <div
+    onClick={() => onPlay(video)}
+    className="group flex flex-col gap-3 cursor-pointer transition-all duration-300"
+  >
+    {/* Thumbnail Container */}
+    <div className={`relative ${isShort ? 'aspect-[9/16]' : 'aspect-video'} rounded-2xl overflow-hidden bg-[#12141a] border border-white/5 group-hover:border-white/20 transition-all duration-300`}>
+      <Image
+        src={video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`}
+        alt={video.title}
+        fill
+        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+        unoptimized
       />
-      {/* Multi-layer dark overlays for better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/70" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
       
-      {/* Decorative gradient accent */}
-      <div className="absolute inset-0 bg-radial-gradient from-transparent via-transparent to-black/40" />
-      
-      <div className="relative z-10 h-full flex items-center justify-center text-center px-4 sm:px-6">
-        <div className="drop-shadow-2xl w-full max-w-2xl">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg whitespace-nowrap">
-            Sawa<span className="text-red-500">Flix</span>
-          </h1>
-          <p className="text-sm sm:text-lg lg:text-2xl text-gray-100 mb-6 sm:mb-8 font-light drop-shadow-md px-2">
-            The Ultimate Music And Movies Experience
-          </p>
-          <div className="flex justify-center">
-            <Link href="/dashboard/youtubevids">
-              <button className="group/btn relative bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-8 sm:px-10 py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-300 cursor-pointer shadow-lg hover:shadow-red-500/50 hover:-translate-y-1 active:scale-95">
-                ▶ Play Now
-                <span className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
-              </button>
-            </Link>
-          </div>
+      {/* Play Icon */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-500">
+          <Play size={24} className="text-white fill-white ml-1" />
         </div>
       </div>
-      
-      {/* Animated corner accent */}
-      <div className="absolute top-0 left-0 w-40 h-40 bg-red-500/10 rounded-full filter blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full filter blur-3xl"></div>
+
+      {/* Duration/Status Badge */}
+      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm rounded text-[10px] font-bold text-white tracking-wider">
+        {isShort ? 'Saw' : (video.duration || '4:20')}
+      </div>
     </div>
-  );
+
+    {/* Info Container */}
+    <div className="flex gap-3 px-0.5">
+      {/* Channel Avatar Placeholder */}
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex-shrink-0 overflow-hidden relative">
+        <Image 
+          src={video.channelThumbnail || `https://api.dicebear.com/7.x/initials/svg?seed=${video.channelTitle}`} 
+          alt="Avatar" 
+          fill 
+          className="object-cover"
+        />
+      </div>
+      
+      <div className="flex flex-col gap-1 min-w-0">
+        <h3 className="text-white text-sm font-semibold line-clamp-2 leading-tight group-hover:text-white transition-colors">
+          {video.title}
+        </h3>
+        <div className="flex flex-col text-[12px] text-[#AAAAAA] leading-snug">
+          <span className="hover:text-white transition-colors">{video.channelTitle}</span>
+          <span className="text-white/40">{formatCount(video.viewCount || Math.floor(Math.random() * 1000000))} views • 2 days ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonCard = ({ isShort }) => (
+  <div className="flex flex-col gap-3 animate-pulse">
+    <div className={`w-full rounded-2xl bg-white/5 ${isShort ? 'aspect-[9/16]' : 'aspect-video'}`} />
+    <div className="flex gap-3 px-1">
+      <div className="w-9 h-9 rounded-full bg-white/5 flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-white/5 rounded w-full" />
+        <div className="h-3 bg-white/5 rounded w-2/3" />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── HTML5 Player ─────────────────────────────────────────────────────────────
+const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, onProgress, onPlayerReady }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    // Provide the YouTube-like API to the parent
+    if (onPlayerReady) {
+      onPlayerReady({
+        seekTo: (time) => { el.currentTime = time; },
+        playVideo: () => { el.play().catch(() => {}); },
+        pauseVideo: () => { el.pause(); },
+        getCurrentTime: () => el.currentTime,
+        getDuration: () => el.duration || 0,
+        mute: () => { el.muted = true; },
+        unMute: () => { el.muted = false; }
+      });
+    }
+  }, [onPlayerReady]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    
+    if (isActive && !isPaused) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, [isActive, isPaused]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = isMuted;
+  }, [isMuted]);
 
   return (
-    // Added overflow-x-hidden here to remove horizontal scrollbar
-    <div className="min-h-screen bg-gray-900 flex flex-col overflow-x-hidden">
-      {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-6">
-        <HeroSection />
+    <video
+      ref={videoRef}
+      src={videoUrl}
+      className="w-full h-full object-cover"
+      playsInline
+      loop
+      onTimeUpdate={(e) => {
+        const ct = e.target.currentTime;
+        const dur = e.target.duration || 1;
+        if (onProgress) {
+          const remaining = Math.max(0, Math.floor(dur - ct));
+          const mins = Math.floor(remaining / 60);
+          const secs = remaining % 60;
+          const timeLeft = `${mins}:${String(secs).padStart(2, '0')}`;
+          onProgress((ct / dur) * 100, timeLeft, ct, dur);
+        }
+      }}
+    />
+  );
+};
 
-        {/* Trending Now */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
-              <span className="w-1 h-8 bg-red-600 mr-3 rounded-full"></span>
-              Trending Now
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {trendingContent.map((item) => (
-              <ContentCard key={item.id} item={item} type={item.type} />
-            ))}
-          </div>
-        </section>
+// ─── Video Feed Item ──────────────────────────────────────────────────────────
+const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onToggleFullscreen }) => {
+  const [isDesktop, setIsDesktop] = useState(true);
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-        {/* Movies For You */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
-              <span className="w-1 h-8 bg-blue-600 mr-3 rounded-full"></span>
-              Movies For You
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-4 sm:gap-6">
-            {movieRecommendations.map((movie) => (
-              <ContentCard key={movie.id} item={movie} type="movie" />
-            ))}
-          </div>
-        </section>
+  const [isPaused, setIsPaused]     = useState(false);
+  const [isLiked, setIsLiked]       = useState(false);
+  const [likeCount, setLikeCount]   = useState(parseInt(video.likeCount) || 0);
+  const [tapFlash, setTapFlash]     = useState(null);
+  const [shareToast, setShareToast] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  // Fullscreen state is now passed from parent
 
-        {/* Music For You */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
-              <span className="w-1 h-8 bg-purple-600 mr-3 rounded-full"></span>
-              Music For You
-            </h2>
+  const [progress, setProgress]     = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration]     = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrubberRef   = useRef(null);
+
+  const playerRef     = useRef(null);
+  const lastTapRef    = useRef({ time: 0, side: null });
+  const flashTimer    = useRef(null);
+
+  const { stats }  = useVideoStats(isActive ? video.id : null);
+  const { comments, loading: commentsLoading, isOpen: commentOpen, setIsOpen: setCommentOpen, addComment }
+    = useComments(isActive ? video.id : null);
+
+  // Determine if this is a Sawaflix-origin video or YouTube
+  const videoOrigin = video.origin === 'sawaflix' ? 'sawaflix' : 'youtube';
+
+  const displayLikes    = isActive && stats ? (parseInt(stats.likeCount) || likeCount) : likeCount;
+  const displayComments = isActive && stats ? stats.commentCount : video.commentCount;
+
+  const flash = (type) => {
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    setTapFlash(type);
+    flashTimer.current = setTimeout(() => setTapFlash(null), 800);
+  };
+  useEffect(() => () => { if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
+
+  const seekToPercent = useCallback((pct) => {
+    const player = playerRef.current;
+    if (!player || !duration) return;
+    const newTime = Math.max(0, Math.min((pct / 100) * duration, duration));
+    player.seekTo(newTime, true);
+    setProgress(pct);
+    setCurrentTime(newTime);
+  }, [duration]);
+
+  const getPercentFromEvent = (e) => {
+    const bar = scrubberRef.current;
+    if (!bar) return 0;
+    const rect  = bar.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    return pct;
+  };
+
+  const onScrubStart = (e) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    seekToPercent(getPercentFromEvent(e));
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove  = (e) => seekToPercent(getPercentFromEvent(e));
+    const onEnd   = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+  }, [isDragging, seekToPercent]);
+
+  const handleVideoTap = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x    = e.clientX - rect.left;
+    const side = x < rect.width / 2 ? 'left' : 'right';
+    const now  = Date.now();
+    const last = lastTapRef.current;
+
+    if (now - last.time < 300 && last.side === side) {
+      lastTapRef.current = { time: 0, side: null };
+      const player = playerRef.current;
+      if (player && typeof player.getCurrentTime === 'function') {
+        const cur = player.getCurrentTime();
+        if (side === 'right') { player.seekTo(cur + 10, true); flash('fwd'); }
+        else                  { player.seekTo(Math.max(cur - 10, 0), true); flash('bwd'); }
+      } else {
+        flash(side === 'right' ? 'fwd' : 'bwd');
+      }
+    } else {
+      lastTapRef.current = { time: now, side };
+      setTimeout(() => {
+        if (Date.now() - lastTapRef.current.time >= 290) {
+          setIsPaused(p => { flash(p ? 'play' : 'pause'); return !p; });
+        }
+      }, 300);
+    }
+  };
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    setLikeCount(c => nextLiked ? c + 1 : Math.max(c - 1, 0));
+    
+    // Call the server action completely outside the state updater function
+    youtubeApi.likeVideo(video.id, videoOrigin).catch(() => {
+      // revert on failure
+      setIsLiked(!nextLiked);
+      setLikeCount(c => !nextLiked ? c + 1 : Math.max(c - 1, 0));
+    });
+  };
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    const url = `https://www.youtube.com/watch?v=${video.id}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: video.title, url }); }
+      else { await navigator.clipboard.writeText(url); setShareToast(true); setTimeout(() => setShareToast(false), 2500); }
+    } catch {}
+  };
+
+  useEffect(() => {
+    const onChange = () => {}; // Sync handled by parent
+  }, []);
+
+  return (
+    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
+      {/* ── Main Video Area ── */}
+      <motion.div 
+        animate={{ 
+          width: '100%',
+          scale: commentOpen && !isDesktop ? 0.85 : 1,
+          y: commentOpen && !isDesktop ? '-20%' : '0%'
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="relative h-full overflow-hidden flex-1"
+      >
+        <motion.div 
+          animate={{ 
+            scale: 1,
+            x: '0%'
+          }}
+          className="absolute inset-0 z-0 flex items-center justify-center bg-black"
+          onClick={() => setIsPaused(!isPaused)}
+        >
+          {videoOrigin === 'youtube' ? (
+            <YouTubePlayer
+              videoId={video.id}
+              isActive={isActive}
+              isPaused={isPaused}
+              isMuted={isMuted}
+              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              onProgress={(pct, _tLeft, ct, dur) => {
+                if (!isDragging) {
+                  setProgress(pct);
+                  setCurrentTime(ct);
+                  setDuration(dur);
+                }
+              }}
+            />
+          ) : (
+            <HTML5Player
+              videoId={video.id}
+              videoUrl={video.videoUrl}
+              isActive={isActive}
+              isPaused={isPaused}
+              isMuted={isMuted}
+              onPlayerReady={p => { playerRef.current = p; if (isActive) p.playVideo(); }}
+              onProgress={(pct, _tLeft, ct, dur) => {
+                if (!isDragging) {
+                  setProgress(pct);
+                  setCurrentTime(ct);
+                  setDuration(dur);
+                }
+              }}
+            />
+          )}
+        </motion.div>
+
+        {/* Tap overlay */}
+        <div onClick={handleVideoTap} className="absolute inset-0 z-10 cursor-pointer" />
+
+        {/* Tap flash feedback */}
+        {tapFlash && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            {(tapFlash === 'play' || tapFlash === 'pause') && (
+              <div className="w-20 h-20 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center animate-ping-once">
+                {tapFlash === 'pause'
+                  ? <div className="flex gap-1.5"><div className="w-3 h-9 bg-white rounded-sm"/><div className="w-3 h-9 bg-white rounded-sm"/></div>
+                  : <Play size={38} className="text-white ml-1" fill="currentColor" />
+                }
+              </div>
+            )}
+            {(tapFlash === 'fwd' || tapFlash === 'bwd') && (
+              <div className={`absolute top-1/2 -translate-y-1/2 ${tapFlash === 'fwd' ? 'right-10' : 'left-10'} flex flex-col items-center gap-1 animate-ping-once`}>
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <span className="text-white text-2xl font-black">{tapFlash === 'fwd' ? '▶▶' : '◀◀'}</span>
+                </div>
+                <span className="text-white text-xs font-black bg-black/40 rounded-full px-2 py-0.5">
+                  {tapFlash === 'fwd' ? '+10s' : '-10s'}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-6 sm:gap-6">
-            {musicRecommendations.map((music) => (
-              <ContentCard key={music.id} item={music} type="music" />
-            ))}
+        )}
+
+        {/* Overlay Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-transparent pointer-events-none z-10" />
+
+        {shareToast && (
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 z-40 px-6 py-2.5 bg-white/10 backdrop-blur-xl rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 pointer-events-none shadow-2xl">
+            Link copied!
           </div>
-        </section>
-      </main>
+        )}
+
+        {/* Sawa Reels Watermark */}
+        <div className="absolute top-6 left-6 z-30 pointer-events-none opacity-50">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 relative">
+              <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+            </div>
+            <span className="text-white font-black text-xs uppercase tracking-[0.3em]">Reels</span>
+          </div>
+        </div>
+
+        {/* Mute toggle */}
+        <button
+          onClick={e => { e.stopPropagation(); setIsMuted(!isMuted); }}
+          className="absolute top-5 right-5 p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white border border-white/10 z-30 pointer-events-auto"
+        >
+          {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+        </button>
+
+        {/* Video Info & Controls Overlay */}
+        <AnimatePresence>
+          {(!commentOpen || isDesktop) && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute inset-x-0 bottom-0 z-30 flex flex-col pointer-events-none p-6"
+            >
+              <div className="flex items-end justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-white/60 font-bold text-xs uppercase tracking-widest truncate mb-0.5">{video.channelTitle}</p>
+                  <h3 className="text-white text-base font-bold leading-snug line-clamp-2">{video.title}</h3>
+                </div>
+                <div className="flex flex-col items-center gap-2 shrink-0 pointer-events-auto">
+                  <button onClick={handleLike} className="flex flex-col items-center group/btn">
+                    <div className={`p-2 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
+                      <ThumbsUp size={18} className={isLiked ? 'text-white fill-white' : 'text-white'} />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayLikes)}</span>
+                  </button>
+
+                  <button className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <ThumbsDown size={18} className="text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Dislike</span>
+                  </button>
+
+                  <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <MessageCircle size={18} className="text-white fill-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayComments)}</span>
+                  </button>
+
+                  <button onClick={handleShare} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <Share2 size={18} className="text-white fill-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Share</span>
+                  </button>
+
+                  <button className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <RotateCcw size={18} className="text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
+                  </button>
+
+                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
+                    </div>
+                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrubber */}
+              <div onClick={e => e.stopPropagation()} className="w-full pt-4 pointer-events-auto">
+                <div ref={scrubberRef} className="relative w-full h-4 flex items-center cursor-pointer group/scrub" onMouseDown={onScrubStart} onTouchStart={onScrubStart}>
+                  <div className="absolute inset-x-0 h-0.5 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-600 rounded-full transition-none shadow-[0_0_8px_rgba(220,38,38,0.5)]" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className={`absolute w-3 h-3 bg-red-600 rounded-full shadow-lg -translate-x-1/2 transition-all ${isDragging ? 'opacity-100 scale-125' : 'opacity-0 group-hover/scrub:opacity-100'}`} style={{ left: `${progress}%` }} />
+                </div>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <button onClick={() => setIsPaused(p => !p)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white">
+                    {isPaused ? <Play size={16} fill="currentColor" /> : <Pause size={16} fill="currentColor" />}
+                  </button>
+                  <span className="text-white/60 text-[10px] font-black tracking-widest tabular-nums uppercase">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* ── Comment Section ── */}
+      <AnimatePresence>
+        {commentOpen && (
+          <>
+            {!isDesktop && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setCommentOpen(false)}
+                className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+              />
+            )}
+
+            <motion.div 
+              initial={isDesktop ? { x: '100%' } : { y: '100%' }}
+              animate={isDesktop ? { x: 0 } : { y: 0 }}
+              exit={isDesktop ? { x: '100%' } : { y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              drag={isDesktop ? false : "y"}
+              dragConstraints={{ top: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(_, info) => { if (info.offset.y > 150) setCommentOpen(false); }}
+              className={`fixed z-50 bg-[#0F1117]/95 backdrop-blur-xl border-white/10 flex flex-col shadow-2xl ${
+                isDesktop ? 'inset-y-0 right-0 w-[400px] border-l' : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
+              }`}
+            >
+              {!isDesktop && (
+                <div className="w-full flex justify-center py-3">
+                  <div className="w-10 h-1.5 bg-white/20 rounded-full" />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between px-6 pb-4 pt-2 border-b border-white/5">
+                <h3 className="text-white font-black text-lg">Comments</h3>
+                <button onClick={() => setCommentOpen(false)} className="text-gray-500 hover:text-white transition-colors"><X size={24} /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                {commentsLoading ? (
+                  <div className="flex items-center justify-center py-10"><Loader2 className="w-8 h-8 text-white animate-spin" /></div>
+                ) : comments.length > 0 ? comments.map(c => (
+                  <div key={c.id} className="flex gap-4">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white/10 ring-2 ring-white/5">
+                      <Image src={c.authorProfileImage} alt={c.author} fill className="object-cover" unoptimized />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-white font-bold text-sm">{c.author}</span>
+                        <span className="text-white/40 text-xs">{formatCount(c.likeCount)} likes</span>
+                      </div>
+                      <p className="text-gray-300 text-sm leading-relaxed">{c.text}</p>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-white/20">
+                    <MessageCircle size={40} className="mb-2 opacity-30" />
+                    <p className="text-sm">No comments yet. Be first!</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 bg-[#161922] border-t border-white/5 pb-10 lg:pb-6">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    placeholder="Share your thoughts..."
+                    className="flex-1 bg-white/5 text-white rounded-full px-5 py-3 outline-none focus:ring-2 ring-white/20 text-sm border border-white/10"
+                  />
+                  <button
+                    onClick={async () => {
+                      const text = newComment.trim();
+                      if (!text) return;
+                      setNewComment('');
+                      // Optimistic update — show comment immediately in UI
+                      if (addComment) {
+                        addComment({
+                          id: `local-${Date.now()}`,
+                          author: 'You',
+                          authorProfileImage: '/default-avatar.png',
+                          text,
+                          likeCount: '0',
+                          publishedAt: new Date().toISOString()
+                        });
+                      }
+                      try {
+                        await youtubeApi.commentOnVideo(video.id, text, videoOrigin);
+                      } catch (err) {
+                        console.error('Comment failed:', err);
+                      }
+                    }}
+                    disabled={!newComment.trim()}
+                    className="bg-blue-600 text-white p-3 rounded-full font-bold hover:bg-blue-500 active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-blue-600/20"
+                  >
+                    <Send size={18} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default SawaFlix;
+// ─── Main Dashboard Content ───────────────────────────────────────────────────────────
+function SawaFlixContent() {
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [isMuted, setIsMuted]               = useState(true);
+  const [activeVideoId, setActiveVideoId]   = useState(null);
+  const [heroIndex, setHeroIndex]           = useState(0);
+  const [heroPlaying, setHeroPlaying]       = useState(false);
+  const [isHeroMuted, setIsHeroMuted]       = useState(true);
+  const [selectedVideo, setSelectedVideo]   = useState(null);
+  const [showShorts, setShowShorts]         = useState(true);
+  const [heroImgIndex, setHeroImgIndex]     = useState(0);
+  const { currentTrack } = useMusic();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const feedContainerRef = useRef(null);
+
+  const handleToggleFullscreen = (e) => {
+    if (e) e.stopPropagation();
+    const el = feedContainerRef.current;
+    if (!el) return;
+
+    if (!document.fullscreenElement) {
+      const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (requestMethod) requestMethod.call(el);
+    } else {
+      const exitMethod = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exitMethod) exitMethod.call(document);
+    }
+  };
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
+  }, []);
+
+
+
+  const observerRef  = useRef(null);
+  const videoRefs    = useRef(new Map());
+  const discoverRef  = useRef(null);
+
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const urlQuery     = searchParams.get('q') || '';
+
+  const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
+  const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
+
+  const { videos, loading, error, loadMore, hasMore, isRefreshing } = useVideos(fetchQuery);
+
+  const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
+  const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
+
+  useEffect(() => {
+    if (urlQuery) {
+      setShowShorts(true);
+      const t = setTimeout(() => {
+        if (discoverRef.current) {
+          discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 250);
+      return () => clearTimeout(t);
+    }
+  }, [urlQuery]);
+
+  useEffect(() => { setSelectedVideo(null); }, [urlQuery]);
+
+  const handlePlayNow = () => {
+    scrollToDiscover();
+  };
+
+  useEffect(() => {
+    if (currentTrack && currentTrack.id !== activeVideoId) {
+      setShowShorts(true);
+      setSelectedVideo(currentTrack); // Ensure we enter reels mode
+      setActiveVideoId(currentTrack.id);
+      setTimeout(() => {
+        const el = videoRefs.current.get(currentTrack.id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [currentTrack]);
+
+  useEffect(() => {
+    if (!videos.length) return;
+    observerRef.current?.disconnect();
+    observerRef.current = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.getAttribute('data-video-id');
+          if (id) setActiveVideoId(id);
+          
+          // Infinite Scroll: If this is the last video, load more!
+          if (id === videos[videos.length - 1]?.id && hasMore) {
+             loadMore();
+          }
+        }
+      }),
+      { threshold: 0.6 }
+    );
+    videoRefs.current.forEach(el => { if (el) observerRef.current.observe(el); });
+    return () => observerRef.current?.disconnect();
+  }, [videos, hasMore, loadMore]);
+
+  const handleHeroNext = useCallback(() => {
+    if (!heroSource.length) return;
+    setHeroIndex(prev => (prev + 1) % heroSource.length);
+  }, [heroSource.length]);
+  const handleHeroPrev = useCallback(() => {
+    setHeroIndex(prev => (prev === 0 ? Math.max(heroSource.length - 1, 0) : prev - 1));
+  }, [heroSource.length]);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroImgIndex(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 8000);
+    return () => clearInterval(t);
+  }, []);
+
+  const scrollToDiscover = () => {
+    setHeroPlaying(false);
+    setShowShorts(true);
+    // Auto-select first video to enter feed mode immediately
+    if (videos.length > 0) {
+      setSelectedVideo(videos[0]);
+      setActiveVideoId(videos[0].id);
+    }
+    setTimeout(() => {
+      if (discoverRef.current) {
+        discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
+  };
+
+  const handleCardClick = (video) => {
+    setSelectedVideo(video);
+    setActiveVideoId(video.id);
+    setShowShorts(true);
+    setTimeout(() => {
+      if (discoverRef.current) {
+        discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 80);
+  };
+
+  const isSearchMode = !!urlQuery;
+
+  const feedVideos = (() => {
+    let list = videos;
+    if (isSearchMode && selectedVideo) {
+      const rest = videos.filter(v => v.id !== selectedVideo.id);
+      list = [selectedVideo, ...rest];
+    }
+    
+    // If a track is selected from sidebar (via MusicContext), ensure it's in the feed
+    if (currentTrack && !list.find(v => v.id === currentTrack.id)) {
+      list = [currentTrack, ...list];
+    }
+    
+    return list;
+  })();
+
+  return (
+    <div className="flex flex-col relative">
+      {/* YouTube-style Top Loading Bar */}
+      <AnimatePresence>
+        {isRefreshing && (
+          <motion.div
+            initial={{ scaleX: 0, opacity: 1 }}
+            animate={{ 
+              scaleX: 0.94, 
+              opacity: 1,
+              transition: { 
+                duration: 30, // Slow crawl to 94% over 30 seconds
+                ease: [0.1, 0.05, 0.03, 0.01] 
+              } 
+            }}
+            exit={{ 
+              scaleX: 1, 
+              opacity: 0, 
+              transition: { duration: 0.4, ease: "easeOut" } 
+            }}
+            className="fixed top-16 left-0 right-0 h-[3.5px] bg-gradient-to-r from-red-700 via-red-500 to-red-600 z-[9999] origin-left shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+          >
+            {/* The "Peg" / Glow at the tip (Premium YouTube Detail) */}
+            <div className="absolute right-0 top-0 h-full w-[120px] shadow-[0_0_15px_#ff0000,0_0_8px_#ff0000] opacity-100 rotate-[2deg] translate-y-[-4px]" />
+            
+            {/* Moving shine effect for extra polish */}
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`flex-1 pt-0 sm:pt-2 ${selectedVideo ? 'p-0' : 'p-2 sm:p-6 lg:p-8'}`}>
+        {!selectedVideo && (
+          <>
+            <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
+          <div className="inline-flex items-center gap-3">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => { 
+                  setActiveCategory(cat.id); 
+                  setHeroIndex(0); 
+                  setSelectedVideo(null);
+                  setShowShorts(true);
+                }}
+                className={`px-6 py-2 rounded-xl text-sm font-medium tracking-tight transition-all duration-300 cursor-pointer shadow-lg ${
+                  activeCategory === cat.id
+                    ? 'bg-white text-black scale-105'
+                    : 'bg-white/5 text-[#AAAAAA] hover:bg-white/10 hover:text-white border border-white/5'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading && videos.length === 0 ? (
+          <div className="w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] bg-white/5 animate-pulse mb-8 sm:mb-16" />
+        ) : (
+          <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] overflow-hidden mb-8 sm:mb-16 group shadow-2xl border-y sm:border border-white/5 bg-black">
+            {/* Static Cover Image */}
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={heroImgIndex}
+                  src={HERO_IMAGES[heroImgIndex]}
+                  alt="SawaFlix Cover"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                  className="w-full h-full object-cover"
+                />
+              </AnimatePresence>
+              {/* Removed dark overlay to make banner clearer */}
+              
+              {/* Slide Indicators */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+                {HERO_IMAGES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setHeroImgIndex(i); }}
+                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${heroImgIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {!heroPlaying && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+                <motion.button
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handlePlayNow}
+                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group relative overflow-hidden transition-all duration-500 cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
+                  <Play size={42} className="text-white group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
+                  
+                  {/* Pulsing Outer Ring */}
+                  <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
+                </motion.button>
+                
+                <div className="mt-8 text-center space-y-1 pointer-events-none">
+                  <h2 className="text-white text-xl sm:text-3xl font-medium tracking-tight drop-shadow-2xl">
+                    {activeCategory === 'music' ? 'Music Hits' : 'Exclusive Vibes'}
+                  </h2>
+                  <p className="text-white/70 text-xs sm:text-sm font-medium tracking-tight">
+                    Discover the next big thing on SawaFlix
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleHeroPrev}
+              className="absolute left-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <button
+              onClick={handleHeroNext}
+              className="absolute right-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
+            >
+              <ChevronRight size={22} />
+            </button>
+          </section>
+        )}
+          </>
+        )}
+
+        {showShorts && (
+          <section id="discover-section" ref={feedContainerRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-black" : "mb-12 scroll-mt-20"}>
+            <div className={`flex flex-row items-center justify-between gap-4 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
+            <div className="flex items-center">
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+                {isSearchMode && !selectedVideo
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Results for <span className="text-white/60 font-medium">"{urlQuery}"</span></>
+                    </div>
+                  : isSearchMode && selectedVideo
+                  ? <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
+                    </div>
+                  : (
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+                        <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+                      </div>
+                      <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
+                        {currentCategoryObj?.label}
+                      </span>
+                    </div>
+                  )
+                }
+              </h2>
+            </div>
+
+            {selectedVideo && (
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
+              >
+                <ChevronLeft size={14} /> Back
+              </button>
+            )}
+          </div>
+
+          {!selectedVideo ? (
+            <>
+              {error && (
+                <div className="text-center py-10 bg-red-500/10 rounded-[2rem] border border-red-500/20 mb-8">
+                  <p className="text-red-500 font-bold text-sm">{error}</p>
+                </div>
+              )}
+              <div className={activeCategory === 'all' 
+                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10" 
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10"
+              }>
+                {loading && videos.length === 0 ? (
+                  Array.from({ length: 12 }).map((_, i) => (
+                    <SkeletonCard key={i} isShort={activeCategory === 'all'} />
+                  ))
+                ) : (
+                  videos.map(v => (
+                    <SearchResultCard 
+                      key={v.id} 
+                      video={v} 
+                      onPlay={handleCardClick}
+                      isShort={activeCategory === 'all'}
+                    />
+                  ))
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent">
+              {feedVideos.map(video => (
+                <div
+                  key={video.id}
+                  ref={el => videoRefs.current.set(video.id, el)}
+                  data-video-id={video.id}
+                  className="h-full w-full snap-start snap-always flex items-center justify-center bg-black sm:bg-transparent"
+                >
+                  <VideoFeedItem
+                    video={video}
+                    isActive={activeVideoId === video.id}
+                    isMuted={isMuted}
+                    setIsMuted={setIsMuted}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={handleToggleFullscreen}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+        )}
+      </div>
+
+      <style jsx global>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes ping-once {
+          0%   { transform: scale(0.6); opacity: 1; }
+          70%  { transform: scale(1.15); opacity: 0.5; }
+          100% { transform: scale(1.3); opacity: 0; }
+        }
+        .animate-ping-once { animation: ping-once 0.7s ease-out forwards; }
+      `}</style>
+    </div>
+  );
+}
+
+export default function SawaFlix() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-white/40 animate-spin" />
+      </div>
+    }>
+      <SawaFlixContent />
+    </Suspense>
+  );
+}

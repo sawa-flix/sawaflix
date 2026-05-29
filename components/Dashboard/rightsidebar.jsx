@@ -1,105 +1,136 @@
-'use client';
-import React from 'react';
+import React, { useState } from 'react';
+import { useVideos } from '@/hooks/useVideos';
+import { Loader2, Music, Laugh, Newspaper, Zap } from 'lucide-react';
+import { useMusic } from '@/components/MusicContext';
 import Image from 'next/image';
 
+const CATEGORIES = [
+  { id: "music",  label: "Music",   icon: Music,     query: "Trending Cameroon Music 2026" },
+  { id: "comedy", label: "Comedy",  icon: Laugh,     query: "Cameroon comedy viral 2026" },
+  { id: "news",   label: "News",    icon: Newspaper, query: "Cameroon news shorts today" },
+  { id: "viral",  label: "Viral",   icon: Zap,       query: "Cameroon viral reels 2026" },
+];
+
 const RightSidebar = () => {
-  const trendingMusic = {
+  const [activeCategory, setActiveCategory] = useState("music");
+  
+  const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
+  const { videos, loading, error } = useVideos(currentCategory.query);
+  const { playTrack } = useMusic();
+
+  const featuredVideo = videos[0] || null;
+
+  const trendingMusic = featuredVideo ? {
+    title: featuredVideo.title,
+    image: featuredVideo.thumbnail,
+    likes: featuredVideo.likeCount || "2.3K",
+    views: featuredVideo.viewCount || "5.4K",
+    video: featuredVideo
+  } : {
     title: 'Top Trending Music of the Week',
     image: 'https://i.ibb.co/HTg91sqB/Whats-App-Image-2026-03-19-at-7-26-55-AM.jpg',
-    likes: 2300,
-    views: 5400,
-    comments: 120,
+    likes: "2.3K",
+    views: "5.4K",
+    video: null
   };
 
-  const aiRecommendations = [
-    { id: 1, title: 'AI Mix 1', image: '/music1.jpg' },
-    { id: 2, title: 'AI Mix 2', image: '/music2.jpg' },
-    { id: 3, title: 'AI Mix 3', image: '/music3.jpg' },
-    { id: 4, title: 'AI Mix 4', image: '/music4.jpg' },
-    { id: 5, title: 'AI Mix 5', image: '/music5.jpg' },
-    { id: 6, title: 'AI Mix 6', image: '/music6.jpg' },
-  ];
+  const aiRecommendations = videos.slice(1, 8);
 
   return (
-    <div className="w-full h-full p-6 flex flex-col space-y-6 bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 overflow-y-auto scrollbar-none border-l border-white/5">
-      {/* Trending Music Section */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-5 hover:bg-white/8 transition-all duration-300 group">
-        <h2 className="text-lg font-bold mb-4 text-white">
-          {trendingMusic.title}
-        </h2>
-        <div className="relative w-full h-44 rounded-xl overflow-hidden shadow-inner">
-          <Image
-            src={trendingMusic.image}
-            alt="Trending Music"
-            fill
-            sizes="(max-width: 768px) 100vw, 320px"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </div>
-        <div className="flex justify-between mt-4 text-sm text-gray-300">
-          <button className="flex items-center gap-2 px-3 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition-all duration-200 font-semibold text-white text-sm\">
-            <span>❤️</span>
-            <span>{trendingMusic.likes.toLocaleString()}</span>
-          </button>
-          <span className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg\">
-            <span>👁</span>
-            <span>{trendingMusic.views.toLocaleString()}</span>
-          </span>
-          <span className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg\">
-            <span>💬</span>
-            <span>{trendingMusic.comments}</span>
-          </span>
-        </div>
-        <button className="mt-4 w-full px-4 py-3 bg-white text-red-600 font-semibold rounded-lg hover:bg-white/100 transition-all duration-200\">
-          ➕ Follow Artist
-        </button>
-      </div>
+    <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
 
-      {/* AI Recommended Versions */}
-      <div className="flex-1">
-        <h2 className="text-lg font-bold mb-4 text-yellow-600\">
-          AI Recommended Versions
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          {aiRecommendations.map((rec) => (
-            <div
-              key={rec.id}
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden hover:bg-white/8 transition-all duration-300 cursor-pointer group\"
-            >
-              <div className="relative w-full h-24">
-                <Image
-                  src={rec.image}
-                  alt={rec.title}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 160px"
-                  className="object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      {/* Trending Section */}
+      <div className="space-y-3 mb-4">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-[14px] font-black uppercase tracking-widest text-white/40">Trending</h3>
+          <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+        </div>
+        
+        {loading && !featuredVideo ? (
+          <div className="w-full h-56 rounded-2xl bg-white/5 animate-pulse" />
+        ) : (
+          <div 
+            onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
+            className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
+          >
+            <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
+              <Image
+                src={trendingMusic.image}
+                alt="Trending"
+                fill
+                sizes="(max-width: 768px) 100vw, 320px"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                priority
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                 <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
+                 <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
+                   {trendingMusic.title}
+                 </h2>
               </div>
-              <p className="text-xs text-center p-3 text-gray-200 font-medium group-hover:text-white transition-colors">
-                {rec.title}
-              </p>
             </div>
-          ))}
-        </div>
+            
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-3 text-[10px] font-bold text-[#AAAAAA] uppercase tracking-wider">
+                 <span>{trendingMusic.views} views</span>
+                 <span>•</span>
+                 <span>{trendingMusic.likes} likes</span>
+              </div>
+              <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                 <Zap size={14} className="fill-current" />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 hover:bg-white/8 transition-all duration-300">
-        <h3 className="text-md font-bold mb-3 text-white">Quick Actions</h3>
-        <div className="space-y-2">
-          <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
-            🎵 Create Playlist
-          </button>
-          <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
-            📥 Import Music
-          </button>
-          <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
-            🔄 Shuffle All
-          </button>
-        </div>
+      <div className="h-px bg-white/5 my-4" />
+
+      {/* Recommendations */}
+      <div className="space-y-4 mb-6">
+        <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">Suggested for you</h3>
+        {loading ? (
+           <div className="flex flex-col gap-4">
+             {[1,2,3,4,5,6].map(i => (
+               <div key={i} className="flex gap-3 animate-pulse px-2">
+                 <div className="w-[100px] h-[56px] bg-white/5 rounded-lg shrink-0" />
+                 <div className="flex-1 py-1 space-y-2">
+                   <div className="h-3 bg-white/5 rounded w-full" />
+                   <div className="h-2 bg-white/5 rounded w-2/3" />
+                 </div>
+               </div>
+             ))}
+           </div>
+        ) : (
+           <div className="flex flex-col gap-2">
+             {aiRecommendations.map((video) => (
+               <div
+                 key={video.id}
+                 onClick={() => playTrack(video, videos)}
+                 className="flex gap-3 p-2 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer group"
+               >
+                 <div className="relative w-[100px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
+                   <Image
+                     src={video.thumbnail}
+                     alt={video.title}
+                     fill
+                     sizes="100px"
+                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                     unoptimized
+                   />
+                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                 </div>
+                 <div className="flex-1 min-w-0 py-0.5">
+                   <h4 className="text-xs font-bold text-white line-clamp-2 mb-1 leading-tight group-hover:text-white/90">{video.title}</h4>
+                   <p className="text-[10px] text-[#AAAAAA] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
+                 </div>
+               </div>
+             ))}
+           </div>
+        )}
       </div>
     </div>
   );

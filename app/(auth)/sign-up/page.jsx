@@ -54,13 +54,8 @@ function SignUpContent() {
 
     try {
       const supabase = createClient();
-      const isLocalhost =
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1';
-      const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-      const redirectBase = isLocalhost || !configuredSiteUrl
-        ? window.location.origin
-        : configuredSiteUrl;
+      // Always use the exact origin the user is currently on to prevent PKCE cookie domain mismatches.
+      const redirectBase = window.location.origin;
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -134,6 +129,11 @@ function SignUpContent() {
         }
       }
     } catch (err) {
+      // Next.js redirect() throws a NEXT_REDIRECT error internally — re-throw it so the
+      // browser follows the redirect instead of showing a false "Sign up failed" error.
+      if (err instanceof Error && (err.message === 'NEXT_REDIRECT' || err.message?.includes('NEXT_REDIRECT'))) {
+        throw err;
+      }
       console.error('Sign up error:', err);
       setError('Sign up failed. Please try again.');
       setLoading(false);
