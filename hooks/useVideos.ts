@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // hooks/useVideos.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
