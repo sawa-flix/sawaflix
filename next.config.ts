@@ -1,24 +1,10 @@
-const path = require('path');
-const { fileURLToPath } = require('url');
-const withSerwistInit = require('@serwist/next');
+import type { NextConfig } from 'next';
+import path from 'path';
 
-const __filename = __filename; // This line is kept for context but will be replaced correctly
-const __dirname = path.dirname(__filename);
-
-const withSerwist = withSerwistInit({
-  swSrc: 'app/sw.ts',
-  swDest: 'public/sw.js',
-  maximumFileSizeToCacheInBytes: 5000000,
-  disable: process.env.NODE_ENV === 'development',
-});
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   compiler: {
     styledComponents: true,

@@ -639,12 +639,40 @@ function SawaFlixContent() {
   };
 
   useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const onChange = () => setIsFullscreen(!!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    ));
     document.addEventListener('fullscreenchange', onChange);
     document.addEventListener('webkitfullscreenchange', onChange);
+    document.addEventListener('mozfullscreenchange', onChange);
+    document.addEventListener('MSFullscreenChange', onChange);
     return () => {
       document.removeEventListener('fullscreenchange', onChange);
       document.removeEventListener('webkitfullscreenchange', onChange);
+      document.removeEventListener('mozfullscreenchange', onChange);
+      document.removeEventListener('MSFullscreenChange', onChange);
+      
+      // Exit fullscreen unconditionally on unmount
+      try {
+        if (
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement
+        ) {
+          const exitMethod =
+            document.exitFullscreen ||
+            document.webkitExitFullscreen ||
+            document.mozCancelFullScreen ||
+            document.msExitFullscreen;
+          if (exitMethod) exitMethod.call(document);
+        }
+      } catch (e) {
+        console.error("Error exiting fullscreen on unmount:", e);
+      }
     };
   }, []);
 
@@ -947,7 +975,22 @@ function SawaFlixContent() {
 
             {selectedVideo && (
               <button
-                onClick={() => setSelectedVideo(null)}
+                onClick={() => {
+                  setSelectedVideo(null);
+                  if (
+                    document.fullscreenElement ||
+                    document.webkitFullscreenElement ||
+                    document.mozFullScreenElement ||
+                    document.msFullscreenElement
+                  ) {
+                    const exitMethod =
+                      document.exitFullscreen ||
+                      document.webkitExitFullscreen ||
+                      document.mozCancelFullScreen ||
+                      document.msExitFullscreen;
+                    if (exitMethod) exitMethod.call(document);
+                  }
+                }}
                 className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all shadow-lg active:scale-95"
               >
                 <ChevronLeft size={14} /> Back
