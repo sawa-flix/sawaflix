@@ -588,10 +588,10 @@ export default function MusicPage() {
           loading="eager"
         />
         <div className="hero-overlay"></div>
+        <div className="hero-vignette"></div>
+        <div className="hero-tint"></div>
+        <div className="hero-flag-accent"></div>
         <div className="hero-content">
-          <div className="hero-flag-accent"></div>
-          <div className="hero-vignette"></div>
-          <div className="hero-tint"></div>
           <h1 className="hero-title">Sawa Music</h1>
           <p className="hero-subtitle">
             The rhythm of our roots. Experience the ultimate Cameroonian
