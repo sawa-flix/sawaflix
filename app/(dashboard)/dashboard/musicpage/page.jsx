@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Heart, Volume2, MoreVertical, ChevronRight } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Heart, Volume2, MoreVertical, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import { BACKEND_URL } from '@/lib/apiConfig';
 
@@ -63,10 +63,21 @@ export default function MusicPage() {
     });
   };
 
-  const tabs = ['All', ...musicCategories.map(c => c.category).filter(Boolean)];
+  const defaultTabs = ['All', 'Mboko', 'Makossa', 'Bamenda', 'Nso', 'West', 'Afro', 'Culture', 'North', 'Fulbe'];
+  const apiTabs = musicCategories.map(c => c.category).filter(Boolean);
+  const tabs = Array.from(new Set([...defaultTabs, ...apiTabs]));
+
   const filteredCategories = activeTab === 'All'
     ? musicCategories
     : musicCategories.filter(c => c.category === activeTab);
+
+  const scrollContainer = (id, direction) => {
+    const container = document.getElementById(id);
+    if (container) {
+      const scrollAmount = Math.max(300, container.offsetWidth * 0.8);
+      container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const renderSkeleton = () => (
     <div className="animate-pulse space-y-8">
@@ -237,26 +248,25 @@ export default function MusicPage() {
         }
         .tabs-row::-webkit-scrollbar { display: none; }
         .tab-btn {
-          padding: 9px 22px;
-          border-radius: 25px;
+          padding: 10px 16px;
+          border-radius: 8px;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 500;
           white-space: nowrap;
           cursor: pointer;
           transition: all 0.25s ease;
-          border: 1.5px solid transparent;
+          border: none;
           background: transparent;
-          color: rgba(255,255,255,0.5);
+          color: #AAAAAA;
         }
         .tab-btn:hover {
           color: #fff;
-          background: rgba(255,255,255,0.05);
+          background: rgba(255,255,255,0.1);
         }
         .tab-btn.active {
-          background: #fff;
-          color: #000;
-          border-color: #fff;
-          font-weight: 700;
+          background: rgba(255,255,255,0.1);
+          color: #fff;
+          font-weight: 600;
         }
 
         /* ====== CATEGORY SECTION ====== */
@@ -284,6 +294,37 @@ export default function MusicPage() {
         }
 
         /* ====== DESKTOP HORIZONTAL CARDS ====== */
+        .cards-scroll-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .scroll-btn {
+          position: absolute;
+          z-index: 10;
+          background: rgba(0,0,0,0.6);
+          border: none;
+          color: white;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transition: all 0.3s;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
+        }
+        .category-section:hover .scroll-btn { opacity: 1; }
+        .scroll-btn:hover { background: rgba(229,9,20,0.9); transform: scale(1.1); }
+        .scroll-btn.left { left: -22px; }
+        .scroll-btn.right { right: -22px; }
+        @media (max-width: 768px) {
+          .scroll-btn { display: none !important; }
+        }
+
         .cards-scroll {
           display: flex;
           gap: 16px;
@@ -609,8 +650,12 @@ export default function MusicPage() {
                 </div>
 
                 {/* Desktop: Horizontal scroll cards */}
-                <div className="cards-scroll">
-                  {categoryData.videos.map((video, videoIdx) => {
+                <div className="cards-scroll-wrapper">
+                  <button className="scroll-btn left" onClick={() => scrollContainer(`scroll-${categoryIdx}`, 'left')}>
+                    <ChevronLeft size={24} />
+                  </button>
+                  <div className="cards-scroll" id={`scroll-${categoryIdx}`}>
+                    {categoryData.videos.map((video, videoIdx) => {
                     const trackObj = {
                       id: video.id,
                       title: video.title,
@@ -675,6 +720,10 @@ export default function MusicPage() {
                       </div>
                     );
                   })}
+                  </div>
+                  <button className="scroll-btn right" onClick={() => scrollContainer(`scroll-${categoryIdx}`, 'right')}>
+                    <ChevronRight size={24} />
+                  </button>
                 </div>
 
                 {/* Mobile: Vertical list */}

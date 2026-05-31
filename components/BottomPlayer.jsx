@@ -349,28 +349,12 @@ export default function BottomPlayer() {
         .mb-top .mb-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .mb-top .mb-meta { flex: 1; min-width: 0; }
         .mb-top .mb-t {
-          font-size: 13px; font-weight: 700; color: #fff;
+          font-size: 11px; font-weight: 700; color: #fff;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           margin: 0 0 2px 0;
         }
         .mb-top .mb-a {
-          font-size: 11px; color: rgba(255,255,255,0.4); margin: 0;
-        }
-
-        /* Mobile progress */
-        .mb-prog {
-          height: 3px; border-radius: 2px;
-          background: rgba(255,255,255,0.08);
-          margin: 6px 0 10px;
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-        }
-        .mb-prog-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #009639, #CE1126, #FCD116);
-          border-radius: 2px;
-          transition: width 0.15s linear;
+          font-size: 9px; color: rgba(255,255,255,0.6); margin: 0;
         }
 
         /* Mobile controls */
@@ -405,6 +389,7 @@ export default function BottomPlayer() {
           .mb-layout { display: block !important; }
           .vinyl-wrap.desktop-vinyl { display: none !important; }
           .p-close { display: none; }
+          .cmr-progress { top: 0px; }
         }
         @media (min-width: 769px) {
           .dt-layout { display: flex !important; }
@@ -533,26 +518,29 @@ export default function BottomPlayer() {
                 </div>
               </div>
 
-              {/* Progress */}
-              <div className="mb-prog" onClick={(e) => {
-                if (!duration) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                seekTo(((e.clientX - rect.left) / rect.width) * duration);
-              }}>
-                <div className="mb-prog-fill" style={{ width: `${progressPercent}%` }} />
-              </div>
-
-              {/* Centered controls */}
+              {/* Centered controls with eq waves */}
               <div className="mb-ctrls">
+                <div className="cmr-eq" style={{ height: '24px' }}>
+                  {leftBars.slice(0, 4).map((h, i) => (
+                    <div key={`ml${i}`} className="eqb" style={{ height: `${h * 100}%`, background: CAMEROON_COLORS[i % 3] }} />
+                  ))}
+                </div>
+                
                 <button onClick={playPrev} className="mcb">
-                  <SkipBack size={26} fill="currentColor" />
+                  <SkipBack size={20} fill="currentColor" />
                 </button>
-                <button onClick={togglePlay} className="mpp">
-                  {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: 2 }} />}
+                <button onClick={togglePlay} className="mpp" style={{ width: 44, height: 44 }}>
+                  {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: 2 }} />}
                 </button>
                 <button onClick={playNext} className="mcb">
-                  <SkipForward size={26} fill="currentColor" />
+                  <SkipForward size={20} fill="currentColor" />
                 </button>
+
+                <div className="cmr-eq" style={{ height: '24px' }}>
+                  {rightBars.slice(0, 4).map((h, i) => (
+                    <div key={`mr${i}`} className="eqb" style={{ height: `${h * 100}%`, background: CAMEROON_COLORS[i % 3] }} />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
