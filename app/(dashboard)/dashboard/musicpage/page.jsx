@@ -246,7 +246,13 @@ export default function MusicPage() {
           margin-bottom: 28px;
           overflow-x: auto;
           padding-bottom: 4px;
+          padding-top: 10px;
           scrollbar-width: none;
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(11,14,20,0.95);
+          backdrop-filter: blur(10px);
         }
         .tabs-row::-webkit-scrollbar { display: none; }
         .tab-btn {
@@ -573,7 +579,31 @@ export default function MusicPage() {
             sounds in high fidelity, carefully curated for your soul.
           </p>
           <div className="hero-buttons">
-            <button className="btn-listen">
+            <button className="btn-listen" onClick={() => {
+              const allVids = filteredCategories.flatMap(c => c.videos || []);
+              if (allVids.length > 0) {
+                const first = allVids[0];
+                const pl = allVids.map(v => ({
+                  id: v.id,
+                  title: v.title,
+                  artist: v.channelTitle,
+                  image: MUSIC_CARD_THUMB,
+                  src: v.videoUrl,
+                  duration: "3:00"
+                }));
+                playTrack(
+                  {
+                    id: first.id,
+                    title: first.title,
+                    artist: first.channelTitle,
+                    image: MUSIC_CARD_THUMB,
+                    src: first.videoUrl,
+                    duration: "3:00"
+                  },
+                  pl
+                );
+              }
+            }}>
               <Play size={16} fill="currentColor" />
               Listen Now
             </button>
@@ -604,6 +634,15 @@ export default function MusicPage() {
         renderSkeleton()
       ) : (
         <div>
+          {(!filteredCategories || filteredCategories.every(c => !c.videos || c.videos.length === 0)) && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', width: '100%' }}>
+              <img 
+                src="https://i.ibb.co/gL3SMQf2/Chat-GPT-Image-May-31-2026-11-11-07-AM.png" 
+                alt="Coming Soon" 
+                style={{ maxWidth: '400px', width: '100%', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}
+              />
+            </div>
+          )}
           {filteredCategories.map((categoryData, categoryIdx) => {
             if (!categoryData.videos || categoryData.videos.length === 0) return null;
 
