@@ -7,6 +7,8 @@ import { usePathname } from 'next/navigation';
 
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
+const SILENT_AUDIO = "data:audio/mpeg;base64,//OExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq/zCETAAACwBIAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=";
+
 const SOUND_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";
 
 const normalizeUrl = (url) => {
@@ -51,7 +53,7 @@ export default function BottomPlayer() {
   const {
     currentTrack, isPlaying, togglePlay, playNext, playPrev,
     playerRef, currentTime, duration, setDuration, setCurrentTime,
-    volume, setVolume, muted, toggleMute, seekTo, isVideoMode, closePlayer
+    volume, setVolume, muted, toggleMute, seekTo, isVideoMode, closePlayer, setIsPlaying
   } = useMusic();
 
   const pathname = usePathname();
@@ -60,8 +62,18 @@ export default function BottomPlayer() {
   const leftBars = useEqualizerBars(7, isPlaying);
   const rightBars = useEqualizerBars(7, isPlaying);
 
-  // Setup Media Session API for background playback controls on mobile
+  // Setup Media Session API and Background Play Hack
   useEffect(() => {
+    // 1. Silent audio hack to keep the OS audio session alive in the background
+    let silentAudio = null;
+    if (isPlaying) {
+      silentAudio = new Audio(SILENT_AUDIO);
+      silentAudio.loop = true;
+      silentAudio.volume = 0.1;
+      silentAudio.play().catch(() => {}); // Ignore errors
+    }
+
+    // 2. Setup Media Session API for lock-screen controls
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new window.MediaMetadata({
         title: currentTrack.title || 'Unknown Title',
@@ -75,20 +87,19 @@ export default function BottomPlayer() {
       });
 
       // Link OS media controls to our player functions
-      navigator.mediaSession.setActionHandler('play', () => {
-        if (!isPlaying) togglePlay();
-      });
-      navigator.mediaSession.setActionHandler('pause', () => {
-        if (isPlaying) togglePlay();
-      });
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        playPrev();
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        playNext();
-      });
+      navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
+      navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+      navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
     }
-  }, [currentTrack, isPlaying, togglePlay, playNext, playPrev]);
+
+    return () => {
+      if (silentAudio) {
+        silentAudio.pause();
+        silentAudio.src = '';
+      }
+    };
+  }, [currentTrack, isPlaying, setIsPlaying, playNext, playPrev]);
 
   if (!currentTrack || isReelsPage) return null;
 
@@ -443,6 +454,8 @@ export default function BottomPlayer() {
                 onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
                 onDuration={(d) => setDuration(d)}
                 onEnded={playNext}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 width="0" height="0"
                 config={{
                   youtube: { playerVars: { showinfo: 0, controls: 0, autoplay: 1, playsinline: 1 } },

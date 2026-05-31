@@ -98,6 +98,7 @@ export const MusicProvider = ({ children }) => {
     setIsVideoMode,
     closePlayer,
     currentIndex,
+    setIsPlaying,
   };
 
   return (
