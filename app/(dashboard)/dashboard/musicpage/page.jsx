@@ -1,25 +1,13 @@
 // @ts-check
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Heart, RotateCcw, Volume2, Download, Shuffle, Repeat, Video, Headphones, Loader2, ListMusic, MoreVertical } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Heart, Volume2, MoreVertical, ChevronRight } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
-import dynamic from 'next/dynamic';
 import { BACKEND_URL } from '@/lib/apiConfig';
 
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
-
-const normalizeUrl = (url) => {
-  if (!url) return '';
-  if (url.includes('youtu.be/')) {
-    const id = url.split('youtu.be/')[1].split('?')[0];
-    return `https://www.youtube.com/watch?v=${id}`;
-  }
-  return url;
-};
-
-// Fallback image from Dashboard Hero
-const DEFAULT_MUSIC_THUMBNAIL = "https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png";
+const COVER_BG = "https://i.ibb.co/Hfms4vV9/coverbg.png";
+const MUSIC_CARD_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";
 
 export default function MusicPage() {
   const {
@@ -47,11 +35,7 @@ export default function MusicPage() {
   const [musicCategories, setMusicCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
-
-  // Local UI state
   const [favorites, setFavorites] = useState(new Set());
-  const [isShuffled, setIsShuffled] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off');
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -79,49 +63,30 @@ export default function MusicPage() {
     });
   };
 
-  const toggleShuffle = () => setIsShuffled(!isShuffled);
-  const toggleRepeat = () => {
-    const modes = ['off', 'all', 'one'];
-    setRepeatMode(prev => modes[(modes.indexOf(prev) + 1) % modes.length]);
-  };
-
-  const handleSeek = (e) => {
-    if (!duration) return;
-    const progressContainer = e.currentTarget;
-    const rect = progressContainer.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const newTime = (clickX / rect.width) * duration;
-    seekTo(newTime);
-  };
-
-  const formatTime = (seconds) => {
-    if (isNaN(seconds) || seconds === 0) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const defaultTrack = {
-    id: 0,
-    title: "Select a Song",
-    artist: "Sawaflix Music",
-    image: DEFAULT_MUSIC_THUMBNAIL,
-    src: "",
-  };
-
-  const currentTrack = globalTrack || defaultTrack;
+  const tabs = ['All', ...musicCategories.map(c => c.category).filter(Boolean)];
+  const filteredCategories = activeTab === 'All'
+    ? musicCategories
+    : musicCategories.filter(c => c.category === activeTab);
 
   const renderSkeleton = () => (
     <div className="animate-pulse space-y-8">
-      <div className="h-80 bg-gray-800 rounded-2xl w-full"></div>
+      {/* Banner skeleton */}
+      <div className="h-64 sm:h-80 bg-gray-800/50 rounded-2xl w-full"></div>
+      {/* Tabs skeleton */}
+      <div className="flex gap-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-10 w-24 bg-gray-800/50 rounded-full"></div>
+        ))}
+      </div>
+      {/* Cards skeleton */}
       <div>
-        <div className="h-8 bg-gray-800 rounded w-48 mb-4"></div>
+        <div className="h-6 bg-gray-800/50 rounded w-32 mb-4"></div>
         <div className="flex gap-4 overflow-hidden">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex-shrink-0 w-48 sm:w-64 space-y-3">
-              <div className="w-full aspect-video bg-gray-800 rounded-lg"></div>
-              <div className="h-4 bg-gray-800 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-800 rounded w-1/2"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="flex-shrink-0 w-44 space-y-3">
+              <div className="w-full aspect-square bg-gray-800/50 rounded-xl"></div>
+              <div className="h-3 bg-gray-800/50 rounded w-3/4"></div>
+              <div className="h-2 bg-gray-800/50 rounded w-1/2"></div>
             </div>
           ))}
         </div>
@@ -129,56 +94,497 @@ export default function MusicPage() {
     </div>
   );
 
-  const tabs = ['All', ...musicCategories.map(c => c.category).filter(Boolean)];
-  const filteredCategories = activeTab === 'All' 
-    ? musicCategories 
-    : musicCategories.filter(c => c.category === activeTab);
-
   return (
-    <div 
-      className="min-h-full bg-gray-900 text-white p-2 xs:p-3 sm:p-6 lg:p-8 pb-32 transition-all duration-300"
-      style={{ zoom: 0.85 }}
-    >
-      {/* Sticky Header */}
-      <div className="mb-6 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4 sticky top-0 z-50 bg-gray-900/90 backdrop-blur-md pt-2 pb-4 border-b border-gray-800">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl xs:text-2xl sm:text-3xl font-black mb-1 truncate text-white tracking-tight">Sawa Music</h1>
-          <p className="text-xs xs:text-sm sm:text-base text-gray-400 truncate">Listen or Watch Cameroonian hits</p>
-        </div>
-        
-        {/* Global Controls */}
-        <div className="flex items-center gap-2 flex-shrink-0 bg-gray-800 p-1 rounded-full border border-gray-700/50 shadow-inner">
-          <button
-            onClick={() => setIsVideoMode(false)}
-            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-              !isVideoMode ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] scale-105' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Headphones size={18} /> <span className="hidden sm:inline">Audio</span>
-          </button>
-          <button
-            onClick={() => setIsVideoMode(true)}
-            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-              isVideoMode ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] scale-105' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Video size={18} /> <span className="hidden sm:inline">Video</span>
-          </button>
+    <div className="music-page-root">
+      <style jsx>{`
+        .music-page-root {
+          min-height: 100%;
+          color: #fff;
+          padding-bottom: 120px;
+        }
+
+        /* ====== HERO BANNER ====== */
+        .music-hero-banner {
+          position: relative;
+          width: 100%;
+          border-radius: 20px;
+          overflow: hidden;
+          margin-bottom: 28px;
+          min-height: 320px;
+          display: flex;
+          align-items: flex-end;
+        }
+        .music-hero-banner .hero-bg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center top;
+        }
+        .music-hero-banner .hero-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(11,14,20,0.97) 0%,
+            rgba(11,14,20,0.7) 35%,
+            rgba(11,14,20,0.2) 60%,
+            transparent 100%
+          );
+        }
+        .music-hero-banner .hero-content {
+          position: relative;
+          z-index: 2;
+          padding: 32px 28px 28px;
+          width: 100%;
+        }
+        .premium-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(229,9,20,0.15);
+          border: 1px solid rgba(229,9,20,0.3);
+          padding: 5px 14px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #FF6B6B;
+          letter-spacing: 0.5px;
+          margin-bottom: 14px;
+          backdrop-filter: blur(10px);
+        }
+        .premium-badge .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #E50914;
+          animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+          0%,100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        .hero-title {
+          font-size: 38px;
+          font-weight: 900;
+          color: #fff;
+          margin: 0 0 10px 0;
+          line-height: 1.1;
+          letter-spacing: -1px;
+        }
+        .hero-subtitle {
+          font-size: 14px;
+          color: rgba(255,255,255,0.6);
+          margin: 0 0 22px 0;
+          line-height: 1.6;
+          max-width: 480px;
+        }
+        .hero-buttons {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .btn-listen {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 26px;
+          background: #E50914;
+          color: #fff;
+          border: none;
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(229,9,20,0.4);
+        }
+        .btn-listen:hover {
+          background: #FF1A25;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 25px rgba(229,9,20,0.5);
+        }
+        .btn-explore {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 26px;
+          background: transparent;
+          color: #fff;
+          border: 1.5px solid rgba(255,255,255,0.3);
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+        }
+        .btn-explore:hover {
+          background: rgba(255,255,255,0.1);
+          border-color: rgba(255,255,255,0.5);
+          transform: translateY(-2px);
+        }
+
+        /* ====== TABS ====== */
+        .tabs-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 28px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          scrollbar-width: none;
+        }
+        .tabs-row::-webkit-scrollbar { display: none; }
+        .tab-btn {
+          padding: 9px 22px;
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: 600;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          border: 1.5px solid transparent;
+          background: transparent;
+          color: rgba(255,255,255,0.5);
+        }
+        .tab-btn:hover {
+          color: #fff;
+          background: rgba(255,255,255,0.05);
+        }
+        .tab-btn.active {
+          background: #fff;
+          color: #000;
+          border-color: #fff;
+          font-weight: 700;
+        }
+
+        /* ====== CATEGORY SECTION ====== */
+        .category-section {
+          margin-bottom: 36px;
+        }
+        .category-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        .category-accent {
+          width: 4px;
+          height: 26px;
+          border-radius: 4px;
+          background: #E50914;
+          flex-shrink: 0;
+        }
+        .category-name {
+          font-size: 22px;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: -0.3px;
+        }
+
+        /* ====== DESKTOP HORIZONTAL CARDS ====== */
+        .cards-scroll {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          padding-bottom: 12px;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+        }
+        .cards-scroll::-webkit-scrollbar { display: none; }
+
+        .music-card {
+          flex-shrink: 0;
+          width: 180px;
+          cursor: pointer;
+          scroll-snap-align: start;
+          transition: transform 0.3s ease;
+        }
+        .music-card:hover {
+          transform: translateY(-4px);
+        }
+        .music-card-thumb {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1;
+          border-radius: 14px;
+          overflow: hidden;
+          margin-bottom: 10px;
+          background: #1a1f2e;
+        }
+        .music-card-thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+        }
+        .music-card:hover .music-card-thumb img {
+          transform: scale(1.08);
+        }
+        .music-card-thumb .play-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .music-card:hover .play-overlay,
+        .music-card-thumb .play-overlay.visible {
+          opacity: 1;
+        }
+        .play-overlay .play-btn-circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(229,9,20,0.9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 20px rgba(229,9,20,0.4);
+          transition: transform 0.2s ease;
+        }
+        .play-overlay .play-btn-circle:hover {
+          transform: scale(1.1);
+        }
+        .music-card-thumb .duration-badge {
+          position: absolute;
+          bottom: 8px;
+          right: 8px;
+          background: rgba(0,0,0,0.8);
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 7px;
+          border-radius: 4px;
+          backdrop-filter: blur(4px);
+          letter-spacing: 0.5px;
+        }
+        /* Cameroon flag colored playing indicator on card */
+        .music-card-thumb .cameroon-playing-indicator {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          display: flex;
+          gap: 2px;
+          align-items: flex-end;
+          height: 16px;
+          background: rgba(0,0,0,0.6);
+          padding: 3px 6px;
+          border-radius: 4px;
+          backdrop-filter: blur(4px);
+        }
+        .cameroon-playing-indicator .bar {
+          width: 3px;
+          border-radius: 2px;
+          animation: eq-bounce 0.8s ease-in-out infinite;
+        }
+        .cameroon-playing-indicator .bar:nth-child(1) {
+          background: #009639;
+          height: 60%;
+          animation-delay: 0s;
+        }
+        .cameroon-playing-indicator .bar:nth-child(2) {
+          background: #CE1126;
+          height: 100%;
+          animation-delay: 0.15s;
+        }
+        .cameroon-playing-indicator .bar:nth-child(3) {
+          background: #FCD116;
+          height: 40%;
+          animation-delay: 0.3s;
+        }
+        .cameroon-playing-indicator .bar:nth-child(4) {
+          background: #009639;
+          height: 80%;
+          animation-delay: 0.45s;
+        }
+        .cameroon-playing-indicator .bar:nth-child(5) {
+          background: #CE1126;
+          height: 50%;
+          animation-delay: 0.6s;
+        }
+        @keyframes eq-bounce {
+          0%,100% { height: 30%; }
+          50% { height: 100%; }
+        }
+        .music-card-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          margin: 0 0 3px 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .music-card-artist {
+          font-size: 12px;
+          color: rgba(255,255,255,0.45);
+          margin: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* ====== MOBILE LIST CARDS ====== */
+        .mobile-list {
+          display: none;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .mobile-list-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 10px 8px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+        .mobile-list-item:hover,
+        .mobile-list-item.active-track {
+          background: rgba(255,255,255,0.04);
+        }
+        .mobile-list-thumb {
+          width: 56px;
+          height: 56px;
+          border-radius: 10px;
+          overflow: hidden;
+          flex-shrink: 0;
+          position: relative;
+          background: #1a1f2e;
+        }
+        .mobile-list-thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .mobile-list-info {
+          flex: 1;
+          min-width: 0;
+        }
+        .mobile-list-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #fff;
+          margin: 0 0 3px 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .mobile-list-artist {
+          font-size: 12px;
+          color: rgba(255,255,255,0.4);
+          margin: 0;
+        }
+        .mobile-list-more {
+          color: rgba(255,255,255,0.3);
+          padding: 6px;
+          border-radius: 50%;
+          cursor: pointer;
+          background: none;
+          border: none;
+          transition: color 0.2s;
+          flex-shrink: 0;
+        }
+        .mobile-list-more:hover {
+          color: #fff;
+        }
+
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 768px) {
+          .music-hero-banner {
+            min-height: 240px;
+            border-radius: 0;
+            margin-left: -16px;
+            margin-right: -16px;
+            width: calc(100% + 32px);
+          }
+          .music-hero-banner .hero-content {
+            padding: 20px 18px 22px;
+          }
+          .hero-title {
+            font-size: 28px;
+          }
+          .hero-subtitle {
+            font-size: 13px;
+          }
+          .cards-scroll {
+            display: none !important;
+          }
+          .mobile-list {
+            display: flex;
+          }
+          .category-name {
+            font-size: 18px;
+          }
+        }
+        @media (min-width: 769px) {
+          .music-hero-banner {
+            min-height: 340px;
+          }
+          .mobile-list {
+            display: none !important;
+          }
+          .cards-scroll {
+            display: flex !important;
+          }
+        }
+        @media (min-width: 1200px) {
+          .music-hero-banner {
+            min-height: 380px;
+          }
+          .hero-title {
+            font-size: 44px;
+          }
+          .music-card {
+            width: 190px;
+          }
+        }
+      `}</style>
+
+      {/* ====== HERO BANNER ====== */}
+      <div className="music-hero-banner">
+        <img
+          src={COVER_BG}
+          alt="Sawa Music Cover"
+          className="hero-bg"
+          loading="eager"
+        />
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <div className="premium-badge">
+            <span className="dot"></span>
+            PREMIUM VIBES
+          </div>
+          <h1 className="hero-title">Sawa Music</h1>
+          <p className="hero-subtitle">
+            The rhythm of our roots. Experience the ultimate Cameroonian
+            sounds in high fidelity, carefully curated for your soul.
+          </p>
+          <div className="hero-buttons">
+            <button className="btn-listen">
+              <Play size={16} fill="currentColor" />
+              Listen Now
+            </button>
+            <button className="btn-explore">
+              Explore Library
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tabs Row */}
+      {/* ====== GENRE TABS ====== */}
       {!isLoading && tabs.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto scrollbar-none mb-8 pb-2">
+        <div className="tabs-row">
           {tabs.map((tab, i) => (
             <button
               key={i}
               onClick={() => setActiveTab(tab)}
-              className={`cursor-pointer px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border ${
-                activeTab === tab 
-                ? 'bg-white text-black border-white shadow-lg scale-105' 
-                : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700 hover:text-white hover:border-gray-600'
-              }`}
+              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
             >
               {tab}
             </button>
@@ -186,285 +592,158 @@ export default function MusicPage() {
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* ====== MAIN CONTENT ====== */}
       {isLoading ? (
         renderSkeleton()
       ) : (
-        <div className="space-y-12">
-          
-          {/* Now Playing Hero Section - 3 Column Layout */}
-          <div className="bg-gray-800/80 rounded-3xl p-4 sm:p-6 lg:p-8 mb-8 border border-gray-700/50 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-              
-              {/* Media Thumbnail or Video Player (Left col) */}
-              <div className="lg:col-span-4 relative w-full max-w-sm mx-auto aspect-square lg:aspect-video flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl bg-black group">
-                {isVideoMode && currentTrack.src ? (
-                  <div className="absolute inset-0 w-full h-full pointer-events-none">
-                    <ReactPlayer
-                      ref={playerRef}
-                      url={normalizeUrl(currentTrack.src)}
-                      playing={isPlaying}
-                      volume={volume}
-                      muted={muted}
-                      onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
-                      onDuration={(d) => setDuration(d)}
-                      onEnded={playNext}
-                      width="100%"
-                      height="100%"
-                      controls={false}
-                      config={{
-                        youtube: {
-                          playerVars: { showinfo: 0, controls: 0, autoplay: 1, modestbranding: 1 }
-                        }
-                      }}
-                      style={{ transform: 'scale(1.2)' }} 
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className="w-full h-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 cursor-pointer"
-                    style={{ backgroundImage: `url(${currentTrack.image})` }}
-                  />
-                )}
-                
-                {isVideoMode && (
-                  <div className="absolute top-3 right-3 bg-red-600/90 backdrop-blur text-white text-[10px] font-black px-2 py-1 rounded shadow-lg flex items-center gap-1 animate-pulse">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div> LIVE
-                  </div>
-                )}
-              </div>
+        <div>
+          {filteredCategories.map((categoryData, categoryIdx) => {
+            if (!categoryData.videos || categoryData.videos.length === 0) return null;
 
-              {/* Track Info & In-Page Controls (Middle col) */}
-              <div className="lg:col-span-4 flex flex-col justify-center text-center">
-                <span className="inline-block px-4 py-1.5 bg-gray-900/50 rounded-full text-red-500 text-xs font-bold mb-4 w-max mx-auto border border-red-500/20 shadow-inner">
-                  Now Playing
-                </span>
-                
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-2 truncate text-white drop-shadow-lg cursor-pointer hover:text-red-500 transition-colors">
-                  {currentTrack.title}
-                </h2>
-                <p className="text-base sm:text-xl text-gray-400 mb-8 truncate cursor-pointer hover:text-gray-300">
-                  {currentTrack.artist}
-                </p>
-
-                {/* Primary Controls */}
-                <div className="flex items-center justify-center gap-4 sm:gap-6 mb-8">
-                  <button onClick={toggleShuffle} className={`cursor-pointer p-2 rounded-full transition-colors ${isShuffled ? 'text-red-500' : 'text-gray-500 hover:text-white'}`}>
-                    <Shuffle size={20} />
-                  </button>
-                  <button onClick={playPrev} className="cursor-pointer p-3 hover:bg-gray-700 rounded-full transition-all hover:-translate-x-1 active:scale-95">
-                    <SkipBack size={28} fill="currentColor" />
-                  </button>
-                  <button
-                    onClick={togglePlay}
-                    className="cursor-pointer bg-red-600 text-white rounded-full p-5 hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(220,38,38,0.4)]"
-                  >
-                    {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
-                  </button>
-                  <button onClick={playNext} className="cursor-pointer p-3 hover:bg-gray-700 rounded-full transition-all hover:translate-x-1 active:scale-95">
-                    <SkipForward size={28} fill="currentColor" />
-                  </button>
-                  <button onClick={toggleRepeat} className={`cursor-pointer p-2 rounded-full transition-colors ${repeatMode !== 'off' ? 'text-red-500' : 'text-gray-500 hover:text-white'}`}>
-                    <Repeat size={20} />
-                  </button>
+            return (
+              <div key={categoryIdx} className="category-section">
+                {/* Category Header */}
+                <div className="category-header">
+                  <div className="category-accent"></div>
+                  <h3 className="category-name">{categoryData.category}</h3>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="w-full max-w-md mx-auto">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-semibold text-gray-400 w-12 text-right tabular-nums">{formatTime(currentTime)}</span>
-                    <div
-                      className="flex-1 bg-gray-700 rounded-full h-2 cursor-pointer group relative overflow-hidden"
-                      onClick={handleSeek}
-                    >
-                      <div
-                        className="bg-red-600 h-full rounded-full relative transition-all duration-100"
-                        style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-                      >
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg scale-150"></div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-400 w-12 text-left tabular-nums">{formatTime(duration)}</span>
-                  </div>
-                </div>
-              </div>
+                {/* Desktop: Horizontal scroll cards */}
+                <div className="cards-scroll">
+                  {categoryData.videos.map((video, videoIdx) => {
+                    const trackObj = {
+                      id: video.id,
+                      title: video.title,
+                      artist: video.channelTitle,
+                      image: MUSIC_CARD_THUMB,
+                      src: video.videoUrl,
+                      duration: "3:00"
+                    };
+                    const isTrackPlaying = isPlaying && globalTrack?.id === trackObj.id;
+                    const isCurrentTrack = globalTrack?.id === trackObj.id;
 
-              {/* Up Next Sidebar (Right col) */}
-              <div className="lg:col-span-4 bg-gray-900/50 rounded-2xl border border-gray-700/50 overflow-hidden h-72 lg:h-96 flex flex-col shadow-inner">
-                <div className="p-4 border-b border-gray-800 bg-gray-800/80 flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-bold text-gray-200">
-                    <ListMusic size={18} className="text-red-500" />
-                    Up Next
-                  </div>
-                  <span className="text-xs font-semibold text-gray-500 bg-gray-900 px-2 py-1 rounded-full">
-                    {playlist.length} Tracks
-                  </span>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent p-2 space-y-1">
-                  {playlist.length > 0 ? playlist.map((track, idx) => {
-                    const isQueueActive = track.id === currentTrack.id;
                     return (
-                      <div 
-                        key={idx} 
-                        onClick={() => playTrack(track, playlist)}
-                        className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all ${
-                          isQueueActive ? 'bg-red-600/10 border border-red-500/20' : 'hover:bg-gray-800 border border-transparent'
-                        }`}
+                      <div
+                        key={videoIdx}
+                        className="music-card"
+                        onClick={() => {
+                          if (isCurrentTrack) {
+                            togglePlay();
+                          } else {
+                            const pl = categoryData.videos.map(v => ({
+                              id: v.id,
+                              title: v.title,
+                              artist: v.channelTitle,
+                              image: MUSIC_CARD_THUMB,
+                              src: v.videoUrl
+                            }));
+                            playTrack(trackObj, pl);
+                          }
+                        }}
                       >
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-black shadow">
-                          <img src={track.image} alt={track.title} className="w-full h-full object-cover" />
-                          {isQueueActive && isPlaying && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-[2px]">
-                              <div className="w-1 bg-red-500 h-[60%] animate-pulse"></div>
-                              <div className="w-1 bg-red-500 h-[40%] animate-pulse delay-75"></div>
-                              <div className="w-1 bg-red-500 h-[80%] animate-pulse delay-150"></div>
+                        <div className="music-card-thumb">
+                          <img
+                            src={MUSIC_CARD_THUMB}
+                            alt={trackObj.title}
+                            loading="lazy"
+                          />
+                          {/* Play overlay */}
+                          <div className={`play-overlay ${isCurrentTrack ? 'visible' : ''}`}>
+                            <div className="play-btn-circle">
+                              {isTrackPlaying ? (
+                                <Pause size={20} fill="#fff" color="#fff" />
+                              ) : (
+                                <Play size={20} fill="#fff" color="#fff" style={{ marginLeft: 2 }} />
+                              )}
+                            </div>
+                          </div>
+                          {/* Cameroon flag equalizer indicator */}
+                          {isTrackPlaying && (
+                            <div className="cameroon-playing-indicator">
+                              <div className="bar"></div>
+                              <div className="bar"></div>
+                              <div className="bar"></div>
+                              <div className="bar"></div>
+                              <div className="bar"></div>
+                            </div>
+                          )}
+                          {/* Duration badge */}
+                          <div className="duration-badge">3:00</div>
+                        </div>
+                        <p className="music-card-title">{trackObj.title}</p>
+                        <p className="music-card-artist">{trackObj.artist}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile: Vertical list */}
+                <div className="mobile-list">
+                  {categoryData.videos.map((video, videoIdx) => {
+                    const trackObj = {
+                      id: video.id,
+                      title: video.title,
+                      artist: video.channelTitle,
+                      image: MUSIC_CARD_THUMB,
+                      src: video.videoUrl,
+                      duration: "3:00"
+                    };
+                    const isTrackPlaying = isPlaying && globalTrack?.id === trackObj.id;
+                    const isCurrentTrack = globalTrack?.id === trackObj.id;
+
+                    return (
+                      <div
+                        key={videoIdx}
+                        className={`mobile-list-item ${isCurrentTrack ? 'active-track' : ''}`}
+                        onClick={() => {
+                          if (isCurrentTrack) {
+                            togglePlay();
+                          } else {
+                            const pl = categoryData.videos.map(v => ({
+                              id: v.id,
+                              title: v.title,
+                              artist: v.channelTitle,
+                              image: MUSIC_CARD_THUMB,
+                              src: v.videoUrl
+                            }));
+                            playTrack(trackObj, pl);
+                          }
+                        }}
+                      >
+                        <div className="mobile-list-thumb">
+                          <img src={MUSIC_CARD_THUMB} alt={trackObj.title} />
+                          {isTrackPlaying && (
+                            <div className="cameroon-playing-indicator" style={{
+                              position: 'absolute',
+                              bottom: 4,
+                              left: 4,
+                              top: 'auto',
+                              background: 'rgba(0,0,0,0.7)',
+                              padding: '2px 4px',
+                              height: '12px'
+                            }}>
+                              <div className="bar" style={{ width: 2 }}></div>
+                              <div className="bar" style={{ width: 2 }}></div>
+                              <div className="bar" style={{ width: 2 }}></div>
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`text-sm font-bold truncate ${isQueueActive ? 'text-red-500' : 'text-gray-200'}`}>
-                            {track.title}
-                          </h4>
-                          <p className="text-xs text-gray-500 truncate">{track.artist}</p>
+                        <div className="mobile-list-info">
+                          <p className="mobile-list-title" style={isCurrentTrack ? { color: '#E50914' } : {}}>
+                            {trackObj.title}
+                          </p>
+                          <p className="mobile-list-artist">{trackObj.artist}</p>
                         </div>
-                        <button className="text-gray-500 hover:text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreVertical size={16} />
+                        <button className="mobile-list-more" onClick={(e) => e.stopPropagation()}>
+                          <MoreVertical size={18} />
                         </button>
                       </div>
                     );
-                  }) : (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                      <ListMusic size={32} className="mb-2 opacity-50" />
-                      <p className="text-sm font-medium">Queue is empty</p>
-                      <p className="text-xs mt-1">Play a track to start a session</p>
-                    </div>
-                  )}
+                  })}
                 </div>
               </div>
-
-            </div>
-          </div>
-
-          {/* Dynamic Categories Rows */}
-          <div className="space-y-12">
-            {filteredCategories.map((categoryData, categoryIdx) => {
-              if (!categoryData.videos || categoryData.videos.length === 0) return null;
-              
-              return (
-                <div key={categoryIdx} className="w-full">
-                  <div className="flex justify-between items-end mb-6 border-b border-gray-800 pb-2">
-                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white border-l-4 border-red-600 pl-3">
-                      {categoryData.category}
-                    </h3>
-                    <button className="cursor-pointer text-sm font-bold text-gray-400 hover:text-white transition-colors bg-gray-800 px-4 py-1.5 rounded-full border border-gray-700 hover:border-gray-500">
-                      See All
-                    </button>
-                  </div>
-                  
-                  {/* Horizontal Scroll Container */}
-                  <div className="flex gap-5 sm:gap-8 overflow-x-auto scrollbar-none pb-8 pt-2 -mx-2 px-2 sm:-mx-0 sm:px-0 scroll-smooth snap-x">
-                    {categoryData.videos.map((video, videoIdx) => {
-                      const trackObj = {
-                        id: video.id,
-                        title: video.title,
-                        artist: video.channelTitle,
-                        image: video.thumbnail || DEFAULT_MUSIC_THUMBNAIL,
-                        src: video.videoUrl,
-                        duration: "3:00"
-                      };
-                      
-                      const isTrackPlaying = isPlaying && globalTrack?.id === trackObj.id;
-                      const isLiked = favorites.has(trackObj.id);
-
-                      return (
-                        <div 
-                          key={videoIdx} 
-                          className="flex-shrink-0 w-64 sm:w-80 group cursor-pointer snap-start"
-                        >
-                          {/* Card Image (Classic Sawaflix 16:9) */}
-                          <div 
-                            className="relative w-full aspect-video mb-4 rounded-2xl overflow-hidden bg-gray-800 shadow-lg group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:-translate-y-2 border border-transparent group-hover:border-gray-700"
-                            onClick={() => {
-                              if (globalTrack?.id === trackObj.id) {
-                                togglePlay();
-                              } else {
-                                const playlist = categoryData.videos.map(v => ({
-                                  id: v.id,
-                                  title: v.title,
-                                  artist: v.channelTitle,
-                                  image: v.thumbnail || DEFAULT_MUSIC_THUMBNAIL,
-                                  src: v.videoUrl
-                                }));
-                                playTrack(trackObj, playlist);
-                              }
-                            }}
-                          >
-                            <img 
-                              src={trackObj.image} 
-                              alt={trackObj.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                              loading="lazy"
-                            />
-                            
-                            {/* Hover / Playing Overlay */}
-                            <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isTrackPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                              <button className="cursor-pointer bg-red-600 text-white p-4 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:scale-110 active:scale-95 transition-all">
-                                {isTrackPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
-                              </button>
-                            </div>
-                            
-                            {/* Playing Indicator */}
-                            {isTrackPlaying && (
-                              <div className="absolute top-3 left-3 flex gap-1 h-4 items-end bg-black/60 px-2 py-1.5 rounded backdrop-blur">
-                                <div className="w-1.5 bg-red-500 h-full animate-pulse"></div>
-                                <div className="w-1.5 bg-red-500 h-2/3 animate-pulse delay-75"></div>
-                                <div className="w-1.5 bg-red-500 h-full animate-pulse delay-150"></div>
-                              </div>
-                            )}
-
-                            {/* Duration Badge */}
-                            <div className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-[10px] font-bold tracking-wider text-white backdrop-blur">
-                              3:00
-                            </div>
-                          </div>
-                          
-                          {/* Card Info */}
-                          <div className="flex gap-3 px-1 items-start">
-                            {/* Channel Avatar */}
-                            <div className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex-shrink-0 overflow-hidden mt-1 shadow-md">
-                              <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${trackObj.artist}`} alt="Avatar" className="w-full h-full object-cover" />
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-base sm:text-lg text-gray-100 line-clamp-2 leading-tight group-hover:text-red-500 transition-colors cursor-pointer mb-1">
-                                {trackObj.title}
-                              </h4>
-                              <p className="text-gray-400 text-sm truncate mt-0.5 cursor-pointer hover:text-white transition-colors">
-                                {trackObj.artist}
-                              </p>
-                              <p className="text-gray-500 text-xs mt-1">1M views • 2 weeks ago</p>
-                            </div>
-
-                            {/* Like Button */}
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(trackObj.id);
-                              }}
-                              className="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-gray-800 active:scale-75 cursor-pointer"
-                            >
-                              <Heart size={20} className={isLiked ? "fill-red-500 text-red-500" : ""} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
