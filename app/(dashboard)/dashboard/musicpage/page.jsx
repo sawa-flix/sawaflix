@@ -121,9 +121,11 @@ export default function MusicPage() {
           border-radius: 20px;
           overflow: hidden;
           margin-bottom: 28px;
-          min-height: 320px;
+          min-height: 400px;
           display: flex;
           align-items: flex-end;
+          box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+          border: 1px solid rgba(255,255,255,0.06);
         }
         .music-hero-banner .hero-bg {
           position: absolute;
@@ -131,7 +133,7 @@ export default function MusicPage() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center top;
+          object-position: center;
         }
         .music-hero-banner .hero-overlay {
           position: absolute;
@@ -293,53 +295,17 @@ export default function MusicPage() {
           letter-spacing: -0.3px;
         }
 
-        /* ====== DESKTOP HORIZONTAL CARDS ====== */
-        .cards-scroll-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-        .scroll-btn {
-          position: absolute;
-          z-index: 10;
-          background: rgba(0,0,0,0.6);
-          border: none;
-          color: white;
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          opacity: 0;
-          transition: all 0.3s;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-          backdrop-filter: blur(4px);
-        }
-        .category-section:hover .scroll-btn { opacity: 1; }
-        .scroll-btn:hover { background: rgba(229,9,20,0.9); transform: scale(1.1); }
-        .scroll-btn.left { left: -22px; }
-        .scroll-btn.right { right: -22px; }
-        @media (max-width: 768px) {
-          .scroll-btn { display: none !important; }
-        }
-
-        .cards-scroll {
-          display: flex;
-          gap: 16px;
-          overflow-x: auto;
+        /* ====== DESKTOP GRID CARDS ====== */
+        .cards-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+          gap: 20px;
           padding-bottom: 12px;
-          scroll-snap-type: x mandatory;
-          scrollbar-width: none;
         }
-        .cards-scroll::-webkit-scrollbar { display: none; }
 
         .music-card {
-          flex-shrink: 0;
-          width: 180px;
+          width: 100%;
           cursor: pointer;
-          scroll-snap-align: start;
           transition: transform 0.3s ease;
         }
         .music-card:hover {
@@ -553,7 +519,7 @@ export default function MusicPage() {
           .hero-subtitle {
             font-size: 13px;
           }
-          .cards-scroll {
+          .cards-grid {
             display: none !important;
           }
           .mobile-list {
@@ -570,8 +536,8 @@ export default function MusicPage() {
           .mobile-list {
             display: none !important;
           }
-          .cards-scroll {
-            display: flex !important;
+          .cards-grid {
+            display: grid !important;
           }
         }
         @media (min-width: 1200px) {
@@ -581,8 +547,8 @@ export default function MusicPage() {
           .hero-title {
             font-size: 44px;
           }
-          .music-card {
-            width: 190px;
+          .cards-grid {
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
           }
         }
       `}</style>
@@ -649,13 +615,9 @@ export default function MusicPage() {
                   <h3 className="category-name">{categoryData.category}</h3>
                 </div>
 
-                {/* Desktop: Horizontal scroll cards */}
-                <div className="cards-scroll-wrapper">
-                  <button className="scroll-btn left" onClick={() => scrollContainer(`scroll-${categoryIdx}`, 'left')}>
-                    <ChevronLeft size={24} />
-                  </button>
-                  <div className="cards-scroll" id={`scroll-${categoryIdx}`}>
-                    {categoryData.videos.map((video, videoIdx) => {
+                {/* Desktop: Grid cards */}
+                <div className="cards-grid" id={`grid-${categoryIdx}`}>
+                  {categoryData.videos.map((video, videoIdx) => {
                     const trackObj = {
                       id: video.id,
                       title: video.title,
@@ -720,10 +682,6 @@ export default function MusicPage() {
                       </div>
                     );
                   })}
-                  </div>
-                  <button className="scroll-btn right" onClick={() => scrollContainer(`scroll-${categoryIdx}`, 'right')}>
-                    <ChevronRight size={24} />
-                  </button>
                 </div>
 
                 {/* Mobile: Vertical list */}

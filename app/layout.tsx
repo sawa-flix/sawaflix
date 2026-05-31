@@ -108,7 +108,15 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://i.ibb.co" />
       </head>
       <body suppressHydrationWarning>
-        <NextTopLoader color="#FF0000" showSpinner={false} />
+        <style dangerouslySetInnerHTML={{__html: `
+          #nprogress .bar {
+            background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
+          }
+          #nprogress .peg {
+            box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
+          }
+        `}} />
+        <NextTopLoader color="transparent" showSpinner={false} />
         <AdminNotificationProvider>
           {children}
         </AdminNotificationProvider>
