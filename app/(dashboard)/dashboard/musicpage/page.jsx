@@ -638,7 +638,8 @@ export default function MusicPage() {
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', width: '100%' }}>
               <img 
                 src="https://i.ibb.co/gL3SMQf2/Chat-GPT-Image-May-31-2026-11-11-07-AM.png" 
-                alt="Coming Soon" 
+                alt="Hold on tight! We di cook some serious Cameroonian vibes for this side... Coming soon!" 
+                title="We di cook vibes!"
                 style={{ maxWidth: '400px', width: '100%', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}
               />
             </div>
