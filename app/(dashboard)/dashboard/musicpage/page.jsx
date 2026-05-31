@@ -138,45 +138,56 @@ export default function MusicPage() {
         .music-hero-banner .hero-overlay {
           position: absolute;
           inset: 0;
+          background: 
+            linear-gradient(
+              to top,
+              rgba(11,14,20,0.98) 0%,
+              rgba(11,14,20,0.85) 30%,
+              rgba(11,14,20,0.4) 55%,
+              rgba(11,14,20,0.15) 75%,
+              transparent 100%
+            );
+        }
+        /* Artistic left vignette for text readability */
+        .music-hero-banner .hero-vignette {
+          position: absolute;
+          inset: 0;
           background: linear-gradient(
-            to top,
-            rgba(11,14,20,0.97) 0%,
-            rgba(11,14,20,0.7) 35%,
-            rgba(11,14,20,0.2) 60%,
-            transparent 100%
+            to right,
+            rgba(11,14,20,0.7) 0%,
+            rgba(11,14,20,0.3) 40%,
+            transparent 70%
           );
+        }
+        /* Subtle Cameroonian color tint */
+        .music-hero-banner .hero-tint {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            135deg,
+            rgba(0,150,57,0.08) 0%,
+            rgba(206,17,38,0.06) 50%,
+            rgba(252,209,22,0.05) 100%
+          );
+          mix-blend-mode: overlay;
+        }
+        /* Decorative flag accent stripe on left edge */
+        .hero-flag-accent {
+          position: absolute;
+          left: 0;
+          top: 20%;
+          bottom: 20%;
+          width: 4px;
+          z-index: 3;
+          border-radius: 0 4px 4px 0;
+          background: linear-gradient(to bottom, #009639 33%, #CE1126 33% 66%, #FCD116 66%);
+          box-shadow: 0 0 12px rgba(206,17,38,0.3);
         }
         .music-hero-banner .hero-content {
           position: relative;
           z-index: 2;
           padding: 32px 28px 28px;
           width: 100%;
-        }
-        .premium-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(229,9,20,0.15);
-          border: 1px solid rgba(229,9,20,0.3);
-          padding: 5px 14px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 700;
-          color: #FF6B6B;
-          letter-spacing: 0.5px;
-          margin-bottom: 14px;
-          backdrop-filter: blur(10px);
-        }
-        .premium-badge .dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #E50914;
-          animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-          0%,100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.3); }
         }
         .hero-title {
           font-size: 38px;
@@ -185,13 +196,15 @@ export default function MusicPage() {
           margin: 0 0 10px 0;
           line-height: 1.1;
           letter-spacing: -1px;
+          text-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.4);
         }
         .hero-subtitle {
-          font-size: 14px;
-          color: rgba(255,255,255,0.6);
+          font-size: 15px;
+          color: rgba(255,255,255,0.85);
           margin: 0 0 22px 0;
           line-height: 1.6;
           max-width: 480px;
+          text-shadow: 0 1px 10px rgba(0,0,0,0.6);
         }
         .hero-buttons {
           display: flex;
@@ -510,20 +523,23 @@ export default function MusicPage() {
         /* ====== RESPONSIVE ====== */
         @media (max-width: 768px) {
           .music-hero-banner {
-            min-height: 240px;
+            min-height: 260px;
             border-radius: 0;
             margin-left: -16px;
             margin-right: -16px;
             width: calc(100% + 32px);
           }
           .music-hero-banner .hero-content {
-            padding: 20px 18px 22px;
+            padding: 20px 20px 24px;
           }
           .hero-title {
-            font-size: 28px;
+            font-size: 30px;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.5);
           }
           .hero-subtitle {
-            font-size: 13px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 12px rgba(0,0,0,0.7);
           }
           .cards-grid {
             display: none !important;
@@ -569,10 +585,9 @@ export default function MusicPage() {
         />
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <div className="premium-badge">
-            <span className="dot"></span>
-            PREMIUM VIBES
-          </div>
+          <div className="hero-flag-accent"></div>
+          <div className="hero-vignette"></div>
+          <div className="hero-tint"></div>
           <h1 className="hero-title">Sawa Music</h1>
           <p className="hero-subtitle">
             The rhythm of our roots. Experience the ultimate Cameroonian

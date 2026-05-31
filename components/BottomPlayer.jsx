@@ -60,6 +60,36 @@ export default function BottomPlayer() {
   const leftBars = useEqualizerBars(7, isPlaying);
   const rightBars = useEqualizerBars(7, isPlaying);
 
+  // Setup Media Session API for background playback controls on mobile
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentTrack) {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: currentTrack.title || 'Unknown Title',
+        artist: currentTrack.artist || 'Unknown Artist',
+        album: 'Sawa Music',
+        artwork: [
+          { src: currentTrack.image || SOUND_THUMB, sizes: '512x512', type: 'image/png' },
+          { src: currentTrack.image || SOUND_THUMB, sizes: '256x256', type: 'image/png' },
+          { src: currentTrack.image || SOUND_THUMB, sizes: '128x128', type: 'image/png' }
+        ]
+      });
+
+      // Link OS media controls to our player functions
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (!isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        playPrev();
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        playNext();
+      });
+    }
+  }, [currentTrack, isPlaying, togglePlay, playNext, playPrev]);
+
   if (!currentTrack || isReelsPage) return null;
 
   const handleVolumeChange = (e) => setVolume(parseFloat(e.target.value));
@@ -322,7 +352,7 @@ export default function BottomPlayer() {
         .mb-layout { display: none; }
 
         .mb-inner {
-          padding: 10px 16px 8px;
+          padding: 32px 16px 12px;
           position: relative;
         }
         /* Mobile vinyl — centered at top */
@@ -415,7 +445,7 @@ export default function BottomPlayer() {
                 onEnded={playNext}
                 width="0" height="0"
                 config={{
-                  youtube: { playerVars: { showinfo: 0, controls: 0, autoplay: 1 } },
+                  youtube: { playerVars: { showinfo: 0, controls: 0, autoplay: 1, playsinline: 1 } },
                   file: { errorMessage: 'Error playing file' }
                 }}
               />
