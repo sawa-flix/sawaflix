@@ -30,21 +30,28 @@ type UserProfileData = {
 export default function LeftSidebar({ 
   onNavigate, 
   verificationStatus: propStatus,
+  userRole: propUserRole,
   userProfile: propProfile
 }: { 
   onNavigate?: () => void;
   verificationStatus?: string;
+  userRole?: string;
   userProfile?: any;
 }) {
   const pathname = usePathname();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(propProfile || null);
   const [verificationStatus, setVerificationStatus] = useState<string>(propStatus || 'none');
+  const [userRole, setUserRole] = useState<string | null>(propUserRole || null);
   const [loading, setLoading] = useState(!propProfile);
 
   // Update local state if props change
   useEffect(() => {
     if (propStatus) setVerificationStatus(propStatus);
   }, [propStatus]);
+
+  useEffect(() => {
+    if (propUserRole) setUserRole(propUserRole);
+  }, [propUserRole]);
 
   useEffect(() => {
     if (propProfile) {
@@ -121,29 +128,6 @@ export default function LeftSidebar({
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ];
-
-  // Add "Creator Hub" link to "You" section ONLY if NOT approved
-  // If approved, it will have its own section after Explore
-  if (verificationStatus?.toLowerCase() !== 'approved' && !youItems.find(item => item.id === 'create-content')) {
-    let route = '/creator/verify'; // Default apply
-    let badge: string | null = 'Apply';
-
-    if (verificationStatus?.toLowerCase() === 'pending') {
-      route = '/creator/pending';
-      badge = 'Pending';
-    } else if (verificationStatus?.toLowerCase() === 'rejected') {
-      route = '/creator/verify'; // Re-apply
-      badge = 'Apply';
-    }
-
-    youItems.push({
-      name: 'Creator Hub',
-      icon: Workflow,
-      id: 'create-content',
-      route: route,
-      badge: badge
-    });
-  }
 
   const creatorItems = [
     { name: 'Post', icon: LayoutGrid, id: 'post', route: '/creator-dashboard', badge: null },
@@ -247,7 +231,7 @@ export default function LeftSidebar({
             </div>
           </div>
         ) : (
-          verificationStatus?.toLowerCase() === 'approved' && (
+          userRole?.toLowerCase() === 'creator' && (
             <div className="space-y-1 mb-6">
               <h3 className="px-3 py-2 text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 mb-2">
                 Creator Hub
