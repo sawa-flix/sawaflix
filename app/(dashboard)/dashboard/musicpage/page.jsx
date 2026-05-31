@@ -635,12 +635,45 @@ export default function MusicPage() {
       ) : (
         <div>
           {(!filteredCategories || filteredCategories.every(c => !c.videos || c.videos.length === 0)) && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', width: '100%' }}>
+            <div style={{ 
+              width: '100%', 
+              minHeight: '50vh',
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              padding: '24px',
+              background: 'linear-gradient(135deg, rgba(0,100,0,0.05), rgba(206,17,38,0.05), rgba(252,209,22,0.05))',
+              borderRadius: '16px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* Fallback text shown while image loads */}
+              <p style={{ 
+                position: 'absolute',
+                color: 'rgba(255,255,255,0.5)', 
+                fontSize: '1.1rem', 
+                fontStyle: 'italic',
+                textAlign: 'center',
+                padding: '0 20px',
+                zIndex: 0
+              }}>
+                🎵 We di cook some serious Cameroonian vibes for dis side... Na small time! 🇨🇲
+              </p>
               <img 
                 src="https://i.ibb.co/gL3SMQf2/Chat-GPT-Image-May-31-2026-11-11-07-AM.png" 
                 alt="Hold on tight! We di cook some serious Cameroonian vibes for this side... Coming soon!" 
                 title="We di cook vibes!"
-                style={{ maxWidth: '400px', width: '100%', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}
+                style={{ 
+                  width: '100%', 
+                  maxWidth: '100%',
+                  height: 'auto',
+                  objectFit: 'cover', 
+                  borderRadius: '12px',
+                  filter: 'drop-shadow(0 10px 30px rgba(0,0,0,0.6))',
+                  position: 'relative',
+                  zIndex: 1
+                }}
               />
             </div>
           )}
