@@ -138,6 +138,7 @@ export default function MusicPage() {
         .music-hero-banner .hero-overlay {
           position: absolute;
           inset: 0;
+          pointer-events: none;
           background: 
             linear-gradient(
               to top,
@@ -152,6 +153,7 @@ export default function MusicPage() {
         .music-hero-banner .hero-vignette {
           position: absolute;
           inset: 0;
+          pointer-events: none;
           background: linear-gradient(
             to right,
             rgba(11,14,20,0.7) 0%,
@@ -163,6 +165,7 @@ export default function MusicPage() {
         .music-hero-banner .hero-tint {
           position: absolute;
           inset: 0;
+          pointer-events: none;
           background: linear-gradient(
             135deg,
             rgba(0,150,57,0.08) 0%,
@@ -180,6 +183,7 @@ export default function MusicPage() {
           width: 4px;
           z-index: 3;
           border-radius: 0 4px 4px 0;
+          pointer-events: none;
           background: linear-gradient(to bottom, #009639 33%, #CE1126 33% 66%, #FCD116 66%);
           box-shadow: 0 0 12px rgba(206,17,38,0.3);
         }
