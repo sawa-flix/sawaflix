@@ -1,82 +1,131 @@
-import { BACKEND_URL } from '../lib/apiConfig';
 import { createClient } from '../utils/supabase/client';
 
+export interface FavoriteItem {
+  id: string;
+  contentId: string;
+  type?: string;
+  title?: string;
+  thumbnail?: string;
+  [key: string]: any;
+}
+
 export const favoritesService = {
-  async getAuthHeader(includeJson = true) {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    const visitorId = typeof window !== 'undefined' ? localStorage.getItem('sawaflix_visitor_id') : null;
-    
-    if (!session) {
-      throw new Error('User must be logged in to manage favorites');
-    }
-
-    const headers: Record<string, string> = {
-      'Authorization': `Bearer ${session.access_token}`,
-      ...(visitorId ? { 'x-visitor-id': visitorId } : {})
-    };
-
-    if (includeJson) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    return headers;
-  },
-
-  async getFavorites() {
+  async getFavorites(): Promise<FavoriteItem[]> {
     try {
-      const headers = await this.getAuthHeader(false);
-      const res = await fetch(`${BACKEND_URL}/api/favorites`, { headers });
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Failed to fetch favorites: ${res.status} ${errorText}`);
+      const supabase = createClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        console.error('getFavorites: not logged in or error', error);
+        return [];
       }
-      return res.json();
+
+      const favorites = user.user_metadata?.favorites || [];
+      return Array.isArray(favorites) ? favorites : [];
     } catch (err) {
       console.error('getFavorites error:', err);
       return [];
     }
   },
 
-  async addFavorite(content: any) {
-    let contentId = content.id || content.contentId || content.videoId || content.title;
-    if (!contentId) throw new Error('Missing contentId');
-    
-    // Slugify title if used as ID to avoid URL issues
-    contentId = String(contentId).trim().replace(/\s+/g, '-').toLowerCase();
+  async addFavorite(content: any): Promise<FavoriteItem[]> {
+    try {
+      const supabase = createClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-    const headers = await this.getAuthHeader(false);
+      if (error || !user) {
+        throw new Error('User must be logged in to manage favorites');
+      }
 
-    const res = await fetch(`${BACKEND_URL}/api/favorites/${encodeURIComponent(contentId)}`, {
-      method: 'POST',
-      headers
-    });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `API Error: ${res.status}`);
+      let contentId = content.id || content.contentId || content.videoId || content.title;
+      if (!contentId) throw new Error('Missing contentId');
+      
+      // Slugify title if used as ID to avoid URL issues
+      contentId = String(contentId).trim().replace(/\s+/g, '-').toLowerCase();
+
+      const currentFavorites: FavoriteItem[] = user.user_metadata?.favorites || [];
+      
+      // Prevent duplicates
+      if (currentFavorites.some(f => f.contentId === contentId || f.id === contentId)) {
+        return currentFavorites;
+      }
+
+      const newFavorite: FavoriteItem = {
+        ...content,
+        id: contentId,
+        contentId: contentId,
+        title: content.title || '',
+        thumbnail: content.thumbnail || content.poster || '',
+        type: content.type || 'video',
+      };
+
+      const updatedFavorites = [...currentFavorites, newFavorite];
+
+      const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
+        data: { favorites: updatedFavorites }
+      });
+
+      if (updateError) {
+        throw new Error(`Failed to update favorites: ${updateError.message}`);
+      }
+
+      return updatedUser.user.user_metadata.favorites;
+    } catch (err: any) {
+      console.error('addFavorite error:', err);
+      throw err;
     }
-    return res.json();
   },
 
-  async removeFavorite(contentId: string) {
+  async removeFavorite(contentId: string): Promise<FavoriteItem[]> {
     if (!contentId) throw new Error('Missing contentId');
-    const headers = await this.getAuthHeader(false);
-    const res = await fetch(`${BACKEND_URL}/api/favorites/${contentId}`, {
-      method: 'DELETE',
-      headers
-    });
-    if (!res.ok) throw new Error(`Failed to remove favorite: ${res.status}`);
-    return res.json();
+    
+    try {
+      const supabase = createClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        throw new Error('User must be logged in to manage favorites');
+      }
+
+      const currentFavorites: FavoriteItem[] = user.user_metadata?.favorites || [];
+      const updatedFavorites = currentFavorites.filter(f => f.contentId !== contentId && f.id !== contentId);
+
+      const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
+        data: { favorites: updatedFavorites }
+      });
+
+      if (updateError) {
+        throw new Error(`Failed to update favorites: ${updateError.message}`);
+      }
+
+      return updatedUser.user.user_metadata.favorites;
+    } catch (err: any) {
+      console.error('removeFavorite error:', err);
+      throw err;
+    }
   },
 
-  async clearFavorites() {
-    const headers = await this.getAuthHeader();
-    const res = await fetch(`${BACKEND_URL}/api/favorites`, {
-      method: 'DELETE',
-      headers
-    });
-    if (!res.ok) throw new Error('Failed to clear favorites');
-    return res.json();
+  async clearFavorites(): Promise<FavoriteItem[]> {
+    try {
+      const supabase = createClient();
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        throw new Error('User must be logged in to manage favorites');
+      }
+
+      const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
+        data: { favorites: [] }
+      });
+
+      if (updateError) {
+        throw new Error(`Failed to clear favorites: ${updateError.message}`);
+      }
+
+      return [];
+    } catch (err: any) {
+      console.error('clearFavorites error:', err);
+      throw err;
+    }
   }
 };

@@ -45,9 +45,14 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
     fetchFavorites();
 
     // Listen for auth changes to re-fetch
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        fetchFavorites();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+        // Use the session user metadata if available directly, or re-fetch
+        if (session?.user?.user_metadata?.favorites) {
+          setFavorites(session.user.user_metadata.favorites);
+        } else {
+          fetchFavorites();
+        }
       } else if (event === 'SIGNED_OUT') {
         setFavorites([]);
       }
