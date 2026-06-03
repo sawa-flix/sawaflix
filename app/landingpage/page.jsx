@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { signInWithPassword } from '../(auth)/actions';
 import { useTranslation } from 'react-i18next';
-import LanguageToggle from '../../components/LanguageToggle';
+
 
 const LandingPage = () => {
   const router = useRouter();
@@ -51,9 +51,8 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen lg:flex relative">
-      {/* Floating Language Toggle */}
+      {/* Floating Language Toggle Removed */}
       <div className="absolute top-6 right-6 z-[100]">
-        <LanguageToggle variant="compact" className="shadow-2xl shadow-red-600/20" />
       </div>
 
       {/* Left Side - Only for Desktop */}
@@ -141,7 +140,7 @@ const LandingPage = () => {
                   </svg>
                 </button>
               </div>
-              <LanguageToggle variant="compact" className="!bg-black/40" />
+              <div />
             </div>
 
             {/* Buttons at top */}
@@ -291,7 +290,7 @@ const LandingPage = () => {
 
         <form onSubmit={handleSignIn} className="space-y-6">
           <div className="mb-8">
-            <LanguageToggle variant="large" />
+            {/* LanguageToggle Removed */}
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email</label>

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp } from 'lucide-react';
+import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -61,11 +61,13 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [isDesktop, setIsDesktop] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const muteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pushedStateRef = useRef(false);
 
   // Check if desktop for responsive layout
   useEffect(() => {
@@ -370,6 +372,44 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
     }, 3000);
   };
 
+  // Modal toggle handler – opens/closes custom overlay and updates history state
+  const handleToggleModal = useCallback(() => {
+    if (!isModalOpen) {
+      setIsModalOpen(true);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ reelModal: true }, '');
+      }
+      pushedStateRef.current = true;
+    } else {
+      setIsModalOpen(false);
+      // Pop the history state if we added one
+      if (typeof window !== 'undefined' && window.history.state && window.history.state.reelModal) {
+        window.history.back();
+      }
+    }
+  }, [isModalOpen]);
+
+  // Listen for browser back navigation & Escape key to close modal if open
+  useEffect(() => {
+    const handlePopState = () => {
+      if (isModalOpen) {
+        setIsModalOpen(false);
+      }
+      pushedStateRef.current = false;
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        handleToggleModal();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen, handleToggleModal]);
+
   // Fixed ref callback function
   const setVideoRef = (index: number) => (el: HTMLVideoElement | null) => {
     videoRefs.current[index] = el;
@@ -441,7 +481,11 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   return (
     <div
       ref={containerRef}
-      className="h-screen bg-black overflow-hidden relative flex flex-col lg:flex-row"
+      className={`h-screen bg-black overflow-hidden flex flex-col lg:flex-row ${
+        isModalOpen
+          ? 'fixed inset-0 z-[100] w-screen h-screen bg-[#0B0E14]/95 backdrop-blur-md'
+          : 'relative'
+      }`}
       onWheel={handleScroll}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -560,6 +604,21 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
                           {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                         </div>
                         <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleModal();
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                          {isModalOpen ? <Minimize size={20} /> : <Maximize size={20} />}
+
+                        </div>
+                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isModalOpen ? 'Close' : 'Open'}
+</span>
                       </button>
                     </div>
                   </motion.div>

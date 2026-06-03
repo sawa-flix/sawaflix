@@ -1,14 +1,29 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-let client: any;
+let client: ReturnType<typeof createBrowserClient> | null = null
 
 export function createClient() {
-  if (client) return client;
+  if (typeof window === 'undefined') {
+    return createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
 
-  client = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  if (!client) {
+    client = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {},
+        auth: {
+          lock: async (_, __, fn) => {
+            return await fn()
+          },
+        },
+      }
+    )
+  }
 
-  return client;
+  return client
 }

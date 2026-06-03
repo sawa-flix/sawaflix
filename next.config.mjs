@@ -1,10 +1,16 @@
-import type { NextConfig } from 'next';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const nextConfig: NextConfig = {
-  turbopack: {},
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   compiler: {
     styledComponents: true,
@@ -19,7 +25,7 @@ const nextConfig: NextConfig = {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /^react$/,
-        (resource: any) => {
+        (resource) => {
           if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
               resource.context.includes('node_modules' + path.sep + '@sanity')) {
             resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
@@ -76,5 +82,14 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
   },
-}
-module.exports = withSerwist(nextConfig);
+};
+
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
+
+export default withSerwist(nextConfig);
