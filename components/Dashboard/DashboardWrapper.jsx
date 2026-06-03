@@ -10,12 +10,14 @@ import Link from 'next/link';
 
 import { MusicProvider } from '../MusicContext';
 import BottomPlayer from '../BottomPlayer';
+import OnboardingModal from './OnboardingModal';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userProfile, setUserProfile] = useState(null);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   React.useEffect(() => {
     const checkCreatorStatus = async () => {
@@ -81,6 +83,12 @@ const DashboardWrapper = ({ children }) => {
 
             setUserProfile(finalProfile);
             setVerificationStatus(finalStatus);
+
+            // Force all logged-in users to undergo onboarding for testing
+            const onboardingCompleted = localStorage.getItem('sawaflix_onboarding_completed_test') === 'true';
+            if (!onboardingCompleted && user) {
+                setIsOnboardingOpen(true);
+            }
 
         } catch (err) {
             console.error("Error checking creator status:", err);
@@ -168,6 +176,9 @@ const DashboardWrapper = ({ children }) => {
 
         {/* Persistent Player */}
         <BottomPlayer />
+
+        {/* User Onboarding Modal */}
+        <OnboardingModal isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
 
         <style jsx global>{`
           /* Hide scrollbars */

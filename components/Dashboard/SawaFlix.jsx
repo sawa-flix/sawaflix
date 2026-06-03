@@ -472,12 +472,14 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
                     <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
                   </button>
 
-                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
-                    </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
-                  </button>
+                  {isDesktop && (
+                    <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
+                      <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                        {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
+                      </div>
+                      <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 

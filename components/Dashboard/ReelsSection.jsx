@@ -100,7 +100,8 @@ const ReelCard = ({ reel, index }) => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default function ReelsSection() {
   const [reels, setReels] = useState([]);
