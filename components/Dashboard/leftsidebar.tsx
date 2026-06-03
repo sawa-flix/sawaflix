@@ -148,7 +148,7 @@ export default function LeftSidebar({
     if (item.route === '/dashboard') {
       isActive = pathname === '/dashboard';
     } else if (item.name === 'Music') {
-      isActive = pathname?.toLowerCase().includes('/dashboard/music');
+      isActive = pathname?.toLowerCase().includes('/dashboard/music') || pathname?.toLowerCase().includes('/dashboard/artist');
     } else {
       isActive = pathname?.toLowerCase().startsWith(item.route.toLowerCase());
     }
