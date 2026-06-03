@@ -16,6 +16,7 @@ const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState('none');
+  const [userRole, setUserRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
@@ -81,8 +82,12 @@ const DashboardWrapper = ({ children }) => {
                 ? 'approved'
                 : (statusFromSupabase || statusFromApi || 'none');
 
+            // Get user role from Supabase profile
+            const userRoleFromDB = supabaseProfile?.role || null;
+
             setUserProfile(finalProfile);
             setVerificationStatus(finalStatus);
+            setUserRole(userRoleFromDB);
 
             // Force all logged-in users to undergo onboarding for testing
             const onboardingCompleted = localStorage.getItem('sawaflix_onboarding_completed_test') === 'true';
@@ -147,7 +152,8 @@ const DashboardWrapper = ({ children }) => {
           >
             <LeftSidebar 
               onNavigate={closeSidebar} 
-              verificationStatus={verificationStatus} 
+              verificationStatus={verificationStatus}
+              userRole={userRole}
               userProfile={userProfile} 
             />
           </aside>

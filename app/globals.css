@@ -67,3 +67,10 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Custom NProgress styling for TopLoader to place it right under the nav */
+#nprogress .bar {
+  top: 64px !important;
+  height: 3px !important;
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.8) !important;
+}

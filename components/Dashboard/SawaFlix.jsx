@@ -691,7 +691,7 @@ function SawaFlixContent() {
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
-  const { videos, loading, error, loadMore, hasMore } = useVideos(fetchQuery);
+  const { videos, loading, error, loadMore, hasMore, isRefreshing } = useVideos(fetchQuery);
 
   const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
@@ -811,18 +811,35 @@ function SawaFlixContent() {
     <div className="flex flex-col relative">
       {/* YouTube-style Top Loading Bar */}
       <AnimatePresence>
-        {loading && (
+        {isRefreshing && (
           <motion.div
             initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: [0, 0.4, 0.7, 0.9, 1], opacity: 1 }}
-            transition={{ 
-              duration: 2, 
-              times: [0, 0.2, 0.5, 0.8, 1],
-              ease: "easeInOut",
-              repeat: Infinity
+            animate={{ 
+              scaleX: 0.94, 
+              opacity: 1,
+              transition: { 
+                duration: 30, // Slow crawl to 94% over 30 seconds
+                ease: [0.1, 0.05, 0.03, 0.01] 
+              } 
             }}
-            className="fixed top-0 left-0 right-0 h-[3px] bg-red-600 z-[9999] origin-left shadow-[0_0_15px_rgba(220,38,38,0.6)]"
-          />
+            exit={{ 
+              scaleX: 1, 
+              opacity: 0, 
+              transition: { duration: 0.4, ease: "easeOut" } 
+            }}
+            className="fixed top-16 left-0 right-0 h-[3.5px] bg-gradient-to-r from-red-700 via-red-500 to-red-600 z-[9999] origin-left shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+          >
+            {/* The "Peg" / Glow at the tip (Premium YouTube Detail) */}
+            <div className="absolute right-0 top-0 h-full w-[120px] shadow-[0_0_15px_#ff0000,0_0_8px_#ff0000] opacity-100 rotate-[2deg] translate-y-[-4px]" />
+            
+            {/* Moving shine effect for extra polish */}
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -852,76 +869,80 @@ function SawaFlixContent() {
           </div>
         </div>
 
-        <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] overflow-hidden mb-8 sm:mb-16 group shadow-2xl border-y sm:border border-white/5 bg-black">
-          {/* Static Cover Image */}
-          <div className="absolute inset-0 z-0 overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={heroImgIndex}
-                src={HERO_IMAGES[heroImgIndex]}
-                alt="SawaFlix Cover"
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-                className="w-full h-full object-cover"
-              />
-            </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-            
-            {/* Slide Indicators */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-              {HERO_IMAGES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => { e.stopPropagation(); setHeroImgIndex(i); }}
-                  className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${heroImgIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
+        {loading && videos.length === 0 ? (
+          <div className="w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] bg-white/5 animate-pulse mb-8 sm:mb-16" />
+        ) : (
+          <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] overflow-hidden mb-8 sm:mb-16 group shadow-2xl border-y sm:border border-white/5 bg-black">
+            {/* Static Cover Image */}
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={heroImgIndex}
+                  src={HERO_IMAGES[heroImgIndex]}
+                  alt="SawaFlix Cover"
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                  className="w-full h-full object-cover"
                 />
-              ))}
-            </div>
-          </div>
-
-          {!heroPlaying && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
-              <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handlePlayNow}
-                className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.4)] group relative overflow-hidden transition-all duration-500 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
-                <Play size={42} className="text-black group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
-                
-                {/* Pulsing Outer Ring */}
-                <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
-              </motion.button>
+              </AnimatePresence>
+              {/* Removed dark overlay to make banner clearer */}
               
-              <div className="mt-8 text-center space-y-1 pointer-events-none">
-                <h2 className="text-white text-xl sm:text-3xl font-medium tracking-tight drop-shadow-2xl">
-                  {activeCategory === 'music' ? 'Music Hits' : 'Exclusive Vibes'}
-                </h2>
-                <p className="text-white/70 text-xs sm:text-sm font-medium tracking-tight">
-                  Discover the next big thing on SawaFlix
-                </p>
+              {/* Slide Indicators */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+                {HERO_IMAGES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setHeroImgIndex(i); }}
+                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${heroImgIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
+                  />
+                ))}
               </div>
             </div>
-          )}
 
-          <button
-            onClick={handleHeroPrev}
-            className="absolute left-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
-          >
-            <ChevronLeft size={22} />
-          </button>
-          <button
-            onClick={handleHeroNext}
-            className="absolute right-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
-          >
-            <ChevronRight size={22} />
-          </button>
-        </section>
+            {!heroPlaying && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+                <motion.button
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handlePlayNow}
+                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group relative overflow-hidden transition-all duration-500 cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
+                  <Play size={42} className="text-white group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
+                  
+                  {/* Pulsing Outer Ring */}
+                  <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
+                </motion.button>
+                
+                <div className="mt-8 text-center space-y-1 pointer-events-none">
+                  <h2 className="text-white text-xl sm:text-3xl font-medium tracking-tight drop-shadow-2xl">
+                    {activeCategory === 'music' ? 'Music Hits' : 'Exclusive Vibes'}
+                  </h2>
+                  <p className="text-white/70 text-xs sm:text-sm font-medium tracking-tight">
+                    Discover the next big thing on SawaFlix
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleHeroPrev}
+              className="absolute left-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <button
+              onClick={handleHeroNext}
+              className="absolute right-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
+            >
+              <ChevronRight size={22} />
+            </button>
+          </section>
+        )}
           </>
         )}
 
