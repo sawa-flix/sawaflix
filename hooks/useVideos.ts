@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
 import type { Video } from '@/types/youtube';
+import { get, set } from 'idb-keyval';
 
 interface UseVideosResult {
     videos: Video[];
@@ -63,18 +64,20 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         isLoadingRef.current = true;
 
         try {
-            // Check cache first so the UI instantly shows videos without loaders
+            // Check IndexedDB cache first so the UI instantly shows videos without loaders
             const CACHE_KEY = `sawaflix:feed:${categoryQuery.replace(/\s+/g, '_')}`;
             if (videos.length === 0) {
                 try {
-                    const cachedStr = localStorage.getItem(CACHE_KEY);
+                    const cachedStr = await get(CACHE_KEY);
                     if (cachedStr) {
-                        const parsed = JSON.parse(cachedStr);
+                        const parsed = typeof cachedStr === 'string' ? JSON.parse(cachedStr) : cachedStr;
                         if (Array.isArray(parsed) && parsed.length > 0) {
                             setVideos(parsed);
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.warn('[useVideos] Failed to read from IndexedDB cache', e);
+                }
             }
 
             nextPageTokenRef.current = null;
@@ -115,11 +118,13 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             // Ensure we don't completely wipe out the user's current view if background fetch was quick
             setVideos(finalVideos);
             
-            // Save to LocalStorage for instant load next time
+            // Save to IndexedDB for instant load next time
             try {
                 const CACHE_KEY = `sawaflix:feed:${categoryQuery.replace(/\s+/g, '_')}`;
-                localStorage.setItem(CACHE_KEY, JSON.stringify(finalVideos));
-            } catch (e) {}
+                await set(CACHE_KEY, finalVideos);
+            } catch (e) {
+                console.warn('[useVideos] Failed to save to IndexedDB cache', e);
+            }
 
             console.log(`[useVideos] Refreshed: ${finalVideos.length} videos`);
         } catch (err) {
