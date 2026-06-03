@@ -549,41 +549,70 @@ export default function ArtistDetailsPage({ params }) {
       {showBio && (
         <>
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100]"
             style={{ animation: 'fadeIn 0.3s ease-out' }}
             onClick={() => setShowBio(false)}
           />
           <div 
-            className="fixed bottom-0 left-0 right-0 z-[101] max-w-3xl mx-auto bg-[#1a1f2e] border-t border-white/10 rounded-t-[32px] p-6 sm:p-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-[101] max-w-3xl mx-auto bg-[#0B0E14] border-t border-white/10 rounded-t-[32px] overflow-hidden shadow-[0_-10px_50px_rgba(0,0,0,0.8)] flex flex-col h-[85vh]"
             style={{ animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
           >
-            {/* Handle bar for swiping vibe */}
-            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-8 cursor-pointer" onClick={() => setShowBio(false)} />
-            
-            <div className="flex items-center gap-4 mb-6">
-              <img src={artist.image} alt={artist.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/10 shadow-lg" />
-              <div>
-                <h3 className="text-2xl font-bold">About {artist.name}</h3>
-                <p className="text-sm text-white/50">{artist.country}</p>
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto scrollbar-none relative pb-10">
+              {/* Large Cover Image */}
+              <div className="relative w-full h-64 sm:h-80 shrink-0">
+                <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/50 to-transparent" />
+                
+                {/* Handle bar inside image */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/40 rounded-full cursor-pointer z-10" onClick={() => setShowBio(false)} />
+                
+                <div className="absolute bottom-6 left-6 right-6">
+                   <h3 className="text-4xl sm:text-5xl font-black text-white drop-shadow-lg mb-1">{artist.name}</h3>
+                   <p className="text-lg text-white/70 font-semibold">{artist.country}</p>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8">
+                {/* Stats / Metrics mock */}
+                <div className="flex gap-6 mb-8 border-b border-white/5 pb-6">
+                   <div>
+                     <p className="text-2xl font-bold text-white">2.4M</p>
+                     <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">Monthly Listeners</p>
+                   </div>
+                   <div>
+                     <p className="text-2xl font-bold text-white">450K</p>
+                     <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">Followers</p>
+                   </div>
+                </div>
+
+                <div className="mb-8">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-white/40 mb-4">Biography</h4>
+                  <p className="text-base sm:text-lg leading-relaxed text-white/80 bg-white/5 p-6 rounded-3xl border border-white/5 shadow-inner">
+                    {artist.bio}
+                  </p>
+                </div>
+
+                <div className="mb-8">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-white/40 mb-4">Genres</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {artist.genres.map(g => (
+                      <span key={g} className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-sm font-medium text-white/80">{g}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <p className="text-base sm:text-lg leading-relaxed text-white/80 bg-black/20 p-5 rounded-2xl border border-white/5 shadow-inner">
-              {artist.bio}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {artist.genres.map(g => (
-                <span key={g} className="px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-xs font-medium text-white/70">{g}</span>
-              ))}
+            {/* Sticky Bottom Close Button */}
+            <div className="p-6 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14] to-transparent shrink-0">
+              <button 
+                className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                onClick={() => setShowBio(false)}
+              >
+                Close
+              </button>
             </div>
-            
-            <button 
-              className="mt-8 w-full py-3 sm:py-4 bg-white/10 hover:bg-white/20 rounded-xl font-semibold transition-colors"
-              onClick={() => setShowBio(false)}
-            >
-              Close
-            </button>
           </div>
         </>
       )}

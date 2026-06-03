@@ -3,6 +3,15 @@ import { useVideos } from '@/hooks/useVideos';
 import { Loader2, Music, Laugh, Newspaper, Zap } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+
+const TOP_ARTISTS = [
+  { id: 'jovi', name: 'Jovi', image: 'https://i.ibb.co/TD26rNtX/jovi-2.png' },
+  { id: 'stanley-enow', name: 'Stanley Enow', image: 'https://i.ibb.co/C07Bf5B/stanley.png' },
+  { id: 'blanche-bailly', name: 'Blanche Bailly', image: 'https://i.ibb.co/hK7Jq6Z/blanche.jpg' },
+  { id: 'tzy-panchak', name: 'Tzy Panchak', image: 'https://i.ibb.co/3s8pM1r/tzy.jpg' }
+];
 
 const CATEGORIES = [
   { id: "music",  label: "Music",   icon: Music,     query: "Trending Cameroon Music 2026" },
@@ -12,7 +21,15 @@ const CATEGORIES = [
 ];
 
 const RightSidebar = () => {
+  const pathname = usePathname();
   const [activeCategory, setActiveCategory] = useState("music");
+
+  React.useEffect(() => {
+    if (pathname?.includes('/movie')) setActiveCategory("comedy");
+    else if (pathname?.includes('/blogs')) setActiveCategory("news");
+    else if (pathname?.includes('/music') || pathname?.includes('/artist')) setActiveCategory("music");
+    else setActiveCategory("viral");
+  }, [pathname]);
   
   const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
   const { videos, loading, error } = useVideos(currentCategory.query);
@@ -132,6 +149,29 @@ const RightSidebar = () => {
            </div>
         )}
       </div>
+
+      {/* Top Artists (Only for Music Context) */}
+      {activeCategory === 'music' && (
+        <>
+          <div className="h-px bg-white/5 my-4" />
+          <div className="space-y-4 mb-6">
+            <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">Top Artists</h3>
+            <div className="flex flex-col gap-2 px-2">
+              {TOP_ARTISTS.map(artist => (
+                 <Link href={`/dashboard/artist/${artist.id}`} key={artist.id} className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer group">
+                   <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-white/10 shadow-lg group-hover:scale-105 transition-transform">
+                     <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
+                   </div>
+                   <div>
+                     <h4 className="text-sm font-bold text-white group-hover:text-white/90">{artist.name}</h4>
+                     <p className="text-[10px] text-[#AAAAAA] uppercase tracking-wider font-bold">Artist</p>
+                   </div>
+                 </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
