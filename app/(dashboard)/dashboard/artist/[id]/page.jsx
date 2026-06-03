@@ -189,21 +189,9 @@ export default function ArtistDetailsPage({ params }) {
           border-color: #fff;
         }
 
-        /* ====== BIO SECTION ====== */
-        .bio-section {
-          padding: 0 30px;
-          margin-bottom: 40px;
-          max-width: 800px;
-          animation: fadeIn 0.3s ease;
-        }
-        .bio-text {
-          font-size: 15px;
-          line-height: 1.6;
-          color: rgba(255,255,255,0.8);
-          background: rgba(255,255,255,0.03);
-          padding: 20px;
-          border-radius: 12px;
-          border-left: 4px solid #E50914;
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
 
         /* ====== SONGS SECTION ====== */
@@ -552,18 +540,52 @@ export default function ArtistDetailsPage({ params }) {
         }}>
           <Play size={24} fill="#fff" color="#fff" style={{ marginLeft: 4 }} />
         </button>
-        <button className="btn-about" onClick={() => setShowBio(!showBio)}>
-          {showBio ? 'Hide About' : 'About artist'}
+        <button className="btn-about" onClick={() => setShowBio(true)}>
+          About {artist.name}
         </button>
       </div>
 
-      {/* BIO SECTION */}
+      {/* BIO MODAL (Bottom Sheet) */}
       {showBio && (
-        <div className="bio-section">
-          <div className="bio-text">
-            {artist.bio}
+        <>
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            style={{ animation: 'fadeIn 0.3s ease-out' }}
+            onClick={() => setShowBio(false)}
+          />
+          <div 
+            className="fixed bottom-0 left-0 right-0 z-[101] max-w-3xl mx-auto bg-[#1a1f2e] border-t border-white/10 rounded-t-[32px] p-6 sm:p-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col"
+            style={{ animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+          >
+            {/* Handle bar for swiping vibe */}
+            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-8 cursor-pointer" onClick={() => setShowBio(false)} />
+            
+            <div className="flex items-center gap-4 mb-6">
+              <img src={artist.image} alt={artist.name} className="w-16 h-16 rounded-full object-cover border-2 border-white/10 shadow-lg" />
+              <div>
+                <h3 className="text-2xl font-bold">About {artist.name}</h3>
+                <p className="text-sm text-white/50">{artist.country}</p>
+              </div>
+            </div>
+
+            <p className="text-base sm:text-lg leading-relaxed text-white/80 bg-black/20 p-5 rounded-2xl border border-white/5 shadow-inner">
+              {artist.bio}
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {artist.genres.map(g => (
+                <span key={g} className="px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-xs font-medium text-white/70">{g}</span>
+              ))}
+            </div>
+            
+            <button 
+              className="mt-8 w-full py-3 sm:py-4 bg-white/10 hover:bg-white/20 rounded-xl font-semibold transition-colors"
+              onClick={() => setShowBio(false)}
+            >
+              Close
+            </button>
           </div>
-        </div>
+        </>
       )}
 
       {/* SONGS SECTION */}
