@@ -143,9 +143,15 @@ export default function LeftSidebar({
 
   const renderItem = (item: any) => {
     const Icon = item.icon;
-    const isActive = item.route === '/dashboard' 
-      ? pathname === '/dashboard' 
-      : pathname?.startsWith(item.route);
+    let isActive = false;
+    
+    if (item.route === '/dashboard') {
+      isActive = pathname === '/dashboard';
+    } else if (item.name === 'Music') {
+      isActive = pathname?.toLowerCase().includes('/dashboard/music');
+    } else {
+      isActive = pathname?.toLowerCase().startsWith(item.route.toLowerCase());
+    }
 
     return (
       <Link
