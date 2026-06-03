@@ -434,6 +434,10 @@ export default function ArtistDetailsPage({ params }) {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes bounce {
+          from { height: 15%; }
+          to { height: 100%; }
+        }
       `}</style>
 
       {/* BANNER & HEADER */}
@@ -443,6 +447,72 @@ export default function ArtistDetailsPage({ params }) {
         <button className="back-btn" onClick={() => router.back()}>
           <ChevronLeft size={24} />
         </button>
+
+        {/* Visualizer & Playing Text */}
+        {isPlaying && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none pl-12 md:pl-32">
+            <h2 
+              className="text-4xl md:text-7xl font-black italic mb-2 md:mb-6"
+              style={{ 
+                color: '#FCD116',
+                textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 0 30px rgba(252,209,22,0.4)',
+                fontFamily: 'serif' 
+              }}
+            >
+              Playing...
+            </h2>
+            <div className="flex items-end h-12 md:h-20 gap-1 md:gap-1.5 opacity-90">
+              {Array.from({ length: 60 }).map((_, i) => {
+                let color = '#009639'; // Green
+                if (i >= 20 && i < 40) color = '#CE1126'; // Red
+                if (i >= 40) color = '#FCD116'; // Yellow
+                
+                return (
+                  <div
+                    key={i}
+                    className="w-1 md:w-1.5 rounded-t-sm"
+                    style={{
+                      backgroundColor: color,
+                      height: `${Math.max(15, Math.random() * 100)}%`,
+                      animation: `bounce ${0.3 + Math.random() * 0.5}s infinite alternate ease-in-out`
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Large Play/Pause Button on Right */}
+        <div className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 z-20">
+          <button 
+            onClick={() => {
+              if (!isPlaying && globalTrack && hitSongs.length > 0) {
+                 togglePlay();
+              } else if (!globalTrack && hitSongs.length > 0) {
+                 // Play first song if nothing is playing globally
+                 const trackObj = {
+                   id: hitSongs[0].id,
+                   title: hitSongs[0].title,
+                   artist: hitSongs[0].channelTitle,
+                   image: MUSIC_CARD_THUMB,
+                   src: hitSongs[0].videoUrl,
+                   duration: "3:00"
+                 };
+                 const pl = hitSongs.map(v => ({
+                   id: v.id, title: v.title, artist: v.channelTitle,
+                   image: MUSIC_CARD_THUMB, src: v.videoUrl, duration: "3:00"
+                 }));
+                 playTrack(trackObj, pl);
+              } else {
+                 togglePlay();
+              }
+            }}
+            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#FCD116] bg-black/40 backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(252,209,22,0.3)]"
+          >
+            {isPlaying ? <Pause size={32} color="#FCD116" /> : <Play size={32} color="#FCD116" className="ml-2" />}
+          </button>
+        </div>
 
         <div className="artist-header-content">
           <img src={artist.image} alt={artist.name} className="artist-avatar" />
