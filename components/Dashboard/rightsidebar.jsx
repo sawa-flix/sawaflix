@@ -13,58 +13,7 @@ const TOP_ARTISTS = [
   { id: 'tzy-panchak', name: 'Tzy Panchak', image: 'https://i.ibb.co/3s8pM1r/tzy.jpg' }
 ];
 
-const CATEGORIES = [
-  { id: "music",  label: "Music",   icon: Music,     query: "Trending Cameroon Music 2026" },
-  { id: "comedy", label: "Comedy",  icon: Laugh,     query: "Cameroon comedy viral 2026" },
-  { id: "news",   label: "News",    icon: Newspaper, query: "Cameroon news shorts today" },
-  { id: "viral",  label: "Viral",   icon: Zap,       query: "Cameroon viral reels 2026" },
-];
-
-const RightSidebar = () => {
-  const pathname = usePathname();
-  const [activeCategory, setActiveCategory] = useState("music");
-
-  React.useEffect(() => {
-    if (pathname?.includes('/movie')) setActiveCategory("comedy");
-    else if (pathname?.includes('/blogs')) setActiveCategory("news");
-    else if (pathname?.includes('/music') || pathname?.includes('/artist')) setActiveCategory("music");
-    else setActiveCategory("viral");
-  }, [pathname]);
-  
-  const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
-  const { videos, loading, error } = useVideos(currentCategory.query);
-  const { playTrack } = useMusic();
-
-  const featuredVideo = videos[0] || null;
-
-  const trendingMusic = featuredVideo ? {
-    title: featuredVideo.title,
-    image: featuredVideo.thumbnail,
-    likes: featuredVideo.likeCount || "2.3K",
-    views: featuredVideo.viewCount || "5.4K",
-    video: featuredVideo
-  } : {
-    title: 'Top Trending Music of the Week',
-    image: 'https://i.ibb.co/HTg91sqB/Whats-App-Image-2026-03-19-at-7-26-55-AM.jpg',
-    likes: "2.3K",
-    views: "5.4K",
-    video: null
-  };
-
-import React, { useState } from 'react';
-import { useVideos } from '@/hooks/useVideos';
-import { Loader2, Music, Laugh, Newspaper, Zap } from 'lucide-react';
-import { useMusic } from '@/components/MusicContext';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-
-const TOP_ARTISTS = [
-  { id: 'jovi', name: 'Jovi', image: 'https://i.ibb.co/TD26rNtX/jovi-2.png' },
-  { id: 'stanley-enow', name: 'Stanley Enow', image: 'https://i.ibb.co/C07Bf5B/stanley.png' },
-  { id: 'blanche-bailly', name: 'Blanche Bailly', image: 'https://i.ibb.co/hK7Jq6Z/blanche.jpg' },
-  { id: 'tzy-panchak', name: 'Tzy Panchak', image: 'https://i.ibb.co/3s8pM1r/tzy.jpg' }
-];
+const MUSIC_CARD_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";
 
 const CATEGORIES = [
   { id: "music",  label: "Music",   icon: Music,     query: "Trending Cameroon Music 2026" },
@@ -104,7 +53,7 @@ const RightSidebar = () => {
     video: null
   };
 
-  const aiRecommendations = videos.slice(1, 8);
+  const aiRecommendations = videos.slice(1, 11);
 
   return (
     <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
@@ -210,12 +159,12 @@ const RightSidebar = () => {
                  onClick={() => playTrack(video, videos)}
                  className="flex gap-3 p-2 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer group"
                >
-                 <div className="relative w-[100px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
+                 <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
                    <Image
-                     src={video.thumbnail}
+                     src={activeCategory === 'music' ? MUSIC_CARD_THUMB : video.thumbnail}
                      alt={video.title}
                      fill
-                     sizes="100px"
+                     sizes="56px"
                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                      unoptimized
                    />
