@@ -351,109 +351,102 @@ function MobileMoneyPayment({ movie, plan, paymentMethod, setPaymentMethod, phon
     return `${digits[0]} ${digits.slice(1, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 7)} ${digits.slice(7)}`;
   };
 
-  const isMTN = paymentMethod === 'mtn';
-  const cardGradient = isMTN ? 'from-[#FFCB05] to-[#D4A800]' : 'from-[#FF6600] to-[#CC5200]';
-  const textColor = isMTN ? 'text-black' : 'text-white';
-  const logoBg = isMTN ? 'bg-black text-[#FFCB05]' : 'bg-white text-[#FF6600]';
-
   return (
-    <div className="w-full max-w-md bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn relative">
+    <div className="w-full max-w-md bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 flex justify-between items-start">
-        <div>
-          <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
-            Payment Details
-          </p>
-          <h2 className="text-lg font-black text-white uppercase tracking-tight">
-            Checkout
-          </h2>
-        </div>
+      <div className="relative px-6 pt-6 pb-4 border-b border-white/5 bg-[#111]">
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
         >
           <X size={16} className="text-white" />
         </button>
+        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
+          You are paying for
+        </p>
+        <h2 className="text-lg font-black text-white uppercase tracking-tight">
+          {movie.title}
+        </h2>
+        <p className="text-white/60 text-sm font-medium mt-0.5">
+          {plan?.label} · <span className="text-[#FCD116] font-bold">{plan?.price.toLocaleString()} FCFA</span>
+        </p>
       </div>
 
-      <div className="px-6 pb-2">
-        {/* Digital Payment Card Visualization */}
-        <div className={`relative w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br ${cardGradient} p-6 shadow-2xl overflow-hidden flex flex-col justify-between transition-all duration-500 transform hover:scale-[1.02]`}>
-          
-          {/* SIM Chip & Logo */}
-          <div className="flex justify-between items-start z-10">
-            <div className={`w-12 h-9 rounded-md backdrop-blur-sm border flex items-center justify-center ${isMTN ? 'bg-black/10 border-black/20' : 'bg-white/30 border-white/40'}`}>
-              <div className={`w-8 h-5 border rounded-sm grid grid-cols-3 gap-0.5 ${isMTN ? 'border-black/20' : 'border-white/30'}`}>
-                <div className={`border-r border-b ${isMTN ? 'border-black/20' : 'border-white/30'}`} />
-                <div className={`border-r border-b ${isMTN ? 'border-black/20' : 'border-white/30'}`} />
-                <div className={`border-b ${isMTN ? 'border-black/20' : 'border-white/30'}`} />
-                <div className={`border-r ${isMTN ? 'border-black/20' : 'border-white/30'}`} />
-                <div className={`border-r ${isMTN ? 'border-black/20' : 'border-white/30'}`} />
-                <div className="" />
-              </div>
-            </div>
-            <div className={`px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-wider shadow-sm ${logoBg}`}>
-              {isMTN ? "MTN MoMo" : "Orange Money"}
-            </div>
-          </div>
+      {/* Payment Methods */}
+      <div className="px-6 py-5 space-y-3">
+        <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
+          Select Payment Method
+        </p>
 
-          {/* Card Number Input Area */}
-          <div className="z-10 mt-auto">
-            <label className={`text-[9px] font-bold uppercase tracking-[0.2em] opacity-70 ${textColor} mb-2 block`}>
-              Mobile Money Number
-            </label>
-            <div className="flex items-center gap-3">
-              <span className={`text-xl font-bold opacity-80 ${textColor}`}>+237</span>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
-                placeholder="6 75 12 34 56"
-                className={`w-full bg-transparent text-2xl sm:text-3xl font-black outline-none placeholder:${textColor} placeholder:opacity-30 tracking-[0.1em] tabular-nums ${textColor}`}
-              />
-            </div>
+        {/* MTN MoMo */}
+        <button
+          onClick={() => setPaymentMethod("mtn")}
+          className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            paymentMethod === "mtn"
+              ? "bg-[#FFCB05]/10 border-[#FFCB05]/50"
+              : "bg-white/5 border-transparent hover:bg-white/10"
+          }`}
+        >
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            paymentMethod === "mtn" ? "border-[#FFCB05] bg-[#FFCB05]" : "border-white/20"
+          }`}>
+            {paymentMethod === "mtn" && <div className="w-2 h-2 rounded-full bg-black" />}
           </div>
-
-          {/* Card Footer */}
-          <div className={`flex justify-between items-end mt-6 z-10 ${textColor}`}>
-            <div>
-              <div className="text-[7px] font-bold uppercase tracking-[0.2em] opacity-70 mb-1">Total Amount</div>
-              <div className="font-black text-sm tracking-widest">{plan?.price.toLocaleString()} FCFA</div>
-            </div>
-            <div className="text-right">
-              <div className="text-[7px] font-bold uppercase tracking-[0.2em] opacity-70 mb-1">Movie</div>
-              <div className="font-bold text-xs tracking-widest uppercase truncate max-w-[120px]">{movie.title}</div>
-            </div>
+          <div className="w-10 h-10 rounded-lg bg-[#FFCB05] flex items-center justify-center shrink-0 shadow-md">
+            <span className="text-black font-black text-xs leading-none">MTN</span>
           </div>
+          <div className="flex-1 text-left">
+            <p className="text-white font-bold text-sm">MTN Mobile Money</p>
+            <p className="text-white/40 text-xs">MoMo</p>
+          </div>
+        </button>
 
-          {/* Decorative Elements */}
-          <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full blur-3xl pointer-events-none ${isMTN ? 'bg-white/40' : 'bg-white/20'}`} />
-          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-black/10 rounded-full blur-2xl pointer-events-none" />
+        {/* Orange Money */}
+        <button
+          onClick={() => setPaymentMethod("orange")}
+          className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            paymentMethod === "orange"
+              ? "bg-[#FF6600]/10 border-[#FF6600]/50"
+              : "bg-white/5 border-transparent hover:bg-white/10"
+          }`}
+        >
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            paymentMethod === "orange" ? "border-[#FF6600] bg-[#FF6600]" : "border-white/20"
+          }`}>
+            {paymentMethod === "orange" && <div className="w-2 h-2 rounded-full bg-white" />}
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-[#FF6600] flex items-center justify-center shrink-0 shadow-md">
+            <span className="text-white font-black text-[10px] leading-none">OM</span>
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-white font-bold text-sm">Orange Money</p>
+            <p className="text-white/40 text-xs">Orange</p>
+          </div>
+        </button>
+      </div>
+
+      {/* Phone Number */}
+      <div className="px-6 pb-6 border-b border-white/5">
+        <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
+          Mobile Money Number
+        </p>
+        <div className="flex items-center gap-2 bg-[#111] border border-white/10 rounded-xl px-4 py-3.5 focus-within:border-[#CE1126]/50 transition-colors shadow-inner">
+          <div className="flex items-center gap-1.5 shrink-0 pr-3 border-r border-white/10">
+            <span className="text-sm">🇨🇲</span>
+            <span className="text-white/70 text-sm font-bold">+237</span>
+          </div>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
+            placeholder="6 75 12 34 56"
+            className="flex-1 bg-transparent text-white text-base font-bold outline-none placeholder:text-white/20 tabular-nums tracking-wider"
+          />
         </div>
       </div>
 
-      {/* Network Selector */}
-      <div className="px-6 py-4 flex gap-3">
-        <button
-          onClick={() => setPaymentMethod("mtn")}
-          className={`flex-1 py-3 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs uppercase tracking-wider cursor-pointer ${
-            isMTN ? "bg-[#FFCB05] text-black border-[#FFCB05] shadow-[0_0_15px_rgba(255,203,5,0.2)]" : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
-          }`}
-        >
-          <div className={`w-2 h-2 rounded-full ${isMTN ? 'bg-black' : 'bg-[#FFCB05]'}`} /> MTN
-        </button>
-        <button
-          onClick={() => setPaymentMethod("orange")}
-          className={`flex-1 py-3 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs uppercase tracking-wider cursor-pointer ${
-            !isMTN ? "bg-[#FF6600] text-white border-[#FF6600] shadow-[0_0_15px_rgba(255,102,0,0.2)]" : "bg-white/5 text-white/50 border-white/5 hover:bg-white/10"
-          }`}
-        >
-          <div className={`w-2 h-2 rounded-full ${!isMTN ? 'bg-white' : 'bg-[#FF6600]'}`} /> Orange
-        </button>
-      </div>
-
-      {/* Footer Buttons */}
-      <div className="px-6 pb-6 pt-2">
+      {/* Pay Button */}
+      <div className="px-6 py-5 bg-[#111]">
         <button
           onClick={onPay}
           disabled={!isValid}
@@ -463,14 +456,15 @@ function MobileMoneyPayment({ movie, plan, paymentMethod, setPaymentMethod, phon
               : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
           }`}
         >
-          <Shield size={16} /> Pay Securely
+          <Shield size={16} />
+          Pay {plan?.price.toLocaleString()} FCFA
         </button>
 
         <button
           onClick={onBack}
           className="w-full mt-4 py-2 text-white/40 hover:text-white/70 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
         >
-          ← Change Plan
+          ← Back to Plans
         </button>
       </div>
 
