@@ -545,7 +545,7 @@ function ProcessingScreen({ plan, onComplete, onClose }) {
         <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "600ms" }} />
       </div>
 
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#CE1126]/10 text-[#CE1126] text-[10px] font-bold uppercase tracking-widest border border-[#CE1126]/20">
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#CE1126] text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-[#CE1126]/30">
         <Shield size={12} />
         Do not close this window
       </div>
