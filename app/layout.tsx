@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   category: 'entertainment',
-  manifest: '/manifest.json',
+  manifest: '/manifest.json?v=2',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#b80000',
+  themeColor: '#CE1126',
 };
 
 export default function RootLayout({
