@@ -103,10 +103,8 @@ const NotificationPanel = ({
                       <Image src={n.thumbnail} alt="" fill className="object-cover" unoptimized />
                     </div>
                   ) : (
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-white/5 shadow-md ${
-                      n.type === 'post' ? 'text-red-500 bg-red-500/5' : 'text-white bg-white/5'
-                    }`}>
-                      <Bell size={16} />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/5 shadow-md bg-[#161B22]/80 backdrop-blur-md relative">
+                      <Image src="/icons/icon-192x192.png" alt="SawaFlix" fill className="object-cover" unoptimized />
                     </div>
                   )}
                   {!n.read && (
