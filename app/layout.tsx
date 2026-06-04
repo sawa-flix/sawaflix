@@ -106,6 +106,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.deferredPrompt = null;
+            window.addEventListener('beforeinstallprompt', (e) => {
+              e.preventDefault();
+              window.deferredPrompt = e;
+            });
+          `
+        }} />
       </head>
       <body suppressHydrationWarning>
         <style dangerouslySetInnerHTML={{__html: `

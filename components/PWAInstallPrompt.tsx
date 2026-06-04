@@ -26,16 +26,14 @@ export default function PWAInstallPrompt() {
       return;
     }
 
-    // We have temporarily removed the 14-day dismissal check so you can test it repeatedly.
-    const hasDismissed = localStorage.getItem('sawaflix_pwa_dismissed');
-    // if (hasDismissed) {
-    //   const dismissDate = new Date(hasDismissed);
-    //   const now = new Date();
-    //   const daysSinceDismissal = (now.getTime() - dismissDate.getTime()) / (1000 * 3600 * 24);
-    //   if (daysSinceDismissal < 14) return;
-    // }
+    // Check if the prompt was already caught globally by the script in layout.tsx
+    const globalPrompt = (window as any).deferredPrompt;
+    if (globalPrompt) {
+      setDeferredPrompt(globalPrompt);
+      setTimeout(() => setShowPrompt(true), 1500);
+    }
 
-    // Listen for the native install prompt event
+    // Listen for the native install prompt event in case it fires after mount
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
