@@ -44,7 +44,7 @@ const PLANS = [
 ];
 
 // ─── DEV MODE (triple-click the ad timer to skip) ──────────────
-const AD_DURATION = 180; // 3 minutes in seconds
+const AD_DURATION = 30; // 30 seconds
 const PROCESSING_DURATION = 30; // 30 seconds
 
 // ════════════════════════════════════════════════════════════════
@@ -59,62 +59,74 @@ export default function PaywallFlowManager({ movie, onClose }) {
   if (!movie) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black">
-      {/* Step 2: Ad Player */}
-      {flowState === FLOW.PLAYING_AD && (
-        <AdPlayer
-          movie={movie}
-          onComplete={() => setFlowState(FLOW.SELECTING_PLAN)}
-          onClose={onClose}
-        />
-      )}
+    <div 
+      className="fixed inset-0 z-[9999] bg-[#0B0E14]/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      onClick={onClose}
+    >
+      <div 
+        className={`relative w-full transition-all duration-500 ease-out flex justify-center items-center ${
+          flowState === FLOW.WATCHING ? 'max-w-5xl' : 'max-w-2xl'
+        }`} 
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Step 2: Ad Player */}
+        {flowState === FLOW.PLAYING_AD && (
+          <AdPlayer
+            movie={movie}
+            onComplete={() => setFlowState(FLOW.SELECTING_PLAN)}
+            onClose={onClose}
+          />
+        )}
 
-      {/* Steps 3 & 4: Plan Selection */}
-      {flowState === FLOW.SELECTING_PLAN && (
-        <PlansModal
-          movie={movie}
-          selectedPlan={selectedPlan}
-          onSelectPlan={setSelectedPlan}
-          onContinue={() => setFlowState(FLOW.ENTERING_PAYMENT)}
-          onClose={onClose}
-        />
-      )}
+        {/* Steps 3 & 4: Plan Selection */}
+        {flowState === FLOW.SELECTING_PLAN && (
+          <PlansModal
+            movie={movie}
+            selectedPlan={selectedPlan}
+            onSelectPlan={setSelectedPlan}
+            onContinue={() => setFlowState(FLOW.ENTERING_PAYMENT)}
+            onClose={onClose}
+          />
+        )}
 
-      {/* Step 5: Mobile Money Payment */}
-      {flowState === FLOW.ENTERING_PAYMENT && (
-        <MobileMoneyPayment
-          movie={movie}
-          plan={selectedPlan}
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          onPay={() => setFlowState(FLOW.PROCESSING)}
-          onBack={() => setFlowState(FLOW.SELECTING_PLAN)}
-          onClose={onClose}
-        />
-      )}
+        {/* Step 5: Mobile Money Payment */}
+        {flowState === FLOW.ENTERING_PAYMENT && (
+          <MobileMoneyPayment
+            movie={movie}
+            plan={selectedPlan}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            onPay={() => setFlowState(FLOW.PROCESSING)}
+            onBack={() => setFlowState(FLOW.SELECTING_PLAN)}
+            onClose={onClose}
+          />
+        )}
 
-      {/* Step 6: Processing */}
-      {flowState === FLOW.PROCESSING && (
-        <ProcessingScreen
-          plan={selectedPlan}
-          onComplete={() => setFlowState(FLOW.SUCCESS)}
-        />
-      )}
+        {/* Step 6: Processing */}
+        {flowState === FLOW.PROCESSING && (
+          <ProcessingScreen
+            plan={selectedPlan}
+            onComplete={() => setFlowState(FLOW.SUCCESS)}
+            onClose={onClose}
+          />
+        )}
 
-      {/* Step 7: Success */}
-      {flowState === FLOW.SUCCESS && (
-        <SuccessScreen
-          plan={selectedPlan}
-          onStartWatching={() => setFlowState(FLOW.WATCHING)}
-        />
-      )}
+        {/* Step 7: Success */}
+        {flowState === FLOW.SUCCESS && (
+          <SuccessScreen
+            plan={selectedPlan}
+            onStartWatching={() => setFlowState(FLOW.WATCHING)}
+            onClose={onClose}
+          />
+        )}
 
-      {/* Step 8: Video Player */}
-      {flowState === FLOW.WATCHING && (
-        <PremiumVideoPlayer movie={movie} onClose={onClose} />
-      )}
+        {/* Step 8: Video Player */}
+        {flowState === FLOW.WATCHING && (
+          <PremiumVideoPlayer movie={movie} onClose={onClose} />
+        )}
+      </div>
     </div>
   );
 }
@@ -125,7 +137,7 @@ export default function PaywallFlowManager({ movie, onClose }) {
 function AdPlayer({ movie, onComplete, onClose }) {
   const [timeLeft, setTimeLeft] = useState(AD_DURATION);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(false); // Unmuted by default based on request, but browsers might block autoplay. Let's try unmuted.
   const devClickCount = useRef(0);
 
   useEffect(() => {
@@ -156,49 +168,39 @@ function AdPlayer({ movie, onComplete, onClose }) {
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-black">
-      {/* Ad Video Area */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {/* Simulated ad background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center z-10 px-6">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-6 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
-              <span className="text-4xl sm:text-5xl">🥤</span>
-            </div>
-            <p className="text-white/90 text-xl sm:text-3xl font-black uppercase tracking-wide mb-2">
-              Top Soft Drink
-            </p>
-            <p className="text-white/60 text-sm sm:text-lg italic font-medium">
-              "Vivez l'instant présent"
-            </p>
-            <button className="mt-6 px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 mx-auto">
-              <ExternalLink size={14} /> Learn More
-            </button>
-          </div>
+    <div className="w-full bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-scaleIn">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/5 bg-[#111]">
+        <div className="flex items-center gap-3">
+          <span className="bg-[#FCD116] text-black text-[10px] sm:text-xs font-black px-3 py-1 rounded uppercase tracking-wider">
+            Advertisement
+          </span>
+          <span className="text-white/70 text-xs sm:text-sm font-semibold select-none cursor-pointer" onClick={handleDevSkip}>
+            {formatTime(elapsed)} / {formatTime(AD_DURATION)}
+          </span>
         </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <X size={16} className="text-white" />
+        </button>
+      </div>
 
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-6 py-4 z-20">
-          <div className="flex items-center gap-3">
-            <span className="bg-[#FCD116] text-black text-[10px] sm:text-xs font-black px-3 py-1 rounded uppercase tracking-wider">
-              Ad
-            </span>
-            <span className="text-white/70 text-xs sm:text-sm font-semibold" onClick={handleDevSkip}>
-              Ad 1 of 1 · {formatTime(elapsed)} / {formatTime(AD_DURATION)}
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X size={16} className="text-white" />
-          </button>
-        </div>
+      {/* Ad Video Area (YouTube) */}
+      <div className="relative w-full aspect-video bg-black pointer-events-none overflow-hidden">
+        <iframe
+          src={`https://www.youtube.com/embed/5TpdUBwyL4c?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1`}
+          allow="autoplay; encrypted-media"
+          className="absolute inset-0 w-full h-full scale-[1.3]" // slight scale to hide youtube branding if possible
+          style={{ pointerEvents: 'none' }}
+        />
+        {/* Transparent overlay to completely block interaction with YouTube iframe */}
+        <div className="absolute inset-0 z-10" />
       </div>
 
       {/* Bottom Controls */}
-      <div className="bg-[#0a0a0a] border-t border-white/10 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-[#0a0a0a] px-4 sm:px-6 py-3 sm:py-4">
         {/* Progress Bar */}
         <div className="w-full h-1 bg-white/10 rounded-full mb-3 overflow-hidden">
           <div
@@ -211,30 +213,26 @@ function AdPlayer({ movie, onComplete, onClose }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors cursor-pointer z-20"
             >
-              {isPaused ? <Play size={18} fill="white" className="text-white ml-0.5" /> : <Pause size={18} className="text-white" />}
+              {isPaused ? <Play size={16} fill="white" className="text-white ml-0.5" /> : <Pause size={16} className="text-white" />}
             </button>
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors cursor-pointer z-20"
             >
-              {isMuted ? <VolumeX size={18} className="text-white" /> : <Volume2 size={18} className="text-white" />}
+              {isMuted ? <VolumeX size={16} className="text-white" /> : <Volume2 size={16} className="text-white" />}
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-right">
             <p className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-widest">
               Ad will finish in
             </p>
-            <p className="text-white text-lg sm:text-2xl font-black tabular-nums">
-              {formatTime(timeLeft)}
+            <p className="text-white text-lg sm:text-xl font-black tabular-nums">
+              {timeLeft}s
             </p>
           </div>
-
-          <button className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
-            <Maximize size={18} className="text-white" />
-          </button>
         </div>
       </div>
     </div>
@@ -246,59 +244,52 @@ function AdPlayer({ movie, onComplete, onClose }) {
 // ════════════════════════════════════════════════════════════════
 function PlansModal({ movie, selectedPlan, onSelectPlan, onContinue, onClose }) {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-black/95 p-4 overflow-y-auto">
-      <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
-        {/* Header */}
-        <div className="relative px-6 pt-6 pb-4 border-b border-white/10">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X size={16} className="text-white" />
-          </button>
-          <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-            Continue Watching
-          </h2>
-          <p className="text-white/50 text-sm font-medium mt-1">
-            {movie.title} · {movie.year}
-          </p>
-        </div>
+    <div className="w-full max-w-2xl bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
+      {/* Header */}
+      <div className="relative px-6 pt-6 pb-4 border-b border-white/5 bg-[#111]">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <X size={16} className="text-white" />
+        </button>
+        <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
+          Choose a Plan
+        </h2>
+        <p className="text-white/50 text-sm font-medium mt-1">
+          Unlock <span className="text-white font-bold">{movie.title}</span> ({movie.year})
+        </p>
+      </div>
 
-        {/* Plans List */}
-        <div className="px-6 py-5 space-y-3">
+      {/* Plans Grid */}
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {PLANS.map((plan) => {
             const isSelected = selectedPlan?.id === plan.id;
             return (
               <button
                 key={plan.id}
                 onClick={() => onSelectPlan(plan)}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer text-left ${
+                className={`w-full flex flex-col items-center text-center p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
                   isSelected
-                    ? "bg-[#CE1126]/10 border-[#CE1126]/60"
-                    : "bg-white/5 border-white/10 hover:bg-white/10"
+                    ? "bg-[#CE1126]/10 border-[#CE1126]"
+                    : "bg-white/5 border-transparent hover:border-white/20 hover:bg-white/10"
                 }`}
               >
-                {/* Radio */}
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                    isSelected ? "border-[#CE1126] bg-[#CE1126]" : "border-white/30"
-                  }`}
-                >
-                  {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                {/* Check Indicator */}
+                <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                  isSelected ? "border-[#CE1126] bg-[#CE1126]" : "border-white/20"
+                }`}>
+                  {isSelected && <Check size={12} strokeWidth={4} className="text-white" />}
                 </div>
 
-                {/* Plan Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-bold text-sm">{plan.label}</p>
-                  <p className="text-white/40 text-xs">{plan.desc}</p>
-                </div>
-
-                {/* Price */}
-                <div className="text-right shrink-0">
-                  <p className="text-white font-black text-base">
-                    {plan.price.toLocaleString()}{" "}
-                    <span className="text-white/50 text-xs font-semibold">FCFA</span>
+                <h3 className="text-white font-bold text-base mb-1">{plan.label}</h3>
+                <p className="text-white/50 text-xs mb-4">{plan.desc}</p>
+                <div className="mt-auto">
+                  <p className="text-white font-black text-2xl">
+                    {plan.price.toLocaleString()}
                   </p>
+                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">FCFA</p>
                 </div>
               </button>
             );
@@ -306,14 +297,14 @@ function PlansModal({ movie, selectedPlan, onSelectPlan, onContinue, onClose }) 
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 pt-2">
+        <div>
           <button
             onClick={onContinue}
             disabled={!selectedPlan}
-            className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
               selectedPlan
-                ? "bg-[#CE1126] hover:bg-[#a30d1e] text-white shadow-lg"
-                : "bg-white/10 text-white/30 cursor-not-allowed"
+                ? "bg-[#CE1126] hover:bg-[#a30d1e] text-white shadow-[0_0_20px_rgba(206,17,38,0.3)]"
+                : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
             }`}
           >
             Continue to Payment
@@ -358,123 +349,120 @@ function MobileMoneyPayment({ movie, plan, paymentMethod, setPaymentMethod, phon
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-black/95 p-4 overflow-y-auto">
-      <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
-        {/* Header */}
-        <div className="relative px-6 pt-6 pb-4 border-b border-white/10">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X size={16} className="text-white" />
-          </button>
-          <p className="text-white/40 text-xs font-semibold uppercase tracking-widest mb-1">
-            You are paying for
-          </p>
-          <h2 className="text-lg font-black text-white uppercase tracking-tight">
-            {movie.title}
-          </h2>
-          <p className="text-white/50 text-sm font-medium">
-            {plan?.label} · <span className="text-white font-bold">{plan?.price.toLocaleString()} FCFA</span>
-          </p>
-        </div>
+    <div className="w-full max-w-md bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
+      {/* Header */}
+      <div className="relative px-6 pt-6 pb-4 border-b border-white/5 bg-[#111]">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <X size={16} className="text-white" />
+        </button>
+        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
+          You are paying for
+        </p>
+        <h2 className="text-lg font-black text-white uppercase tracking-tight">
+          {movie.title}
+        </h2>
+        <p className="text-white/60 text-sm font-medium mt-0.5">
+          {plan?.label} · <span className="text-[#FCD116] font-bold">{plan?.price.toLocaleString()} FCFA</span>
+        </p>
+      </div>
 
-        {/* Payment Methods */}
-        <div className="px-6 py-5 space-y-3">
-          <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">
-            Select Payment Method
-          </p>
+      {/* Payment Methods */}
+      <div className="px-6 py-5 space-y-3">
+        <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
+          Select Payment Method
+        </p>
 
-          {/* MTN MoMo */}
-          <button
-            onClick={() => setPaymentMethod("mtn")}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-              paymentMethod === "mtn"
-                ? "bg-[#FFCB05]/10 border-[#FFCB05]/40"
-                : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-          >
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-              paymentMethod === "mtn" ? "border-[#CE1126] bg-[#CE1126]" : "border-white/30"
-            }`}>
-              {paymentMethod === "mtn" && <div className="w-2 h-2 rounded-full bg-white" />}
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-[#FFCB05] flex items-center justify-center shrink-0">
-              <span className="text-black font-black text-xs leading-none">MTN</span>
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-white font-bold text-sm">MTN Mobile Money</p>
-              <p className="text-white/40 text-xs">MoMo</p>
-            </div>
-          </button>
-
-          {/* Orange Money */}
-          <button
-            onClick={() => setPaymentMethod("orange")}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-              paymentMethod === "orange"
-                ? "bg-[#FF6600]/10 border-[#FF6600]/40"
-                : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-          >
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-              paymentMethod === "orange" ? "border-[#CE1126] bg-[#CE1126]" : "border-white/30"
-            }`}>
-              {paymentMethod === "orange" && <div className="w-2 h-2 rounded-full bg-white" />}
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-[#FF6600] flex items-center justify-center shrink-0">
-              <span className="text-white font-black text-[10px] leading-none">OM</span>
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-white font-bold text-sm">Orange Money</p>
-              <p className="text-white/40 text-xs">Orange</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Phone Number */}
-        <div className="px-6 pb-5">
-          <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">
-            Phone Number
-          </p>
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#CE1126]/50 transition-colors">
-            <div className="flex items-center gap-1.5 shrink-0 pr-3 border-r border-white/10">
-              <span className="text-sm">🇨🇲</span>
-              <span className="text-white/70 text-sm font-bold">+237</span>
-              <ChevronDown size={14} className="text-white/30" />
-            </div>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
-              placeholder="6 75 12 34 56"
-              className="flex-1 bg-transparent text-white text-sm font-semibold outline-none placeholder:text-white/20 tabular-nums tracking-wider"
-            />
+        {/* MTN MoMo */}
+        <button
+          onClick={() => setPaymentMethod("mtn")}
+          className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            paymentMethod === "mtn"
+              ? "bg-[#FFCB05]/10 border-[#FFCB05]/50"
+              : "bg-white/5 border-transparent hover:bg-white/10"
+          }`}
+        >
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            paymentMethod === "mtn" ? "border-[#FFCB05] bg-[#FFCB05]" : "border-white/20"
+          }`}>
+            {paymentMethod === "mtn" && <div className="w-2 h-2 rounded-full bg-black" />}
           </div>
-        </div>
+          <div className="w-10 h-10 rounded-lg bg-[#FFCB05] flex items-center justify-center shrink-0 shadow-md">
+            <span className="text-black font-black text-xs leading-none">MTN</span>
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-white font-bold text-sm">MTN Mobile Money</p>
+            <p className="text-white/40 text-xs">MoMo</p>
+          </div>
+        </button>
 
-        {/* Pay Button */}
-        <div className="px-6 pb-6">
-          <button
-            onClick={onPay}
-            disabled={!isValid}
-            className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              isValid
-                ? "bg-[#CE1126] hover:bg-[#a30d1e] text-white shadow-lg"
-                : "bg-white/10 text-white/30 cursor-not-allowed"
-            }`}
-          >
-            <Shield size={16} />
-            Pay {plan?.price.toLocaleString()} FCFA
-          </button>
+        {/* Orange Money */}
+        <button
+          onClick={() => setPaymentMethod("orange")}
+          className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            paymentMethod === "orange"
+              ? "bg-[#FF6600]/10 border-[#FF6600]/50"
+              : "bg-white/5 border-transparent hover:bg-white/10"
+          }`}
+        >
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+            paymentMethod === "orange" ? "border-[#FF6600] bg-[#FF6600]" : "border-white/20"
+          }`}>
+            {paymentMethod === "orange" && <div className="w-2 h-2 rounded-full bg-white" />}
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-[#FF6600] flex items-center justify-center shrink-0 shadow-md">
+            <span className="text-white font-black text-[10px] leading-none">OM</span>
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-white font-bold text-sm">Orange Money</p>
+            <p className="text-white/40 text-xs">Orange</p>
+          </div>
+        </button>
+      </div>
 
-          <button
-            onClick={onBack}
-            className="w-full mt-3 py-2 text-white/40 hover:text-white/70 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
-          >
-            ← Back to Plans
-          </button>
+      {/* Phone Number */}
+      <div className="px-6 pb-6 border-b border-white/5">
+        <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">
+          Mobile Money Number
+        </p>
+        <div className="flex items-center gap-2 bg-[#111] border border-white/10 rounded-xl px-4 py-3.5 focus-within:border-[#CE1126]/50 transition-colors shadow-inner">
+          <div className="flex items-center gap-1.5 shrink-0 pr-3 border-r border-white/10">
+            <span className="text-sm">🇨🇲</span>
+            <span className="text-white/70 text-sm font-bold">+237</span>
+          </div>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(formatPhone(e.target.value))}
+            placeholder="6 75 12 34 56"
+            className="flex-1 bg-transparent text-white text-base font-bold outline-none placeholder:text-white/20 tabular-nums tracking-wider"
+          />
         </div>
+      </div>
+
+      {/* Pay Button */}
+      <div className="px-6 py-5 bg-[#111]">
+        <button
+          onClick={onPay}
+          disabled={!isValid}
+          className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            isValid
+              ? "bg-[#CE1126] hover:bg-[#a30d1e] text-white shadow-[0_0_20px_rgba(206,17,38,0.3)]"
+              : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
+          }`}
+        >
+          <Shield size={16} />
+          Pay {plan?.price.toLocaleString()} FCFA
+        </button>
+
+        <button
+          onClick={onBack}
+          className="w-full mt-4 py-2 text-white/40 hover:text-white/70 text-xs font-semibold uppercase tracking-widest transition-colors cursor-pointer"
+        >
+          ← Back to Plans
+        </button>
       </div>
 
       <style jsx>{`
@@ -491,7 +479,7 @@ function MobileMoneyPayment({ movie, plan, paymentMethod, setPaymentMethod, phon
 // ════════════════════════════════════════════════════════════════
 // STEP 6 — PROCESSING SCREEN
 // ════════════════════════════════════════════════════════════════
-function ProcessingScreen({ plan, onComplete }) {
+function ProcessingScreen({ plan, onComplete, onClose }) {
   const [timeLeft, setTimeLeft] = useState(PROCESSING_DURATION);
 
   useEffect(() => {
@@ -508,48 +496,53 @@ function ProcessingScreen({ plan, onComplete }) {
   const offset = circumference - (progressPct / 100) * circumference;
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-black p-6">
-      <div className="flex flex-col items-center text-center max-w-sm">
-        {/* Circular Timer */}
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40 mb-8">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
-            <circle
-              cx="60" cy="60" r="52" fill="none"
-              stroke="#CE1126"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              className="transition-all duration-1000 ease-linear"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Lock size={24} className="text-white/50 mb-2" />
-            <span className="text-white text-2xl sm:text-3xl font-black tabular-nums">
-              {timeLeft}s
-            </span>
-          </div>
-        </div>
+    <div className="w-full max-w-sm bg-[#0B0E14] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative p-8 animate-scaleIn text-center">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer z-10"
+      >
+        <X size={16} className="text-white" />
+      </button>
 
-        <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mb-3">
-          Processing Payment
-        </h2>
-        <p className="text-white/50 text-sm font-medium mb-8 leading-relaxed">
-          Please wait while we process your payment.
-        </p>
-
-        {/* Pulsing dots */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "300ms" }} />
-          <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "600ms" }} />
+      {/* Circular Timer */}
+      <div className="relative w-32 h-32 mx-auto mb-8 mt-4">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+          <circle
+            cx="60" cy="60" r="52" fill="none"
+            stroke="#CE1126"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            className="transition-all duration-1000 ease-linear"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <Lock size={20} className="text-white/40 mb-1" />
+          <span className="text-white text-2xl font-black tabular-nums">
+            {timeLeft}s
+          </span>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 text-white/30 text-[10px] font-bold uppercase tracking-widest">
-          <Shield size={14} />
-          Do not close this window or press back
-        </div>
+      <h2 className="text-xl font-black text-white uppercase tracking-tight mb-2">
+        Processing Payment
+      </h2>
+      <p className="text-white/50 text-sm font-medium mb-8 leading-relaxed">
+        Check your phone to confirm the transaction.
+      </p>
+
+      {/* Pulsing dots */}
+      <div className="flex justify-center items-center gap-2 mb-8">
+        <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "0ms" }} />
+        <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "300ms" }} />
+        <div className="w-2 h-2 rounded-full bg-[#CE1126] animate-pulse" style={{ animationDelay: "600ms" }} />
+      </div>
+
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#CE1126]/10 text-[#CE1126] text-[10px] font-bold uppercase tracking-widest border border-[#CE1126]/20">
+        <Shield size={12} />
+        Do not close this window
       </div>
     </div>
   );
@@ -558,39 +551,41 @@ function ProcessingScreen({ plan, onComplete }) {
 // ════════════════════════════════════════════════════════════════
 // STEP 7 — SUCCESS SCREEN
 // ════════════════════════════════════════════════════════════════
-function SuccessScreen({ plan, onStartWatching }) {
+function SuccessScreen({ plan, onStartWatching, onClose }) {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-black p-6">
-      <div className="flex flex-col items-center text-center max-w-sm animate-scaleIn">
-        {/* Success Checkmark */}
-        <div className="relative w-28 h-28 sm:w-36 sm:h-36 mb-8">
-          <svg className="w-full h-full" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="#009639" strokeWidth="4" className="animate-drawCircle" />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#009639] flex items-center justify-center animate-popIn">
-              <Check size={32} className="text-white" strokeWidth={3} />
-            </div>
+    <div className="w-full max-w-sm bg-[#0B0E14] border border-[#009639]/30 rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(0,150,57,0.1)] relative p-8 animate-scaleIn text-center">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer z-10"
+      >
+        <X size={16} className="text-white" />
+      </button>
+
+      {/* Success Checkmark */}
+      <div className="relative w-28 h-28 mx-auto mb-8 mt-4">
+        <svg className="w-full h-full" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="#009639" strokeWidth="4" className="animate-drawCircle" />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-[#009639] flex items-center justify-center animate-popIn shadow-[0_0_20px_rgba(0,150,57,0.4)]">
+            <Check size={32} className="text-white" strokeWidth={4} />
           </div>
         </div>
-
-        <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight mb-3">
-          Payment Successful!
-        </h2>
-        <p className="text-white/60 text-sm font-medium mb-2">
-          Your payment of <span className="text-white font-bold">{plan?.price.toLocaleString()} FCFA</span> was successful.
-        </p>
-        <p className="text-white/40 text-sm font-medium mb-10">
-          Enjoy your movie.
-        </p>
-
-        <button
-          onClick={onStartWatching}
-          className="w-full max-w-xs py-3.5 bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
-        >
-          <Play size={18} fill="currentColor" /> Start Watching
-        </button>
       </div>
+
+      <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-3 text-[#009639]">
+        Payment Successful!
+      </h2>
+      <p className="text-white/70 text-sm font-medium mb-8">
+        Your payment of <span className="text-white font-bold">{plan?.price.toLocaleString()} FCFA</span> was processed.
+      </p>
+
+      <button
+        onClick={onStartWatching}
+        className="w-full py-4 bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(206,17,38,0.3)] cursor-pointer"
+      >
+        <Play size={18} fill="currentColor" /> Start Watching Movie
+      </button>
 
       <style jsx>{`
         @keyframes scaleIn {
@@ -650,7 +645,7 @@ function PremiumVideoPlayer({ movie, onClose }) {
 
   return (
     <div
-      className="relative w-full h-full bg-black flex items-center justify-center cursor-none"
+      className="relative w-full aspect-video bg-black flex items-center justify-center cursor-none rounded-2xl overflow-hidden border border-white/10 shadow-2xl animate-scaleIn"
       onMouseMove={handleMouseMove}
       onClick={() => setIsPlaying(!isPlaying)}
     >
@@ -677,7 +672,7 @@ function PremiumVideoPlayer({ movie, onClose }) {
 
       {/* Top Bar */}
       <div
-        className={`absolute top-0 left-0 right-0 z-30 px-4 sm:px-6 py-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-500 ${
+        className={`absolute top-0 left-0 right-0 z-30 px-4 sm:px-6 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent transition-opacity duration-500 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -685,7 +680,7 @@ function PremiumVideoPlayer({ movie, onClose }) {
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md flex items-center justify-center transition-colors cursor-pointer border border-white/10"
           >
             <X size={18} className="text-white" />
           </button>
@@ -693,16 +688,11 @@ function PremiumVideoPlayer({ movie, onClose }) {
             {movie.title}
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer">
-            <Monitor size={16} className="text-white" />
-          </button>
-        </div>
       </div>
 
       {/* Bottom Controls */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/80 to-transparent px-4 sm:px-6 pb-4 sm:pb-6 pt-12 transition-opacity duration-500 ${
+        className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 sm:px-6 pb-4 sm:pb-6 pt-12 transition-opacity duration-500 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -721,13 +711,13 @@ function PremiumVideoPlayer({ movie, onClose }) {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setProgress(Math.max(0, progress - 5))}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <SkipBack size={16} className="text-white" />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-11 h-11 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               {isPlaying ? (
                 <Pause size={20} className="text-white" />
@@ -737,25 +727,25 @@ function PremiumVideoPlayer({ movie, onClose }) {
             </button>
             <button
               onClick={() => setProgress(Math.min(100, progress + 5))}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <SkipForward size={16} className="text-white" />
             </button>
-            <span className="text-white/60 text-xs font-semibold tabular-nums ml-2 hidden sm:inline">
+            <span className="text-white/80 text-xs font-semibold tabular-nums ml-2 hidden sm:inline">
               {Math.floor(progress * 1.26)}:00 / 2:06:00
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
+            <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
               <Download size={16} className="text-white" />
             </button>
-            <button className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
+            <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
               <Settings size={16} className="text-white" />
             </button>
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               {isFullscreen ? <Minimize size={16} className="text-white" /> : <Maximize size={16} className="text-white" />}
             </button>
