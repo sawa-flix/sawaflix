@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play, Trash2, DownloadCloud } from 'lucide-react';
-import PremiumPaywall from '../../../components/PremiumPaywall';
+import PaywallFlowManager from '../../../../components/Paywall/PaywallFlowManager';
 
 export default function DownloadsPage() {
   const [downloads, setDownloads] = useState([]);
@@ -96,7 +96,7 @@ export default function DownloadsPage() {
       )}
 
       {selectedMovie && (
-        <PremiumPaywall 
+        <PaywallFlowManager 
           movie={selectedMovie} 
           onClose={() => setSelectedMovie(null)} 
         />
