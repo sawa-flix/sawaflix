@@ -12,7 +12,6 @@ import { MusicProvider } from '../MusicContext';
 import { NotificationProvider } from '../../contexts/NotificationContext';
 import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import BottomPlayer from '../BottomPlayer';
-import MobileBottomNav from './MobileBottomNav';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
@@ -205,9 +204,6 @@ const DashboardWrapper = ({ children }) => {
 
         {/* Persistent Player */}
         <BottomPlayer />
-
-        {/* Mobile Navigation */}
-        <MobileBottomNav />
 
         <style jsx global>{`
           /* Hide scrollbars */

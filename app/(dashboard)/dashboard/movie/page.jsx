@@ -320,10 +320,10 @@ export default function MovieStreamingSite() {
               </div>
 
               <div className="flex items-center gap-3 sm:gap-4">
-                <button className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm">
+                <button className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm cursor-pointer">
                   <Play size={16} fill="currentColor" className="sm:w-[18px] sm:h-[18px]" /> Play Now
                 </button>
-                <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm">
+                <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm cursor-pointer">
                   <Plus size={16} className="sm:w-[18px] sm:h-[18px]" /> Watchlist
                 </button>
               </div>
@@ -340,7 +340,7 @@ export default function MovieStreamingSite() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                className={`cursor-pointer shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all ${
                   activeFilter === filter 
                     ? 'bg-white text-[#0B0E14]' 
                     : 'bg-[#1A1E26] text-gray-300 hover:bg-[#252A36]'
@@ -510,14 +510,14 @@ function RightSidebarContent({ movie, onClose, moreMovies }) {
 
       {/* Action Buttons */}
       <div className="space-y-3 mb-8">
-        <button className="w-full bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all text-sm">
+        <button className="w-full bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all text-sm cursor-pointer">
           <Play size={18} fill="currentColor" /> Play Movie
         </button>
         <div className="grid grid-cols-2 gap-3">
-          <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all text-xs">
+          <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all text-xs cursor-pointer">
             <PlayCircle size={16} /> Trailer
           </button>
-          <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all text-xs">
+          <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all text-xs cursor-pointer">
             <Plus size={16} /> List
           </button>
         </div>
@@ -594,10 +594,10 @@ function MovieDetailSheet({ movie, onClose }) {
             <span className="border border-white/30 px-1 py-0.5 rounded text-[10px]">{movie.ageRating || '13+'}</span>
           </div>
           <div className="space-y-2.5 mb-6">
-            <button className="w-full bg-[#CE1126] text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 text-sm"><Play size={17} fill="currentColor" /> Watch Now</button>
+            <button className="w-full bg-[#CE1126] text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><Play size={17} fill="currentColor" /> Watch Now</button>
             <div className="grid grid-cols-2 gap-2.5">
-              <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm"><PlayCircle size={16} /> Trailer</button>
-              <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm"><Plus size={16} /> Watchlist</button>
+              <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><PlayCircle size={16} /> Trailer</button>
+              <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><Plus size={16} /> Watchlist</button>
             </div>
           </div>
           <p className="text-white/70 text-sm leading-relaxed mb-8">{movie.description}</p>
