@@ -23,6 +23,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
+import ReactPlayer from 'react-player/youtube';
 
 // ─── FLOW STATES ───────────────────────────────────────────────
 const FLOW = {
@@ -173,7 +174,7 @@ function AdPlayer({ movie, onComplete, onClose }) {
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/5 bg-[#111]">
         <div className="flex items-center gap-3">
           <span className="bg-[#FCD116] text-black text-[10px] sm:text-xs font-black px-3 py-1 rounded uppercase tracking-wider">
-            Advertisement
+            Movie Preview
           </span>
           <span className="text-white/70 text-xs sm:text-sm font-semibold select-none cursor-pointer" onClick={handleDevSkip}>
             {formatTime(elapsed)} / {formatTime(AD_DURATION)}
@@ -189,11 +190,15 @@ function AdPlayer({ movie, onComplete, onClose }) {
 
       {/* Ad Video Area (YouTube) */}
       <div className="relative w-full aspect-video bg-black pointer-events-none overflow-hidden">
-        <iframe
-          src={`https://www.youtube.com/embed/5TpdUBwyL4c?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1`}
-          allow="autoplay; encrypted-media"
-          className="absolute inset-0 w-full h-full scale-[1.3]" // slight scale to hide youtube branding if possible
-          style={{ pointerEvents: 'none' }}
+        <ReactPlayer
+          url="https://www.youtube.com/watch?v=9wW_UHl_br4"
+          playing={!isPaused}
+          muted={isMuted}
+          controls={false}
+          width="130%"
+          height="130%"
+          style={{ position: 'absolute', top: '-15%', left: '-15%', pointerEvents: 'none' }}
+          config={{ youtube: { playerVars: { disablekb: 1, modestbranding: 1 } } }}
         />
         {/* Transparent overlay to completely block interaction with YouTube iframe */}
         <div className="absolute inset-0 z-10" />
@@ -227,7 +232,7 @@ function AdPlayer({ movie, onComplete, onClose }) {
 
           <div className="text-right">
             <p className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-widest">
-              Ad will finish in
+              Preview ends in
             </p>
             <p className="text-white text-lg sm:text-xl font-black tabular-nums">
               {timeLeft}s
@@ -272,15 +277,15 @@ function PlansModal({ movie, selectedPlan, onSelectPlan, onContinue, onClose }) 
                 onClick={() => onSelectPlan(plan)}
                 className={`w-full flex flex-col items-center text-center p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
                   isSelected
-                    ? "bg-[#CE1126]/10 border-[#CE1126]"
+                    ? "bg-[#FCD116]/10 border-[#FCD116]"
                     : "bg-white/5 border-transparent hover:border-white/20 hover:bg-white/10"
                 }`}
               >
                 {/* Check Indicator */}
                 <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isSelected ? "border-[#CE1126] bg-[#CE1126]" : "border-white/20"
+                  isSelected ? "border-[#FCD116] bg-[#FCD116]" : "border-white/20"
                 }`}>
-                  {isSelected && <Check size={12} strokeWidth={4} className="text-white" />}
+                  {isSelected && <Check size={12} strokeWidth={4} className="text-black" />}
                 </div>
 
                 <h3 className="text-white font-bold text-base mb-1">{plan.label}</h3>
@@ -303,7 +308,7 @@ function PlansModal({ movie, selectedPlan, onSelectPlan, onContinue, onClose }) 
             disabled={!selectedPlan}
             className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
               selectedPlan
-                ? "bg-[#CE1126] hover:bg-[#a30d1e] text-white shadow-[0_0_20px_rgba(206,17,38,0.3)]"
+                ? "bg-[#FCD116] hover:bg-[#e5bc14] text-black shadow-[0_0_20px_rgba(252,209,22,0.3)]"
                 : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
             }`}
           >
@@ -617,20 +622,14 @@ function SuccessScreen({ plan, onStartWatching, onClose }) {
 function PremiumVideoPlayer({ movie, onClose }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [playedSeconds, setPlayedSeconds] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  
+  const playerRef = useRef(null);
+  const containerRef = useRef(null);
   const hideTimer = useRef(null);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) { setIsPlaying(false); return 100; }
-        return p + 0.05;
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [isPlaying]);
 
   const handleMouseMove = () => {
     setShowControls(true);
@@ -643,22 +642,71 @@ function PremiumVideoPlayer({ movie, onClose }) {
     return () => clearTimeout(hideTimer.current);
   }, []);
 
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return;
+    
+    if (!document.fullscreenElement) {
+      try {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } catch (err) {
+        console.error("Error attempting to enable fullscreen:", err);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    alert("Movie added to your offline downloads!");
+  };
+
+  const handleSeek = (e) => {
+    if (!duration || !playerRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    playerRef.current.seekTo(percent);
+    setProgress(percent * 100);
+  };
+
+  const formatVideoTime = (s) => {
+    if (!s) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, "0")}`;
+  };
+
   return (
     <div
-      className="relative w-full aspect-video bg-black flex items-center justify-center cursor-none rounded-2xl overflow-hidden border border-white/10 shadow-2xl animate-scaleIn"
+      ref={containerRef}
+      className={`relative bg-black flex items-center justify-center cursor-none overflow-hidden animate-scaleIn ${
+        isFullscreen ? 'w-screen h-screen fixed inset-0 z-[99999]' : 'w-full aspect-video rounded-2xl border border-white/10 shadow-2xl'
+      }`}
       onMouseMove={handleMouseMove}
       onClick={() => setIsPlaying(!isPlaying)}
     >
-      {/* Video Content (Simulated with movie poster) */}
-      <div className="absolute inset-0">
-        <Image
-          src={movie.image}
-          alt={movie.title}
-          fill
-          className="object-cover opacity-80"
-          unoptimized
+      {/* Video Content (YouTube Embed via ReactPlayer) */}
+      <div className="absolute inset-0 bg-black pointer-events-none">
+        <ReactPlayer
+          ref={playerRef}
+          url="https://www.youtube.com/watch?v=uNuCCkTFyAQ"
+          playing={isPlaying}
+          controls={false}
+          width="100%"
+          height="100%"
+          onProgress={({ played, playedSeconds }) => {
+            setProgress(played * 100);
+            setPlayedSeconds(playedSeconds);
+          }}
+          onDuration={(d) => setDuration(d)}
+          style={{ pointerEvents: 'none' }}
+          config={{ youtube: { playerVars: { disablekb: 1, modestbranding: 1, rel: 0 } } }}
         />
-        <div className="absolute inset-0 bg-black/20" />
+        {/* Semi-transparent overlay to keep movie dark vibe if needed, but usually we want clear video */}
+        <div className="absolute inset-0 bg-black/10" />
       </div>
 
       {/* Play/Pause Center Indicator */}
@@ -698,56 +746,62 @@ function PremiumVideoPlayer({ movie, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Scrubber */}
-        <div className="w-full h-1 bg-white/20 rounded-full mb-4 cursor-pointer group relative">
+        <div 
+          className="w-full h-1.5 bg-white/20 rounded-full mb-4 cursor-pointer group relative"
+          onClick={(e) => { e.stopPropagation(); handleSeek(e); }}
+        >
           <div
-            className="h-full bg-[#CE1126] rounded-full relative"
+            className="h-full bg-[#CE1126] rounded-full relative transition-all duration-75 ease-linear"
             style={{ width: `${progress}%` }}
           >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#CE1126] border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#CE1126] border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
-              onClick={() => setProgress(Math.max(0, progress - 5))}
-              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); playerRef.current?.seekTo(playedSeconds - 10); }}
+              className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <SkipBack size={16} className="text-white" />
+              <SkipBack size={18} className="text-white" />
             </button>
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="w-11 h-11 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+              className="w-12 h-12 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               {isPlaying ? (
-                <Pause size={20} className="text-white" />
+                <Pause size={24} className="text-white" />
               ) : (
-                <Play size={20} fill="white" className="text-white ml-0.5" />
+                <Play size={24} fill="white" className="text-white ml-1" />
               )}
             </button>
             <button
-              onClick={() => setProgress(Math.min(100, progress + 5))}
-              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); playerRef.current?.seekTo(playedSeconds + 10); }}
+              className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <SkipForward size={16} className="text-white" />
+              <SkipForward size={18} className="text-white" />
             </button>
-            <span className="text-white/80 text-xs font-semibold tabular-nums ml-2 hidden sm:inline">
-              {Math.floor(progress * 1.26)}:00 / 2:06:00
+            <span className="text-white/80 text-sm font-semibold tabular-nums ml-2 hidden sm:inline">
+              {formatVideoTime(playedSeconds)} / {formatVideoTime(duration)}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
-              <Download size={16} className="text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+              className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <Download size={18} className="text-white" />
             </button>
-            <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
-              <Settings size={16} className="text-white" />
+            <button className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer hidden sm:flex">
+              <Settings size={18} className="text-white" />
             </button>
             <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+              className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
-              {isFullscreen ? <Minimize size={16} className="text-white" /> : <Maximize size={16} className="text-white" />}
+              {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
             </button>
           </div>
         </div>
