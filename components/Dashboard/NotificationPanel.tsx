@@ -51,7 +51,7 @@ const NotificationPanel = ({
   const markAllReadHover = accentColor === 'red' ? 'hover:bg-red-500 hover:text-white' : 'hover:bg-white/90';
 
   return (
-    <div className="absolute right-[-10px] sm:right-0 mt-4 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[420px] bg-[#0F1217] rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+    <div className="fixed left-4 right-4 top-[72px] sm:absolute sm:left-auto sm:top-auto sm:right-0 sm:mt-4 w-auto sm:w-[420px] bg-[#0F1217] rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top sm:origin-top-right">
       {/* Header */}
       <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
         <div className="flex items-center gap-4">
