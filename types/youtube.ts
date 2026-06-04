@@ -11,6 +11,8 @@ export interface Video {
     likeCount?: string;
     commentCount?: string;
     viewCount?: string;
+    contentType?: string;
+    origin?: 'youtube' | 'sawaflix';
 }
 
 export interface VideoSearchResponse {
