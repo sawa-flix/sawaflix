@@ -4,8 +4,8 @@
   "description": "Experience the best of Cameroon entertainment.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0B0E14",
-  "theme_color": "#0B0E14",
+  "background_color": "#CE1126",
+  "theme_color": "#CE1126",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

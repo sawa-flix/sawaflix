@@ -61,12 +61,12 @@ export default function PaywallFlowManager({ movie, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-[#0B0E14]/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
       onClick={onClose}
     >
       <div 
         className={`relative w-full transition-all duration-500 ease-out flex justify-center items-center ${
-          flowState === FLOW.WATCHING ? 'max-w-5xl' : 'max-w-2xl'
+          flowState === FLOW.WATCHING ? 'max-w-5xl' : 'max-w-lg'
         }`} 
         onClick={(e) => e.stopPropagation()}
       >
@@ -249,80 +249,78 @@ function AdPlayer({ movie, onComplete, onClose }) {
 // ════════════════════════════════════════════════════════════════
 function PlansModal({ movie, selectedPlan, onSelectPlan, onContinue, onClose }) {
   return (
-    <div className="w-full max-w-2xl bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-scaleIn">
+    <div className="w-full max-w-lg bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.8)] animate-scaleIn">
       {/* Header */}
-      <div className="relative px-6 pt-6 pb-4 border-b border-white/5 bg-[#111]">
+      <div className="relative px-5 pt-5 pb-3 border-b border-white/5">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
         >
           <X size={16} className="text-white" />
         </button>
-        <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
+        <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight">
           Choose a Plan
         </h2>
-        <p className="text-white/50 text-sm font-medium mt-1">
+        <p className="text-white/50 text-xs font-medium mt-1">
           Unlock <span className="text-white font-bold">{movie.title}</span> ({movie.year})
         </p>
       </div>
 
-      {/* Plans Grid */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      {/* Plans Grid — always 2 columns */}
+      <div className="p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 mb-5">
           {PLANS.map((plan) => {
             const isSelected = selectedPlan?.id === plan.id;
             return (
               <button
                 key={plan.id}
                 onClick={() => onSelectPlan(plan)}
-                className={`w-full flex flex-col items-center text-center p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
+                className={`flex flex-col items-center text-center p-3 sm:p-4 rounded-xl border-2 transition-all cursor-pointer relative overflow-hidden ${
                   isSelected
-                    ? "bg-[#FCD116]/10 border-[#FCD116]"
-                    : "bg-white/5 border-transparent hover:border-white/20 hover:bg-white/10"
+                    ? "bg-[#FCD116]/10 border-[#FCD116] shadow-[0_0_15px_rgba(252,209,22,0.15)]"
+                    : "bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.06]"
                 }`}
               >
                 {/* Check Indicator */}
-                <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isSelected ? "border-[#FCD116] bg-[#FCD116]" : "border-white/20"
+                <div className={`absolute top-2.5 right-2.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                  isSelected ? "border-[#FCD116] bg-[#FCD116]" : "border-white/15"
                 }`}>
-                  {isSelected && <Check size={12} strokeWidth={4} className="text-black" />}
+                  {isSelected && <Check size={10} strokeWidth={4} className="text-black" />}
                 </div>
 
-                <h3 className="text-white font-bold text-base mb-1">{plan.label}</h3>
-                <p className="text-white/50 text-xs mb-4">{plan.desc}</p>
+                <h3 className="text-white font-bold text-xs sm:text-sm mb-0.5 leading-tight pr-5">{plan.label}</h3>
+                <p className="text-white/40 text-[10px] sm:text-xs mb-3 leading-snug">{plan.desc}</p>
                 <div className="mt-auto">
-                  <p className="text-white font-black text-2xl">
+                  <p className="text-white font-black text-xl sm:text-2xl leading-none">
                     {plan.price.toLocaleString()}
                   </p>
-                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">FCFA</p>
+                  <p className="text-white/30 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest mt-1">FCFA</p>
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* Footer */}
-        <div>
-          <button
-            onClick={onContinue}
-            disabled={!selectedPlan}
-            className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              selectedPlan
-                ? "bg-[#FCD116] hover:bg-[#e5bc14] text-black shadow-[0_0_20px_rgba(252,209,22,0.3)]"
-                : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
-            }`}
-          >
-            Continue to Payment
-          </button>
+        {/* Continue Button */}
+        <button
+          onClick={onContinue}
+          disabled={!selectedPlan}
+          className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            selectedPlan
+              ? "bg-[#FCD116] hover:bg-[#e5bc14] text-black shadow-[0_0_20px_rgba(252,209,22,0.3)]"
+              : "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
+          }`}
+        >
+          Continue to Payment
+        </button>
 
-          {/* Trust Signals */}
-          <div className="flex items-center justify-center gap-6 mt-5">
-            <div className="flex items-center gap-2 text-white/30 text-[10px] font-semibold uppercase tracking-widest">
-              <Download size={14} /> Offline
-            </div>
-            <div className="flex items-center gap-2 text-white/30 text-[10px] font-semibold uppercase tracking-widest">
-              <Monitor size={14} /> All Devices
-            </div>
+        {/* Trust Signals */}
+        <div className="flex items-center justify-center gap-6 mt-4">
+          <div className="flex items-center gap-1.5 text-white/25 text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest">
+            <Download size={12} /> Offline
+          </div>
+          <div className="flex items-center gap-1.5 text-white/25 text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest">
+            <Monitor size={12} /> All Devices
           </div>
         </div>
       </div>
