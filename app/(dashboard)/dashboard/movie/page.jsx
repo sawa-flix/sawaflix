@@ -53,7 +53,7 @@ const movies = [
   {
     id: "therapy",
     title: "Therapy",
-    image: "https://i.ibb.co/MDLDZTtf/sawa.png",
+    image: "https://i.ibb.co/DDk4rzpn/therapist.png",
     year: 2020,
     country: "Cameroon",
     genres: ["Drama", "Psychological"],
@@ -66,7 +66,7 @@ const movies = [
   {
     id: "half-heaven",
     title: "Half Heaven",
-    image: "https://i.ibb.co/MDLDZTtf/sawa.png",
+    image: "https://i.ibb.co/T6kBJq0/half-Heaven.png",
     year: 2022,
     country: "Cameroon",
     genres: ["Drama"],
