@@ -14,6 +14,10 @@ import BottomPlayer from '../BottomPlayer';
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Disable right sidebar for reels and movie pages
+  const hideRightSidebarPaths = ['/reels', '/movie'];
+  const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userRole, setUserRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -151,9 +155,11 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Right Sidebar — Fixed & Unified */}
-          <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
-              <RightSidebar />
-          </aside>
+          {hasRightSidebar && (
+            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+                <RightSidebar />
+            </aside>
+          )}
 
           {/* Main Content Area — Scrollable center */}
           {pathname?.includes('/reels') ? (
@@ -164,8 +170,8 @@ const DashboardWrapper = ({ children }) => {
               </div>
             </main>
           ) : (
-            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto scrollbar-none bg-transparent scroll-smooth">
-              <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500">
+            <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+              <div className="px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto pb-40 transition-all duration-500">
                 {children}
               </div>
             </main>
