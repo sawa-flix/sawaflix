@@ -35,7 +35,7 @@ export const NotificationDropdown: React.FC = () => {
         <NotificationPanel 
           title="Notifications"
           subtitle={`${unreadCount} new updates`}
-          notifications={notifications.map(n => ({
+          notifications={notifications.slice(0, 5).map(n => ({
             id: n.id,
             type: n.type,
             title: n.title,

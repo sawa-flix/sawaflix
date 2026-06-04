@@ -51,7 +51,7 @@ const NotificationPanel = ({
   const markAllReadHover = accentColor === 'red' ? 'hover:bg-red-500 hover:text-white' : 'hover:bg-white/90';
 
   return (
-    <div className="absolute right-0 mt-4 w-[380px] bg-[#0F1217] rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+    <div className="absolute right-0 mt-4 w-[420px] bg-[#0F1217] rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
       {/* Header */}
       <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -94,36 +94,36 @@ const NotificationPanel = ({
             <div 
               key={n.id} 
               onClick={() => onItemClick(n.id, n.contentId)}
-              className={`flex items-start px-6 py-4 border-b border-white/5 transition-colors group cursor-pointer ${!n.read ? `relative after:content-[""] after:absolute after:left-0 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-8 ${accentBorderClass} after:rounded-r-full` : ''}`}
+              className={`flex items-center px-4 py-2.5 border-b border-white/5 transition-colors group cursor-pointer hover:bg-white/[0.02] ${!n.read ? `relative after:content-[""] after:absolute after:left-0 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-6 ${accentBorderClass} after:rounded-r-full` : ''}`}
             >
-              <div className="flex gap-4">
+              <div className="flex items-center gap-3 w-full">
                 <div className="relative shrink-0">
                   {n.thumbnail ? (
-                    <div className="w-14 h-14 bg-[#161B22]/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white/5 group-hover:border-white/20 transition-all shadow-lg">
+                    <div className="w-10 h-10 bg-[#161B22]/80 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 group-hover:border-white/20 transition-all shadow-md">
                       <Image src={n.thumbnail} alt="" fill className="object-cover" unoptimized />
                     </div>
                   ) : (
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center border border-white/5 shadow-lg ${
-                      n.type === 'post' ? 'text-red-500' : 'text-white'
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-white/5 shadow-md ${
+                      n.type === 'post' ? 'text-red-500 bg-red-500/5' : 'text-white bg-white/5'
                     }`}>
-                      <Bell size={20} />
+                      <Bell size={16} />
                     </div>
                   )}
                   {!n.read && (
-                    <div className={`absolute -top-1 -right-1 w-3 h-3 ${accentBgClass} rounded-full border-2 border-[#0F1219] shadow-sm animate-pulse`} />
+                    <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 ${accentBgClass} rounded-full border-2 border-[#0F1219] shadow-sm animate-pulse`} />
                   )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <p className={`text-[13px] font-bold leading-tight truncate pr-2 ${!n.read ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-300'}`}>
+                  <div className="flex justify-between items-center mb-0.5">
+                    <p className={`text-[12px] font-bold leading-tight truncate pr-2 ${!n.read ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-300'}`}>
                       {n.title}
                     </p>
-                    <span className="text-[10px] text-zinc-600 font-medium whitespace-nowrap">
+                    <span className="text-[9px] text-zinc-500 font-medium whitespace-nowrap ml-2">
                       {typeof n.timestamp === 'string' ? n.timestamp : new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed group-hover:text-zinc-400 transition-colors">
+                  <p className="text-[11px] text-zinc-500 line-clamp-1 leading-snug group-hover:text-zinc-400 transition-colors">
                     {n.message}
                   </p>
                 </div>

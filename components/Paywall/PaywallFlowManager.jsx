@@ -46,7 +46,7 @@ const PLANS = [
 
 // ─── DEV MODE (triple-click the ad timer to skip) ──────────────
 const AD_DURATION = 30; // 30 seconds
-const PROCESSING_DURATION = 30; // 30 seconds
+const PROCESSING_DURATION = 5; // 5 seconds
 
 // ════════════════════════════════════════════════════════════════
 // MAIN EXPORT — PaywallFlowManager
