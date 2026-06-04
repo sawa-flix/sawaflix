@@ -626,6 +626,7 @@ function PremiumVideoPlayer({ movie, onClose }) {
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [downloadToast, setDownloadToast] = useState(false);
   
   const playerRef = useRef(null);
   const containerRef = useRef(null);
@@ -661,7 +662,19 @@ function PremiumVideoPlayer({ movie, onClose }) {
   };
 
   const handleDownload = () => {
-    alert("Movie added to your offline downloads!");
+    if (!movie) return;
+    try {
+      const stored = localStorage.getItem('sawaflix_downloads');
+      let downloads = stored ? JSON.parse(stored) : [];
+      if (!downloads.some(d => d.id === movie.id)) {
+        downloads.push(movie);
+        localStorage.setItem('sawaflix_downloads', JSON.stringify(downloads));
+      }
+      setDownloadToast(true);
+      setTimeout(() => setDownloadToast(false), 3000);
+    } catch (e) {
+      console.error("Failed to save download", e);
+    }
   };
 
   const handleSeek = (e) => {
@@ -707,6 +720,16 @@ function PremiumVideoPlayer({ movie, onClose }) {
         />
         {/* Semi-transparent overlay to keep movie dark vibe if needed, but usually we want clear video */}
         <div className="absolute inset-0 bg-black/10" />
+      </div>
+
+      {/* Custom Download Toast Notification */}
+      <div className={`absolute top-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full bg-black/80 backdrop-blur-md border border-[#FCD116]/30 shadow-2xl flex items-center gap-3 transition-all duration-300 z-50 ${
+        downloadToast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8 pointer-events-none'
+      }`}>
+        <div className="w-6 h-6 rounded-full bg-[#FCD116]/20 flex items-center justify-center">
+          <Download size={14} className="text-[#FCD116]" />
+        </div>
+        <span className="text-white text-sm font-semibold tracking-wide">Downloading... Video saved offline!</span>
       </div>
 
       {/* Play/Pause Center Indicator */}

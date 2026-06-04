@@ -18,7 +18,8 @@ import {
   Heart,
   Tv,
   MonitorPlay,
-  BookOpen
+  BookOpen,
+  Download
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -133,6 +134,7 @@ export default function LeftSidebar({
       badge: null 
     },
     { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null },
+    { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ];
