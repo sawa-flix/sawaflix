@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Play, Plus, Star, X, Info, Filter, PlayCircle, User, Subtitles, AlignLeft, Globe, Users, Film, Calendar } from 'lucide-react';
 import Image from 'next/image';
+import PaywallFlowManager from '@/components/Paywall/PaywallFlowManager';
 
 const movies = [
   {
@@ -268,6 +269,7 @@ export default function MovieStreamingSite() {
   const featuredMovie = movies.find(m => m.featured) || movies[0];
   const [selectedMovie, setSelectedMovie] = useState(featuredMovie);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [paywallMovie, setPaywallMovie] = useState(null);
 
   const filteredMovies = useMemo(() => {
     if (activeFilter === "All") return movies.filter(m => !m.featured);
@@ -320,7 +322,7 @@ export default function MovieStreamingSite() {
               </div>
 
               <div className="flex items-center gap-3 sm:gap-4">
-                <button className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm cursor-pointer">
+                <button onClick={() => setPaywallMovie(featuredMovie)} className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm cursor-pointer">
                   <Play size={16} fill="currentColor" className="sm:w-[18px] sm:h-[18px]" /> Play Now
                 </button>
                 <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm cursor-pointer">
@@ -376,6 +378,7 @@ export default function MovieStreamingSite() {
             movie={selectedMovie} 
             onClose={() => setSelectedMovie(featuredMovie)}
             moreMovies={movies.filter(m => m.id !== selectedMovie.id).slice(0, 4)}
+            onWatchNow={(m) => setPaywallMovie(m)}
           />
         </div>
 
@@ -386,10 +389,19 @@ export default function MovieStreamingSite() {
         {selectedMovie && selectedMovie.id !== featuredMovie.id && (
           <MovieDetailSheet 
             movie={selectedMovie} 
-            onClose={() => setSelectedMovie(featuredMovie)} 
+            onClose={() => setSelectedMovie(featuredMovie)}
+            onWatchNow={(m) => setPaywallMovie(m)}
           />
         )}
       </div>
+
+      {/* Paywall Flow Overlay */}
+      {paywallMovie && (
+        <PaywallFlowManager
+          movie={paywallMovie}
+          onClose={() => setPaywallMovie(null)}
+        />
+      )}
 
       <style jsx global>{`
         .scrollbar-hide {
@@ -466,7 +478,7 @@ function MovieCard({ movie, isPremium, onClick, isActive }) {
 /* ================================================================
    RIGHT SIDEBAR CONTENT (Desktop)
    ================================================================ */
-function RightSidebarContent({ movie, onClose, moreMovies }) {
+function RightSidebarContent({ movie, onClose, moreMovies, onWatchNow }) {
   if (!movie) return null;
   return (
     <div className="animate-fadeIn">
@@ -510,7 +522,7 @@ function RightSidebarContent({ movie, onClose, moreMovies }) {
 
       {/* Action Buttons */}
       <div className="space-y-3 mb-8">
-        <button className="w-full bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all text-sm cursor-pointer">
+        <button onClick={() => onWatchNow?.(movie)} className="w-full bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all text-sm cursor-pointer">
           <Play size={18} fill="currentColor" /> Play Movie
         </button>
         <div className="grid grid-cols-2 gap-3">
@@ -570,7 +582,7 @@ function RightSidebarContent({ movie, onClose, moreMovies }) {
 /* ================================================================
    MOBILE BOTTOM SHEET
    ================================================================ */
-function MovieDetailSheet({ movie, onClose }) {
+function MovieDetailSheet({ movie, onClose, onWatchNow }) {
   return (
     <div className="fixed inset-0 z-[999] flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -594,7 +606,7 @@ function MovieDetailSheet({ movie, onClose }) {
             <span className="border border-white/30 px-1 py-0.5 rounded text-[10px]">{movie.ageRating || '13+'}</span>
           </div>
           <div className="space-y-2.5 mb-6">
-            <button className="w-full bg-[#CE1126] text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><Play size={17} fill="currentColor" /> Watch Now</button>
+            <button onClick={() => onWatchNow?.(movie)} className="w-full bg-[#CE1126] text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><Play size={17} fill="currentColor" /> Watch Now</button>
             <div className="grid grid-cols-2 gap-2.5">
               <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><PlayCircle size={16} /> Trailer</button>
               <button className="bg-white/5 border border-white/10 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm cursor-pointer"><Plus size={16} /> Watchlist</button>
