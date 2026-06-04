@@ -16,6 +16,9 @@ import {
   Workflow,
   Wallet,
   Heart,
+  Tv,
+  MonitorPlay,
+  BookOpen
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -113,6 +116,9 @@ export default function LeftSidebar({
   const exploreItems = [
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
+    { name: 'LiveTv', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: null },
+    { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null },
+    { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
     { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
   ];

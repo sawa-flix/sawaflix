@@ -282,7 +282,7 @@ export default function MovieStreamingSite() {
         <div className="flex-1 min-w-0 flex flex-col pt-2">
 
           {/* Clean Rectangular Hero Banner */}
-          <div className="relative w-full h-[400px] lg:h-[480px] rounded-xl overflow-hidden bg-[#111] mb-8 shadow-2xl">
+          <div className="relative w-full h-[250px] sm:h-[350px] lg:h-[480px] rounded-xl overflow-hidden bg-[#111] mb-8 shadow-2xl">
             {/* Background */}
             <div className="absolute inset-0">
               <Image
@@ -300,31 +300,31 @@ export default function MovieStreamingSite() {
             <div className="absolute inset-0 bg-gradient-to-r from-[#0B0E14] via-[#0B0E14]/50 to-transparent w-[80%]" />
 
             {/* Clean Typography Content */}
-            <div className="absolute bottom-8 left-8 right-8 z-10 flex flex-col items-start justify-end">
-              <span className="inline-block bg-[#CE1126] text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase mb-3 shadow-[0_2px_10px_rgba(206,17,38,0.5)]">
+            <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8 z-10 flex flex-col items-start justify-end">
+              <span className="inline-block bg-[#CE1126] text-white text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase mb-2 sm:mb-3 shadow-[0_2px_10px_rgba(206,17,38,0.5)]">
                 Featured Title
               </span>
 
-              <h1 className="text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-2 uppercase drop-shadow-md">
+              <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-1 sm:mb-2 uppercase drop-shadow-md">
                 {featuredMovie.title}
               </h1>
 
-              <div className="flex items-center gap-4 text-sm font-semibold text-gray-300 mb-6 drop-shadow">
+              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold text-gray-300 mb-4 sm:mb-6 drop-shadow">
                 <span className="flex items-center gap-1 text-[#FCD116]">
-                  <Star size={16} fill="currentColor" />
+                  <Star size={14} fill="currentColor" className="sm:w-[16px] sm:h-[16px]" />
                   <span className="text-white">{featuredMovie.rating || 4.8}</span>
                 </span>
                 <span>{featuredMovie.year}</span>
                 <span>{featuredMovie.duration || '2h 25m'}</span>
-                <span className="border border-gray-400 px-1.5 py-0.5 rounded text-[10px] uppercase text-gray-300">{featuredMovie.ageRating || '13+'}</span>
+                <span className="border border-gray-400 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] uppercase text-gray-300">{featuredMovie.ageRating || '13+'}</span>
               </div>
 
-              <div className="flex items-center gap-4">
-                <button className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-sm">
-                  <Play size={18} fill="currentColor" /> Play Now
+              <div className="flex items-center gap-3 sm:gap-4">
+                <button className="bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-2 sm:py-3 px-4 sm:px-8 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm">
+                  <Play size={16} fill="currentColor" className="sm:w-[18px] sm:h-[18px]" /> Play Now
                 </button>
-                <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-sm">
-                  <Plus size={18} /> Watchlist
+                <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm">
+                  <Plus size={16} className="sm:w-[18px] sm:h-[18px]" /> Watchlist
                 </button>
               </div>
             </div>
