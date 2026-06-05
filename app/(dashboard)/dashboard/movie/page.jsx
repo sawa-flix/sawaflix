@@ -77,7 +77,7 @@ const movies = [
   {
     id: "kuvah",
     title: "Kuvah",
-    image: "https://i.ibb.co/MDLDZTtf/sawa.png",
+    image: "https://i.ibb.co/Mk1v1nqw/kuva.png",
     year: 2022,
     country: "Cameroon",
     genres: ["Drama"],
@@ -88,7 +88,7 @@ const movies = [
   {
     id: "a-man-for-the-weekend",
     title: "A Man for the Weekend",
-    image: "https://i.ibb.co/MDLDZTtf/sawa.png",
+    image: "https://i.ibb.co/LdkRVJSN/A-Man-for-the-Weekend.png",
     year: 2017,
     country: "Cameroon",
     genres: ["Comedy", "Romance"],
@@ -99,7 +99,7 @@ const movies = [
   {
     id: "breach-of-trust",
     title: "Breach of Trust",
-    image: "https://i.ibb.co/MDLDZTtf/sawa.png",
+    image: "https://i.ibb.co/V0JsWLhq/Breach-of-Trust.png",
     year: 2017,
     country: "Cameroon",
     genres: ["Drama", "Crime"],
