@@ -26,16 +26,14 @@ export default function PWAInstallPrompt() {
       return;
     }
 
-    // Check if user has already dismissed the prompt recently
-    const hasDismissed = localStorage.getItem('sawaflix_pwa_dismissed');
-    if (hasDismissed) {
-      const dismissDate = new Date(hasDismissed);
-      const now = new Date();
-      const daysSinceDismissal = (now.getTime() - dismissDate.getTime()) / (1000 * 3600 * 24);
-      if (daysSinceDismissal < 14) return;
+    // Check if the prompt was already caught globally by the script in layout.tsx
+    const globalPrompt = (window as any).deferredPrompt;
+    if (globalPrompt) {
+      setDeferredPrompt(globalPrompt);
+      setTimeout(() => setShowPrompt(true), 1500);
     }
 
-    // Listen for the native install prompt event
+    // Listen for the native install prompt event in case it fires after mount
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -81,7 +79,7 @@ export default function PWAInstallPrompt() {
       if (isIOS) {
         alert('To install: tap the Share icon at the bottom, then "Add to Home Screen"');
       } else {
-        // Just hide the prompt if we can't programmatically install and it's desktop
+        alert('To install on Desktop: Look for the Install icon (usually a monitor with a down-arrow or a + sign) on the right side of your address bar, then click "Install".');
         setShowPrompt(false);
       }
     }

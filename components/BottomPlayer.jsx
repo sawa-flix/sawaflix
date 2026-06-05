@@ -59,6 +59,50 @@ export default function BottomPlayer() {
   const pathname = usePathname();
   const isReelsPage = pathname === '/dashboard' || pathname?.includes('/reels') || pathname?.includes('/contentreels');
 
+  const [isOffline, setIsOffline] = useState(false);
+  const [showOfflineToast, setShowOfflineToast] = useState(false);
+
+  useEffect(() => {
+    setIsOffline(!navigator.onLine);
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const triggerOfflineToast = () => {
+    setShowOfflineToast(true);
+    setTimeout(() => setShowOfflineToast(false), 3000);
+  };
+
+  const handleTogglePlay = () => {
+    if (isOffline && !isPlaying) {
+      triggerOfflineToast();
+      return;
+    }
+    togglePlay();
+  };
+
+  const handlePlayNext = () => {
+    if (isOffline) {
+      triggerOfflineToast();
+      return;
+    }
+    playNext();
+  };
+
+  const handlePlayPrev = () => {
+    if (isOffline) {
+      triggerOfflineToast();
+      return;
+    }
+    playPrev();
+  };
+
   const leftBars = useEqualizerBars(7, isPlaying);
   const rightBars = useEqualizerBars(7, isPlaying);
 
@@ -424,6 +468,33 @@ export default function BottomPlayer() {
         }
         .mb-ctrls .mpp:hover { transform: scale(1.06); }
 
+        /* ===================== OFFLINE TOAST ===================== */
+        .offline-toast {
+          position: absolute;
+          top: -60px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(206,17,38,0.95);
+          backdrop-filter: blur(8px);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 30px;
+          font-size: 13px;
+          font-weight: 600;
+          box-shadow: 0 4px 15px rgba(206,17,38,0.4);
+          z-index: 200;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          opacity: 0;
+          pointer-events: none;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .offline-toast.show {
+          opacity: 1;
+          top: -50px;
+        }
+
         /* ===================== RESPONSIVE ===================== */
         @media (max-width: 768px) {
           .dt-layout { display: none !important; }
@@ -440,6 +511,9 @@ export default function BottomPlayer() {
       `}</style>
 
       <div className="sawa-player">
+        <div className={`offline-toast ${showOfflineToast ? 'show' : ''}`}>
+          <span>⚠️</span> No internet connection to stream this track.
+        </div>
         <div className="player-body">
 
           {/* Hidden ReactPlayer */}
@@ -510,13 +584,13 @@ export default function BottomPlayer() {
               </div>
 
               <div className="dt-ctrls">
-                <button onClick={playPrev} className="cb" title="Previous">
+                <button onClick={handlePlayPrev} className="cb" title="Previous">
                   <SkipBack size={22} fill="currentColor" />
                 </button>
-                <button onClick={togglePlay} className="cb pp" title={isPlaying ? 'Pause' : 'Play'}>
+                <button onClick={handleTogglePlay} className="cb pp" title={isPlaying ? 'Pause' : 'Play'}>
                   {isPlaying ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" style={{ marginLeft: 2 }} />}
                 </button>
-                <button onClick={playNext} className="cb" title="Next">
+                <button onClick={handlePlayNext} className="cb" title="Next">
                   <SkipForward size={22} fill="currentColor" />
                 </button>
               </div>
@@ -569,13 +643,13 @@ export default function BottomPlayer() {
                   ))}
                 </div>
                 
-                <button onClick={playPrev} className="mcb">
+                <button onClick={handlePlayPrev} className="mcb">
                   <SkipBack size={20} fill="currentColor" />
                 </button>
-                <button onClick={togglePlay} className="mpp" style={{ width: 44, height: 44 }}>
+                <button onClick={handleTogglePlay} className="mpp" style={{ width: 44, height: 44 }}>
                   {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: 2 }} />}
                 </button>
-                <button onClick={playNext} className="mcb">
+                <button onClick={handlePlayNext} className="mcb">
                   <SkipForward size={20} fill="currentColor" />
                 </button>
 

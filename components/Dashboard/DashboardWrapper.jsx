@@ -9,11 +9,17 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
 import { MusicProvider } from '../MusicContext';
+import { NotificationProvider } from '../../contexts/NotificationContext';
+import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import BottomPlayer from '../BottomPlayer';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Disable right sidebar for reels and movie pages
+  const hideRightSidebarPaths = ['/reels', '/movie'];
+  const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userRole, setUserRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -24,22 +30,42 @@ const DashboardWrapper = ({ children }) => {
             const { createClient } = require('../../utils/supabase/client');
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user } } = await supabase.auth.getUser(); 
+            const user = session?.user;
             const token = session?.access_token;
             
             // 1. Try API first
             let apiData = null;
             try {
+                console.log("Fetching profile from:", `${BACKEND_URL}/api/creator/profile`);
                 const visitorId = localStorage.getItem('sawaflix_visitor_id');
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
-                    headers: {
-                        ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
-                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                
+                let res;
+                let retryCount = 0;
+                const maxRetries = 2;
+                
+                while (retryCount <= maxRetries) {
+                    try {
+                        res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                            headers: {
+                                ...(visitorId ? { 'x-visitor-id': visitorId } : {}),
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                            }
+                        });
+                        break; // Success!
+                    } catch (fetchErr) {
+                        retryCount++;
+                        if (retryCount > maxRetries) throw fetchErr;
+                        console.warn(`Fetch retry ${retryCount}/${maxRetries}...`);
+                        await new Promise(r => setTimeout(r, 1000 * retryCount));
                     }
-                });
-                if (res.ok) apiData = await res.json();
+                }
+                if (res.ok) {
+                    apiData = await res.json();
+                } else {
+                    console.warn("Backend profile fetch returned non-ok status:", res.status);
+                }
             } catch (apiErr) {
-                console.error("API check failed:", apiErr);
+                console.error("API check failed (likely network error or timeout):", apiErr);
             }
 
             // 2. Always fetch Supabase profile as source of truth for permissions
@@ -106,7 +132,9 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <MusicProvider>
-      <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
+      <NotificationProvider>
+        <FavoriteProvider>
+        <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
@@ -151,9 +179,11 @@ const DashboardWrapper = ({ children }) => {
           </aside>
 
           {/* Right Sidebar — Fixed & Unified */}
-          <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
-              <RightSidebar />
-          </aside>
+          {hasRightSidebar && (
+            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+                <RightSidebar />
+            </aside>
+          )}
 
           {/* Main Content Area — Scrollable center */}
           {pathname?.includes('/reels') ? (
@@ -164,8 +194,8 @@ const DashboardWrapper = ({ children }) => {
               </div>
             </main>
           ) : (
-            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-y-auto scrollbar-none bg-transparent scroll-smooth">
-              <div className="px-4 sm:px-8 lg:px-10 py-8 max-w-7xl mx-auto pb-40 transition-all duration-500">
+            <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+              <div className="px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto pb-40 transition-all duration-500">
                 {children}
               </div>
             </main>
@@ -192,6 +222,8 @@ const DashboardWrapper = ({ children }) => {
           }
         `}</style>
       </div>
+        </FavoriteProvider>
+      </NotificationProvider>
     </MusicProvider>
   );
 };

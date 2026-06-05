@@ -15,6 +15,11 @@ import {
   FileText,
   Workflow,
   Wallet,
+  Heart,
+  Tv,
+  MonitorPlay,
+  BookOpen,
+  Download
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -68,7 +73,7 @@ export default function LeftSidebar({
       setLoading(true);
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = session?.user;
 
       if (user && session) {
         if (!propProfile) {
@@ -112,6 +117,9 @@ export default function LeftSidebar({
   const exploreItems = [
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
+    { name: 'LiveTv', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: null },
+    { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null },
+    { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
     { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
   ];
@@ -125,6 +133,8 @@ export default function LeftSidebar({
       route: '/dashboard/profile', 
       badge: null 
     },
+    { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null },
+    { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
     { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
   ];
@@ -143,9 +153,15 @@ export default function LeftSidebar({
 
   const renderItem = (item: any) => {
     const Icon = item.icon;
-    const isActive = item.route === '/dashboard' 
-      ? pathname === '/dashboard' 
-      : pathname?.startsWith(item.route);
+    let isActive = false;
+    
+    if (item.route === '/dashboard') {
+      isActive = pathname === '/dashboard';
+    } else if (item.name === 'Music') {
+      isActive = pathname?.toLowerCase().includes('/dashboard/music') || pathname?.toLowerCase().includes('/dashboard/artist');
+    } else {
+      isActive = pathname?.toLowerCase().startsWith(item.route.toLowerCase());
+    }
 
     return (
       <Link

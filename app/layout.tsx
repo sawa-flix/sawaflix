@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   category: 'entertainment',
-  manifest: '/manifest.json',
+  manifest: '/manifest.json?v=2',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#b80000',
+  themeColor: '#CE1126',
 };
 
 export default function RootLayout({
@@ -106,6 +106,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.deferredPrompt = null;
+            window.addEventListener('beforeinstallprompt', (e) => {
+              e.preventDefault();
+              window.deferredPrompt = e;
+            });
+          `
+        }} />
       </head>
       <body suppressHydrationWarning>
         <style dangerouslySetInnerHTML={{__html: `

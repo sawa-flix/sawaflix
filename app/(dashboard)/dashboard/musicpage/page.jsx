@@ -9,7 +9,78 @@ import { BACKEND_URL } from '@/lib/apiConfig';
 const COVER_BG = "https://i.ibb.co/Hfms4vV9/coverbg.png";
 const MUSIC_CARD_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";
 
+export const artistsData = [
+  {
+    id: "jovi",
+    name: "Jovi",
+    image: "https://i.ibb.co/TD26rNtX/jovi-2.png",
+    country: "Cameroon",
+    genres: ["Hip Hop", "Rap", "Mboko", "Afro Trap"],
+    bio: "Award-winning rapper, producer, and founder of New Bell Music. Known for pioneering the Mboko movement in Cameroonian music."
+  },
+  {
+    id: "salatiel",
+    name: "Salatiel",
+    image: "https://i.ibb.co/dwBpWvBH/salatiel.png",
+    country: "Cameroon",
+    genres: ["Afrobeats", "Pop", "R&B", "World Music"],
+    bio: "Singer, songwriter, producer, and CEO of Alpha Better Records. Internationally known for his work on Beyoncé's 'Brown Skin Girl'."
+  },
+  {
+    id: "mr-leo",
+    name: "Mr Leo",
+    image: "https://i.ibb.co/rK1zP0yY/leo.png",
+    country: "Cameroon",
+    genres: ["Afropop", "Afrobeats", "R&B"],
+    bio: "One of Cameroon’s most streamed artists, known for romantic melodies and hit songs like 'Kemayo' and 'Jamais Jamais'."
+  },
+  {
+    id: "askia",
+    name: "Askia",
+    image: "https://i.ibb.co/R4N80w8q/askia.png",
+    country: "Cameroon",
+    genres: ["Hip Hop", "Conscious Rap", "Alternative Rap"],
+    bio: "Respected lyricist and storyteller known for socially conscious music and sharp wordplay."
+  },
+  {
+    id: "stanley-enow",
+    name: "Stanley Enow",
+    image: "https://i.ibb.co/MyGKGzQC/tenow.png",
+    country: "Cameroon",
+    genres: ["Hip Hop", "Afropop", "Rap"],
+    bio: "MTV Africa Music Award winner and one of Cameroon’s most internationally recognized rappers. Famous for 'Hein Père'."
+  },
+  {
+    id: "pascal",
+    name: "Pascal",
+    image: "https://i.ibb.co/ZRsqkkBd/pascal.png",
+    country: "Cameroon",
+    genres: ["Afrobeats", "Pop", "Alternative"],
+    bio: "Singer and songwriter from New Bell Music known for his smooth vocals and modern Afro-fusion sound."
+  },
+  {
+    id: "mic-monsta",
+    name: "Mic Monsta",
+    image: "https://i.ibb.co/jvRHyzLp/mmonsta.png",
+    country: "Cameroon",
+    genres: ["Hip Hop", "Rap", "Trap"],
+    bio: "Cameroonian rapper recognized for powerful lyricism, freestyle skills, and projects like 'Heart'."
+  },
+  {
+    id: "lady-ponce",
+    name: "Lady Ponce",
+    image: "https://i.ibb.co/KctwKR6f/lponce.png",
+    country: "Cameroon",
+    genres: ["Makossa", "Afropop", "Traditional"],
+    bio: "One of Cameroon’s most celebrated female artists, blending Makossa rhythms with modern African sounds."
+  }
+];
+
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
 export default function MusicPage() {
+  const router = useRouter();
   const {
     currentTrack: globalTrack,
     isPlaying,
@@ -36,6 +107,7 @@ export default function MusicPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [favorites, setFavorites] = useState(new Set());
+  const [viewMode, setViewMode] = useState('categories'); // 'categories' | 'artists'
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -104,6 +176,7 @@ export default function MusicPage() {
       </div>
     </div>
   );
+
 
   return (
     <div className="music-page-root">
@@ -524,6 +597,55 @@ export default function MusicPage() {
           color: #fff;
         }
 
+        /* ====== ARTIST GRID ====== */
+        .artist-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 16px;
+          padding-bottom: 24px;
+        }
+        .artist-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+          transition: transform 0.3s ease;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 16px;
+          padding: 16px;
+        }
+        .artist-card:hover {
+          transform: translateY(-5px);
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(255,255,255,0.15);
+        }
+        .artist-thumb {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-bottom: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+          position: relative;
+        }
+        .artist-thumb img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+        }
+        .artist-card:hover .artist-thumb img {
+          transform: scale(1.1);
+        }
+        .artist-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: #fff;
+          text-align: center;
+          margin: 0;
+        }
+
         /* ====== RESPONSIVE ====== */
         @media (max-width: 768px) {
           .music-hero-banner {
@@ -564,6 +686,17 @@ export default function MusicPage() {
           }
           .cards-grid {
             display: grid !important;
+          }
+          .artist-grid {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+          }
+          .artist-thumb {
+            width: 130px;
+            height: 130px;
+          }
+          .artist-name {
+            font-size: 16px;
           }
         }
         @media (min-width: 1200px) {
@@ -626,15 +759,15 @@ export default function MusicPage() {
               <Play size={16} fill="currentColor" />
               Listen Now
             </button>
-            <button className="btn-explore">
-              Explore Library
+            <button className="btn-explore" onClick={() => setViewMode(viewMode === 'categories' ? 'artists' : 'categories')}>
+              {viewMode === 'categories' ? 'Explore Artist' : 'Back to Library'}
             </button>
           </div>
         </div>
       </div>
 
       {/* ====== GENRE TABS ====== */}
-      {!isLoading && tabs.length > 1 && (
+      {!isLoading && tabs.length > 1 && viewMode === 'categories' && (
         <div className="tabs-row">
           {tabs.map((tab, i) => (
             <button
@@ -651,6 +784,25 @@ export default function MusicPage() {
       {/* ====== MAIN CONTENT ====== */}
       {isLoading ? (
         renderSkeleton()
+      ) : viewMode === 'artists' ? (
+        <div className="category-section mt-4">
+          <div className="category-header">
+            <div className="category-accent"></div>
+            <h3 className="category-name">Featured Artists</h3>
+          </div>
+          <div className="artist-grid">
+            {artistsData.map((artist) => (
+              <Link href={`/dashboard/artist/${artist.id}`} key={artist.id}>
+                <div className="artist-card">
+                  <div className="artist-thumb">
+                    <img src={artist.image} alt={artist.name} loading="lazy" />
+                  </div>
+                  <h4 className="artist-name">{artist.name}</h4>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       ) : (
         <div>
           {(!filteredCategories || filteredCategories.every(c => !c.videos || c.videos.length === 0)) && (
