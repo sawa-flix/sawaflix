@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BACKEND_URL } from '@/lib/apiConfig';
-import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import EditProfileForm from '@/components/profile/EditProfileForm';
 import { ProfileFormSkeleton } from '@/components/Dashboard/Skeletons';
-import { ChevronLeft, CheckCircle, Plus, Sparkles, ArrowLeft } from 'lucide-react';
+import { Plus, Sparkles, ArrowLeft } from 'lucide-react';
 import StatusModal from '@/components/Dashboard/StatusModal';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -21,21 +19,18 @@ export default function EditProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                const { data: { user } } = await supabase.auth.getUser(); 
-                const token = session?.access_token;
-
-                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
-                  headers: {
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                  }
-                });
+                const res = await fetch('/api/creator/profile');
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
                 setProfile(data);
             } catch (err) {
-                console.error(err);
+                console.error('Profile fetch error:', err);
+                setModalConfig({ 
+                    show: true, 
+                    type: 'error', 
+                    title: 'Failed to Load Profile',
+                    message: err instanceof Error ? err.message : 'Unable to load your profile. Please try again.'
+                });
             } finally {
                 setLoading(false);
             }
@@ -50,15 +45,10 @@ export default function EditProfilePage() {
     const handleSave = async (updatedData) => {
         setSaving(true);
         try {
-            const supabase = createClient();
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-
-            const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+            const res = await fetch('/api/creator/profile', {
                 method: 'PUT',
                 headers: { 
-                  'Content-Type': 'application/json',
-                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                  'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updatedData),
             });
@@ -70,8 +60,8 @@ export default function EditProfilePage() {
             
             showModal('success', 'Identity Synchronized', 'Your profile updates have been successfully pushed to the Sawa Network.');
         } catch (err) {
-            console.error(err);
-            showModal('error', 'Update Failed', err.message || 'There was an error saving your changes. Please try again.');
+            console.error('Save error:', err);
+            showModal('error', 'Update Failed', err instanceof Error ? err.message : 'There was an error saving your changes. Please try again.');
         } finally {
             setSaving(false);
         }

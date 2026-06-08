@@ -11,11 +11,19 @@ import {
 } from 'lucide-react';
 
 type UserProfileData = {
+  id: string;
   username: string | null;
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
   created_at: string;
+  social_links?: Array<{ platform: string; url: string }> | null;
+  region?: string | null;
+  ethnic_group?: string | null;
+  village?: string | null;
+  language_preference?: string | null;
+  location_region?: string | null;
+  favored_genres?: string[] | null;
 };
 
 const DEFAULT_PROFILE_IMAGE = '/default-profile-pic.jpg';
@@ -39,7 +47,21 @@ const UserProfilePage = async () => {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('username, profile_image_url, cover_image_url, bio, created_at')
+    .select(`
+      id, 
+      username, 
+      profile_image_url, 
+      cover_image_url, 
+      bio, 
+      created_at, 
+      social_links, 
+      region,
+      ethnic_group,
+      village,
+      language_preference,
+      location_region,
+      favored_genres
+    `)
     .eq('id', user.id)
     .single<UserProfileData>();
 
@@ -147,6 +169,61 @@ const UserProfilePage = async () => {
 
         {/* Music Ecosystem - Integrated Experience */}
         <div className="mt-16 space-y-16">
+            {/* Demographic & Regional Info */}
+            {(profile?.region || profile?.ethnic_group || profile?.village || profile?.language_preference || profile?.location_region || profile?.favored_genres) && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Profile Information</h3>
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">Your cultural preferences & location</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {profile?.region && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Region</p>
+                      <p className="text-lg font-bold">{profile.region}</p>
+                    </div>
+                  )}
+                  {profile?.location_region && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Location Region</p>
+                      <p className="text-lg font-bold">{profile.location_region}</p>
+                    </div>
+                  )}
+                  {profile?.ethnic_group && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Ethnic Group</p>
+                      <p className="text-lg font-bold">{profile.ethnic_group}</p>
+                    </div>
+                  )}
+                  {profile?.village && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Village / Town</p>
+                      <p className="text-lg font-bold">{profile.village}</p>
+                    </div>
+                  )}
+                  {profile?.language_preference && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Language Preference</p>
+                      <p className="text-lg font-bold">{profile.language_preference}</p>
+                    </div>
+                  )}
+                  {profile?.favored_genres && profile.favored_genres.length > 0 && (
+                    <div className="p-6 bg-zinc-900/50 border border-white/5 rounded-2xl">
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Favorite Genres</p>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.favored_genres.map((genre: string) => (
+                          <span key={genre} className="px-3 py-1 bg-red-600/20 text-red-300 rounded-full text-[10px] font-bold uppercase tracking-widest border border-red-600/30">
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Ecosystem Header */}
             <div className="flex items-center justify-between">
                 <div>

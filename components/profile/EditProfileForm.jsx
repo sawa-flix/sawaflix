@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    Camera, User, Link as LinkIcon, BadgeCheck, 
-    AlertCircle, Save, Globe, X, Plus, 
+    Camera, User, Link as LinkIcon, 
+    AlertCircle, Globe, X, Plus, 
     Image as ImageIcon, Sparkles, CheckCircle2,
-    Info, Layout, Settings, UploadCloud, Trash2
+    Info, Layout, Settings, UploadCloud, Trash2,
+    MapPin, Music
 } from 'lucide-react';
-import { uploadFile } from '../../lib/verification';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CAMEROON_REGIONS, NW_CAMEROON_TRIBES, MUSIC_GENRES, LANGUAGE_PREFERENCES } from '@/lib/cameroon-data';
 
 const EditProfileForm = ({ initialData, onSave, isSaving }) => {
     const [formData, setFormData] = useState({
@@ -16,11 +17,19 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
         bio: '',
         profileImage: '',
         bannerImage: '',
-        socialLinks: []
+        socialLinks: [],
+        region: '',
+        ethnicGroup: '',
+        village: '',
+        languagePreference: '',
+        locationRegion: '',
+        favoredGenres: [],
+        otherTribe: ''
     });
     const [previews, setPreviews] = useState({ profile: '', banner: '' });
     const [uploading, setUploading] = useState({ profile: false, banner: false });
     const [socialInput, setSocialInput] = useState({ platform: '', url: '' });
+    const [uploadError, setUploadError] = useState('');
 
     useEffect(() => {
         if (initialData) {
@@ -29,7 +38,14 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                 bio: initialData.bio || '',
                 profileImage: initialData.profileImage || '',
                 bannerImage: initialData.bannerImage || '',
-                socialLinks: initialData.socialLinks || []
+                socialLinks: initialData.socialLinks || [],
+                region: initialData.region || '',
+                ethnicGroup: initialData.ethnicGroup || '',
+                village: initialData.village || '',
+                languagePreference: initialData.languagePreference || '',
+                locationRegion: initialData.locationRegion || '',
+                favoredGenres: initialData.favoredGenres || [],
+                otherTribe: initialData.ethnicGroup === 'other' ? (initialData.village || '') : ''
             });
             setPreviews({
                 profile: initialData.profileImage || '',
@@ -38,9 +54,27 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
         }
     }, [initialData]);
 
+    /**
+     * Handles asset uploads directly to Supabase storage via API endpoint
+     */
     const handleAssetUpload = async (type, file) => {
         if (!file) return;
+
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        if (ext === 'heic' || ext === 'heif') {
+            setUploadError('HEIC/HEIF files cannot be displayed in browsers. Please convert to JPG or PNG before uploading.');
+            return;
+        }
         
+        console.log('handleAssetUpload called:', {
+            type,
+            fileName: file.name,
+            fileSize: file.size,
+            fileMimeType: file.type,
+            fileLastModified: file.lastModified
+        });
+        
+        // Show local preview while uploading
         const reader = new FileReader();
         reader.onload = (event) => {
             setPreviews(prev => ({ ...prev, [type]: event.target.result }));
@@ -48,18 +82,47 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
         reader.readAsDataURL(file);
         
         setUploading(prev => ({ ...prev, [type]: true }));
+        setUploadError('');
+
         try {
             const category = type === 'profile' ? 'profile_image' : 'cover_image';
-            const res = await uploadFile(file, category);
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+            uploadFormData.append('category', category);
+
+            console.log('Sending upload request:', {
+                category,
+                fileName: file.name,
+                endpoint: '/api/creator/upload'
+            });
+
+            const res = await fetch('/api/creator/upload', {
+                method: 'POST',
+                body: uploadFormData
+            });
+
+            console.log('Upload response status:', res.status);
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.error('Upload error response:', errorData);
+                throw new Error(errorData.error || 'Upload failed');
+            }
+
+            const data = await res.json();
+            console.log('Upload success:', data);
             
-            if (res && res.url) {
+            if (data.url) {
                 setFormData(prev => ({ 
                     ...prev, 
-                    [type === 'profile' ? 'profileImage' : 'bannerImage']: res.url 
+                    [type === 'profile' ? 'profileImage' : 'bannerImage']: data.url 
                 }));
             }
         } catch (err) {
             console.error('Upload Error:', err);
+            setUploadError(err instanceof Error ? err.message : 'Failed to upload image');
+            // Clear preview on error
+            setPreviews(prev => ({ ...prev, [type]: formData[type === 'profile' ? 'profileImage' : 'bannerImage'] }));
         } finally {
             setUploading(prev => ({ ...prev, [type]: false }));
         }
@@ -81,9 +144,27 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
         }));
     };
 
+    const toggleGenre = (genreValue) => {
+        setFormData(prev => ({
+            ...prev,
+            favoredGenres: prev.favoredGenres.includes(genreValue)
+                ? prev.favoredGenres.filter(g => g !== genreValue)
+                : [...prev.favoredGenres, genreValue]
+        }));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(formData);
+        
+        // If ethnicGroup is "other", use otherTribe as village
+        const submitData = {
+            ...formData,
+            village: formData.ethnicGroup === 'other' ? formData.otherTribe : formData.village,
+            ethnicGroup: formData.ethnicGroup === 'other' ? 'other' : formData.ethnicGroup
+        };
+        
+        delete submitData.otherTribe;
+        onSave(submitData);
     };
 
     return (
@@ -121,7 +202,7 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                                             <UploadCloud size={28} className="text-white" />
                                         </div>
                                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">Change Banner</span>
-                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleAssetUpload('banner', e.target.files[0])} />
+                                        <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleAssetUpload('banner', e.target.files[0])} />
                                     </label>
                                 </div>
 
@@ -168,7 +249,7 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                                         <label className="cursor-pointer flex flex-col items-center gap-2">
                                             <Camera size={24} />
                                             <span className="text-[8px] font-black uppercase tracking-widest">Change</span>
-                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleAssetUpload('profile', e.target.files[0])} />
+                                            <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleAssetUpload('profile', e.target.files[0])} />
                                         </label>
                                     </div>
                                 </div>
@@ -311,6 +392,154 @@ const EditProfileForm = ({ initialData, onSave, isSaving }) => {
                         </div>
                     </div>
                 </section>
+
+                {/* Regional & Cultural Information */}
+                <section className="space-y-6 pt-8">
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                            <MapPin className="w-4 h-4 text-zinc-400" />
+                        </div>
+                        <h2 className="text-xl font-black uppercase tracking-tight">Regional & Cultural Info</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Region</label>
+                            <select 
+                                value={formData.region}
+                                onChange={(e) => setFormData(p => ({ ...p, region: e.target.value }))}
+                                className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                            >
+                                <option value="">Select Region</option>
+                                {CAMEROON_REGIONS.map(region => (
+                                    <option key={region.value} value={region.value}>{region.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Location Region</label>
+                            <select 
+                                value={formData.locationRegion}
+                                onChange={(e) => setFormData(p => ({ ...p, locationRegion: e.target.value }))}
+                                className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                            >
+                                <option value="">Select Location Region</option>
+                                {CAMEROON_REGIONS.map(region => (
+                                    <option key={region.value} value={region.value}>{region.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Ethnic Group / Tribe</label>
+                            <select 
+                                value={formData.ethnicGroup}
+                                onChange={(e) => setFormData(p => ({ ...p, ethnicGroup: e.target.value }))}
+                                className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                            >
+                                <option value="">Select Ethnic Group</option>
+                                {NW_CAMEROON_TRIBES.map(tribe => (
+                                    <option key={tribe.value} value={tribe.value}>{tribe.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {formData.ethnicGroup === 'other' && (
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Please Specify Your Tribe</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.otherTribe}
+                                    onChange={(e) => setFormData(p => ({ ...p, otherTribe: e.target.value }))}
+                                    className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                                    placeholder="Enter your tribe name"
+                                />
+                            </div>
+                        )}
+
+                        {formData.ethnicGroup !== 'other' && (
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Village / Town</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.village}
+                                    onChange={(e) => setFormData(p => ({ ...p, village: e.target.value }))}
+                                    className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                                    placeholder="Your village or town"
+                                />
+                            </div>
+                        )}
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Language Preference</label>
+                            <select 
+                                value={formData.languagePreference}
+                                onChange={(e) => setFormData(p => ({ ...p, languagePreference: e.target.value }))}
+                                className="w-full bg-[#0B0E14] border border-white/5 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:border-red-600/40 transition-all outline-none"
+                            >
+                                <option value="">Select Language</option>
+                                {LANGUAGE_PREFERENCES.map(lang => (
+                                    <option key={lang.value} value={lang.value}>{lang.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Music Preferences */}
+                <section className="space-y-6 pt-8">
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+                            <Music className="w-4 h-4 text-zinc-400" />
+                        </div>
+                        <h2 className="text-xl font-black uppercase tracking-tight">Music Preferences</h2>
+                    </div>
+
+                    <div className="bg-[#0B0E14] border border-white/5 rounded-[2.5rem] p-8">
+                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-6">Select genres you enjoy</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {MUSIC_GENRES.map(genre => (
+                                <button
+                                    key={genre.value}
+                                    type="button"
+                                    onClick={() => toggleGenre(genre.value)}
+                                    className={`px-4 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${
+                                        formData.favoredGenres.includes(genre.value)
+                                            ? 'bg-red-600 text-white border border-red-600'
+                                            : 'bg-zinc-900/50 text-zinc-300 border border-white/5 hover:border-white/10'
+                                    }`}
+                                >
+                                    {genre.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Error Alert */}
+                {uploadError && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="fixed top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-lg mx-auto w-[90%]"
+                    >
+                        <div className="p-4 bg-red-600/20 border border-red-600/50 rounded-[1.5rem] flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <p className="text-sm font-bold text-red-100">{uploadError}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setUploadError('')}
+                                className="text-red-600 hover:text-red-500 transition-colors flex-shrink-0"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Floating Bottom Control Bar */}
                 <motion.div 
