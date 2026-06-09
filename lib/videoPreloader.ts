@@ -34,9 +34,9 @@ export interface CachedVideoMeta {
  * page can look up titles and thumbnails later.
  */
 export async function startVideoPreload(limit = 50): Promise<void> {
-    // Guard: Only run in browser environments with Cache API support
-    if (typeof window === 'undefined' || !('caches' in window)) {
-        console.log('[VideoPreloader] Caches API unsupported. Skipping.');
+    // Guard: Only run in browser environments with Service Worker + Cache API support
+    if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker?.controller) {
+        console.log('[VideoPreloader] SW not ready or unsupported. Skipping preload.');
         return;
     }
 
