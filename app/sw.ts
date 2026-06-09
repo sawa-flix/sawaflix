@@ -1,5 +1,6 @@
+/// <reference lib="webworker" />
 import { defaultCache } from "@serwist/next/worker";
-import { type PrecacheEntry, Serwist, StaleWhileRevalidate, CacheFirst, ExpirationPlugin } from "serwist";
+import { type PrecacheEntry, Serwist, StaleWhileRevalidate, CacheFirst, ExpirationPlugin, RangeRequestsPlugin } from "serwist";
 
 declare global {
   interface WorkerGlobalScope {
@@ -32,9 +33,9 @@ const serwist = new Serwist({
     },
     // 2. Cache External Images and Thumbnails (Cache First)
     {
-      matcher: ({ url }) => 
-        url.hostname.includes('ytimg.com') || 
-        url.hostname.includes('ibb.co') || 
+      matcher: ({ url }) =>
+        url.hostname.includes('ytimg.com') ||
+        url.hostname.includes('ibb.co') ||
         url.hostname.includes('supabase.co') ||
         url.hostname.includes('sanity.io'),
       handler: new CacheFirst({
@@ -44,6 +45,29 @@ const serwist = new Serwist({
             maxEntries: 200,
             maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
           }),
+        ],
+      }),
+    },
+    // 3. TikTok-Style Video Pre-Cache (Cache First + Range Requests)
+    // Targets the new Heavy Backend Proxy. This proxy downloads YouTube streams
+    // and correctly pipes them as real MP4 buffers with 206 Partial Content headers.
+    // RangeRequestsPlugin is highly critical here so the HTML5 Video/ReactPlayer
+    // doesn't break when scrubbing backwards or skipping chunks.
+    {
+      matcher: ({ url }) =>
+        url.pathname.includes('/api/videos/proxy') || // Primary backend MP4 proxy
+        url.hostname.includes('youtube.com') ||
+        url.hostname.includes('googlevideo.com'),    // Fallback best-effort for iframes
+      method: 'GET',
+      handler: new CacheFirst({
+        cacheName: 'sawaflix-video-cache',
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 100,
+            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 Days — auto-rotate stale videos
+            purgeOnQuotaError: true, // Auto-evict if device storage is full
+          }),
+          new RangeRequestsPlugin(), // << CRITICAL for MP4 chunking support
         ],
       }),
     },

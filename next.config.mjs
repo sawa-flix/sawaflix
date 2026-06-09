@@ -26,8 +26,8 @@ const nextConfig = {
       new webpack.NormalModuleReplacementPlugin(
         /^react$/,
         (resource) => {
-          if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
-              resource.context.includes('node_modules' + path.sep + '@sanity')) {
+          if (resource.context.includes('node_modules' + path.sep + 'sanity') ||
+            resource.context.includes('node_modules' + path.sep + '@sanity')) {
             resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
           }
         }
@@ -89,7 +89,7 @@ import withSerwistInit from "@serwist/next";
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
+  disable: false, // Enabled in dev for testing offline features
 });
 
 export default withSerwist(nextConfig);

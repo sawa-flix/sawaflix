@@ -1,7 +1,5 @@
-// import DashboardWrapper from '../../components/Dashboard/DashboardWrapper';
-
 import DashboardWrapper from "../../components/Dashboard/DashboardWrapper";
-import footer from '../../components/Footer';
+import OfflineBanner from "../../components/OfflineBanner";
 
 export const metadata = {
   title: 'Dashboard | SawaFlix',
@@ -11,9 +9,11 @@ export const metadata = {
 export default function DashboardLayout({ children }) {
   return (
     <>
-    <DashboardWrapper>
-      {children}
-    </DashboardWrapper>
+      {/* Network-state supervisor: shows banner when offline, pre-fetches videos when online */}
+      <OfflineBanner />
+      <DashboardWrapper>
+        {children}
+      </DashboardWrapper>
     </>
   );
 }
