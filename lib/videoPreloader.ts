@@ -1,22 +1,22 @@
 /**
  * VideoPreloader — TikTok-style background video pre-fetching engine.
  *
- * When called, this module hits the backend /api/videos/feed endpoint to get
- * a list of the latest Cloudinary video URLs, then downloads each one
- * CONSECUTIVELY (not in parallel) into the Service Worker's 'sawaflix-video-cache'.
- *
- * This means:
- * - Videos are available INSTANTLY from cache on next play.
- * - Consecutive downloads avoid crashing the browser main thread on mobile.
- * - The user can go offline and still watch the pre-fetched content.
+ * This version is HARDENED:
+ * - Singleton Lock: Only one preload loop can run at a time globally.
+ * - Throttled: Deliberate 3-second delay between every download to respect backend rate limits.
+ * - Sequential: Uses a strict for...of loop to ensure zero concurrency during file transfers.
  */
 
 import { BACKEND_URL } from './apiConfig';
 
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 const FEED_CACHE_NAME = 'sawaflix-video-cache';
 const METADATA_KEY = 'sawaflix_cached_video_metadata';
-// Point to the dedicated backend proxy route that returns MP4 surrogate urls
 const FEED_API_URL = `${BACKEND_URL}/api/videos/feed`;
+
+// Global singleton lock
+let isGloballyPreloading = false;
 
 export interface CachedVideoMeta {
     id: string;
@@ -33,22 +33,27 @@ export interface CachedVideoMeta {
  * Service Worker cache. Saves metadata to localStorage so the Downloads
  * page can look up titles and thumbnails later.
  */
-export async function startVideoPreload(limit = 50): Promise<void> {
-    // Guard: Only run in browser environments with Service Worker + Cache API support
-    if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker?.controller) {
-        console.log('[VideoPreloader] SW not ready or unsupported. Skipping preload.');
+export async function startVideoPreload(limit = 20): Promise<void> {
+    // Guard: Only run in browser environments with Cache API support
+    if (typeof window === 'undefined' || !('caches' in window)) {
         return;
     }
 
+    // Singleton lock: return immediately if already running
+    if (isGloballyPreloading) {
+        console.log('[VideoPreloader] Preloader already active. Skipping duplicate run.');
+        return;
+    }
+
+    isGloballyPreloading = true;
+
     try {
         console.log(`[VideoPreloader] Fetching video feed (limit=${limit})...`);
-
-        const res = await fetch(`${FEED_API_URL}?limit=${limit}`, {
-            headers: { 'Cache-Control': 'no-cache' }, // Always get a fresh feed list
-        });
+        const res = await fetch(`${FEED_API_URL}?limit=${limit}`);
 
         if (!res.ok) {
             console.warn('[VideoPreloader] Feed API returned', res.status);
+            isGloballyPreloading = false;
             return;
         }
 
@@ -57,56 +62,73 @@ export async function startVideoPreload(limit = 50): Promise<void> {
 
         if (videos.length === 0) {
             console.log('[VideoPreloader] No videos in feed to preload.');
+            isGloballyPreloading = false;
             return;
         }
 
-        console.log(`[VideoPreloader] Starting background download of ${videos.length} videos...`);
+        console.log(`[VideoPreloader] Starting SEQUENTIAL background download of ${videos.length} videos...`);
         const cache = await caches.open(FEED_CACHE_NAME);
 
-        // Load existing metadata so we can merge rather than overwrite
         let existingMeta: Record<string, CachedVideoMeta> = {};
         try {
             const stored = localStorage.getItem(METADATA_KEY);
             if (stored) existingMeta = JSON.parse(stored);
         } catch (_) { }
 
-        // Download each video CONSECUTIVELY to be lightweight on memory + CPU
+        // Strictly sequential loop
         for (const video of videos) {
             if (!video.videoUrl) continue;
 
             try {
-                // Check if already cached to avoid redundant downloads
+                // Ensure https to avoid redirects
+                if (video.videoUrl.startsWith('http://') && !video.videoUrl.includes('localhost')) {
+                    video.videoUrl = video.videoUrl.replace('http://', 'https://');
+                }
+
                 const existing = await cache.match(video.videoUrl);
                 if (existing) {
                     console.log(`[VideoPreloader] Already cached: ${video.title}`);
                 } else {
+                    // Start download
                     console.log(`[VideoPreloader] Downloading: ${video.title}`);
-                    await cache.add(new Request(video.videoUrl, { mode: 'cors' }));
-                }
+                    const proxyRes = await fetch(video.videoUrl, { mode: 'cors' });
 
-                // Store metadata so the Downloads page can display title + thumbnail
-                existingMeta[video.id] = {
-                    ...video,
-                    cachedAt: Date.now(),
-                };
+                    if (!proxyRes.ok) {
+                        const errorMsg = await proxyRes.text().catch(() => 'No error body');
+                        console.warn(`[VideoPreloader] Backend Proxy failed (${proxyRes.status}) for ${video.title}:`, errorMsg);
+                    } else {
+                        // Store the stream. This completes when the whole file is downloaded.
+                        await cache.put(video.videoUrl, proxyRes);
+
+                        // Update metadata only on success
+                        existingMeta[video.id] = {
+                            ...video,
+                            cachedAt: Date.now(),
+                        };
+                        // Save metadata incrementally so we don't lose progress on page refresh
+                        localStorage.setItem(METADATA_KEY, JSON.stringify(existingMeta));
+                        console.log(`[VideoPreloader] Successfully cached: ${video.title}`);
+                    }
+                }
             } catch (err) {
-                // A single video failing (e.g., CORS, removed from Cloudinary) should not
-                // stop the rest from downloading
                 console.warn(`[VideoPreloader] Failed to cache ${video.title}:`, err);
             }
+
+            // MANDATORY THROTTLE: Wait 3 seconds between requests (success OR failure)
+            // to respect backend rate limits and prevent "bulky" bursts.
+            await delay(3000);
         }
 
-        // Persist metadata for the Downloads page to read
-        localStorage.setItem(METADATA_KEY, JSON.stringify(existingMeta));
-        console.log(`[VideoPreloader] Pre-fetch complete. ${Object.keys(existingMeta).length} videos available offline.`);
+        console.log(`[VideoPreloader] Pre-fetch cycle complete.`);
     } catch (err) {
         console.error('[VideoPreloader] Fatal error during preload:', err);
+    } finally {
+        isGloballyPreloading = false;
     }
 }
 
 /**
  * Read currently cached video metadata from localStorage.
- * Used by the Downloads page to render the offline video list.
  */
 export function getCachedVideoMetadata(): CachedVideoMeta[] {
     if (typeof window === 'undefined') return [];

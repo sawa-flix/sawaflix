@@ -17,10 +17,10 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     ...defaultCache,
-    // 1. Cache SawaFlix Backend API Requests (Stale While Revalidate)
+    // 1. Cache SawaFlix Content API Requests (Stale While Revalidate)
     // This allows instant UI loading from cache while fetching fresh data
     {
-      matcher: ({ url }) => url.pathname.startsWith('/api/content') || url.pathname.startsWith('/api/videos'),
+      matcher: ({ url }) => url.pathname.startsWith('/api/content') || (url.pathname.startsWith('/api/videos') && !url.pathname.includes('/api/videos/proxy')),
       handler: new StaleWhileRevalidate({
         cacheName: 'sawaflix-api-cache',
         plugins: [
