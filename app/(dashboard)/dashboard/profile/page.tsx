@@ -7,8 +7,9 @@ import { MusicFeatures } from '../../../../components/MusicFeatures';
 import { 
     Users, Play, Video, MapPin, Calendar, 
     Award, Share2, Edit3, Settings, 
-    ArrowRight, Heart, ListMusic
+    ArrowRight, Heart, ListMusic, Film
 } from 'lucide-react';
+import { MOVIES_DATA } from '../../../../components/Movie';
 
 type UserProfileData = {
   id: string;
@@ -223,6 +224,53 @@ const UserProfilePage = async () => {
                 </div>
               </div>
             )}
+
+            {/* Recently Watched Movies */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-2xl font-black uppercase tracking-tight">Recently Watched Movies</h3>
+                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">Jump right back into the action</p>
+                    </div>
+                    <Link href="/dashboard/movie" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-600 hover:text-red-500 transition-all">
+                        View All Movies <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {MOVIES_DATA.slice(0, 4).map((movie) => (
+                        <div key={movie.id} className="relative group bg-zinc-900/50 rounded-2xl overflow-hidden border border-white/5 hover:border-red-600/30 transition-all">
+                            <div className="relative aspect-[16/9] w-full">
+                                <Image
+                                    src={movie.thumbnail || movie.coverUrl}
+                                    alt={movie.title}
+                                    fill
+                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                    unoptimized
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center pl-1">
+                                        <Play className="w-5 h-5 text-white" />
+                                    </div>
+                                </div>
+                                <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                    <Film className="w-3 h-3" /> Movie
+                                </div>
+                            </div>
+                            <div className="p-4">
+                                <h4 className="font-bold text-sm line-clamp-1">{movie.title}</h4>
+                                <div className="flex items-center justify-between mt-2">
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{movie.duration || '2h 15m'}</p>
+                                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest">{Math.floor(Math.random() * 50) + 40}% Watched</p>
+                                </div>
+                                <div className="w-full h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
+                                    <div className="h-full bg-red-600" style={{ width: `${Math.floor(Math.random() * 50) + 40}%` }} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             {/* Ecosystem Header */}
             <div className="flex items-center justify-between">
