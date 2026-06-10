@@ -1,268 +1,275 @@
-// components/VideoUpload.tsx
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { BACKEND_URL } from '../../../../lib/apiConfig';
-import { createClient } from '../../../../utils/supabase/client';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Save,
+  Link2,
+  FileText,
+  Tag,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  X,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Music,
+  Video,
+  ArrowLeft,
+} from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+import { contentService } from "@/services/contentService";
+import ThumbnailUploader from "@/components/Dashboard/ThumbnailUploader";
+import Link from "next/link";
 
-export default function VideoUpload() {
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const supabase = createClient();
+export default function EditContentPage() {
+  const router = useRouter();
+  const { id } = useParams();
 
-  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    setSuccess(false);
-    
-    const formData = new FormData(event.currentTarget);
-    const file = fileInputRef.current?.files?.[0];
-    const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
+  // --- UI States ---
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
 
-    // Validation
-    if (!file) {
-      setError('Please select a video file');
-      return;
-    }
+  // --- Form State ---
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    category: "music",
+  });
+  const [tags, setTags] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
 
-    if (!title.trim() || !description.trim()) {
-      setError('Please fill in required fields');
-      return;
-    }
+  // Fetch initial data
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        // Since we don't have a getSingleContent in contentService yet, we'll fetch from the aggregator or direct endpoint
+        // For now, let's assume the user has the ID and we can fetch it.
+        // If not available, we can redirect back.
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com'}/api/content/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setForm({
+            title: data.title || "",
+            description: data.description || "",
+            category: data.category || "music",
+          });
+          setTags(data.tags || "");
+          if (data.thumbnail) setThumbnail(data.thumbnail);
+        } else {
+          showToast("error", "Failed to load content details.");
+        }
+      } catch (err) {
+        showToast("error", "Connection error.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchContent();
+  }, [id]);
 
-    if (!file.type.startsWith('video/')) {
-      setError('Please select a valid video file');
-      return;
-    }
+  const handleInput = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-    setUploading(true);
-    
-    // File size check (e.g., 100MB limit)
-    const MAX_SIZE = 100 * 1024 * 1024; // 100MB
-    if (file && file.size > MAX_SIZE) {
-      setError(`Video file is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Max allowed is 100MB.`);
-      setUploading(false);
-      return;
-    }
+  const showToast = (type, text) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 4000);
+  };
 
-    setProgress(50); // Show partial progress while waiting for backend Cloudinary upload
-
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
     try {
+      const { createClient } = require('@/utils/supabase/client');
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      
-      // Pass the raw FormData directly to the backend
-      let res;
-      try {
-        res = await fetch(`${BACKEND_URL}/api/content/movie/upload`, {
-          method: 'POST',
-          headers: {
-              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
-          body: formData,
-        });
-      } catch (fetchErr) {
-        console.warn("[Upload] Backend unreachable, falling back to Supabase direct upload", fetchErr);
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not authenticated for fallback upload");
 
-        // 1. Upload Video File
-        const ext = file.name.split('.').pop();
-        const path = `${user.id}/movies/${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(path, file);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage.from('videos').getPublicUrl(path);
-
-        // 2. Insert into movies table
-        const { error: dbError } = await supabase
-          .from('movies')
-          .insert({
-            uploaded_by: user.id,
-            title: title,
-            description: description,
-            video_url: publicUrl,
-            thumbnail: publicUrl.replace(/\.[^/.]+$/, ".jpg"), // Crude thumbnail fallback
-            is_featured: formData.get('is_featured') === 'on',
-            producer_name: (formData.get('producer_name') as string) || null,
-            featured_actors: (formData.get('featured_actors') as string) || null,
-            release_date: (formData.get('release_date') as string) || null,
-            created_at: new Date().toISOString()
-          });
-
-        if (dbError) throw dbError;
-        res = { ok: true, json: async () => ({ success: true }) };
-      }
-
-      const result = await res.json();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com'}/api/content/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ title: form.title }),
+      });
 
       if (!res.ok) {
-        throw new Error(result.error || 'Backend failed to upload content to Cloudinary');
+        let errMsg = `Update failed with status: ${res.status}`;
+        try {
+          const errData = await res.json();
+          errMsg = errData.error || errData.message || errMsg;
+        } catch(e) {}
+        throw new Error(errMsg);
       }
 
-      setProgress(100);
-      setSuccess(true);
+      const responseData = await res.json();
+      console.log("Update Success:", responseData);
       
-      if (formRef.current) {
-        formRef.current.reset();
-      }
-      
-      setTimeout(() => {
-        setProgress(0);
-      }, 2000);
+      showToast("success", "Changes saved successfully!");
+      setTimeout(() => router.push("/creator-dashboard/content"), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-      setProgress(0);
+      console.error("Update Error:", err);
+      showToast("error", err.message || "Failed to update content.");
     } finally {
-      setUploading(false);
+      setSaving(false);
     }
   };
 
+  const inputClass = "w-full bg-[#080E1C] border border-gray-800 rounded-xl py-3.5 px-5 text-sm text-white focus:border-red-500/50 outline-none transition-all placeholder:text-gray-600";
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 text-red-600 animate-spin" />
+        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Loading content...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full bg-navy-900 p-6 rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-white">Upload Video</h2>
+    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       
-      <form ref={formRef} onSubmit={handleUpload} className="space-y-4">
-        {/* Required Fields */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-white mb-1">
-            Title *
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            required
-            className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 bg-navy-800 text-white placeholder-gray-400"
-            placeholder="Enter video title"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-white mb-1">
-            Description *
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={3}
-            required
-            className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 bg-navy-800 text-white placeholder-gray-400"
-            placeholder="Enter video description"
-          />
-        </div>
-
-        {/* Optional Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="release_date" className="block text-sm font-medium text-white mb-1">
-              Release Date
-            </label>
-            <input
-              type="date"
-              id="release_date"
-              name="release_date"
-              className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 bg-navy-800 text-white"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="producer_name" className="block text-sm font-medium text-white mb-1">
-              Producer Name
-            </label>
-            <input
-              type="text"
-              id="producer_name"
-              name="producer_name"
-              className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 bg-navy-800 text-white placeholder-gray-400"
-              placeholder="Enter producer name"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="featured_actors" className="block text-sm font-medium text-white mb-1">
-            Featured Actors
-          </label>
-          <input
-            type="text"
-            id="featured_actors"
-            name="featured_actors"
-            className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 bg-navy-800 text-white placeholder-gray-400"
-            placeholder="Enter featured actors (comma separated)"
-          />
-        </div>
-
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="is_featured"
-            name="is_featured"
-            className="h-4 w-4 text-pink-500 focus:ring-pink-500 border-gray-600 bg-navy-800 rounded"
-          />
-          <label htmlFor="is_featured" className="ml-2 block text-sm text-white">
-            Mark as Featured
-          </label>
-        </div>
-
-        <div>
-          <label htmlFor="video" className="block text-sm font-medium text-white mb-1">
-            Video File * (Max 100MB)
-          </label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            id="video"
-            name="video"
-            accept="video/*"
-            required
-            className="w-full px-3 py-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-pink-500 file:text-white hover:file:bg-pink-600 bg-navy-800 text-white"
-          />
-        </div>
-
-        {uploading && (
-          <div className="space-y-2">
-            <div className="w-full bg-gray-700 rounded-full h-2.5">
-              <div
-                className="bg-pink-500 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            <p className="text-sm text-white">
-              {progress < 100 ? `Uploading... ${Math.round(progress)}%` : 'Finalizing upload...'}
-            </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-3 bg-red-900 border border-red-700 rounded-md">
-            <p className="text-red-200 text-sm">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="p-3 bg-green-900 border border-green-700 rounded-md">
-            <p className="text-green-200 text-sm">Video uploaded successfully!</p>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={uploading}
-          className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-navy-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      {/* Header Section */}
+      <div className="flex flex-col items-center text-center pt-8 space-y-3">
+        <Link 
+            href="/creator-dashboard/content"
+            className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 text-sm font-bold uppercase tracking-widest"
         >
-          {uploading ? 'Uploading...' : 'Upload Video'}
-        </button>
-      </form>
+            <ArrowLeft size={16} /> Back to Library
+        </Link>
+        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 mb-2">
+          <LinkIcon className="text-blue-500" size={32} />
+        </div>
+        <h1 className="text-4xl font-black text-white tracking-tight">Edit Content</h1>
+        <p className="text-gray-400 max-w-md mx-auto">Update your content details and keep your audience engaged.</p>
+      </div>
+
+      <div className="space-y-12">
+        {/* Main Section */}
+        <section>
+          <div className="flex items-center gap-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-200">Content Details</h2>
+            <div className="h-[1px] flex-1 bg-gray-800" />
+          </div>
+
+          <form onSubmit={handleUpdate} className="bg-[#0E1628]/40 border border-gray-800/60 rounded-3xl p-8 backdrop-blur-md space-y-8">
+            <div className="grid grid-cols-1 gap-y-8">
+              
+              {/* Title */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-300 ml-1 flex items-center gap-2">
+                  <FileText size={16} className="text-gray-500" />
+                  Title*
+                </label>
+                <input
+                  name="title"
+                  value={form.title}
+                  onChange={handleInput}
+                  placeholder="Enter title"
+                  className={inputClass}
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-300 ml-1 flex items-center gap-2">
+                  <FileText size={16} className="text-gray-500" />
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleInput}
+                  rows={4}
+                  placeholder="Tell your audience what this content is about..."
+                  className={`${inputClass} resize-none leading-relaxed`}
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-300 ml-1 flex items-center gap-2">
+                  <Tag size={16} className="text-gray-500" />
+                  Tags (comma separated)
+                </label>
+                <input
+                  name="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g., cultural, dance, upbeat"
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Thumbnail */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/50">
+                <label className="text-sm font-bold text-gray-300 ml-1">Thumbnail Upload</label>
+                <ThumbnailUploader
+                  file={thumbnail}
+                  onSelect={setThumbnail}
+                  onRemove={() => setThumbnail(null)}
+                  label="Thumbnail"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-4 pt-6">
+              <Link
+                href="/creator-dashboard/content"
+                className="px-8 h-12 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm border border-white/5"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-12 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-600/20 disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className={`fixed bottom-10 right-10 z-[100] p-6 rounded-2xl border flex items-center gap-4 shadow-2xl backdrop-blur-xl ${toast.type === "success"
+              ? "bg-green-500/10 border-green-500/20 text-green-400"
+              : "bg-red-500/10 border-red-500/20 text-red-400"
+              }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${toast.type === "success" ? "bg-green-500/20" : "bg-red-500/20"}`}>
+              {toast.type === "success" ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+            </div>
+            <p className="text-sm font-medium">{toast.text}</p>
+            <button onClick={() => setToast(null)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors ml-4">
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
