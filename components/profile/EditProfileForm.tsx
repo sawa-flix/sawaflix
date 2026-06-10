@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { UserProfile } from './types';
-import { Save, X, Loader2, AlertCircle } from 'lucide-react';
+import { Save, X, Loader2, AlertCircle, Upload, Camera, User } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 interface EditProfileFormProps {
   user: UserProfile;
@@ -10,13 +11,7 @@ interface EditProfileFormProps {
   onCancel: () => void;
 }
 
-/**
- * EditProfileForm Component
- * Form for editing user profile information with validation
- * Handles fullName, email, phoneNumber, region, country, language, bio
- */
-
-function EditProfileForm({
+export default function EditProfileForm({
   user,
   onSave,
   onCancel,
@@ -30,11 +25,22 @@ function EditProfileForm({
     language: user.language,
     bio: user.bio,
     avatar: user.avatar,
+    coverImage: user.coverImage,
   });
+
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>(user.avatar || '');
+  const [coverPreview, setCoverPreview] = useState<string>(user.coverImage || '');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const supabase = createClient();
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -53,20 +59,34 @@ function EditProfileForm({
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
 
-    if (!formData.country?.trim()) {
-      newErrors.country = 'Country is required';
-    }
-
-    if (!formData.language?.trim()) {
-      newErrors.language = 'Language preference is required';
-    }
-
     if (formData.bio && formData.bio.length > 500) {
       newErrors.bio = 'Bio must be 500 characters or less';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const uploadFile = async (file: File, type: 'avatar' | 'cover'): Promise<string | null> => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Not authenticated');
+
+      const ext = file.name.split('.').pop();
+      const path = `${authUser.id}/images/${type}_${Date.now()}.${ext}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('videos') // Reusing videos bucket since we know it exists from video uploads
+        .upload(path, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('videos').getPublicUrl(path);
+      return publicUrl;
+    } catch (err) {
+      console.error(`Upload error for ${type}:`, err);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -78,7 +98,25 @@ function EditProfileForm({
 
     setIsLoading(true);
     try {
-      await onSave(formData);
+      let finalAvatarUrl = formData.avatar;
+      let finalCoverUrl = formData.coverImage;
+
+      // Upload files if new ones are selected
+      if (avatarFile) {
+        const url = await uploadFile(avatarFile, 'avatar');
+        if (url) finalAvatarUrl = url;
+      }
+      if (coverFile) {
+        const url = await uploadFile(coverFile, 'cover');
+        if (url) finalCoverUrl = url;
+      }
+
+      await onSave({
+        ...formData,
+        avatar: finalAvatarUrl,
+        coverImage: finalCoverUrl,
+      });
+      
       setSuccessMessage('Profile updated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
@@ -101,6 +139,22 @@ function EditProfileForm({
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Quick preview
+    const previewUrl = URL.createObjectURL(file);
+    
+    if (type === 'avatar') {
+      setAvatarFile(file);
+      setAvatarPreview(previewUrl);
+    } else {
+      setCoverFile(file);
+      setCoverPreview(previewUrl);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Success Message */}
@@ -119,6 +173,62 @@ function EditProfileForm({
         </div>
       )}
 
+      {/* Profile Images Section */}
+      <div className="space-y-4">
+        <label className="block text-sm font-semibold text-gray-300">
+          Profile Images
+        </label>
+        
+        {/* Cover Image Upload */}
+        <div className="relative w-full h-40 md:h-48 rounded-xl overflow-hidden bg-[#0E121A] border border-white/10 group">
+          {coverPreview ? (
+            <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-zinc-900/50 flex flex-col items-center justify-center opacity-50">
+              <Camera size={24} className="text-zinc-500 mb-2" />
+              <span className="text-xs text-zinc-500 font-medium">Add Cover Photo</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <button 
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md rounded-lg text-white text-xs font-semibold hover:bg-black/80 transition"
+             >
+                <Upload size={14} /> Change Cover
+             </button>
+          </div>
+          <input 
+            type="file" 
+            ref={coverInputRef}
+            onChange={(e) => handleFileChange(e, 'cover')}
+            accept="image/*" 
+            className="hidden" 
+          />
+        </div>
+
+        {/* Avatar Upload (overlapping cover visually) */}
+        <div className="relative -mt-16 ml-6 w-24 h-24 rounded-full border-4 border-[#0B0E14] bg-zinc-800 shadow-xl group">
+          {avatarPreview ? (
+             <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover rounded-full" />
+          ) : (
+             <div className="w-full h-full flex flex-col items-center justify-center rounded-full text-zinc-500">
+                <User size={30} />
+             </div>
+          )}
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+             <Camera size={20} className="text-white" />
+          </div>
+          <input 
+            type="file" 
+            ref={avatarInputRef}
+            onChange={(e) => handleFileChange(e, 'avatar')}
+            accept="image/*" 
+            className="hidden" 
+          />
+        </div>
+      </div>
+
       {/* Full Name */}
       <div>
         <label className="block text-sm font-semibold text-gray-300 mb-2">
@@ -132,7 +242,7 @@ function EditProfileForm({
           className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
             errors.fullName
               ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
+              : 'border-white/10 focus:border-amber-500'
           } focus:outline-none`}
           placeholder="Enter your full name"
         />
@@ -154,33 +264,13 @@ function EditProfileForm({
           className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
             errors.email
               ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
+              : 'border-white/10 focus:border-amber-500'
           } focus:outline-none`}
           placeholder="your.email@example.com"
         />
         {errors.email && (
           <p className="text-red-400 text-xs mt-1">{errors.email}</p>
         )}
-      </div>
-
-      {/* Profile Image URL */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
-          Profile Image URL (Optional)
-        </label>
-        <div className="flex gap-4 items-center">
-          {formData.avatar && (
-            <img src={formData.avatar} alt="Avatar" className="w-12 h-12 rounded-full object-cover border border-white/20 shrink-0 bg-black" />
-          )}
-          <input
-            type="url"
-            name="avatar"
-            value={formData.avatar || ''}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#CE1126] focus:outline-none transition"
-            placeholder="https://example.com/your-image.jpg"
-          />
-        </div>
       </div>
 
       {/* Phone Number */}
@@ -196,7 +286,7 @@ function EditProfileForm({
           className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
             errors.phoneNumber
               ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
+              : 'border-white/10 focus:border-amber-500'
           } focus:outline-none`}
           placeholder="+1 (555) 123-4567"
         />
@@ -216,7 +306,7 @@ function EditProfileForm({
             name="region"
             value={formData.region || ''}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#CE1126] focus:outline-none transition"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none transition"
             placeholder="e.g., North America"
           />
         </div>
@@ -230,16 +320,9 @@ function EditProfileForm({
             name="country"
             value={formData.country || ''}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
-              errors.country
-                ? 'border-red-600/50 focus:border-red-600'
-                : 'border-white/10 focus:border-[#CE1126]'
-            } focus:outline-none`}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-amber-500 focus:outline-none transition"
             placeholder="United States"
           />
-          {errors.country && (
-            <p className="text-red-400 text-xs mt-1">{errors.country}</p>
-          )}
         </div>
       </div>
 
@@ -252,11 +335,7 @@ function EditProfileForm({
           name="language"
           value={formData.language || ''}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white transition ${
-            errors.language
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+          className="w-full px-4 py-3 bg-[#0E121A] border border-white/10 rounded-lg text-white transition focus:border-amber-500 focus:outline-none [&>option]:bg-[#0E121A]"
         >
           <option value="">Select a language...</option>
           <option value="English">English</option>
@@ -267,9 +346,6 @@ function EditProfileForm({
           <option value="Japanese">Japanese</option>
           <option value="Arabic">Arabic</option>
         </select>
-        {errors.language && (
-          <p className="text-red-400 text-xs mt-1">{errors.language}</p>
-        )}
       </div>
 
       {/* Bio */}
@@ -286,7 +362,7 @@ function EditProfileForm({
           className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 resize-none transition ${
             errors.bio
               ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
+              : 'border-white/10 focus:border-amber-500'
           } focus:outline-none`}
           placeholder="Tell us about yourself..."
         />
@@ -313,11 +389,11 @@ function EditProfileForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 px-6 py-3 bg-[#CE1126] rounded-lg text-white font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-1 px-6 py-3 bg-amber-500 rounded-lg text-black font-bold hover:bg-amber-400 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin text-black" />
               Saving...
             </>
           ) : (
@@ -331,5 +407,3 @@ function EditProfileForm({
     </form>
   );
 }
-
-export default EditProfileForm;

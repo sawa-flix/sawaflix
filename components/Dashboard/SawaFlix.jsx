@@ -18,13 +18,19 @@ import { useMusic } from '../MusicContext';
 import FavoriteButton from '../common/FavoriteButton';
 import { playbackService } from '@/services/playbackService';
 import { PremiumPaywall } from '../PremiumPaywall';
+import DashboardLanding from './DashboardLanding';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",    label: "Sawas",   query: "Cameroon shorts viral 2026" },
-  { id: "music",  label: "Music",   query: "Cameroon music shorts hits" },
-  { id: "comedy", label: "Comedy",  query: "Cameroon comedy shorts" },
-  { id: "news",   label: "News",    query: "Cameroon news shorts today" },
+  { id: "all",           label: "All",          query: "Cameroon shorts viral 2026" },
+  { id: "reels",         label: "Reels",        query: "Cameroon trending reels 2026" },
+  { id: "news",          label: "News",         query: "Cameroon news shorts today" },
+  { id: "comedy",        label: "Comedy",       query: "Cameroon comedy shorts" },
+  { id: "tourism",       label: "Tourism",      query: "Cameroon tourism travel shorts" },
+  { id: "music",         label: "Music",        query: "Cameroon music shorts hits" },
+  { id: "heritage",      label: "Heritage",     query: "Cameroon heritage history shorts" },
+  { id: "culture",       label: "Culture",      query: "Cameroon culture tradition shorts" },
+  { id: "cinema",        label: "Cinema",       query: "Cameroon cinema movies shorts" },
+  { id: "announcement",  label: "Announcement", query: "Cameroon news announcement shorts" },
 ];
 
 const HERO_IMAGES = [
@@ -908,10 +914,17 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     setActiveVideoId(video.id);
     setShowShorts(true);
     setTimeout(() => {
+      // Auto-fullscreen request
+      const el = feedContainerRef.current || document.documentElement;
+      if (el) {
+        const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (requestMethod) requestMethod.call(el).catch(err => console.warn("Auto fullscreen prevented:", err));
+      }
+      
       if (discoverRef.current) {
         discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 80);
+    }, 150);
   };
 
   // Handle direct video navigation from videoId prop
@@ -1026,139 +1039,40 @@ function SawaFlixContent({ videoId: videoIdProp }) {
         )}
       </AnimatePresence>
 
-      <div className={`flex-1 pt-0 sm:pt-2 ${selectedVideo ? 'p-0' : 'p-2 sm:p-6 lg:p-8'}`}>
+      <div className={`flex-1 pt-0 sm:pt-2 ${selectedVideo ? 'p-0' : 'p-2 sm:p-6 lg:p-8'}`} style={!selectedVideo ? { zoom: 0.9 } : undefined}>
         {!selectedVideo && (
-          <>
-            <div className="sticky top-0 z-40 bg-[#0B0E14] py-3 mb-3 flex items-center justify-start overflow-x-auto no-scrollbar border-b border-white/5">
-          <div className="inline-flex items-center gap-3">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => { 
-                  setActiveCategory(cat.id); 
-                  setHeroIndex(0); 
-                  setSelectedVideo(null);
-                  setShowShorts(true);
-                }}
-                className={`px-6 py-2 rounded-xl text-sm font-medium tracking-tight transition-all duration-300 cursor-pointer shadow-lg ${
-                  activeCategory === cat.id
-                    ? 'bg-white text-black scale-105'
-                    : 'bg-white/5 text-[#AAAAAA] hover:bg-white/10 hover:text-white border border-white/5'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {loading && videos.length === 0 ? (
-          <div className="w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] bg-white/5 animate-pulse mb-8 sm:mb-16" />
-        ) : (
-          <section className="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[21/9] sm:rounded-[3rem] overflow-hidden mb-8 sm:mb-16 group shadow-2xl border-y sm:border border-white/5 bg-black">
-            {/* Static Cover Image */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={heroImgIndex}
-                  src={HERO_IMAGES[heroImgIndex]}
-                  alt="SawaFlix Cover"
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 1.2, ease: "easeInOut" }}
-                  className="w-full h-full object-cover"
-                />
-              </AnimatePresence>
-              {/* Removed dark overlay to make banner clearer */}
-              
-              {/* Slide Indicators */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-                {HERO_IMAGES.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => { e.stopPropagation(); setHeroImgIndex(i); }}
-                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${heroImgIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/30'}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {!heroPlaying && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
-                <motion.button
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handlePlayNow}
-                  className="w-24 h-24 sm:w-32 sm:h-32 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group relative overflow-hidden transition-all duration-500 cursor-pointer"
-                >
-                  <div className="absolute inset-0 bg-red-600 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
-                  <Play size={42} className="text-white group-hover:text-white relative z-10 ml-2 fill-current transition-colors duration-500" />
-                  
-                  {/* Pulsing Outer Ring */}
-                  <div className="absolute inset-0 border-4 border-white/50 rounded-full animate-ping opacity-20" />
-                </motion.button>
-                
-                <div className="mt-8 text-center space-y-1 pointer-events-none">
-                  <h2 className="text-white text-xl sm:text-3xl font-medium tracking-tight drop-shadow-2xl">
-                    {activeCategory === 'music' ? 'Music Hits' : 'Exclusive Vibes'}
-                  </h2>
-                  <p className="text-white/70 text-xs sm:text-sm font-medium tracking-tight">
-                    Discover the next big thing on SawaFlix
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleHeroPrev}
-              className="absolute left-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              onClick={handleHeroNext}
-              className="absolute right-5 top-1/2 -translate-y-1/2 p-3.5 bg-black/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-all border border-white/10 hover:bg-white/10 z-30"
-            >
-              <ChevronRight size={22} />
-            </button>
-          </section>
-        )}
-          </>
+          <DashboardLanding
+            onPlayReel={handleCardClick}
+            reels={videos}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+          />
         )}
 
-        {showShorts && (
-          <section id="discover-section" ref={feedContainerRef} className={selectedVideo ? "h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-black" : "mb-12 scroll-mt-20"}>
-            <div className={`flex flex-row items-center justify-between gap-4 shrink-0 ${selectedVideo ? 'mb-4 px-4' : 'mb-8'}`}>
-            <div className="flex items-center">
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
-                {isSearchMode && !selectedVideo
-                  ? <div className="flex items-center gap-3">
-                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
-                      <>Results for <span className="text-white/60 font-medium">"{urlQuery}"</span></>
-                    </div>
-                  : isSearchMode && selectedVideo
-                  ? <div className="flex items-center gap-3">
-                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
-                      <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
-                    </div>
-                  : (
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-8 h-8 sm:w-10 sm:h-10">
-                        <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+        {showShorts && selectedVideo && (
+          <section id="discover-section" ref={feedContainerRef} className="h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-black">
+            <div className="flex flex-row items-center justify-between gap-4 shrink-0 mb-4 px-4">
+              <div className="flex items-center">
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+                  {isSearchMode
+                    ? <div className="flex items-center gap-3">
+                        <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                        <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
                       </div>
-                      <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
-                        {currentCategoryObj?.label}
-                      </span>
-                    </div>
-                  )
-                }
-              </h2>
-            </div>
+                    : (
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+                          <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+                        </div>
+                        <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
+                          {currentCategoryObj?.label || 'Reels'}
+                        </span>
+                      </div>
+                    )
+                  }
+                </h2>
+              </div>
 
-            {selectedVideo && (
               <button
                 onClick={() => {
                   if (videoId) {
@@ -1184,37 +1098,8 @@ function SawaFlixContent({ videoId: videoIdProp }) {
               >
                 <ChevronLeft size={14} /> Back
               </button>
-            )}
-          </div>
+            </div>
 
-          {!selectedVideo ? (
-            <>
-              {error && (
-                <div className="text-center py-10 bg-red-500/10 rounded-[2rem] border border-red-500/20 mb-8">
-                  <p className="text-red-500 font-bold text-sm">{error}</p>
-                </div>
-              )}
-              <div className={activeCategory === 'all' 
-                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10" 
-                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10"
-              }>
-                {loading && videos.length === 0 ? (
-                  Array.from({ length: 12 }).map((_, i) => (
-                    <SkeletonCard key={i} isShort={activeCategory === 'all'} />
-                  ))
-                ) : (
-                  videos.map(v => (
-                    <SearchResultCard 
-                      key={v.id} 
-                      video={v} 
-                      onPlay={handleCardClick}
-                      isShort={activeCategory === 'all'}
-                    />
-                  ))
-                )}
-              </div>
-            </>
-          ) : (
             <div 
               ref={feedScrollRef}
               className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent"
@@ -1237,8 +1122,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
                 </div>
               ))}
             </div>
-          )}
-        </section>
+          </section>
         )}
       </div>
 

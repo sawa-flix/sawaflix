@@ -108,6 +108,7 @@ export default function EditProfilePage(): React.ReactElement {
           email: data.email,
           bio: data.bio,
           profile_image_url: data.avatar,
+          cover_image_url: data.coverImage,
         })
         .eq('id', authUser.id);
 
@@ -156,7 +157,7 @@ export default function EditProfilePage(): React.ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white">
+    <div className="min-h-screen bg-[#06080C] text-white font-sans pb-32" style={{ zoom: '0.85' }}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-12">
         {/* Header */}
         <div className="mb-12">

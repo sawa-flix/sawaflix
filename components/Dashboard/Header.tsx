@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -13,6 +14,11 @@ import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import NotificationPanel from './NotificationPanel';
+import { YouTubeApiService } from '../../services/youtubeApi';
+import { getStories } from '../../lib/sanity/queries';
+import { urlFor } from '../../lib/sanity/client';
+
+const youtubeApi = new YouTubeApiService();
 
 type UserProfileData = {
   username: string | null;
@@ -27,6 +33,9 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchResults, setSearchResults] = useState<{videos: any[], stories: any[]}>({ videos: [], stories: [] });
+  const [isSearching, setIsSearching] = useState(false);
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
@@ -35,7 +44,6 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const { notifications, unreadCount, markRead, markAllRead, handleNotificationClick } = hideSearch 
     ? { ...adminNotificationContext, handleNotificationClick: () => {} } 
     : userNotificationContext;
-
 
   const router = useRouter();
 
@@ -64,13 +72,61 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
     fetchUserData();
   }, []);
 
+  // Debounced Search Effect
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!searchValue.trim()) {
+        setSearchResults({ videos: [], stories: [] });
+        return;
+      }
+      setIsSearching(true);
+      try {
+        const q = searchValue.toLowerCase();
+        
+        // Fetch videos and stories in parallel
+        const [videoRes, allStories] = await Promise.all([
+          youtubeApi.searchVideos(`Cameroon ${q}`, null, 5).catch(() => ({ items: [] })),
+          getStories().catch(() => [])
+        ]);
+
+        const filteredStories = (allStories || []).filter((s: any) => 
+          s.title?.toLowerCase().includes(q) || s.excerpt?.toLowerCase().includes(q)
+        ).slice(0, 5);
+
+        setSearchResults({
+          videos: videoRes.items || [],
+          stories: filteredStories
+        });
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchSearchResults();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      // Navigate to dashboard with search query
       router.push(`/dashboard?q=${encodeURIComponent(searchValue.trim())}`);
       setShowMobileSearchBar(false);
+      setIsSearchFocused(false);
     }
+  };
+
+  const getImageUrl = (image: any, fallbackIndex: number) => {
+    if (image?.asset) return urlFor(image).url();
+    const fallbacks = [
+      '/images/bg1.jpg', '/images/bg2.jpg', '/images/bg3.jpg',
+      '/images/bg4.jpg', '/images/bg5.jpg', '/images/bg6.jpg'
+    ];
+    return fallbacks[fallbackIndex % fallbacks.length];
   };
 
   return (
@@ -94,30 +150,167 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
         </div>
 
         {!hideSearch && (
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                onFocus={() => {
-                  document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                placeholder="Search..."
-                className="w-full pl-10 pr-4 py-1.5 bg-black border border-white/40 rounded-sm
-                           text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-1 
-                           focus:ring-white focus:border-white transition-all duration-300
-                           hover:border-white/60"
-              />
-            </form>
-          </div>
+          <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+              <button
+                type="button"
+                onClick={() => setIsSearchFocused(true)}
+                className="w-full flex items-center justify-between pl-4 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl
+                           text-white/50 text-sm hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
+              >
+                <div className="flex items-center">
+                  <Search className="text-gray-500 mr-3 group-hover:text-white transition-colors" size={16} />
+                  <span>Search reels, videos, top stories...</span>
+                </div>
+                <div className="hidden lg:flex items-center gap-1">
+                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
+                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
+                </div>
+              </button>
+            </div>
         )}
+
+        {/* Global Search Modal */}
+        <AnimatePresence>
+          {isSearchFocused && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsSearchFocused(false)}
+                className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+              />
+
+              {/* Modal Container */}
+              <div className="fixed inset-0 z-[101] overflow-y-auto pt-[10vh] px-4 pointer-events-none flex justify-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  className="w-full max-w-2xl bg-[#0B0E14] border border-white/10 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[80vh]"
+                >
+                  <form onSubmit={handleSearchSubmit} className="relative w-full border-b border-white/10 shrink-0">
+                    <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-[#CE1126]" size={20} />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      placeholder="What do you want to watch or read?"
+                      className="w-full pl-14 pr-12 py-5 bg-transparent
+                                 text-white text-lg placeholder-white/30 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchFocused(false)}
+                      className="absolute right-5 top-1/2 transform -translate-y-1/2 p-1 bg-white/5 hover:bg-white/10 rounded-md text-white/50 hover:text-white transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </form>
+
+                  <div className="overflow-y-auto custom-scrollbar flex-1 p-3">
+                    {searchValue.trim() ? (
+                      isSearching ? (
+                        <div className="flex items-center justify-center py-12">
+                          <div className="w-6 h-6 border-2 border-[#CE1126] border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : searchResults.videos.length === 0 && searchResults.stories.length === 0 ? (
+                        <div className="text-center py-12 text-white/40 font-medium">
+                          <Search size={32} className="mx-auto mb-3 opacity-20" />
+                          No results found for "{searchValue}"
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-6 p-2">
+                          {/* Stories Section */}
+                          {searchResults.stories.length > 0 && (
+                            <div>
+                              <div className="px-3 py-1.5 text-xs font-black tracking-widest uppercase text-white/40 mb-1">Top Stories</div>
+                              <div className="flex flex-col gap-1">
+                                {searchResults.stories.map((story: any, idx: number) => (
+                                  <button
+                                    key={story._id || idx}
+                                    onClick={() => {
+                                      setIsSearchFocused(false);
+                                      router.push(`/dashboard/blogs/${story.slug?.current}`);
+                                    }}
+                                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
+                                  >
+                                    <div className="w-12 h-12 relative rounded-md overflow-hidden flex-shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
+                                      <Image src={getImageUrl(story.mainImage, idx)} alt={story.title} fill className="object-cover" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-sm font-bold text-white truncate">{story.title}</h4>
+                                      <p className="text-xs text-white/50 truncate flex items-center gap-2 mt-0.5">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${story.category?.color || 'bg-[#CE1126]'}`}></span>
+                                        {story.category?.title || 'Story'}
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Videos Section */}
+                          {searchResults.videos.length > 0 && (
+                            <div>
+                              <div className="px-3 py-1.5 text-xs font-black tracking-widest uppercase text-white/40 mb-1">Videos &amp; Reels</div>
+                              <div className="flex flex-col gap-1">
+                                {searchResults.videos.map((video: any, idx: number) => {
+                                  const vId = typeof video.id === 'object' ? video.id.videoId : video.id;
+                                  const thumb = video.snippet?.thumbnails?.default?.url || video.thumbnail;
+                                  return (
+                                    <button
+                                      key={vId || idx}
+                                      onClick={() => {
+                                        setIsSearchFocused(false);
+                                        router.push(`/dashboard?q=${encodeURIComponent(video.snippet?.title || video.title)}`);
+                                      }}
+                                      className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
+                                    >
+                                      <div className="w-20 h-12 relative rounded-md overflow-hidden flex-shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
+                                        <Image src={thumb || '/images/bg1.jpg'} alt="Thumbnail" fill className="object-cover" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm font-bold text-white line-clamp-1">{video.snippet?.title || video.title}</h4>
+                                        <p className="text-xs text-white/50 truncate mt-0.5">{video.snippet?.channelTitle || video.channelTitle}</p>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-center py-12 text-white/30 text-sm">
+                        Start typing to search globally...
+                      </div>
+                    )}
+                  </div>
+                  
+                  {searchValue.trim() && (searchResults.videos.length > 0 || searchResults.stories.length > 0) && (
+                    <button 
+                      onClick={handleSearchSubmit}
+                      className="w-full p-4 bg-white/5 hover:bg-white/10 text-xs font-bold text-white tracking-widest uppercase border-t border-white/10 transition-colors shrink-0"
+                    >
+                      View All Results
+                    </button>
+                  )}
+                </motion.div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
 
         <div className="flex items-center space-x-2">
           {!hideSearch && (
             <button
-              onClick={() => setShowMobileSearchBar(!showMobileSearchBar)}
+              onClick={() => setIsSearchFocused(true)}
               className="md:hidden p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
