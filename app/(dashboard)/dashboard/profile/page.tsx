@@ -87,7 +87,7 @@ const UserProfilePage = async () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#06080C] text-white font-sans selection:bg-red-600/30 pb-32">
+    <div className="min-h-screen bg-[#06080C] text-white font-sans selection:bg-red-600/30 pb-32" style={{ zoom: 0.85 }}>
       {/* Premium Header / Banner */}
       <div className="relative h-64 md:h-[400px] w-full overflow-hidden">
         {profile?.cover_image_url ? (
@@ -105,16 +105,12 @@ const UserProfilePage = async () => {
         
         {/* Quick Actions */}
         <div className="absolute top-8 right-8 flex gap-3">
-          <Link href="/dashboard/settings">
-            <button className="p-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
-                <Settings className="w-5 h-5 text-zinc-400" />
-            </button>
+          <Link href="/dashboard/settings" className="p-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center">
+              <Settings className="w-5 h-5 text-zinc-400" />
           </Link>
-          <Link href="/dashboard/edit-profile">
-            <button className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 shadow-2xl shadow-white/5">
-                <Edit3 className="w-4 h-4" />
-                Customize
-            </button>
+          <Link href="/dashboard/edit-profile" className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 shadow-2xl shadow-white/5">
+              <Edit3 className="w-4 h-4" />
+              Customize
           </Link>
         </div>
       </div>

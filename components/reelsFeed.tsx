@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize } from 'lucide-react';
+import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -68,6 +68,30 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const muteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pushedStateRef = useRef(false);
+
+  // Auto-fullscreen on load or first interaction
+  useEffect(() => {
+    const enterFullscreen = async () => {
+      try {
+        if (containerRef.current && !document.fullscreenElement) {
+          await containerRef.current.requestFullscreen();
+        }
+      } catch (err) {
+        console.log("Fullscreen request failed, waiting for user interaction:", err);
+        // Fallback to first click
+        const clickHandler = async () => {
+          try {
+            if (containerRef.current && !document.fullscreenElement) {
+              await containerRef.current.requestFullscreen();
+            }
+          } catch (e) {}
+          document.removeEventListener('click', clickHandler);
+        };
+        document.addEventListener('click', clickHandler);
+      }
+    };
+    enterFullscreen();
+  }, []);
 
   // Check if desktop for responsive layout
   useEffect(() => {
@@ -645,6 +669,24 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
           </div>
           <span className="text-white font-black tracking-tighter text-xl uppercase">Reels</span>
         </div>
+
+        {/* Loading Overlay */}
+        <AnimatePresence>
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
+            >
+              <div className="text-center">
+                <Loader2 size={40} className="text-red-500 animate-spin mx-auto mb-4" />
+                <p className="text-white font-bold text-sm tracking-widest uppercase">Buffering Magic...</p>
+                <p className="text-gray-300 text-xs mt-2 italic">Preparing your next vibe</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Comment Section */}
