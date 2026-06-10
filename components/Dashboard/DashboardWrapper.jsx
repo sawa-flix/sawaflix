@@ -17,9 +17,10 @@ const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Disable right sidebar for reels and movie pages
-  const hideRightSidebarPaths = ['/reels', '/movie'];
+  // Disable right sidebar for reels, movie, and profile pages
+  const hideRightSidebarPaths = ['/reels', '/movie', '/profile', '/edit-profile'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
+
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userRole, setUserRole] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
