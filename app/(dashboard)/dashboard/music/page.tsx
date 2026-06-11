@@ -46,8 +46,32 @@ export default function MusicPage(): React.ReactElement {
   } = useMusic();
 
   // State management
-  const [musicCategories, setMusicCategories] = useState<MusicCategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [musicCategories, setMusicCategories] = useState<MusicCategory[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('sawa_music_categories');
+        const cacheTime = localStorage.getItem('sawa_music_categories_time');
+        if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 2 * 24 * 60 * 60 * 1000) {
+          return JSON.parse(cached);
+        }
+      } catch (e) {
+        console.error("Cache read error", e);
+      }
+    }
+    return [];
+  });
+  
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('sawa_music_categories');
+      const cacheTime = localStorage.getItem('sawa_music_categories_time');
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 2 * 24 * 60 * 60 * 1000) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
@@ -55,11 +79,18 @@ export default function MusicPage(): React.ReactElement {
   // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
+      // If already loaded from cache, we can skip fetching or re-fetch in background
+      if (!isLoading && musicCategories.length > 0) return;
+
       try {
         const res = await fetch(`${BACKEND_URL}/api/videos/external/youtube/music-categories`);
         if (res.ok) {
           const data = await res.json();
           setMusicCategories(data);
+          
+          // Save to cache
+          localStorage.setItem('sawa_music_categories', JSON.stringify(data));
+          localStorage.setItem('sawa_music_categories_time', Date.now().toString());
         }
       } catch (err) {
         console.error('Failed to fetch music categories:', err);
@@ -69,7 +100,7 @@ export default function MusicPage(): React.ReactElement {
     };
 
     fetchCategories();
-  }, []);
+  }, [isLoading, musicCategories.length]);
 
   // Default fallback track
   const defaultTrack: Track = {
