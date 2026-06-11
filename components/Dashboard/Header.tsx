@@ -117,6 +117,22 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
     return () => clearTimeout(timer);
   }, [searchValue]);
 
+  // Keyboard shortcuts: Escape to close, ⌘K / Ctrl+K to open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSearchFocused) {
+        setIsSearchFocused(false);
+        setSearchValue('');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchFocused(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchFocused]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
@@ -337,7 +353,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           }}
         />
       )}
-    {/* Global Search Modal */}
+    {/* Global Search Modal — Spotlight Style */}
     <AnimatePresence>
       {isSearchFocused && (
         <>
@@ -346,135 +362,149 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsSearchFocused(false)}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+            transition={{ duration: 0.2 }}
+            onClick={() => { setIsSearchFocused(false); setSearchValue(''); }}
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-[6px]"
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 z-[101] overflow-y-auto pt-[12vh] px-4 pointer-events-none flex justify-center">
+          <div className="fixed inset-0 z-[101] flex items-start justify-center pt-[8vh] sm:pt-[12vh] px-3 sm:px-4 pointer-events-none">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-2xl bg-[#0B0E14]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[75vh]"
+              initial={{ opacity: 0, y: -20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+              className="w-full max-w-[560px] bg-[#12151C] border border-white/[0.08] rounded-xl sm:rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden pointer-events-auto flex flex-col max-h-[70vh] sm:max-h-[65vh]"
             >
-              <form onSubmit={handleSearchSubmit} className="relative w-full border-b border-white/10 shrink-0">
-                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-[#CE1126]" size={20} />
+              {/* Search Input */}
+              <form onSubmit={handleSearchSubmit} className="relative w-full shrink-0">
+                <Search className="absolute left-4 sm:left-5 top-1/2 transform -translate-y-1/2 text-white/30" size={18} />
                 <input
                   autoFocus
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="What do you want to watch or read?"
-                  className="w-full pl-14 pr-12 py-5 bg-transparent
-                             text-white text-lg placeholder-white/30 focus:outline-none"
+                  placeholder="Search videos, stories, movies..."
+                  className="w-full pl-11 sm:pl-13 pr-11 py-3.5 sm:py-4 bg-transparent
+                             text-white text-[15px] sm:text-base placeholder-white/25 focus:outline-none tracking-wide"
                 />
-                <button
-                  type="button"
-                  onClick={() => setIsSearchFocused(false)}
-                  className="absolute right-5 top-1/2 transform -translate-y-1/2 p-1 bg-white/5 hover:bg-white/10 rounded-md text-white/50 hover:text-white transition-colors"
-                >
-                  <X size={16} />
-                </button>
+                {searchValue ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchValue('')}
+                    className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <kbd className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white/20 bg-white/[0.04] border border-white/[0.06] rounded">
+                    ESC
+                  </kbd>
+                )}
+                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
               </form>
 
-              <div className="overflow-y-auto custom-scrollbar flex-1 p-3">
+              {/* Results Container */}
+              <div className="overflow-y-auto flex-1 overscroll-contain" style={{ scrollbarWidth: 'none' }}>
                 {searchValue.trim() ? (
                   isSearching ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="w-6 h-6 border-2 border-[#CE1126] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center justify-center py-10 gap-3">
+                      <div className="w-5 h-5 border-[1.5px] border-white/20 border-t-white/60 rounded-full animate-spin" />
+                      <span className="text-[11px] text-white/20 tracking-widest uppercase font-medium">Searching...</span>
                     </div>
                   ) : searchResults.videos.length === 0 && searchResults.stories.length === 0 && searchResults.movies.length === 0 ? (
-                    <div className="text-center py-12 text-white/40 font-medium">
-                      <Search size={32} className="mx-auto mb-3 opacity-20" />
-                      No results found for "{searchValue}"
+                    <div className="flex flex-col items-center justify-center py-10 text-white/25">
+                      <Search size={24} className="mb-2.5 opacity-40" />
+                      <p className="text-sm font-medium">No results for &quot;{searchValue}&quot;</p>
+                      <p className="text-xs text-white/15 mt-1">Try a different keyword</p>
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-6 p-2">
+                    <div className="py-2">
                       {/* Stories Section */}
                       {searchResults.stories.length > 0 && (
-                        <div>
-                          <div className="px-3 py-1.5 text-xs font-black tracking-widest uppercase text-white/40 mb-1">Top Stories</div>
-                          <div className="flex flex-col gap-1">
-                            {searchResults.stories.map((story: any, idx: number) => (
-                              <button
-                                key={story._id || idx}
-                                onClick={() => {
-                                  setIsSearchFocused(false);
-                                  router.push(`/dashboard/blogs/${story.slug?.current}`);
-                                }}
-                                className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
-                              >
-                                <div className="w-12 h-12 relative rounded-md overflow-hidden flex-shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
-                                  <Image src={getImageUrl(story.mainImage, idx)} alt={story.title} fill className="object-cover" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-bold text-white truncate">{story.title}</h4>
-                                  <p className="text-xs text-white/50 truncate flex items-center gap-2 mt-0.5">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${story.category?.color || 'bg-[#CE1126]'}`}></span>
-                                    {story.category?.title || 'Story'}
-                                  </p>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
+                        <div className="mb-1">
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Stories</div>
+                          {searchResults.stories.map((story: any, idx: number) => (
+                            <button
+                              key={story._id || idx}
+                              onClick={() => {
+                                setIsSearchFocused(false);
+                                setSearchValue('');
+                                router.push(`/dashboard/blogs/${story.slug?.current}`);
+                              }}
+                              className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
+                            >
+                              <div className="w-9 h-9 sm:w-10 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+                                <Image src={getImageUrl(story.mainImage, idx)} alt={story.title} fill className="object-cover" unoptimized />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-[13px] font-semibold text-white/80 truncate group-hover:text-white transition-colors">{story.title}</h4>
+                                <p className="text-[11px] text-white/30 truncate mt-0.5">{story.category?.title || 'Story'}</p>
+                              </div>
+                              <ArrowLeft size={12} className="text-white/10 group-hover:text-white/30 transition-colors rotate-180 flex-shrink-0" />
+                            </button>
+                          ))}
                         </div>
                       )}
 
                       {/* Videos Section */}
                       {searchResults.videos.length > 0 && (
-                        <div>
-                          <div className="px-3 py-1.5 text-xs font-black tracking-widest uppercase text-white/40 mb-1">Videos &amp; Reels</div>
-                          <div className="flex flex-col gap-1">
-                            {searchResults.videos.map((video: any, idx: number) => {
-                              const vId = typeof video.id === 'object' ? video.id.videoId : video.id;
-                              const thumb = video.snippet?.thumbnails?.default?.url || video.thumbnail;
-                              return (
-                                <button
-                                  key={vId || idx}
-                                  onClick={() => {
-                                    setIsSearchFocused(false);
-                                    router.push(`/dashboard?q=${encodeURIComponent(video.snippet?.title || video.title)}`);
-                                  }}
-                                  className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
-                                >
-                                  <div className="w-20 h-12 relative rounded-md overflow-hidden flex-shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
-                                    <Image src={thumb || '/images/bg1.jpg'} alt="Thumbnail" fill className="object-cover" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-bold text-white line-clamp-1">{video.snippet?.title || video.title}</h4>
-                                    <p className="text-xs text-white/50 truncate mt-0.5">{video.snippet?.channelTitle || video.channelTitle}</p>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
+                        <div className="mb-1">
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Videos & Reels</div>
+                          {searchResults.videos.map((video: any, idx: number) => {
+                            const vId = typeof video.id === 'object' ? video.id.videoId : video.id;
+                            const thumb = video.snippet?.thumbnails?.default?.url || video.thumbnail;
+                            const title = video.snippet?.title || video.title;
+                            const channel = video.snippet?.channelTitle || video.channelTitle;
+                            return (
+                              <button
+                                key={vId || idx}
+                                onClick={() => {
+                                  setIsSearchFocused(false);
+                                  setSearchValue('');
+                                  router.push(`/dashboard?q=${encodeURIComponent(title)}`);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
+                              >
+                                <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+                                  <Image src={thumb || '/images/bg1.jpg'} alt="Thumbnail" fill className="object-cover" unoptimized />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-[13px] font-semibold text-white/80 line-clamp-1 group-hover:text-white transition-colors">{title}</h4>
+                                  <p className="text-[11px] text-white/30 truncate mt-0.5">{channel}</p>
+                                </div>
+                                <ArrowLeft size={12} className="text-white/10 group-hover:text-white/30 transition-colors rotate-180 flex-shrink-0" />
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
 
                       {/* Movies Section */}
                       {searchResults.movies?.length > 0 && (
-                        <div>
-                          <div className="px-3 py-1.5 text-xs font-black tracking-widest uppercase text-white/40 mb-1">Movies &amp; Series</div>
-                          <div className="flex flex-col gap-1">
+                        <div className="mb-1">
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Movies & Series</div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 px-4 pb-2">
                             {searchResults.movies.map((movie: any, idx: number) => (
                               <button
                                 key={movie.id || idx}
                                 onClick={() => {
                                   setIsSearchFocused(false);
+                                  setSearchValue('');
                                   router.push(`/dashboard/movie`);
                                 }}
-                                className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
+                                className="group flex flex-col rounded-lg overflow-hidden bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.1] transition-all"
                               >
-                                <div className="w-16 h-20 relative rounded-md overflow-hidden flex-shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
-                                  <Image src={movie.image || '/images/bg1.jpg'} alt={movie.title} fill className="object-cover" />
+                                <div className="w-full aspect-[2/3] relative overflow-hidden">
+                                  <Image src={movie.image || '/images/bg1.jpg'} alt={movie.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                  <div className="absolute bottom-1.5 left-1.5">
+                                    <span className="px-1.5 py-0.5 bg-white/10 backdrop-blur-sm rounded text-[9px] font-bold text-white/70">{movie.year}</span>
+                                  </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-bold text-white truncate">{movie.title}</h4>
-                                  <p className="text-xs text-white/50 truncate flex items-center gap-2 mt-0.5">
-                                    {movie.year} • {movie.genre?.slice(0, 2).join(', ')}
-                                  </p>
+                                <div className="p-2">
+                                  <h4 className="text-[11px] sm:text-xs font-semibold text-white/70 truncate group-hover:text-white transition-colors">{movie.title}</h4>
+                                  <p className="text-[9px] sm:text-[10px] text-white/25 truncate mt-0.5">{movie.genre?.slice(0, 2).join(' · ')}</p>
                                 </div>
                               </button>
                             ))}
@@ -484,18 +514,21 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                     </div>
                   )
                 ) : (
-                  <div className="text-center py-12 text-white/30 text-sm">
-                    Start typing to search globally...
+                  <div className="flex flex-col items-center justify-center py-10 text-white/20">
+                    <Search size={20} className="mb-2 opacity-30" />
+                    <p className="text-[13px]">Search across SawaFlix</p>
                   </div>
                 )}
               </div>
               
+              {/* Footer */}
               {searchValue.trim() && (searchResults.videos.length > 0 || searchResults.stories.length > 0 || searchResults.movies?.length > 0) && (
                 <button 
                   onClick={handleSearchSubmit}
-                  className="w-full p-4 bg-white/5 hover:bg-white/10 text-xs font-bold text-white tracking-widest uppercase border-t border-white/10 transition-colors shrink-0"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-[11px] font-semibold text-white/40 hover:text-white/60 tracking-widest uppercase border-t border-white/[0.06] transition-all shrink-0"
                 >
-                  View All Results
+                  <span>View all results</span>
+                  <ArrowLeft size={10} className="rotate-180" />
                 </button>
               )}
             </motion.div>

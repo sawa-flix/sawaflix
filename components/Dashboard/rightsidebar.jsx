@@ -55,6 +55,15 @@ const RightSidebar = () => {
 
   const aiRecommendations = videos.slice(1, 11);
 
+  const handleItemClick = (videoToPlay, allVideos) => {
+    if (!videoToPlay) return;
+    if (activeCategory === 'music') {
+      playTrack(videoToPlay, allVideos);
+    } else {
+      window.dispatchEvent(new CustomEvent('openSawaReel', { detail: videoToPlay }));
+    }
+  };
+
   return (
     <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
 
@@ -72,7 +81,7 @@ const RightSidebar = () => {
               <div className="w-full h-56 rounded-2xl bg-white/5 animate-pulse" />
             ) : (
               <div 
-                onClick={() => trendingMusic.video && playTrack(trendingMusic.video, videos)}
+                onClick={() => handleItemClick(trendingMusic.video, videos)}
                 className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
               >
                 <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
@@ -156,7 +165,7 @@ const RightSidebar = () => {
              {aiRecommendations.map((video) => (
                <div
                  key={video.id}
-                 onClick={() => playTrack(video, videos)}
+                 onClick={() => handleItemClick(video, videos)}
                  className="flex gap-3 p-2 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer group"
                >
                  <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">

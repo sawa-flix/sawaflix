@@ -700,9 +700,20 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
       {/* Playback Loading Skeleton */}
       <AnimatePresence>
         {isPlaybackLoading && (
-          <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center">
-            <Loader2 className="w-12 h-12 text-red-600 animate-spin mb-4" />
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Initializing Secure Stream...</p>
+          <div className="absolute inset-0 z-[60] bg-[#0B0E14]/90 backdrop-blur-xl flex flex-col items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
+              transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
+              className="flex flex-col items-center gap-4"
+            >
+              <SawaflixLogo width={120} height={40} />
+              <div className="flex gap-1 mt-2">
+                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -839,18 +850,21 @@ function SawaFlixContent({ videoId: videoIdProp }) {
   };
 
   useEffect(() => {
-    if (currentTrack && currentTrack.id !== activeVideoId) {
-      setShowShorts(true);
-      setSelectedVideo(currentTrack); // Ensure we enter reels mode
-      setActiveVideoId(currentTrack.id);
-      setTimeout(() => {
-        const el = videoRefs.current.get(currentTrack.id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 100);
-    }
-  }, [currentTrack]);
+    const handleOpenReel = (e: any) => {
+      const video = e.detail;
+      if (video && video.id !== activeVideoId) {
+        setShowShorts(true);
+        setSelectedVideo(video);
+        setActiveVideoId(video.id);
+        setTimeout(() => {
+          const el = videoRefs.current.get(video.id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    };
+    window.addEventListener('openSawaReel', handleOpenReel);
+    return () => window.removeEventListener('openSawaReel', handleOpenReel);
+  }, [activeVideoId]);
 
   useEffect(() => {
     if (selectedVideo && feedScrollRef.current) {
