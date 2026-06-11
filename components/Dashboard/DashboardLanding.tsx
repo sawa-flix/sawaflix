@@ -170,7 +170,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   return (
     <div className="w-full pb-12" style={{ zoom: 0.9 }}>
       {/* Navigation Pills — sticky */}
-      <div className="sticky top-16 z-40 bg-[#0B0E14]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-white/5 px-2 sm:px-6 lg:px-8">
+      <div className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-white/5 px-2 sm:px-6 lg:px-8">
         {PILL_TABS.map((tab, idx) => (
           <button
             key={`${tab.id}-${idx}`}
