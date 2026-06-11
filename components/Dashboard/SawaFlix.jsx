@@ -850,7 +850,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
   };
 
   useEffect(() => {
-    const handleOpenReel = (e: any) => {
+    const handleOpenReel = (e) => {
       const video = e.detail;
       if (video && video.id !== activeVideoId) {
         setShowShorts(true);
