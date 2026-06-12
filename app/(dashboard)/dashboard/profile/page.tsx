@@ -11,6 +11,8 @@ import SubscriptionCard from '../../../../components/profile/cards/SubscriptionC
 import ViewingPrefsCard from '../../../../components/profile/cards/ViewingPrefsCard';
 import SecurityCard from '../../../../components/profile/cards/SecurityCard';
 import ProfileRecentlyWatched from '../../../../components/profile/ProfileRecentlyWatched';
+import TasteProfile from '../../../../components/profile/TasteProfile';
+import ProfileContinuePlaying from '../../../../components/profile/ProfileContinuePlaying';
 
 type UserProfileData = {
   id: string;
@@ -71,7 +73,7 @@ const UserProfilePage = async () => {
 
   return (
     <div className="min-h-screen bg-[#06080C] text-white font-sans pb-32" style={{ zoom: '0.85' }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 py-6 space-y-5">
 
         {/* 1. Hero Section */}
         <ProfileHero
@@ -104,9 +106,22 @@ const UserProfilePage = async () => {
           <SecurityCard />
         </div>
 
-        {/* 4. Recently Watched */}
-        <div className="bg-[#0E121A] border border-white/5 rounded-xl p-5">
-          <ProfileRecentlyWatched />
+        {/* 4. Three Column Section - Taste Profile | Recently Watched | Continue Watching */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Taste Profile */}
+          <div className="bg-[#0E121A] border border-white/5 rounded-xl p-5">
+            <TasteProfile />
+          </div>
+
+          {/* Center Column - Recently Watched */}
+          <div className="bg-[#0E121A] border border-white/5 rounded-xl p-5">
+            <ProfileRecentlyWatched />
+          </div>
+
+          {/* Right Column - Continue Watching */}
+          <div className="bg-[#0E121A] border border-white/5 rounded-xl p-5">
+            <ProfileContinuePlaying />
+          </div>
         </div>
 
       </div>

@@ -36,7 +36,7 @@ export default function ProfileRecentlyWatched() {
       </div>
 
       {/* Movie Grid — horizontal scroll on mobile, grid on desktop */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none md:grid md:grid-cols-5">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none md:grid md:grid-cols-2">
         {recentMovies.map((movie, i) => (
           <Link
             key={movie.id}

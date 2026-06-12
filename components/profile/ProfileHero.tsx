@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Calendar, Edit2, Crown, Camera } from 'lucide-react';
+import { MapPin, Calendar, Edit2, Crown, Camera, Share } from 'lucide-react';
 
 interface ProfileHeroProps {
   username: string | null;
@@ -42,23 +42,30 @@ export default function ProfileHero({
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A] via-black/20 to-transparent" />
 
         {/* Edit Profile Button */}
-        <div className="absolute top-4 right-4">
+        <div className="flex flex-row gap-4 absolute top-4 right-4">
+          <Link
+            href="/dashboard/edit-profile"
+            className="flex items-center gap-2 px-4 py-2 bg-[#DA0109] backdrop-blur-md border border-white/20 rounded-lg text-white text-xs font-semibold hover:bg-white/10 transition-all"
+          >
+            <Edit2 size={13} />
+            Edit Profile
+          </Link>
           <Link
             href="/dashboard/edit-profile"
             className="flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-md border border-white/20 rounded-lg text-white text-xs font-semibold hover:bg-white/10 transition-all"
           >
-            <Edit2 size={13} />
-            Edit Profile
+            <Share size={13} />
+            Share Profile
           </Link>
         </div>
       </div>
 
       {/* Profile Info Block */}
-      <div className="relative px-5 pb-5">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 md:items-center px-5 pb-5">
         {/* Avatar — centered on mobile, left on desktop */}
         <div className="flex justify-center md:justify-start">
           <div className="relative -mt-12 md:-mt-12">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-[#0E121A] overflow-hidden bg-zinc-800 shadow-xl">
+            <div className="w-20 h-20 md:w-30 md:h-30 rounded-full border-6 border-[#DA0109] overflow-hidden bg-zinc-800 shadow-xl">
               <Image
                 src={profileImageUrl || '/default-profile-pic.jpg'}
                 alt="Profile"
