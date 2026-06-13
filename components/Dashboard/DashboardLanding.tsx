@@ -223,26 +223,6 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           </section>
         )}
 
-        {/* ═══ Trending News Bar ═══ */}
-        {/* {trendingNews.length > 0 && (
-          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3">
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <TrendingUp size={14} className="text-[#CE1126]" />
-              <span className="text-[#CE1126] text-xs font-black uppercase tracking-wider">Trending</span>
-            </div>
-            <div className="h-4 w-px bg-white/10 flex-shrink-0" />
-            <div className="overflow-hidden flex-1">
-              <p className="text-white/70 text-sm truncate">
-                {trendingNews.map((s: any, i: number) => (
-                  <span key={s._id}>
-                    <span className="text-white font-medium">{s.title}</span>
-                    {i < trendingNews.length - 1 && <span className="text-white/30 mx-3">•</span>}
-                  </span>
-                ))}
-              </p>
-            </div>
-          </div>
-        )} */}
 
         {/* ═══ Sawa Reels Section ═══ */}
         <section ref={reelsRef} className="scroll-mt-20">
