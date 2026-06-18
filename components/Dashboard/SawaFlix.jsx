@@ -396,7 +396,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
   }, []);
 
   return (
-    <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
+    <div className={`relative w-full h-full ${isFullscreen ? 'sm:h-full' : 'sm:h-[calc(100vh-80px)]'} sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col`}>
       {/* ── Main Video Area ── */}
       <motion.div 
         animate={{ 
@@ -563,12 +563,14 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
                     <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
                   </button>
 
-                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
-                    </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
-                  </button>
+                  {isDesktop && (
+                    <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
+                      <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                        {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
+                      </div>
+                      <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -915,6 +917,13 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     if (videos.length > 0) {
       setSelectedVideo(videos[0]);
       setActiveVideoId(videos[0].id);
+
+      // Auto-fullscreen
+      const el = feedContainerRef.current;
+      if (el && !document.fullscreenElement) {
+        const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (requestMethod) requestMethod.call(el);
+      }
     }
     setTimeout(() => {
       if (discoverRef.current) {
@@ -927,6 +936,14 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     setSelectedVideo(video);
     setActiveVideoId(video.id);
     setShowShorts(true);
+
+    // Auto-fullscreen on reel card click
+    const el = feedContainerRef.current;
+    if (el && !document.fullscreenElement) {
+      const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (requestMethod) requestMethod.call(el);
+    }
+
     setTimeout(() => {
       // Auto-fullscreen request
       const el = feedContainerRef.current || document.documentElement;
@@ -1016,6 +1033,41 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     
     return list;
   })();
+
+  // Handle keyboard up/down arrows to skip reels (TikTok-style)
+  // NOTE: This useEffect must be placed AFTER feedVideos is declared to avoid TDZ errors
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!selectedVideo) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const currentIndex = feedVideos.findIndex(v => v.id === activeVideoId);
+        const nextVideo = feedVideos[currentIndex + 1];
+        if (nextVideo) {
+          setActiveVideoId(nextVideo.id);
+          const el = videoRefs.current.get(nextVideo.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const currentIndex = feedVideos.findIndex(v => v.id === activeVideoId);
+        const prevVideo = feedVideos[currentIndex - 1];
+        if (prevVideo) {
+          setActiveVideoId(prevVideo.id);
+          const el = videoRefs.current.get(prevVideo.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedVideo, activeVideoId, feedVideos]);
 
   return (
     <div className="flex flex-col relative">

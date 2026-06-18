@@ -100,7 +100,8 @@ const ReelCard = ({ reel, index }) => {
       </div>
     </div>
   </div>
-);
+  );
+};
 
 }
 

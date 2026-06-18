@@ -268,10 +268,18 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
 
     if (event.deltaY > 0) {
       // Scroll down - next video
-      setCurrentVideoIndex(prev => Math.min(prev + 1, videos.length - 1));
+      setCurrentVideoIndex(prev => {
+        const nextIdx = Math.min(prev + 1, videos.length - 1);
+        videoRefs.current[nextIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return nextIdx;
+      });
     } else {
       // Scroll up - previous video
-      setCurrentVideoIndex(prev => Math.max(prev - 1, 0));
+      setCurrentVideoIndex(prev => {
+        const prevIdx = Math.max(prev - 1, 0);
+        videoRefs.current[prevIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return prevIdx;
+      });
     }
 
     // Show mute button temporarily when scrolling
@@ -290,11 +298,19 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
-          setCurrentVideoIndex(prev => Math.min(prev + 1, videos.length - 1));
+          setCurrentVideoIndex(prev => {
+            const nextIdx = Math.min(prev + 1, videos.length - 1);
+            videoRefs.current[nextIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return nextIdx;
+          });
           break;
         case 'ArrowUp':
           event.preventDefault();
-          setCurrentVideoIndex(prev => Math.max(prev - 1, 0));
+          setCurrentVideoIndex(prev => {
+            const prevIdx = Math.max(prev - 1, 0);
+            videoRefs.current[prevIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return prevIdx;
+          });
           break;
         case ' ':
           event.preventDefault();
@@ -532,131 +548,134 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
               key={video.id}
               className="h-full snap-start relative flex items-center justify-center bg-black"
             >
-              {/* Video Player Wrapper */}
-              <motion.div
-                animate={{
-                  scale: showComments && isDesktop ? 0.9 : 1,
-                  x: showComments && isDesktop ? '-2%' : '0%'
-                }}
-                className="relative h-full w-full flex items-center justify-center"
-              >
-                <video
-                  ref={setVideoRef(index)}
-                  className="h-full w-full object-contain lg:object-cover max-h-screen"
-                  loop={false}
-                  playsInline
-                  preload="auto"
-                  onClick={() => {
-                    const videoState = videoStates.get(index);
-                    if (videoState?.isPlaying) {
-                      safePause(videoRefs.current[index]!, index);
-                    } else {
-                      setIsLoading(true);
-                      safePlay(videoRefs.current[index]!, index);
-                    }
+              {/* Inner wrapper for centering and constraining on desktop PC */}
+              <div className="relative w-full h-full lg:h-[calc(100vh-80px)] lg:max-w-[450px] lg:my-auto lg:rounded-2xl lg:border lg:border-white/10 overflow-hidden flex items-center justify-center bg-zinc-950 shadow-2xl transition-all duration-300">
+                {/* Video Player Wrapper */}
+                <motion.div
+                  animate={{
+                    scale: showComments && isDesktop ? 0.9 : 1,
+                    x: showComments && isDesktop ? '-2%' : '0%'
                   }}
+                  className="relative h-full w-full flex items-center justify-center"
                 >
-                  <source src={video.video_url} type={video.mime_type} />
-                  Your browser does not support the video tag.
-                </video>
-              </motion.div>
-
-              {/* Action Buttons & Info - Only visible when comments are closed on mobile */}
-              <AnimatePresence>
-                {(!showComments || isDesktop) && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none"
+                  <video
+                    ref={setVideoRef(index)}
+                    className="h-full w-full object-contain lg:object-cover max-h-screen"
+                    loop={false}
+                    playsInline
+                    preload="auto"
+                    onClick={() => {
+                      const videoState = videoStates.get(index);
+                      if (videoState?.isPlaying) {
+                        safePause(videoRefs.current[index]!, index);
+                      } else {
+                        setIsLoading(true);
+                        safePlay(videoRefs.current[index]!, index);
+                      }
+                    }}
                   >
-                    {/* Bottom Info */}
-                    <div className="absolute bottom-24 left-4 right-16 text-white">
-                      <h3 className="text-lg font-bold mb-1 drop-shadow-md">{video.title}</h3>
-                      <p className="text-gray-200 text-sm mb-3 line-clamp-2 max-w-[80%] drop-shadow-sm">{video.description}</p>
+                    <source src={video.video_url} type={video.mime_type} />
+                    Your browser does not support the video tag.
+                  </video>
+                </motion.div>
 
-                      <div className="flex items-center space-x-3 text-sm text-gray-300">
-                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/10 overflow-hidden">
-                          <Image
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${getProducerName(video) || 'S'}`}
-                            alt="Producer"
-                            width={32}
-                            height={32}
-                          />
+                {/* Action Buttons & Info - Only visible when comments are closed on mobile */}
+                <AnimatePresence>
+                  {(!showComments || isDesktop) && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none"
+                    >
+                      {/* Bottom Info */}
+                      <div className="absolute bottom-24 left-4 right-16 text-white">
+                        <h3 className="text-lg font-bold mb-1 drop-shadow-md">{video.title}</h3>
+                        <p className="text-gray-200 text-sm mb-3 line-clamp-2 max-w-[80%] drop-shadow-sm">{video.description}</p>
+
+                        <div className="flex items-center space-x-3 text-sm text-gray-300">
+                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/10 overflow-hidden">
+                            <Image
+                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${getProducerName(video) || 'S'}`}
+                              alt="Producer"
+                              width={32}
+                              height={32}
+                            />
+                          </div>
+                          <span className="font-medium text-white">{getProducerName(video) || 'Anonymous'}</span>
                         </div>
-                        <span className="font-medium text-white">{getProducerName(video) || 'Anonymous'}</span>
                       </div>
-                    </div>
 
-                    {/* Right Side Actions — TikTok-style: compact, bottom-pinned */}
-                    <div className="absolute right-3 bottom-20 flex flex-col items-center gap-0 pointer-events-auto">
-                      <button className="flex flex-col items-center text-white group py-1">
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          <Heart size={20} className="hover:text-red-500 transition-colors" />
-                        </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">24.5K</span>
-                      </button>
+                      {/* Right Side Actions — TikTok-style: compact, bottom-pinned */}
+                      <div className="absolute right-3 bottom-20 flex flex-col items-center gap-0 pointer-events-auto">
+                        <button className="flex flex-col items-center text-white group py-1">
+                          <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                            <Heart size={20} className="hover:text-red-500 transition-colors" />
+                          </div>
+                          <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">24.5K</span>
+                        </button>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowComments(true);
-                        }}
-                        className="flex flex-col items-center text-white group py-1"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          <MessageCircle size={20} />
-                        </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{comments.length}</span>
-                      </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowComments(true);
+                          }}
+                          className="flex flex-col items-center text-white group py-1"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                            <MessageCircle size={20} />
+                          </div>
+                          <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{comments.length}</span>
+                        </button>
 
-                      <button className="flex flex-col items-center text-white group py-1">
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          <Share2 size={20} />
-                        </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">Share</span>
-                      </button>
+                        <button className="flex flex-col items-center text-white group py-1">
+                          <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                            <Share2 size={20} />
+                          </div>
+                          <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">Share</span>
+                        </button>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleMute(index);
-                        }}
-                        className="flex flex-col items-center text-white group py-1"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                        </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
-                      </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleMute(index);
+                          }}
+                          className="flex flex-col items-center text-white group py-1"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                            {videoStates.get(index)?.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                          </div>
+                          <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{videoStates.get(index)?.isMuted ? 'Unmute' : 'Mute'}</span>
+                        </button>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleModal();
-                        }}
-                        className="flex flex-col items-center text-white group py-1"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
-                          {isModalOpen ? <Minimize size={20} /> : <Maximize size={20} />}
+                        {isDesktop && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleModal();
+                            }}
+                            className="flex flex-col items-center text-white group py-1"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
+                              {isModalOpen ? <Minimize size={20} /> : <Maximize size={20} />}
+                            </div>
+                            <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isModalOpen ? 'Close' : 'Open'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                        </div>
-                        <span className="text-[9px] font-bold leading-none mt-0.5 text-white/80">{isModalOpen ? 'Close' : 'Open'}
-</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Vertical Progress Bar */}
-              <div className="absolute top-0 right-0 bottom-0 w-1 bg-white/5 pointer-events-none">
-                <div
-                  className="w-full bg-white transition-all duration-300"
-                  style={{
-                    height: `${((currentVideoIndex + 1) / videos.length) * 100}%`
-                  }}
-                />
+                {/* Vertical Progress Bar */}
+                <div className="absolute top-0 right-0 bottom-0 w-1 bg-white/5 pointer-events-none">
+                  <div
+                    className="w-full bg-white transition-all duration-300"
+                    style={{
+                      height: `${((currentVideoIndex + 1) / videos.length) * 100}%`
+                    }}
+                  />
+                </div>
               </div>
             </div>
           ))}
