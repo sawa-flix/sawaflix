@@ -75,3 +75,30 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// --- Web Push Notification Listeners ---
+
+self.addEventListener('push', function (event: PushEvent) {
+  if (event.data) {
+    const data = event.data.json();
+
+    const options = {
+      body: data.body,
+      icon: '/sawalogo.png', // Using the Sawaflix logo
+      data: { url: data.url },
+      vibrate: [200, 100, 200],
+    };
+
+    event.waitUntil(self.registration.showNotification(data.title, options));
+  }
+});
+
+self.addEventListener('notificationclick', function (event: NotificationEvent) {
+  event.notification.close();
+  
+  if (event.notification.data && event.notification.data.url) {
+    event.waitUntil(
+      self.clients.openWindow(event.notification.data.url)
+    );
+  }
+});

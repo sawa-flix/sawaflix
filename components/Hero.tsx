@@ -45,7 +45,7 @@ export default function Hero() {
           {/* Main Headline - Further Refined Scaling */}
           <h1 className="text-[clamp(2rem,7vw,3.5rem)] leading-[1.1] font-black tracking-wide text-white" style={{ wordSpacing: '0.15em' }}>
             Discover the Heart of<br className="hidden md:block" />
-            African Entertainment
+            Cameroonian Entertainment
           </h1>
 
           {/* Description text - Compact & Elegant */}
@@ -63,9 +63,9 @@ export default function Hero() {
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
             </Link>
 
-            <p className="mt-6 text-gray-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em]">
+            {/* <p className="mt-6 text-gray-500 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em]">
               Watch anywhere. Cancel anytime.
-            </p>
+            </p> */}
           </div>
         </motion.div>
       </div>

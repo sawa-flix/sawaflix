@@ -1,37 +1,144 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, BellRing } from 'lucide-react';
 
-export default function NotificationPrompt() {
+export default function NotificationPrompt({ userId }: { userId?: string }) {
   const [showPrompt, setShowPrompt] = useState(false);
 
-  useEffect(() => {
-    // Check if notifications are supported and currently in 'default' state (not granted or denied yet)
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        // Wait a few seconds before asking for notifications
-        const timer = setTimeout(() => setShowPrompt(true), 5000);
-        return () => clearTimeout(timer);
-      }
+  // Helper function to convert VAPID key to Uint8Array
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+  
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+  
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
     }
-  }, []);
+    return outputArray;
+  }
+
+  const subscribeToPush = useCallback(async () => {
+    try {
+      // Check if service worker is available
+      if (!('serviceWorker' in navigator)) {
+        console.warn('⚠️ Service workers not supported.');
+        return;
+      }
+
+      // Check if there's a registered service worker
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        console.warn('⚠️ No service worker registered. Push notifications require a production build. Run `npm run build && npm start` to test.');
+        return;
+      }
+
+      // Wait for the service worker to be ready
+      const readyReg = await navigator.serviceWorker.ready;
+      
+      // Check if already subscribed
+      const existingSub = await readyReg.pushManager.getSubscription();
+      if (existingSub) {
+        console.log('✅ Already subscribed to push notifications.');
+        return;
+      }
+
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        console.error("❌ VAPID public key is missing from environment variables.");
+        return;
+      }
+
+      // Subscribe to the push service
+      const subscription = await readyReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+
+      // Fetch user from Supabase if userId prop wasn't provided
+      let currentUserId = userId;
+      if (!currentUserId) {
+        try {
+          const { createClient } = await import('@/utils/supabase/client');
+          const supabase = createClient();
+          const { data } = await supabase.auth.getUser();
+          if (data?.user) {
+            currentUserId = data.user.id;
+          }
+        } catch (e) {
+          console.error("Failed to fetch user:", e);
+        }
+      }
+
+      // Send the subscription to your Next.js API
+      const response = await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          subscription, 
+          userId: currentUserId || "anonymous"
+        }),
+      });
+
+      if (response.ok) {
+        console.log("✅ Successfully subscribed to push notifications!");
+      } else {
+        console.error("❌ Failed to save subscription to database.", await response.text());
+      }
+    } catch (error) {
+      console.error('❌ Error subscribing to push:', error);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      console.log('🔕 Notifications not supported in this browser.');
+      return;
+    }
+
+    const permission = Notification.permission;
+    console.log(`🔔 Current notification permission: "${permission}"`);
+
+    // Check if user has dismissed the prompt before (session storage — resets per session)
+    const dismissed = sessionStorage.getItem('notification-prompt-dismissed');
+
+    if (permission === 'default') {
+      // Not yet asked — show the prompt after 3 seconds
+      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      return () => clearTimeout(timer);
+    } else if (permission === 'granted') {
+      // Already granted — silently ensure push subscription exists
+      subscribeToPush();
+    }
+    // If 'denied', do nothing — browser won't let us ask again
+  }, [subscribeToPush]);
 
   const handleEnable = async () => {
     try {
       const permission = await Notification.requestPermission();
+      console.log(`🔔 User responded with: "${permission}"`);
+      
       if (permission === 'granted') {
-        console.log('Notification permission granted.');
+        console.log('✅ Notification permission granted.');
+        await subscribeToPush();
       }
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      console.error('❌ Error requesting notification permission:', error);
     } finally {
+      sessionStorage.setItem('notification-prompt-dismissed', 'true');
       setShowPrompt(false);
     }
   };
 
   const handleDismiss = () => {
+    sessionStorage.setItem('notification-prompt-dismissed', 'true');
     setShowPrompt(false);
   };
 
