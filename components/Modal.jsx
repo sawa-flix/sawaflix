@@ -54,15 +54,15 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-end md:items-center justify-center z-50 md:p-4">
       {/* Mobile: Bottom Sheet, Desktop: Centered Modal */}
-      <div className="bg-[#0F1117] rounded-t-3xl md:rounded-3xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border-t md:border border-white/10 animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 relative pb-[72px]">
+      <div className="bg-[#0F1117] rounded-t-3xl md:rounded-3xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border-t md:border border-white/10 animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 relative">
         
         {/* Mobile Pull Indicator */}
         <div className="w-full flex justify-center md:hidden pt-3 pb-1 bg-gradient-to-b from-black/20 to-transparent absolute top-0 z-30">
           <div className="w-12 h-1.5 bg-white/20 rounded-full"></div>
         </div>
 
-        <div className="overflow-y-auto flex-1">
-          <div className="relative h-64 md:h-80 bg-black shrink-0">
+        <div className="overflow-y-auto flex-1 w-full relative">
+          <div className="relative h-48 md:h-64 bg-black shrink-0 w-full">
             {type === 'play' ? (
               <div className="relative w-full h-full">
                 {isLoading ? (
@@ -157,8 +157,8 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
           </div>
         </div>
 
-        {/* Sticky Watch Now Button */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#0F1117] border-t border-white/5">
+        {/* Sticky Watch Now Button - Now isolated outside the scrolling container */}
+        <div className="w-full p-4 bg-[#0F1117] border-t border-white/5 shrink-0 z-20">
           <button className="w-full bg-[#E50914] hover:bg-red-700 text-white py-3.5 rounded-xl flex items-center justify-center space-x-2 transition-all font-bold active:scale-95 shadow-lg">
             <Play size={20} fill="currentColor" />
             <span>Watch Now</span>
