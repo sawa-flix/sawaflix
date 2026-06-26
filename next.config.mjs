@@ -34,23 +34,18 @@ const nextConfig = {
       )
     );
 
-    // Prisma 7.x generates ESM imports with .js extensions but files are .ts
-    // This plugin rewrites those imports so webpack can resolve them
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /\.js$/,
-        (resource) => {
-          if (resource.context && resource.context.includes(path.join('generated', 'prisma'))) {
-            resource.request = resource.request.replace(/\.js$/, '.ts');
-          }
-        }
-      )
-    );
-
     config.resolve.alias = {
       ...config.resolve.alias,
       'react-real': path.resolve(__dirname, 'node_modules/react'),
     };
+
+    // Prisma 7.x generates ESM imports with .js extensions but files are .ts
+    // extensionAlias tells webpack to also try .ts when it sees a .js import
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      '.js': ['.js', '.ts'],
+    };
+
     return config;
   },
 
