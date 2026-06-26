@@ -150,10 +150,12 @@ export function useNotifications() {
     if (realtimeSetupRef.current) return;
     realtimeSetupRef.current = true;
 
+    let isMounted = true;
+
     const setupRealtime = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) return;
+      if (!user || !isMounted) return;
 
       // Clean up any previous channel before creating a new one
       if (channelRef.current) {
@@ -208,6 +210,7 @@ export function useNotifications() {
     setupRealtime();
 
     return () => {
+      isMounted = false;
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
