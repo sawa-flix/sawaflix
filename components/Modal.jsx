@@ -9,12 +9,23 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && type === 'play' && movie?.id) {
       const fetchPlayback = async () => {
         setIsLoading(true);
         try {
-          // Determine fallback URL (defaulting to YouTube if no direct videoUrl is present)
           const fallback = movie.videoUrl || `https://www.youtube.com/watch?v=${movie.id}`;
           const info = await playbackService.getPlaybackSource(movie.id, fallback);
           setPlaybackInfo(info);
@@ -41,9 +52,16 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
   if (!isOpen || !movie) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-[#0F1117] rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl border border-white/10">
-        <div className="relative aspect-video bg-black">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-end md:items-center justify-center z-50 md:p-4">
+      {/* Mobile: Bottom Sheet, Desktop: Centered Modal */}
+      <div className="bg-[#0F1117] rounded-t-3xl md:rounded-3xl w-full max-w-4xl max-h-[85vh] md:max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border-t md:border border-white/10 animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-300">
+        
+        {/* Mobile Pull Indicator */}
+        <div className="w-full flex justify-center md:hidden pt-3 pb-1 bg-gradient-to-b from-black/20 to-transparent">
+          <div className="w-12 h-1.5 bg-white/20 rounded-full"></div>
+        </div>
+
+        <div className="relative aspect-video bg-black shrink-0">
           {type === 'play' ? (
             <div className="relative w-full h-full">
               {isLoading ? (
@@ -76,7 +94,7 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
           </button>
         </div>
 
-        <div className="p-6 md:p-8">
+        <div className="p-6 md:p-8 overflow-y-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-white text-2xl md:text-3xl font-black mb-2">{movie.title}</h2>
@@ -87,11 +105,11 @@ const Modal = ({ isOpen, onClose, movie, type = 'info' }) => {
                 </div>
                 <span>{movie.release_date}</span>
                 {movie.duration_minutes && <span>{movie.duration_minutes} min</span>}
-                <span className="px-2 py-0.5 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest text-white">4K Ultra HD</span>
+                <span className="px-2 py-0.5 bg-white/10 rounded text-[10px] font-black uppercase tracking-widest text-white">4K</span>
               </div>
             </div>
             
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 shrink-0">
               <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl flex items-center space-x-2 transition-all font-bold active:scale-95 shadow-lg shadow-red-600/20">
                 <Play size={18} fill="currentColor" />
                 <span>{type === 'play' ? 'Restart' : 'Play Now'}</span>

@@ -84,7 +84,7 @@ self.addEventListener('push', function (event: PushEvent) {
 
     const options = {
       body: data.body,
-      icon: '/sawalogo.png', // Using the Sawaflix logo
+      icon: '/favicon.ico', // Using the favicon as requested
       data: { url: data.url },
       vibrate: [200, 100, 200],
     };
