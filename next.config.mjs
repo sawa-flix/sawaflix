@@ -90,6 +90,7 @@ const nextConfig = {
       },
     ],
     dangerouslyAllowSVG: true,
+    qualities: [75, 85, 90, 100],
   },
 };
 

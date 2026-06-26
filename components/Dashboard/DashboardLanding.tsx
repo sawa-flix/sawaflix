@@ -6,6 +6,7 @@ import { MOVIES_DATA } from '../Movie/constants';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -54,6 +55,7 @@ interface DashboardLandingProps {
 }
 
 export default function DashboardLanding({ onPlayReel, reels, activeCategory, onCategoryChange }: DashboardLandingProps) {
+  const router = useRouter();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -229,7 +231,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 relative">
-                <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+              <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Sawa Reels</h2>
             </div>

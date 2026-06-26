@@ -203,6 +203,7 @@ function LoginContent() {
         src="/hero-bg.png"
         alt="Background"
         fill
+        sizes="100vw"
         quality={100}
         className="z-0 object-cover"
         priority

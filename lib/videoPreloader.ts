@@ -5,6 +5,7 @@
  * - Singleton Lock: Only one preload loop can run at a time globally.
  * - Throttled: Deliberate 3-second delay between every download to respect backend rate limits.
  * - Sequential: Uses a strict for...of loop to ensure zero concurrency during file transfers.
+ * - Early Abort: Stops after 3 consecutive proxy failures (e.g. YouTube 429 rate-limiting).
  */
 
 import { BACKEND_URL } from './apiConfig';
@@ -32,6 +33,9 @@ export interface CachedVideoMeta {
  * Fetch the feed from the backend and pre-cache each video file into the
  * Service Worker cache. Saves metadata to localStorage so the Downloads
  * page can look up titles and thumbnails later.
+ *
+ * Aborts early if MAX_CONSECUTIVE_FAILURES consecutive proxy failures occur
+ * (e.g. YouTube 429 rate-limit hitting yt-dlp on the backend).
  */
 export async function startVideoPreload(limit = 20): Promise<void> {
     // Guard: Only run in browser environments with Cache API support
@@ -75,9 +79,23 @@ export async function startVideoPreload(limit = 20): Promise<void> {
             if (stored) existingMeta = JSON.parse(stored);
         } catch (_) { }
 
+        // Track consecutive failures — if the backend proxy is down (yt-dlp rate-limited
+        // by YouTube HTTP 429), abort early to avoid spamming 400 errors.
+        let consecutiveFailures = 0;
+        const MAX_CONSECUTIVE_FAILURES = 3;
+
         // Strictly sequential loop
         for (const video of videos) {
             if (!video.videoUrl) continue;
+
+            // Abort if backend proxy appears to be rate-limited / down
+            if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                console.warn(
+                    `[VideoPreloader] ⚠️ Aborting preload: ${MAX_CONSECUTIVE_FAILURES} consecutive proxy failures detected. ` +
+                    `The backend yt-dlp may be rate-limited by YouTube (HTTP 429). Will retry on next session.`
+                );
+                break;
+            }
 
             try {
                 // Ensure https to avoid redirects
@@ -88,17 +106,52 @@ export async function startVideoPreload(limit = 20): Promise<void> {
                 const existing = await cache.match(video.videoUrl);
                 if (existing) {
                     console.log(`[VideoPreloader] Already cached: ${video.title}`);
+                    consecutiveFailures = 0; // Reset on success
                 } else {
                     // Start download
                     console.log(`[VideoPreloader] Downloading: ${video.title}`);
                     const proxyRes = await fetch(video.videoUrl, { mode: 'cors' });
 
                     if (!proxyRes.ok) {
-                        const errorMsg = await proxyRes.text().catch(() => 'No error body');
-                        console.warn(`[VideoPreloader] Backend Proxy failed (${proxyRes.status}) for ${video.title}:`, errorMsg);
+                        consecutiveFailures++;
+                        // Only log the status code — not the full yt-dlp error body — to reduce console noise
+                        console.warn(
+                            `[VideoPreloader] Proxy failed (${proxyRes.status}) for "${video.title}" ` +
+                            `[failure ${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES}]`
+                        );
                     } else {
+                        consecutiveFailures = 0; // Reset on success
+                        
+                        // Monitor progress using a TransformStream before putting in Cache
+                        const contentLength = proxyRes.headers.get('content-length');
+                        const total = contentLength ? parseInt(contentLength, 10) : 0;
+                        let loaded = 0;
+                        let lastLogPercent = -1;
+
+                        const ts = new TransformStream({
+                            transform(chunk, controller) {
+                                loaded += chunk.length;
+                                if (total) {
+                                    const percent = Math.floor((loaded / total) * 10) * 10;
+                                    if (percent > lastLogPercent) {
+                                        console.log(`[VideoPreloader] 📥 ${video.title}: ${percent}% (${(loaded / 1024 / 1024).toFixed(1)}MB / ${(total / 1024 / 1024).toFixed(1)}MB)`);
+                                        lastLogPercent = percent;
+                                    }
+                                } else if (loaded % (1024 * 1024 * 2) === 0) { // Log every ~2MB if no total size
+                                    console.log(`[VideoPreloader] 📥 ${video.title}: ${(loaded / 1024 / 1024).toFixed(1)}MB downloaded...`);
+                                }
+                                controller.enqueue(chunk);
+                            }
+                        });
+
+                        const responseToCache = new Response(proxyRes.body?.pipeThrough(ts), {
+                            headers: proxyRes.headers,
+                            status: proxyRes.status,
+                            statusText: proxyRes.statusText
+                        });
+
                         // Store the stream. This completes when the whole file is downloaded.
-                        await cache.put(video.videoUrl, proxyRes);
+                        await cache.put(video.videoUrl, responseToCache);
 
                         // Update metadata only on success
                         existingMeta[video.id] = {
@@ -111,7 +164,8 @@ export async function startVideoPreload(limit = 20): Promise<void> {
                     }
                 }
             } catch (err) {
-                console.warn(`[VideoPreloader] Failed to cache ${video.title}:`, err);
+                consecutiveFailures++;
+                console.warn(`[VideoPreloader] Network error for "${video.title}" [failure ${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES}]`);
             }
 
             // MANDATORY THROTTLE: Wait 3 seconds between requests (success OR failure)

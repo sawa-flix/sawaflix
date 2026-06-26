@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Notification, NotificationType } from '@/types/notification';
 
@@ -9,7 +9,12 @@ export function useNotifications() {
   const [error, setError] = useState<string | null>(null);
   const [newNotification, setNewNotification] = useState<Notification | null>(null);
 
-  const supabase = createClient();
+  // Use a stable ref for supabase client to prevent re-renders triggering new subscriptions
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
+  // Guard to prevent setting up realtime more than once
+  const realtimeSetupRef = useRef(false);
+  const channelRef = useRef<any>(null);
 
   const mapNotification = (n: any): Notification => ({
     id: n.id,
@@ -137,25 +142,31 @@ export function useNotifications() {
   };
 
   useEffect(() => {
-    let channel: any;
+    fetchNotifications();
+    fetchUnreadCount();
+
+    // Only set up realtime once — guard with a ref to prevent double-subscription
+    // which causes: "cannot add postgres_changes callbacks after subscribe()"
+    if (realtimeSetupRef.current) return;
+    realtimeSetupRef.current = true;
 
     const setupRealtime = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) return;
 
-      channel = supabase
+      // Clean up any previous channel before creating a new one
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
+      const channel = supabase
         .channel(`notifications-${user.id}`)
         .on(
           'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
           (payload) => {
-            console.log('New notification received:', payload.new);
             const newNotif = mapNotification(payload.new);
             setNotifications((prev) => [newNotif, ...prev.slice(0, 49)]);
             setUnreadCount((prev) => prev + 1);
@@ -164,29 +175,18 @@ export function useNotifications() {
         )
         .on(
           'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
+          { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
           (payload) => {
             const updatedNotif = mapNotification(payload.new);
             setNotifications((prev) =>
               prev.map((n) => (n.id === updatedNotif.id ? updatedNotif : n))
             );
-            // Re-fetch count to be sure, as update might mean it was marked read elsewhere
             fetchUnreadCount();
           }
         )
         .on(
           'postgres_changes',
-          {
-            event: 'DELETE',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
+          { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
           (payload) => {
             const deletedId = payload.old.id;
             setNotifications((prev) => prev.filter((n) => n.id !== deletedId));
@@ -199,28 +199,23 @@ export function useNotifications() {
           }
           if (status === 'CHANNEL_ERROR') {
             console.error('Realtime subscription error:', err || 'Check if Realtime is enabled for "notifications" table in Supabase dashboard');
-            
-            // Attempt one retry after a delay
-            setTimeout(() => {
-              if (channel) {
-                console.log('Attempting to reconnect to realtime...');
-                channel.subscribe();
-              }
-            }, 3000);
           }
         });
+
+      channelRef.current = channel;
     };
 
-    fetchNotifications();
-    fetchUnreadCount();
     setupRealtime();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
+      realtimeSetupRef.current = false;
     };
-  }, [fetchNotifications, fetchUnreadCount, supabase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — fetchNotifications/fetchUnreadCount are stable useCallbacks
 
   return {
     notifications,

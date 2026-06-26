@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { AdminNotificationProvider } from '../contexts/AdminNotificationContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import NotificationPrompt from '@/components/NotificationPrompt';
@@ -102,7 +103,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
@@ -127,7 +128,9 @@ export default function RootLayout({
         `}} />
         <NextTopLoader color="transparent" showSpinner={false} />
         <AdminNotificationProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </AdminNotificationProvider>
         <PWAInstallPrompt />
         <NotificationPrompt />
