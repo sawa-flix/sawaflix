@@ -84,7 +84,7 @@ self.addEventListener('push', function (event: PushEvent) {
 
     const options = {
       body: data.body,
-      icon: '/favicon.ico', // Using the favicon as requested
+      icon: '/icons/icon-192x192.png', // Using the PWA logo as requested
       data: { url: data.url },
       vibrate: [200, 100, 200],
     };
