@@ -72,9 +72,9 @@ export const story = defineType({
     }),
     defineField({
       name: "videoUrl",
-      title: "YouTube Video URL",
+      title: "Video URL",
       type: "url",
-      description: "Optional: Add a YouTube URL to display a video in the article.",
+      description: "Optional: Add a Supabase Storage URL (Recommended) or a YouTube URL to display a video.",
     }),
     defineField({
       name: "body",

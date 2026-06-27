@@ -15,25 +15,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '12mb',
     },
   },
-  webpack: (config, { webpack }) => {
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /^react$/,
-        (resource: any) => {
-          if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
-              resource.context.includes('node_modules' + path.sep + '@sanity')) {
-            resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
-          }
-        }
-      )
-    );
-
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-real': path.resolve(__dirname, 'node_modules/react'),
-    };
-    return config;
-  },
   transpilePackages: ["styled-components"],
   images: {
     remotePatterns: [

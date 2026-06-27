@@ -36,8 +36,8 @@ const serwist = new Serwist({
       matcher: ({ url }) =>
         url.hostname.includes('ytimg.com') ||
         url.hostname.includes('ibb.co') ||
-        url.hostname.includes('supabase.co') ||
-        url.hostname.includes('sanity.io'),
+        url.hostname.includes('sanity.io') ||
+        (url.hostname.includes('supabase.co') && !url.pathname.match(/\.(mp4|webm)$/i) && !url.pathname.includes('/videos/')),
       handler: new CacheFirst({
         cacheName: 'sawaflix-image-cache',
         plugins: [
@@ -57,7 +57,8 @@ const serwist = new Serwist({
       matcher: ({ url }) =>
         url.pathname.includes('/api/videos/proxy') || // Primary backend MP4 proxy
         url.hostname.includes('youtube.com') ||
-        url.hostname.includes('googlevideo.com'),    // Fallback best-effort for iframes
+        url.hostname.includes('googlevideo.com') ||    // Fallback best-effort for iframes
+        (url.hostname.includes('supabase.co') && (url.pathname.match(/\.(mp4|webm)$/i) || url.pathname.includes('/videos/'))),
       method: 'GET',
       handler: new CacheFirst({
         cacheName: 'sawaflix-video-cache',

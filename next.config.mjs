@@ -22,23 +22,6 @@ const nextConfig = {
     },
   },
   webpack: (config, { webpack }) => {
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /^react$/,
-        (resource) => {
-          if (resource.context.includes('node_modules' + path.sep + 'sanity') ||
-            resource.context.includes('node_modules' + path.sep + '@sanity')) {
-            resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
-          }
-        }
-      )
-    );
-
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-real': path.resolve(__dirname, 'node_modules/react'),
-    };
-
     // Prisma 7.x generates ESM imports with .js extensions but files are .ts
     // extensionAlias tells webpack to also try .ts when it sees a .js import
     config.resolve.extensionAlias = {
