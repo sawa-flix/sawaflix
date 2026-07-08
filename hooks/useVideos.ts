@@ -32,8 +32,8 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         description: item.snippet?.description || item.description,
         thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
         channelId: item.snippet?.channelId || item.channelId,
-        channelTitle: item.snippet?.channelTitle || item.channelTitle,
-        publishedAt: item.snippet?.publishedAt || item.publishedAt,
+        channelTitle: item.snippet?.channelTitle || item.channelTitle || item.metadata?.channel_title || 'YouTube Channel',
+        publishedAt: item.snippet?.publishedAt || item.publishedAt || item.metadata?.published_at || new Date().toISOString(),
         videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
         embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
         likeCount: item.statistics?.likeCount || item.likeCount,
@@ -87,24 +87,17 @@ export function useVideos(categoryQuery: string): UseVideosResult {
 
             let finalVideos: Video[] = [];
 
-            const isDefaultFeed = categoryQuery === 'Cameroon music hits 2026';
+            const isDefaultFeed = categoryQuery === 'Cameroon shorts viral 2026' || categoryQuery === 'Cameroon music hits 2026';
             const isMusicQuery = categoryQuery.toLowerCase().includes('music');
 
-            // If the user is on the default feed (All 237), fetch the fast unified feed!
+            // If the user is on the default feed (All 237), fetch the fast curated culture feed!
             if (isDefaultFeed) {
-                const response = await youtubeApi.getUnifiedFeed();
-                const sawaflixVideos = (response.data?.sawaflix || [])
-                    .map(mapSawaflixItem)
-                    .filter(v => v.contentType !== 'music' && v.contentType !== 'audio'); // Exclude audio from "All"
-
-                const ytVideos = (response.data?.youtube || []).map(mapYouTubeItem);
-
-                // Mix them up for a dynamic feel
-                finalVideos = [...sawaflixVideos, ...ytVideos].sort(() => Math.random() - 0.5);
+                const response = await youtubeApi.getCultureFeed(1, 20);
+                const feedList = response.feed || [];
+                finalVideos = feedList.map(mapYouTubeItem);
                 
-                // Set the token so infinite scroll knows to continue with YouTube search
-                nextPageTokenRef.current = 'use-youtube-fallback'; 
-                setHasMore(true);
+                nextPageTokenRef.current = response.pagination?.next_page ? String(response.pagination.next_page) : null;
+                setHasMore(!!response.pagination?.next_page);
             } else {
                 // Specific category search
                 const response = await youtubeApi.searchVideos(categoryQuery, null, 10);
@@ -168,16 +161,34 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         isLoadingRef.current = true;
 
         try {
-            // When infinite scrolling after unified feed, fallback to regular youtube search
-            const tokenToUse = nextPageTokenRef.current === 'use-youtube-fallback' ? null : nextPageTokenRef.current;
-            const queryToUse = categoryQuery === 'Cameroon music hits 2026' ? 'trending entertainment Cameroon' : categoryQuery;
+            let newVideos: Video[] = [];
+            let nextPageToken: string | null = null;
+            let hasMoreResponse = false;
 
-            const response = await youtubeApi.searchVideos(queryToUse, tokenToUse, 10);
-            const rawList = Array.isArray(response) ? response : (response as any).items || [];
-            
-            const newVideos = rawList
-                .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
-                .map(mapYouTubeItem);
+            const isPagePagination = nextPageTokenRef.current && !isNaN(Number(nextPageTokenRef.current));
+
+            if (isPagePagination) {
+                const pageNum = Number(nextPageTokenRef.current);
+                const response = await youtubeApi.getCultureFeed(pageNum, 20);
+                const feedList = response.feed || [];
+                newVideos = feedList.map(mapYouTubeItem);
+                nextPageToken = response.pagination?.next_page ? String(response.pagination.next_page) : null;
+                hasMoreResponse = !!response.pagination?.next_page;
+            } else {
+                // When infinite scrolling after unified feed, fallback to regular youtube search
+                const tokenToUse = nextPageTokenRef.current === 'use-youtube-fallback' ? null : nextPageTokenRef.current;
+                const queryToUse = categoryQuery === 'Cameroon music hits 2026' ? 'trending entertainment Cameroon' : categoryQuery;
+
+                const response = await youtubeApi.searchVideos(queryToUse, tokenToUse, 10);
+                const rawList = Array.isArray(response) ? response : (response as any).items || [];
+                
+                newVideos = rawList
+                    .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
+                    .map(mapYouTubeItem);
+
+                nextPageToken = (response as any).nextPageToken || null;
+                hasMoreResponse = !!(response as any).nextPageToken;
+            }
 
             setVideos(prev => {
                 const existingIds = new Set(prev.map(v => v.id));
@@ -185,8 +196,8 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 return [...prev, ...uniqueNew];
             });
 
-            nextPageTokenRef.current = (response as any).nextPageToken || null;
-            setHasMore(!!(response as any).nextPageToken);
+            nextPageTokenRef.current = nextPageToken;
+            setHasMore(hasMoreResponse);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to load more videos';
             setError(errorMessage);

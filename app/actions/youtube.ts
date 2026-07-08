@@ -135,6 +135,20 @@ export async function getUnifiedFeedAction() {
     }
 }
 
+export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
+    const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
+    try {
+        const response = await fetchWithTimeout(url);
+        return handleResponse(response);
+    } catch (error: any) {
+        console.error('getCultureFeedAction error:', error);
+        if (error.code === 'BACKEND_UNREACHABLE' || error.message.includes('fetch failed')) {
+            return { success: true, feed: [], pagination: { current_page: page, next_page: null } };
+        }
+        throw error;
+    }
+}
+
 export async function searchVideosAction(
     query: string,
     pageToken: string | null = null,
