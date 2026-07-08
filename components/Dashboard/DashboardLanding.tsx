@@ -235,7 +235,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Sawa Reels</h2>
             </div>
-            <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
           </div>
 
           <div className="relative group/slider">
@@ -303,7 +303,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 <Film className="w-5 h-5 text-[#CE1126]" />
                 <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">News & Comedy</h2>
               </div>
-              <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+              <button onClick={() => onCategoryChange('news')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
             </div>
 
             <div className="relative group/slider">
@@ -421,7 +421,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
               <Film className="w-5 h-5 text-amber-500" />
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Continue Watching</h2>
             </div>
-            <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+            <button onClick={() => onCategoryChange('cinema')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
           </div>
 
           <div className="relative group/slider">
