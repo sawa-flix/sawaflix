@@ -4,11 +4,15 @@ import { verifySignatureAppRouter } from '@upstash/qstash/nextjs';
 import { prisma } from '@/lib/prisma/prisma';
 
 // Configure Web Push with VAPID keys
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@sawaflix.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:admin@sawaflix.com',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+} else {
+  console.warn("VAPID keys are not set in environment variables. Web push notifications will not work.");
+}
 
 async function handler(req: Request) {
   try {
@@ -56,4 +60,7 @@ async function handler(req: Request) {
 }
 
 // Wrap with verifySignatureAppRouter to protect endpoint from unauthorized access
-export const POST = verifySignatureAppRouter(handler);
+export const POST = verifySignatureAppRouter(handler, {
+  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY || "dummy_current_key",
+  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "dummy_next_key",
+});

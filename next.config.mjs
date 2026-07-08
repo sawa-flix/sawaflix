@@ -21,18 +21,43 @@ const nextConfig = {
       bodySizeLimit: '12mb',
     },
   },
-  webpack: (config, { webpack }) => {
+  webpack: (config, { webpack, isServer }) => {
     // Prisma 7.x generates ESM imports with .js extensions but files are .ts
-    // extensionAlias tells webpack to also try .ts when it sees a .js import
     config.resolve.extensionAlias = {
       ...config.resolve.extensionAlias,
       '.js': ['.js', '.ts'],
     };
 
+    // Fix: sanity v5 imports `useEffectEvent` from 'react' as an ESM named
+    // export. React 19 stable ships the export in its CJS build but the
+    // package.json `exports` map doesn't enumerate named exports, so webpack's
+    // static analyser reports it as "not exported".
+    //
+    // NormalModuleReplacementPlugin intercepts the import BEFORE webpack loads
+    // and analyses the target module, redirecting sanity's react imports to our
+    // CJS shim which explicitly re-exports all named APIs including useEffectEvent.
+    // Only sanity/next-sanity/@ sanity imports are redirected — all other app
+    // code keeps importing the real React.
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^react$/,
+        (resource) => {
+          const ctx = resource.context || '';
+          const isSanity =
+            ctx.includes('/node_modules/sanity') ||
+            ctx.includes('/node_modules/next-sanity') ||
+            ctx.includes('/node_modules/@sanity');
+          if (isSanity) {
+            resource.request = path.resolve(__dirname, './lib/react-with-shim.cjs');
+          }
+        }
+      )
+    );
+
     return config;
   },
 
-  transpilePackages: ["styled-components"],
+  transpilePackages: ["styled-components", "sanity", "next-sanity", "@sanity/ui", "@sanity/icons", "@sanity/image-url", "@portabletext/react"],
   images: {
     remotePatterns: [
       {

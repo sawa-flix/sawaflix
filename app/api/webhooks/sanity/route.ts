@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma/prisma';
 import { Client } from '@upstash/qstash';
 
-const qstash = new Client({ token: process.env.QSTASH_TOKEN! });
+const qstash = new Client({ token: process.env.QSTASH_TOKEN || 'dummy_token' });
 
 export async function POST(req: Request) {
   try {
