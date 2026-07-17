@@ -162,9 +162,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // Stable random progress values for continue watching
-  const progressValues = useMemo(() => {
-    return MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20);
+  // Stable random progress values for continue watching (avoid hydration mismatch)
+  const [progressValues, setProgressValues] = useState<number[]>([]);
+  useEffect(() => {
+    setProgressValues(MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20));
   }, []);
 
 
@@ -446,7 +447,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
                     {/* Red progress bar */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                      <div className="h-full bg-[#CE1126]" style={{ width: `${progressValues[idx]}%` }} />
+                      <div className="h-full bg-[#CE1126]" style={{ width: progressValues[idx] ? `${progressValues[idx]}%` : '0%' }} />
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">

@@ -79,7 +79,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
             <div className="flex flex-col items-center gap-5 px-8 pt-10 pb-8">
               {/* Logo */}
               <div className="relative w-24 h-8">
-                <Image src="/sawaflix-logo.png" alt="Sawaflix" fill className="object-contain" />
+                <Image src="/sawalogo.png" alt="Sawaflix" fill className="object-contain" />
               </div>
 
               {/* Copy */}
