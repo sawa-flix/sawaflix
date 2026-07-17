@@ -5,6 +5,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronUp, Maximize, Minimize, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createClient } from '../utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 interface Video {
   id: string;
@@ -47,6 +49,50 @@ interface Comment {
 }
 
 export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const authenticated = !!session;
+      setIsAuthenticated(authenticated);
+      
+      // Replay guest action if they just logged in
+      if (authenticated) {
+        const pendingActionStr = localStorage.getItem('sawaflix_pending_action');
+        if (pendingActionStr) {
+          try {
+            const pendingAction = JSON.parse(pendingActionStr);
+            console.log('Replaying pending action:', pendingAction);
+            if (pendingAction.type === 'like') {
+              // TODO: Implement actual API call to like the video
+              // await supabase.from('likes').insert({ video_id: pendingAction.videoId, user_id: session.user.id });
+              console.log('Successfully replayed LIKE on video', pendingAction.videoId);
+            } else if (pendingAction.type === 'comment') {
+              console.log('Successfully remembered COMMENT intent for video', pendingAction.videoId);
+              // In the future, this could automatically open the comments modal
+            }
+            localStorage.removeItem('sawaflix_pending_action');
+          } catch (e) {
+            console.error('Failed to parse pending action', e);
+          }
+        }
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const requireAuth = (actionType: string, videoId: string) => {
+    if (!isAuthenticated) {
+      localStorage.setItem('sawaflix_pending_action', JSON.stringify({ type: actionType, videoId }));
+      router.push('/login?redirectedFrom=' + encodeURIComponent(window.location.pathname));
+      return false;
+    }
+    return true;
+  };
+
   const [currentVideoIndex, setCurrentVideoIndex] = useState(() => {
     if (initialVideoId) {
       const index = videos.findIndex(v => v.id === initialVideoId);
@@ -590,7 +636,14 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
 
                     {/* Right Side Actions — TikTok-style: compact, bottom-pinned */}
                     <div className="absolute right-3 bottom-20 flex flex-col items-center gap-0 pointer-events-auto">
-                      <button className="flex flex-col items-center text-white group py-1">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!requireAuth('like', video.id)) return;
+                          // Real like logic goes here in the future
+                        }}
+                        className="flex flex-col items-center text-white group py-1"
+                      >
                         <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center group-hover:bg-white/20 transition-all border border-white/5">
                           <Heart size={20} className="hover:text-red-500 transition-colors" />
                         </div>
@@ -600,6 +653,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!requireAuth('comment', video.id)) return;
                           setShowComments(true);
                         }}
                         className="flex flex-col items-center text-white group py-1"

@@ -115,8 +115,10 @@ export async function updateSession(request: NextRequest) {
     "/home",
     "/waiting-list"
   ];
+  const publicExactRoutes = ["/dashboard"];
   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || publicExactRoutes.includes(pathname);
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
   // Helper for redirection that preserves cookies exactly
