@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * GET /api/feed/public
@@ -19,13 +19,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10), 100);
 
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     const { data: videos, error } = await supabase
       .from('contents')
-      .select(
-        'id, title, description, category, video_url, cover_url, visibility, view_count, created_at'
-      )
+      .select('*')
       .eq('visibility', 'public')
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     if (error) {
       console.error('[PublicFeed] Supabase error:', error.message);
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch public feed' },
+        { success: false, error: 'Failed to fetch public feed', details: error.message },
         { status: 500 }
       );
     }
