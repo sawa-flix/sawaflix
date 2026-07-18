@@ -21,26 +21,43 @@ const nextConfig = {
       bodySizeLimit: '12mb',
     },
   },
-  webpack: (config, { webpack }) => {
+  webpack: (config, { webpack, isServer }) => {
+    // Prisma 7.x generates ESM imports with .js extensions but files are .ts
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      '.js': ['.js', '.ts'],
+    };
+
+    // Fix: sanity v5 imports `useEffectEvent` from 'react' as an ESM named
+    // export. React 19 stable ships the export in its CJS build but the
+    // package.json `exports` map doesn't enumerate named exports, so webpack's
+    // static analyser reports it as "not exported".
+    //
+    // NormalModuleReplacementPlugin intercepts the import BEFORE webpack loads
+    // and analyses the target module, redirecting sanity's react imports to our
+    // CJS shim which explicitly re-exports all named APIs including useEffectEvent.
+    // Only sanity/next-sanity/@ sanity imports are redirected — all other app
+    // code keeps importing the real React.
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /^react$/,
         (resource) => {
-          if (resource.context.includes('node_modules' + path.sep + 'sanity') ||
-            resource.context.includes('node_modules' + path.sep + '@sanity')) {
-            resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');
+          const ctx = resource.context || '';
+          const isSanity =
+            ctx.includes('/node_modules/sanity') ||
+            ctx.includes('/node_modules/next-sanity') ||
+            ctx.includes('/node_modules/@sanity');
+          if (isSanity) {
+            resource.request = path.resolve(__dirname, './lib/react-with-shim.cjs');
           }
         }
       )
     );
 
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-real': path.resolve(__dirname, 'node_modules/react'),
-    };
     return config;
   },
-  transpilePackages: ["styled-components"],
+
+  transpilePackages: ["styled-components", "sanity", "next-sanity", "@sanity/ui", "@sanity/icons", "@sanity/image-url", "@portabletext/react"],
   images: {
     remotePatterns: [
       {
@@ -81,6 +98,7 @@ const nextConfig = {
       },
     ],
     dangerouslyAllowSVG: true,
+    qualities: [75, 85, 90, 100],
   },
 };
 

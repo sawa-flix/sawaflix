@@ -6,13 +6,19 @@ import {
     likeYouTubeVideoAction,
     followYouTubeChannelAction,
     commentYouTubeVideoAction,
-    getUnifiedFeedAction
+    getUnifiedFeedAction,
+    getCultureFeedAction
 } from '@/app/actions/youtube';
 
 export class YouTubeApiService {
     async getUnifiedFeed() {
         console.log('[API] Invoking server action to fetch unified feed');
         return getUnifiedFeedAction();
+    }
+
+    async getCultureFeed(page = 1, limit = 20) {
+        console.log('[API] Invoking server action to fetch culture feed (page:', page, '| limit:', limit, ')');
+        return getCultureFeedAction(page, limit);
     }
 
     async searchVideos(

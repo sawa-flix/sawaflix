@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /^react$/,
-        (resource: any) => {
+        (resource) => {
           if (resource.context.includes('node_modules' + path.sep + 'sanity') || 
               resource.context.includes('node_modules' + path.sep + '@sanity')) {
             resource.request = path.resolve(__dirname, 'lib/react-shim/index.js');

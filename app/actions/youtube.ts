@@ -135,6 +135,20 @@ export async function getUnifiedFeedAction() {
     }
 }
 
+export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
+    const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
+    try {
+        const response = await fetchWithTimeout(url);
+        return handleResponse(response);
+    } catch (error: any) {
+        console.error('getCultureFeedAction error:', error);
+        if (error.code === 'BACKEND_UNREACHABLE' || error.message.includes('fetch failed')) {
+            return { success: true, feed: [], pagination: { current_page: page, next_page: null } };
+        }
+        throw error;
+    }
+}
+
 export async function searchVideosAction(
     query: string,
     pageToken: string | null = null,
@@ -163,7 +177,7 @@ export async function searchVideosAction(
         return handleResponse(response);
     } catch (error: any) {
         console.error('searchVideosAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE') {
+        if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
             // Return mock videos so the UI doesn't crash
             return { items: MOCK_VIDEOS, nextPageToken: null };
         }
@@ -183,7 +197,7 @@ export async function getVideoDetailsAction(videoId: string): Promise<VideoDetai
         return handleResponse(response);
     } catch (error: any) {
         console.error('getVideoDetailsAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE') {
+        if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
             const mock = MOCK_VIDEOS.find(v => v.id === videoId) || MOCK_VIDEOS[0];
             return {
                 id: mock.id,
@@ -213,7 +227,7 @@ export async function getVideoCommentsAction(videoId: string): Promise<Comment[]
         return handleResponse(response);
     } catch (error: any) {
         console.error('getVideoCommentsAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE') {
+        if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
             return [
                 {
                     id: 'c1',

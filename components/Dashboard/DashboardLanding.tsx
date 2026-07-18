@@ -6,6 +6,7 @@ import { MOVIES_DATA } from '../Movie/constants';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -54,6 +55,7 @@ interface DashboardLandingProps {
 }
 
 export default function DashboardLanding({ onPlayReel, reels, activeCategory, onCategoryChange }: DashboardLandingProps) {
+  const router = useRouter();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -160,9 +162,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // Stable random progress values for continue watching
-  const progressValues = useMemo(() => {
-    return MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20);
+  // Stable random progress values for continue watching (avoid hydration mismatch)
+  const [progressValues, setProgressValues] = useState<number[]>([]);
+  useEffect(() => {
+    setProgressValues(MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20));
   }, []);
 
 
@@ -223,37 +226,17 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           </section>
         )}
 
-        {/* ═══ Trending News Bar ═══ */}
-        {/* {trendingNews.length > 0 && (
-          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3">
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <TrendingUp size={14} className="text-[#CE1126]" />
-              <span className="text-[#CE1126] text-xs font-black uppercase tracking-wider">Trending</span>
-            </div>
-            <div className="h-4 w-px bg-white/10 flex-shrink-0" />
-            <div className="overflow-hidden flex-1">
-              <p className="text-white/70 text-sm truncate">
-                {trendingNews.map((s: any, i: number) => (
-                  <span key={s._id}>
-                    <span className="text-white font-medium">{s.title}</span>
-                    {i < trendingNews.length - 1 && <span className="text-white/30 mx-3">•</span>}
-                  </span>
-                ))}
-              </p>
-            </div>
-          </div>
-        )} */}
 
         {/* ═══ Sawa Reels Section ═══ */}
         <section ref={reelsRef} className="scroll-mt-20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 relative">
-                <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
+              <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Sawa Reels</h2>
             </div>
-            <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
           </div>
 
           <div className="relative group/slider">
@@ -321,7 +304,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 <Film className="w-5 h-5 text-[#CE1126]" />
                 <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">News & Comedy</h2>
               </div>
-              <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+              <button onClick={() => onCategoryChange('news')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
             </div>
 
             <div className="relative group/slider">
@@ -439,7 +422,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
               <Film className="w-5 h-5 text-amber-500" />
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Continue Watching</h2>
             </div>
-            <button className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+            <button onClick={() => onCategoryChange('cinema')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
           </div>
 
           <div className="relative group/slider">
@@ -464,7 +447,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
                     {/* Red progress bar */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                      <div className="h-full bg-[#CE1126]" style={{ width: `${progressValues[idx]}%` }} />
+                      <div className="h-full bg-[#CE1126]" style={{ width: progressValues[idx] ? `${progressValues[idx]}%` : '0%' }} />
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">

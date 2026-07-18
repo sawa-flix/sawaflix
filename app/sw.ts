@@ -36,8 +36,8 @@ const serwist = new Serwist({
       matcher: ({ url }) =>
         url.hostname.includes('ytimg.com') ||
         url.hostname.includes('ibb.co') ||
-        url.hostname.includes('supabase.co') ||
-        url.hostname.includes('sanity.io'),
+        url.hostname.includes('sanity.io') ||
+        (url.hostname.includes('supabase.co') && !url.pathname.match(/\.(mp4|webm)$/i) && !url.pathname.includes('/videos/')),
       handler: new CacheFirst({
         cacheName: 'sawaflix-image-cache',
         plugins: [
@@ -57,7 +57,8 @@ const serwist = new Serwist({
       matcher: ({ url }) =>
         url.pathname.includes('/api/videos/proxy') || // Primary backend MP4 proxy
         url.hostname.includes('youtube.com') ||
-        url.hostname.includes('googlevideo.com'),    // Fallback best-effort for iframes
+        url.hostname.includes('googlevideo.com') ||    // Fallback best-effort for iframes
+        (url.hostname.includes('supabase.co') && (url.pathname.match(/\.(mp4|webm)$/i) || url.pathname.includes('/videos/'))),
       method: 'GET',
       handler: new CacheFirst({
         cacheName: 'sawaflix-video-cache',
@@ -75,3 +76,30 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// --- Web Push Notification Listeners ---
+
+self.addEventListener('push', function (event: PushEvent) {
+  if (event.data) {
+    const data = event.data.json();
+
+    const options = {
+      body: data.body,
+      icon: '/icons/icon-192x192.png', // Using the PWA logo as requested
+      data: { url: data.url },
+      vibrate: [200, 100, 200],
+    };
+
+    event.waitUntil(self.registration.showNotification(data.title, options));
+  }
+});
+
+self.addEventListener('notificationclick', function (event: NotificationEvent) {
+  event.notification.close();
+  
+  if (event.notification.data && event.notification.data.url) {
+    event.waitUntil(
+      self.clients.openWindow(event.notification.data.url)
+    );
+  }
+});

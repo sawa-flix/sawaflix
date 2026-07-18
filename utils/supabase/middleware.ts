@@ -102,6 +102,7 @@
 
 //   // pathname is already extracted above
 
+<<<<<<< HEAD
 //   const publicRoutes = [
 //     "/login",
 //     "/sign-up",
@@ -118,6 +119,26 @@
 //   const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
 //   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 //   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+=======
+  const publicRoutes = [
+    "/login",
+    "/sign-up",
+    "/sign-in",
+    "/verify-otp",
+    "/auth/callback",
+    "/update-password",
+    "/forgot-password",
+    "/dashboard/blogs",
+    "/artistpage",
+    "/home",
+    "/waiting-list"
+  ];
+  const publicExactRoutes = ["/dashboard"];
+  const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
+  
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || publicExactRoutes.includes(pathname);
+  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+>>>>>>> 8f67628e798980035af46fe456a17da18da081e4
 
 //   // Helper for redirection that preserves cookies exactly
 //   const redirectWithCookies = (url: URL | string) => {

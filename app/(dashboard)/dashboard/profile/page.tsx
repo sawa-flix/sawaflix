@@ -10,6 +10,7 @@ import PersonalInfoCard from '../../../../components/profile/cards/PersonalInfoC
 import SubscriptionCard from '../../../../components/profile/cards/SubscriptionCard';
 import ViewingPrefsCard from '../../../../components/profile/cards/ViewingPrefsCard';
 import SecurityCard from '../../../../components/profile/cards/SecurityCard';
+import NotificationCard from '../../../../components/profile/cards/NotificationCard';
 import ProfileRecentlyWatched from '../../../../components/profile/ProfileRecentlyWatched';
 import TasteProfile from '../../../../components/profile/TasteProfile';
 import ProfileContinuePlaying from '../../../../components/profile/ProfileContinuePlaying';
@@ -89,8 +90,8 @@ const UserProfilePage = async () => {
         {/* 2. Stats Bar */}
         <ProfileStatBar />
 
-        {/* 3. Info Grid — 2 cols on tablet, 4 cols on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* 3. Info Grid — 2 cols on tablet, 5 cols on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
           <PersonalInfoCard
             username={profile?.username}
             email={profile?.email ?? user.email}
@@ -103,6 +104,7 @@ const UserProfilePage = async () => {
           <ViewingPrefsCard
             favoriteGenres={profile?.favored_genres ?? ['Drama', 'Comedy', 'Romance']}
           />
+          <NotificationCard userId={user.id} />
           <SecurityCard />
         </div>
 

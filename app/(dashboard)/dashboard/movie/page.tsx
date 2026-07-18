@@ -38,20 +38,8 @@ export default function MoviePage(): React.ReactElement {
       <div className="movie-page-root flex flex-col xl:flex-row gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-white pb-20">
         {/* ========== LEFT CONTENT AREA ========== */}
         <div className="flex-1 min-w-0 flex flex-col pt-2">
-          {/* Hero Banner */}
-          <MovieHeroBanner
-            movie={featuredMovie}
-            onWatchNow={() => setPaywallMovie(featuredMovie)}
-          />
-
-          {/* Filters Bar */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 mb-6">
-            <div className="flex items-center gap-2 mr-2 text-gray-400 flex-shrink-0">
-              <Filter size={18} />
-              <span className="text-sm font-bold uppercase tracking-wider whitespace-nowrap">
-                Filters
-              </span>
-            </div>
+          {/* Filters Bar - Sticky above banner */}
+          <div className="sticky top-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md py-3 mb-6 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-white/5 -mx-4 px-4 sm:mx-0 sm:px-0">
             {FILTERS.map((filter) => (
               <button
                 key={filter}
@@ -67,6 +55,12 @@ export default function MoviePage(): React.ReactElement {
               </button>
             ))}
           </div>
+
+          {/* Hero Banner */}
+          <MovieHeroBanner
+            movie={featuredMovie}
+            onWatchNow={() => setPaywallMovie(featuredMovie)}
+          />
 
           {/* Movie Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
