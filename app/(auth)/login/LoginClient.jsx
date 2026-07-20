@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signInWithPassword, checkAuth } from '@/app/(auth)/actions';
+import { checkAuth } from '@/app/(auth)/actions';
 import { createClient } from '@/utils/supabase/client';
 
 import { Suspense } from 'react';
@@ -38,10 +38,8 @@ const AuthButton = ({ children, isLoading, variant = 'primary', className = '', 
 function LoginContent() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const router = useRouter();
@@ -126,75 +124,75 @@ function LoginContent() {
   }, [router]);
 
   // Handle URL messages (password reset, sign out)
-  useEffect(() => {
-    const message = searchParams.get('message');
-    const errorParam = searchParams.get('error');
+  // useEffect(() => {
+  //   const message = searchParams.get('message');
+  //   const errorParam = searchParams.get('error');
 
-    if (message === 'password_updated_success' || message === 'password_updated') {
-      setSuccessMessage('✅ Password updated successfully! You can now login with your new password.');
-    } else if (message === 'signed_out') {
-      setSuccessMessage('You have been signed out successfully.');
-    } else if (errorParam) {
-      // Map raw Supabase/callback error codes to human-friendly messages
-      const errorMessages = {
-        auth_failed: 'Sign-in failed. Please try again or use a different method.',
-        auth_config_missing: 'Authentication is not configured correctly. Please contact support.',
-        invalid_reset_link: 'This reset link is invalid or has expired. Please request a new one.',
-        callback_error: 'An error occurred during sign-in. Please try again.',
-        signout_failed: 'Sign-out failed. Please try again.',
-      };
-      setError(errorMessages[errorParam] || decodeURIComponent(errorParam));
-    }
+  //   if (message === 'password_updated_success' || message === 'password_updated') {
+  //     setSuccessMessage('✅ Password updated successfully! You can now login with your new password.');
+  //   } else if (message === 'signed_out') {
+  //     setSuccessMessage('You have been signed out successfully.');
+  //   } else if (errorParam) {
+  //     // Map raw Supabase/callback error codes to human-friendly messages
+  //     const errorMessages = {
+  //       auth_failed: 'Sign-in failed. Please try again or use a different method.',
+  //       auth_config_missing: 'Authentication is not configured correctly. Please contact support.',
+  //       invalid_reset_link: 'This reset link is invalid or has expired. Please request a new one.',
+  //       callback_error: 'An error occurred during sign-in. Please try again.',
+  //       signout_failed: 'Sign-out failed. Please try again.',
+  //     };
+  //     setError(errorMessages[errorParam] || decodeURIComponent(errorParam));
+  //   }
 
-    if (message || errorParam) {
-      // Clean URL after consuming messages
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('message');
-      newUrl.searchParams.delete('error');
-      router.replace(newUrl.pathname + newUrl.search);
-    }
-  }, [searchParams, router]);
+  //   if (message || errorParam) {
+  //     // Clean URL after consuming messages
+  //     const newUrl = new URL(window.location.href);
+  //     newUrl.searchParams.delete('message');
+  //     newUrl.searchParams.delete('error');
+  //     router.replace(newUrl.pathname + newUrl.search);
+  //   }
+  // }, [searchParams, router]);
 
   /**
    * Handle Password Login
    */
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+  // const handleFormSubmit = async (e) => {
+  //   e.preventDefault();
 
-    // Reset state before attempt
-    setError(null);
-    setSuccessMessage(null);
-    setIsLoading(true);
-    setIsRedirecting(false);
+  //   // Reset state before attempt
+  //   setError(null);
+  //   setSuccessMessage(null);
+  //   setIsLoading(true);
+  //   setIsRedirecting(false);
 
-    const formElement = e.currentTarget;
-    const formData = new FormData(formElement);
+  //   const formElement = e.currentTarget;
+  //   const formData = new FormData(formElement);
 
-    try {
-      const result = await signInWithPassword(formData);
+  //   try {
+  //     const result = await signInWithPassword(formData);
 
-      if (result?.error) {
-        setError(result.error);
-        setIsLoading(false);
-      } else if (result?.success) {
-        // Login successful - redirect based on role
-        const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
-        console.log(`🟢 Login successful, redirecting to ${targetPath}`);
-        setIsRedirecting(true);
+  //     if (result?.error) {
+  //       setError(result.error);
+  //       setIsLoading(false);
+  //     } else if (result?.success) {
+  //       // Login successful - redirect based on role
+  //       const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
+  //       console.log(`🟢 Login successful, redirecting to ${targetPath}`);
+  //       setIsRedirecting(true);
         
-        // Force a hard navigation to guarantee the browser sends the new auth cookies!
-        // This solves the Vercel/NextJS RSC cookie-stripping bug during client transitions.
-        window.location.href = targetPath;
-      } else {
-        // Unexpected response if no redirect was thrown
-        setError("Login failed. Please try again.");
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('An unexpected error occurred. Please try again.');
-      setIsLoading(false);
-    }
-  };
+  //       // Force a hard navigation to guarantee the browser sends the new auth cookies!
+  //       // This solves the Vercel/NextJS RSC cookie-stripping bug during client transitions.
+  //       window.location.href = targetPath;
+  //     } else {
+  //       // Unexpected response if no redirect was thrown
+  //       setError("Login failed. Please try again.");
+  //     }
+  //   } catch (err) {
+  //     console.error('Login error:', err);
+  //     setError('An unexpected error occurred. Please try again.');
+  //     setIsLoading(false);
+  //   }
+  // };
 
 
   return (
@@ -228,7 +226,7 @@ function LoginContent() {
             </h1>
 
             {/* Success/Error Alerts */}
-            <div className="space-y-4 mb-4">
+            {/* <div className="space-y-4 mb-4">
               {isRedirecting && (
                 <div className="p-3 bg-green-900/30 border border-green-700 rounded-lg animate-fadeIn flex items-center justify-center">
                   <svg className="animate-spin h-5 w-5 text-green-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -250,11 +248,11 @@ function LoginContent() {
                   {error}
                 </div>
               )}
-            </div>
+            </div> */}
 
             {!isRedirecting && (
               <>
-                <form onSubmit={handleFormSubmit} className="space-y-4">
+                {/* <form onSubmit={handleFormSubmit} className="space-y-4">
                   <div>
                     <input
                       type="email"
@@ -319,11 +317,9 @@ function LoginContent() {
                   <AuthButton type="submit" isLoading={isLoading || isGoogleLoading}>
                     Sign In
                   </AuthButton>
-                </form>
+                </form> */}
 
-                <div className="my-4 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-gray-700" />
-                  <span className="text-xs uppercase tracking-wider text-gray-500">or</span>
+                <div className="my-4 flex items-center">
                   <div className="h-px flex-1 bg-gray-700" />
                 </div>
 
