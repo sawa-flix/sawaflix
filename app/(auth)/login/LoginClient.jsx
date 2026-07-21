@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkAuth } from '@/app/(auth)/actions';
 import { createClient } from '@/utils/supabase/client';
+import { FcGoogle } from 'react-icons/fc';
 
 import { Suspense } from 'react';
 
@@ -123,76 +124,32 @@ function LoginContent() {
     checkIfLoggedIn();
   }, [router]);
 
-  // Handle URL messages (password reset, sign out)
-  // useEffect(() => {
-  //   const message = searchParams.get('message');
-  //   const errorParam = searchParams.get('error');
+  // Handle URL messages (errors, signs out)
+  useEffect(() => {
+    const message = searchParams.get('message');
+    const errorParam = searchParams.get('error');
 
-  //   if (message === 'password_updated_success' || message === 'password_updated') {
-  //     setSuccessMessage('✅ Password updated successfully! You can now login with your new password.');
-  //   } else if (message === 'signed_out') {
-  //     setSuccessMessage('You have been signed out successfully.');
-  //   } else if (errorParam) {
-  //     // Map raw Supabase/callback error codes to human-friendly messages
-  //     const errorMessages = {
-  //       auth_failed: 'Sign-in failed. Please try again or use a different method.',
-  //       auth_config_missing: 'Authentication is not configured correctly. Please contact support.',
-  //       invalid_reset_link: 'This reset link is invalid or has expired. Please request a new one.',
-  //       callback_error: 'An error occurred during sign-in. Please try again.',
-  //       signout_failed: 'Sign-out failed. Please try again.',
-  //     };
-  //     setError(errorMessages[errorParam] || decodeURIComponent(errorParam));
-  //   }
+    if (message === 'signed_out') {
+      setSuccessMessage('You have been signed out successfully.');
+    } else if (errorParam) {
+      // Map raw Supabase/callback error codes to human-friendly messages
+      const errorMessages = {
+        auth_failed: 'Sign-in failed. Please try again or use a different method.',
+        auth_config_missing: 'Authentication is not configured correctly. Please contact support.',
+        callback_error: 'An error occurred during sign-in. Please try again.',
+        signout_failed: 'Sign-out failed. Please try again.',
+      };
+      setError(errorMessages[errorParam] || decodeURIComponent(errorParam));
+    }
 
-  //   if (message || errorParam) {
-  //     // Clean URL after consuming messages
-  //     const newUrl = new URL(window.location.href);
-  //     newUrl.searchParams.delete('message');
-  //     newUrl.searchParams.delete('error');
-  //     router.replace(newUrl.pathname + newUrl.search);
-  //   }
-  // }, [searchParams, router]);
-
-  /**
-   * Handle Password Login
-   */
-  // const handleFormSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   // Reset state before attempt
-  //   setError(null);
-  //   setSuccessMessage(null);
-  //   setIsLoading(true);
-  //   setIsRedirecting(false);
-
-  //   const formElement = e.currentTarget;
-  //   const formData = new FormData(formElement);
-
-  //   try {
-  //     const result = await signInWithPassword(formData);
-
-  //     if (result?.error) {
-  //       setError(result.error);
-  //       setIsLoading(false);
-  //     } else if (result?.success) {
-  //       // Login successful - redirect based on role
-  //       const targetPath = result.redirectTo || (result.role === 'admin' ? '/admin' : '/dashboard');
-  //       console.log(`🟢 Login successful, redirecting to ${targetPath}`);
-  //       setIsRedirecting(true);
-        
-  //       // Force a hard navigation to guarantee the browser sends the new auth cookies!
-  //       // This solves the Vercel/NextJS RSC cookie-stripping bug during client transitions.
-  //       window.location.href = targetPath;
-  //     } else {
-  //       // Unexpected response if no redirect was thrown
-  //       setError("Login failed. Please try again.");
-  //     }
-  //   } catch (err) {
-  //     console.error('Login error:', err);
-  //     setError('An unexpected error occurred. Please try again.');
-  //     setIsLoading(false);
-  //   }
-  // };
+    if (message || errorParam) {
+      // Clean URL after consuming messages
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('message');
+      newUrl.searchParams.delete('error');
+      router.replace(newUrl.pathname + newUrl.search);
+    }
+  }, [searchParams, router]);
 
 
   return (
@@ -226,7 +183,7 @@ function LoginContent() {
             </h1>
 
             {/* Success/Error Alerts */}
-            {/* <div className="space-y-4 mb-4">
+            <div className="space-y-4 mb-4">
               {isRedirecting && (
                 <div className="p-3 bg-green-900/30 border border-green-700 rounded-lg animate-fadeIn flex items-center justify-center">
                   <svg className="animate-spin h-5 w-5 text-green-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -248,80 +205,10 @@ function LoginContent() {
                   {error}
                 </div>
               )}
-            </div> */}
+            </div>
 
             {!isRedirecting && (
               <>
-                {/* <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                      required
-                      disabled={isLoading}
-                      autoComplete="username email"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      placeholder="Password"
-                      className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950 pr-12"
-                      required
-                      disabled={isLoading}
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading || isGoogleLoading}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors disabled:cursor-not-allowed"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395m-4.64-2.115a4.5 4.5 0 113.35-6.425M21.75 12C20.462 7.662 16.44 4.5 12 4.5c-.993 0-1.953.138-2.863.395m-4.64-2.115a4.5 4.5 0 113.35-6.425" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <label className="flex items-center text-gray-300 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 mr-2 appearance-none border border-gray-600 rounded-md bg-gray-800 checked:bg-red-600 checked:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                      disabled={isLoading || isGoogleLoading}
-                      />
-                      Remember me
-                    </label>
-                    <Link
-                      href="/forgot-password"
-                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <AuthButton type="submit" isLoading={isLoading || isGoogleLoading}>
-                    Sign In
-                  </AuthButton>
-                </form> */}
-
-                <div className="my-4 flex items-center">
-                  <div className="h-px flex-1 bg-gray-700" />
-                </div>
 
                 <AuthButton
                   type="button"
@@ -330,6 +217,7 @@ function LoginContent() {
                   onClick={handleGoogleSignIn}
                   disabled={isLoading || isGoogleLoading}
                 >
+                  <FcGoogle className="w-6 h-6 mr-2" />
                   Continue with Google
                 </AuthButton>
 

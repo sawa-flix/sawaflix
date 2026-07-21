@@ -1,20 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { signInWithPassword } from '../(auth)/actions';
 import { useTranslation } from 'react-i18next';
+import { FcGoogle } from 'react-icons/fc';
 
 
 const LandingPage = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleJoinAsCreator = () => {
     router.push('/creator/verify');
@@ -22,31 +17,6 @@ const LandingPage = () => {
 
   const handleJoinAsUser = () => {
     router.push('/login');
-  };
-
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('password', password);
-
-      const result = await signInWithPassword(formData);
-
-      if (result.error) {
-        setError(result.error);
-      } else if (result.success) {
-        router.push(result.redirectTo || '/dashboard');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -288,54 +258,24 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSignIn} className="space-y-6">
-          <div className="mb-8">
-            {/* LanguageToggle Removed */}
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("landing.email_placeholder")}
-              className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all font-medium"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("landing.password_placeholder")}
-              className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all font-medium"
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-300 transition-colors">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 bg-gray-900 border-gray-800 rounded checked:bg-red-600 transition-all cursor-pointer"
-              />
-              <span>{t("landing.remember_me")}</span>
-            </label>
-            <button type="button" className="text-red-700 hover:text-red-600 font-bold">{t("landing.forgot_password")}</button>
-          </div>
-
+        <div className="space-y-4">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-5 bg-red-600 hover:bg-red-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-red-900/20 transition-all transform active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => router.push('/login')}
+            className="w-full flex items-center justify-center gap-3 py-5 bg-white hover:bg-gray-50 text-gray-900 font-black text-lg rounded-2xl shadow-xl transition-all transform active:scale-95"
           >
-            {loading ? t("landing.signing_in") : t("common.sign_in")}
+            <FcGoogle className="w-6 h-6" />
+            {t("common.sign_in")} with Google
           </button>
-        </form>
+          <p className="text-center text-gray-500 text-sm">
+            Don&apos;t have an account?{' '}
+            <button
+              onClick={() => router.push('/sign-up')}
+              className="text-red-500 hover:text-red-400 font-bold transition-colors"
+            >
+              {t("common.sign_up")}
+            </button>
+          </p>
+        </div>
         </div>
       </div>
     </div>
