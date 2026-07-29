@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import {
   Play, Pause, ChevronLeft, ChevronRight,
   Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
-  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize, MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,16 +21,15 @@ import { PremiumPaywall } from '../PremiumPaywall';
 import DashboardLanding from './DashboardLanding';
 
 const CATEGORIES = [
-  { id: "all",           label: "All",          query: "Cameroon shorts viral 2026" },
-  { id: "reels",         label: "Reels",        query: "Cameroon trending reels 2026" },
-  { id: "news",          label: "News",         query: "Cameroon news shorts today" },
-  { id: "comedy",        label: "Comedy",       query: "Cameroon comedy shorts" },
-  { id: "tourism",       label: "Tourism",      query: "Cameroon tourism travel shorts" },
-  { id: "music",         label: "Music",        query: "Cameroon music shorts hits" },
-  { id: "heritage",      label: "Heritage",     query: "Cameroon heritage history shorts" },
-  { id: "culture",       label: "Culture",      query: "Cameroon culture tradition shorts" },
-  { id: "cinema",        label: "Cinema",       query: "Cameroon cinema movies shorts" },
-  { id: "announcement",  label: "Announcement", query: "Cameroon news announcement shorts" },
+  { id: "all", label: "All", query: "Cameroon shorts viral 2026" },
+  { id: "news", label: "News", query: "Cameroon news shorts today" },
+  { id: "comedy", label: "Comedy", query: "Cameroon comedy shorts" },
+  { id: "tourism", label: "Tourism", query: "Cameroon tourism travel shorts" },
+  { id: "music", label: "Music", query: "Cameroon music shorts hits" },
+  { id: "heritage", label: "Heritage", query: "Cameroon heritage history shorts" },
+  { id: "culture", label: "Culture", query: "Cameroon culture tradition shorts" },
+  { id: "cinema", label: "Cinema", query: "Cameroon cinema movies shorts" },
+  { id: "announcement", label: "Announcement", query: "Cameroon news announcement shorts" },
 ];
 
 const HERO_IMAGES = [
@@ -44,7 +43,7 @@ function formatCount(n) {
   const num = parseInt(n, 10);
   if (isNaN(num)) return '0';
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-  if (num >= 1_000)     return (num / 1_000).toFixed(1) + 'K';
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
   return String(num);
 }
 
@@ -71,7 +70,7 @@ const SearchResultCard = ({ video, onPlay, isShort = false }) => (
         unoptimized
       />
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-      
+
       {/* Play Icon */}
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-500">
@@ -90,14 +89,14 @@ const SearchResultCard = ({ video, onPlay, isShort = false }) => (
     <div className="flex gap-3 px-0.5">
       {/* Channel Avatar Placeholder */}
       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex-shrink-0 overflow-hidden relative">
-        <Image 
-          src={video.channelThumbnail || `https://api.dicebear.com/7.x/initials/svg?seed=${video.channelTitle}`} 
-          alt="Avatar" 
-          fill 
+        <Image
+          src={video.channelThumbnail || `https://api.dicebear.com/7.x/initials/svg?seed=${video.channelTitle}`}
+          alt="Avatar"
+          fill
           className="object-cover"
         />
       </div>
-      
+
       <div className="flex flex-col gap-1 min-w-0">
         <h3 className="text-white text-sm font-semibold line-clamp-2 leading-tight group-hover:text-white transition-colors">
           {video.title}
@@ -135,7 +134,7 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, restricti
     // Provide the YouTube-like API to the parent
     if (onPlayerReady) {
       onPlayerReady({
-        seekTo: (time) => { 
+        seekTo: (time) => {
           // Seek protection
           if (restriction?.mustPay && time > restriction.limitSeconds) {
             el.currentTime = restriction.limitSeconds;
@@ -143,7 +142,7 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, restricti
             el.currentTime = time;
           }
         },
-        playVideo: () => { el.play().catch(() => {}); },
+        playVideo: () => { el.play().catch(() => { }); },
         pauseVideo: () => { el.pause(); },
         getCurrentTime: () => el.currentTime,
         getDuration: () => el.duration || 0,
@@ -156,14 +155,14 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, restricti
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    
+
     if (isActive && !isPaused) {
       // Check restriction before playing
       if (restriction?.mustPay && el.currentTime >= restriction.limitSeconds) {
         onRestrictionReached?.();
         return;
       }
-      el.play().catch(() => {});
+      el.play().catch(() => { });
     } else {
       el.pause();
     }
@@ -216,35 +215,44 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const [isPaused, setIsPaused]     = useState(false);
-  const [isLiked, setIsLiked]       = useState(false);
-  const [likeCount, setLikeCount]   = useState(parseInt(video.likeCount) || 0);
-  const [tapFlash, setTapFlash]     = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(parseInt(video.likeCount) || 0);
+  const [tapFlash, setTapFlash] = useState(null);
   const [shareToast, setShareToast] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   // Fullscreen state is now passed from parent
 
-  const [progress, setProgress]     = useState(0);
+  const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration]     = useState(0);
+  const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const scrubberRef   = useRef(null);
+  const scrubberRef = useRef(null);
 
   // Playback Monetization State
   const [playbackInfo, setPlaybackInfo] = useState(null);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isPlaybackLoading, setIsPlaybackLoading] = useState(false);
 
-  const playerRef     = useRef(null);
-  const lastTapRef    = useRef({ time: 0, side: null });
-  const flashTimer    = useRef(null);
+  const playerRef = useRef(null);
+  const lastTapRef = useRef({ time: 0, side: null });
+  const flashTimer = useRef(null);
 
-  const { stats }  = useVideoStats(isActive ? video.id : null);
+  const { stats } = useVideoStats(isActive ? video.id : null);
   const { comments, loading: commentsLoading, isOpen: commentOpen, setIsOpen: setCommentOpen, addComment }
     = useComments(isActive ? video.id : null);
 
-  // Determine if this is a Sawaflix-origin video or YouTube
-  const videoOrigin = video.origin === 'sawaflix' ? 'sawaflix' : 'youtube';
+  // Determine if this is a Sawaflix-origin video or YouTube.
+  // Every YouTube-sourced object is reliably tagged origin:'youtube' at
+  // construction (mapYouTubeItem in useVideos.ts, the /api/videos/[id]
+  // route, the direct-fetch path in this file) — but native Sawaflix
+  // content isn't always guaranteed to carry the tag. Defaulting to
+  // 'youtube' meant any native video missing that field got handed to
+  // YouTubePlayer with its Supabase UUID as the videoId, which the
+  // YouTube IFrame API rejects as invalid. Default to the platform's own
+  // content type instead, since that's the safer assumption here.
+  const videoOrigin = video.origin === 'youtube' ? 'youtube' : 'sawaflix';
 
   // Fetch Playback Source through Gatekeeper when video becomes active
   useEffect(() => {
@@ -280,7 +288,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
     }
   };
 
-  const displayLikes    = isActive && stats ? (parseInt(stats.likeCount) || likeCount) : likeCount;
+  const displayLikes = isActive && stats ? (parseInt(stats.likeCount) || likeCount) : likeCount;
   const displayComments = isActive && stats ? stats.commentCount : video.commentCount;
 
   const flash = (type) => {
@@ -302,7 +310,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
   const getPercentFromEvent = (e) => {
     const bar = scrubberRef.current;
     if (!bar) return 0;
-    const rect  = bar.getBoundingClientRect();
+    const rect = bar.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     return pct;
@@ -316,8 +324,8 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
 
   useEffect(() => {
     if (!isDragging) return;
-    const onMove  = (e) => seekToPercent(getPercentFromEvent(e));
-    const onEnd   = () => setIsDragging(false);
+    const onMove = (e) => seekToPercent(getPercentFromEvent(e));
+    const onEnd = () => setIsDragging(false);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onEnd);
     window.addEventListener('touchmove', onMove, { passive: true });
@@ -332,9 +340,9 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
 
   const handleVideoTap = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x    = e.clientX - rect.left;
+    const x = e.clientX - rect.left;
     const side = x < rect.width / 2 ? 'left' : 'right';
-    const now  = Date.now();
+    const now = Date.now();
     const last = lastTapRef.current;
 
     if (now - last.time < 300 && last.side === side) {
@@ -343,7 +351,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
       if (player && typeof player.getCurrentTime === 'function') {
         const cur = player.getCurrentTime();
         if (side === 'right') { player.seekTo(cur + 10, true); flash('fwd'); }
-        else                  { player.seekTo(Math.max(cur - 10, 0), true); flash('bwd'); }
+        else { player.seekTo(Math.max(cur - 10, 0), true); flash('bwd'); }
       } else {
         flash(side === 'right' ? 'fwd' : 'bwd');
       }
@@ -362,7 +370,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikeCount(c => nextLiked ? c + 1 : Math.max(c - 1, 0));
-    
+
     // Call the server action completely outside the state updater function
     youtubeApi.likeVideo(video.id, videoOrigin).catch(() => {
       // revert on failure
@@ -377,7 +385,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
     try {
       if (navigator.share) { await navigator.share({ title: video.title, url }); }
       else { await navigator.clipboard.writeText(url); setShareToast(true); setTimeout(() => setShareToast(false), 2500); }
-    } catch {}
+    } catch { }
   };
 
   const handlePlayerReady = useCallback((p) => {
@@ -392,14 +400,14 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
   }, []);
 
   useEffect(() => {
-    const onChange = () => {}; // Sync handled by parent
+    const onChange = () => { }; // Sync handled by parent
   }, []);
 
   return (
     <div className="relative w-full h-full sm:h-[calc(100vh-80px)] sm:max-w-[450px] mx-auto bg-black overflow-hidden group/vid flex flex-col">
       {/* ── Main Video Area ── */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           width: '100%',
           scale: commentOpen && !isDesktop ? 0.85 : 1,
           y: commentOpen && !isDesktop ? '-20%' : '0%'
@@ -407,8 +415,8 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="relative h-full overflow-hidden flex-1"
       >
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: 1,
             x: '0%'
           }}
@@ -462,7 +470,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
             {(tapFlash === 'play' || tapFlash === 'pause') && (
               <div className="w-20 h-20 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center animate-ping-once">
                 {tapFlash === 'pause'
-                  ? <div className="flex gap-1.5"><div className="w-3 h-9 bg-white rounded-sm"/><div className="w-3 h-9 bg-white rounded-sm"/></div>
+                  ? <div className="flex gap-1.5"><div className="w-3 h-9 bg-white rounded-sm" /><div className="w-3 h-9 bg-white rounded-sm" /></div>
                   : <Play size={38} className="text-white ml-1" fill="currentColor" />
                 }
               </div>
@@ -489,13 +497,13 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
           </div>
         )}
 
-        {/* Sawa Reels Watermark */}
+        {/* Sawaflix Watermark */}
         <div className="absolute top-6 left-6 z-30 pointer-events-none opacity-50">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 relative">
               <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
             </div>
-            <span className="text-white font-black text-xs uppercase tracking-[0.3em]">Reels</span>
+            <span className="text-white font-black text-xs uppercase tracking-[0.3em]">Sawaflix</span>
           </div>
         </div>
 
@@ -510,7 +518,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
         {/* Video Info & Controls Overlay */}
         <AnimatePresence>
           {(!commentOpen || isDesktop) && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -521,54 +529,66 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
                   <p className="text-white/60 font-bold text-xs uppercase tracking-widest truncate mb-0.5">{video.channelTitle}</p>
                   <h3 className="text-white text-base font-bold leading-snug line-clamp-2">{video.title}</h3>
                 </div>
-                <div className="flex flex-col items-center gap-2 shrink-0 pointer-events-auto">
+                <div className="flex flex-col items-center gap-4 shrink-0 pointer-events-auto relative">
                   <button onClick={handleLike} className="flex flex-col items-center group/btn">
-                    <div className={`p-2 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
-                      <ThumbsUp size={18} className={isLiked ? 'text-white fill-white' : 'text-white'} />
+                    <div className={`p-2.5 rounded-full transition-all duration-300 ${isLiked ? 'bg-red-600' : 'bg-black/40 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20'}`}>
+                      <Heart size={22} className={isLiked ? 'text-white fill-white' : 'text-white'} />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayLikes)}</span>
-                  </button>
-
-                  <FavoriteButton 
-                    content={video} 
-                    iconSize={18}
-                    showLabel
-                  />
-
-                  <button className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <ThumbsDown size={18} className="text-white" />
-                    </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Dislike</span>
+                    <span className="text-[11px] font-bold text-white drop-shadow-lg mt-1.5 leading-none">{formatCount(displayLikes)}</span>
                   </button>
 
                   <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <MessageCircle size={18} className="text-white fill-white" />
+                    <div className="p-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <MessageCircle size={22} className="text-white fill-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{formatCount(displayComments)}</span>
+                    <span className="text-[11px] font-bold text-white drop-shadow-lg mt-1.5 leading-none">{formatCount(displayComments)}</span>
                   </button>
 
                   <button onClick={handleShare} className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <Share2 size={18} className="text-white fill-white" />
+                    <div className="p-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <Share2 size={22} className="text-white fill-white" />
                     </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Share</span>
+                    <span className="text-[11px] font-bold text-white drop-shadow-lg mt-1.5 leading-none">Share</span>
                   </button>
 
-                  <button className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      <RotateCcw size={18} className="text-white" />
-                    </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">Remix</span>
-                  </button>
+                  <div className="relative">
+                    <button onClick={(e) => { e.stopPropagation(); setShowMoreMenu(!showMoreMenu); }} className="flex flex-col items-center group/btn">
+                      <div className="p-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                        <MoreHorizontal size={22} className="text-white" />
+                      </div>
+                    </button>
 
-                  <button onClick={onToggleFullscreen} className="flex flex-col items-center group/btn">
-                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
-                      {isFullscreen ? <Minimize size={18} className="text-white" /> : <Maximize size={18} className="text-white" />}
-                    </div>
-                    <span className="text-[10px] font-bold text-white drop-shadow-lg mt-1 leading-none">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
-                  </button>
+                    <AnimatePresence>
+                      {showMoreMenu && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setShowMoreMenu(false); }} />
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                            className="absolute bottom-full right-0 mb-4 bg-[#161922]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex flex-col gap-1 z-50 min-w-[140px] shadow-2xl"
+                          >
+                            <div className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-xl cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); setShowMoreMenu(false); }}>
+                              <FavoriteButton content={video} iconSize={16} showLabel={false} />
+                              <span className="text-xs font-bold text-white">Favorite</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-xl cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); setShowMoreMenu(false); }}>
+                              <ThumbsDown size={16} className="text-white" />
+                              <span className="text-xs font-bold text-white">Not Interested</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-xl cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); setShowMoreMenu(false); }}>
+                              <RotateCcw size={16} className="text-white" />
+                              <span className="text-xs font-bold text-white">Remix</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-xl cursor-pointer transition-colors" onClick={(e) => { e.stopPropagation(); onToggleFullscreen(e); setShowMoreMenu(false); }}>
+                              {isFullscreen ? <Minimize size={16} className="text-white" /> : <Maximize size={16} className="text-white" />}
+                              <span className="text-xs font-bold text-white">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
 
@@ -606,7 +626,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
               />
             )}
 
-            <motion.div 
+            <motion.div
               initial={isDesktop ? { x: '100%' } : { y: '100%' }}
               animate={isDesktop ? { x: 0 } : { y: 0 }}
               exit={isDesktop ? { x: '100%' } : { y: '100%' }}
@@ -615,9 +635,8 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
               dragConstraints={{ top: 0 }}
               dragElastic={0.1}
               onDragEnd={(_, info) => { if (info.offset.y > 150) setCommentOpen(false); }}
-              className={`fixed z-50 bg-[#0F1117]/95 backdrop-blur-xl border-white/10 flex flex-col shadow-2xl ${
-                isDesktop ? 'inset-y-0 right-0 w-[400px] border-l' : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
-              }`}
+              className={`fixed z-50 bg-[#0F1117]/95 backdrop-blur-xl border-white/10 flex flex-col shadow-2xl ${isDesktop ? 'inset-y-0 right-0 w-[400px] border-l' : 'bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t h-[75vh]'
+                }`}
             >
               {!isDesktop && (
                 <div className="w-full flex justify-center py-3">
@@ -697,21 +716,20 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
         )}
       </AnimatePresence>
 
-      {/* Playback Loading Skeleton */}
+      {/* Playback Loading Skeleton - Removed opaque background to keep video visible like TikTok */}
       <AnimatePresence>
         {isPlaybackLoading && (
-          <div className="absolute inset-0 z-[60] bg-[#0B0E14]/90 backdrop-blur-xl flex flex-col items-center justify-center">
+          <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center pointer-events-none">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
               transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
-              className="flex flex-col items-center gap-4"
+              className="flex flex-col items-center gap-4 drop-shadow-2xl"
             >
-              <SawaflixLogo width={120} height={40} />
               <div className="flex gap-1 mt-2">
-                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-[#CE1126] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </motion.div>
           </div>
@@ -719,7 +737,7 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
       </AnimatePresence>
 
       {/* Paywall Modal */}
-      <PremiumPaywall 
+      <PremiumPaywall
         isOpen={isPaywallOpen}
         onClose={() => setIsPaywallOpen(false)}
         movie={{
@@ -748,14 +766,14 @@ function SawaFlixContent({ videoId: videoIdProp }) {
       setActiveCategory(catParam);
     }
   }, [catParam]);
-  const [isMuted, setIsMuted]               = useState(true);
-  const [activeVideoId, setActiveVideoId]   = useState(null);
-  const [heroIndex, setHeroIndex]           = useState(0);
-  const [heroPlaying, setHeroPlaying]       = useState(false);
-  const [isHeroMuted, setIsHeroMuted]       = useState(true);
-  const [selectedVideo, setSelectedVideo]   = useState(null);
-  const [showShorts, setShowShorts]         = useState(true);
-  const [heroImgIndex, setHeroImgIndex]     = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
+  const [activeVideoId, setActiveVideoId] = useState(null);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroPlaying, setHeroPlaying] = useState(false);
+  const [isHeroMuted, setIsHeroMuted] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [showShorts, setShowShorts] = useState(true);
+  const [heroImgIndex, setHeroImgIndex] = useState(0);
   const { currentTrack } = useMusic();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const feedContainerRef = useRef(null);
@@ -790,7 +808,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
       document.removeEventListener('webkitfullscreenchange', onChange);
       document.removeEventListener('mozfullscreenchange', onChange);
       document.removeEventListener('MSFullscreenChange', onChange);
-      
+
       // Exit fullscreen unconditionally on unmount
       try {
         if (
@@ -814,21 +832,21 @@ function SawaFlixContent({ videoId: videoIdProp }) {
 
 
 
-  const observerRef  = useRef(null);
-  const videoRefs    = useRef(new Map());
-  const discoverRef  = useRef(null);
+  const observerRef = useRef(null);
+  const videoRefs = useRef(new Map());
+  const discoverRef = useRef(null);
   const feedScrollRef = useRef(null);
   const lastAutoSelectedId = useRef(null);
 
-  const router       = useRouter();
-  const urlQuery     = searchParams.get('q') || '';
+  const router = useRouter();
+  const urlQuery = searchParams.get('q') || '';
 
   const currentCategoryObj = CATEGORIES.find(c => c.id === activeCategory);
   const fetchQuery = urlQuery || currentCategoryObj?.query || CATEGORIES[0].query;
 
   const { videos, loading, error, loadMore, hasMore, isRefreshing } = useVideos(fetchQuery);
 
-  const heroSource       = videos.length > 0 ? videos.slice(0, 5) : [];
+  const heroSource = videos.length > 0 ? videos.slice(0, 5) : [];
   const currentHeroVideo = heroSource[heroIndex % Math.max(heroSource.length, 1)];
 
   useEffect(() => {
@@ -880,18 +898,21 @@ function SawaFlixContent({ videoId: videoIdProp }) {
         if (e.isIntersecting) {
           const id = e.target.getAttribute('data-video-id');
           if (id) setActiveVideoId(id);
-          
+
           // Infinite Scroll: If this is the last video, load more!
           if (id === videos[videos.length - 1]?.id && hasMore) {
-             loadMore();
+            loadMore();
           }
         }
       }),
-      { threshold: 0.6 }
+      {
+        root: feedScrollRef.current,
+        threshold: 0.6
+      }
     );
     videoRefs.current.forEach(el => { if (el) observerRef.current.observe(el); });
     return () => observerRef.current?.disconnect();
-  }, [videos, hasMore, loadMore]);
+  }, [videos, hasMore, loadMore, showShorts]);
 
   const handleHeroNext = useCallback(() => {
     if (!heroSource.length) return;
@@ -928,13 +949,8 @@ function SawaFlixContent({ videoId: videoIdProp }) {
     setActiveVideoId(video.id);
     setShowShorts(true);
     setTimeout(() => {
-      // Auto-fullscreen request
-      const el = feedContainerRef.current || document.documentElement;
-      if (el) {
-        const requestMethod = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-        if (requestMethod) requestMethod.call(el).catch(err => console.warn("Auto fullscreen prevented:", err));
-      }
-      
+      // Auto-fullscreen request removed
+
       if (discoverRef.current) {
         discoverRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -1002,18 +1018,18 @@ function SawaFlixContent({ videoId: videoIdProp }) {
 
   const feedVideos = (() => {
     let list = videos;
-    
+
     // If a video is selected (via click or notification), ensure it's at the top
     if (selectedVideo) {
       const rest = videos.filter(v => v.id !== selectedVideo.id);
       list = [selectedVideo, ...rest];
     }
-    
+
     // If a track is selected from sidebar (via MusicContext), ensure it's in the feed
     if (currentTrack && !list.find(v => v.id === currentTrack.id)) {
       list = [currentTrack, ...list];
     }
-    
+
     return list;
   })();
 
@@ -1024,26 +1040,26 @@ function SawaFlixContent({ videoId: videoIdProp }) {
         {isRefreshing && (
           <motion.div
             initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ 
-              scaleX: 0.94, 
+            animate={{
+              scaleX: 0.94,
               opacity: 1,
-              transition: { 
+              transition: {
                 duration: 30, // Slow crawl to 94% over 30 seconds
-                ease: [0.1, 0.05, 0.03, 0.01] 
-              } 
+                ease: [0.1, 0.05, 0.03, 0.01]
+              }
             }}
-            exit={{ 
-              scaleX: 1, 
-              opacity: 0, 
-              transition: { duration: 0.4, ease: "easeOut" } 
+            exit={{
+              scaleX: 1,
+              opacity: 0,
+              transition: { duration: 0.4, ease: "easeOut" }
             }}
             className="fixed top-16 left-0 right-0 h-[3.5px] bg-gradient-to-r from-red-700 via-red-500 to-red-600 z-[9999] origin-left shadow-[0_0_20px_rgba(220,38,38,0.3)]"
           >
             {/* The "Peg" / Glow at the tip (Premium YouTube Detail) */}
             <div className="absolute right-0 top-0 h-full w-[120px] shadow-[0_0_15px_#ff0000,0_0_8px_#ff0000] opacity-100 rotate-[2deg] translate-y-[-4px]" />
-            
+
             {/* Moving shine effect for extra polish */}
-            <motion.div 
+            <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: '200%' }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
@@ -1070,16 +1086,16 @@ function SawaFlixContent({ videoId: videoIdProp }) {
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                   {isSearchMode
                     ? <div className="flex items-center gap-3">
-                        <span className="w-1.5 h-9 bg-red-600 rounded-full" />
-                        <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
-                      </div>
+                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
+                    </div>
                     : (
                       <div className="flex items-center gap-3">
                         <div className="relative w-8 h-8 sm:w-10 sm:h-10">
                           <Image src="/sawaplay.png" alt="Sawa" fill className="object-contain" />
                         </div>
                         <span className="text-white font-black text-lg sm:text-[26px] tracking-tight leading-none opacity-90">
-                          {currentCategoryObj?.label || 'Reels'}
+                          {currentCategoryObj?.label || 'For You'}
                         </span>
                       </div>
                     )
@@ -1114,7 +1130,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
               </button>
             </div>
 
-            <div 
+            <div
               ref={feedScrollRef}
               className="w-full flex-1 min-h-0 overflow-y-auto snap-y snap-mandatory no-scrollbar scroll-smooth bg-black sm:bg-transparent"
             >

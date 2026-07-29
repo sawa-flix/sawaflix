@@ -6,9 +6,10 @@ interface SectionHeaderProps {
     title: string;
     subtitle?: string;
     center?: boolean;
+    size?: "md" | "sm";
 }
 
-export default function SectionHeader({ title, subtitle, center = true }: SectionHeaderProps) {
+export default function SectionHeader({ title, subtitle, center = true, size = "md" }: SectionHeaderProps) {
     return (
         <div className={`mb-12 ${center ? "text-center" : "text-left"}`}>
             <motion.h2
@@ -16,7 +17,7 @@ export default function SectionHeader({ title, subtitle, center = true }: Sectio
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="text-3xl md:text-4xl font-bold text-white mb-2"
+                className={`font-bold text-white mb-2 ${size === "sm" ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"}`}
             >
                 {title}
             </motion.h2>

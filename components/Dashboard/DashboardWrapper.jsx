@@ -20,6 +20,11 @@ const DashboardWrapper = ({ children }) => {
   // Disable right sidebar for reels, movie, and profile pages
   const hideRightSidebarPaths = ['/reels', '/movie', '/profile', '/edit-profile'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
+  // Reels is a fullscreen, TikTok-style experience — the site-wide Header
+  // (search bar, notifications, profile menu) has no place floating above
+  // the video, so it's suppressed entirely on this route. ReelHeader
+  // (back + mute, rendered by the Reels page itself) replaces it.
+  const isReelsPage = pathname?.includes('/reels');
 
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userRole, setUserRole] = useState(null);
@@ -141,10 +146,10 @@ const DashboardWrapper = ({ children }) => {
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Header - Unified across all pages */}
-        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+        {/* Header - Unified across all pages, except Reels (fullscreen, uses its own ReelHeader) */}
+        {!isReelsPage && <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />}
 
-        <div className="relative z-10 pt-16"> 
+        <div className={`relative z-10 ${isReelsPage ? '' : 'pt-16'}`}>
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -188,8 +193,15 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Main Content Area — Scrollable center */}
           {pathname?.includes('/reels') ? (
-            // Reels: break out of ALL layout chrome, fill full remaining space
-            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-hidden bg-transparent">
+            // Reels: break out of all layout chrome, fill the full remaining
+            // space. No `xl:mr-80` — the right sidebar is already suppressed
+            // for this route (see hasRightSidebar above), so that margin
+            // would be dead space with nothing to its right.
+            // `dvh` (dynamic viewport height), not `vh` — on mobile Safari/
+            // Chrome, `100vh` is computed as if the browser chrome were
+            // always hidden, clipping the bottom of the reel whenever the
+            // address bar is showing. `dvh` tracks the real visible viewport.
+            <main className="h-dvh lg:ml-72 overflow-hidden bg-transparent">
               <div className="h-full w-full p-0 m-0">
                 {children}
               </div>

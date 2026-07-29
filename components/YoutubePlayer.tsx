@@ -14,6 +14,11 @@ interface YouTubePlayerProps {
     onProgress?: (progress: number, timeLeft: string, currentTime: number, duration: number) => void;
     onPlayerReady?: (player: YT.Player) => void;
     onRestrictionReached?: () => void;
+    onEnded?: () => void;
+    /** Raw YT.PlayerState value on every state change — lets a consumer track
+     * the player's REAL playing/paused state rather than assume the state it
+     * asked for was actually reached (autoplay can be silently blocked). */
+    onPlayerStateChange?: (state: number) => void;
 }
 
 declare global {
@@ -32,13 +37,26 @@ export function YouTubePlayer({
     restriction,
     onProgress,
     onPlayerReady,
-    onRestrictionReached
+    onRestrictionReached,
+    onEnded,
+    onPlayerStateChange
 }: YouTubePlayerProps) {
     const playerRef = useRef<YT.Player | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlayerReady, setIsPlayerReady] = useState(false);
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [apiLoaded, setApiLoaded] = useState(false);
+    // YouTube error codes 100/101/150 mean the video's owner has disabled
+    // embedding (or it's region-restricted) — the IFrame API itself refuses
+    // to play it, there is nothing our code can retry. Previously this only
+    // logged to the console, leaving a silent blank/black player with no
+    // indication to the user of why nothing is playing.
+    const [playbackError, setPlaybackError] = useState<number | null>(null);
+
+    // Clear any previous error state whenever we're asked to play a different video
+    useEffect(() => {
+        setPlaybackError(null);
+    }, [videoId]);
 
     // Initial API Load
     useEffect(() => {
@@ -103,16 +121,25 @@ export function YouTubePlayer({
 
                         if (isActive) {
                             event.target.playVideo();
-                            event.target.mute();
+                            if (isMuted) {
+                                event.target.mute();
+                            } else {
+                                event.target.unMute();
+                            }
                         }
                     },
                     onStateChange: (event) => {
                         if (event.data === window.YT.PlayerState.UNSTARTED && isActive) {
                             event.target.playVideo();
                         }
+                        if (event.data === window.YT.PlayerState.ENDED) {
+                            onEnded?.();
+                        }
+                        onPlayerStateChange?.(event.data);
                     },
                     onError: (event: YT.OnErrorEvent) => {
                         console.error('[Player] Error for', videoId, ':', event.data);
+                        setPlaybackError(event.data);
                     },
                 },
             });
@@ -204,11 +231,27 @@ export function YouTubePlayer({
 
     return (
         <div className="w-full h-full relative bg-black">
-            <div 
-                ref={containerRef} 
+            <div
+                ref={containerRef}
                 className="w-full h-full pointer-events-none"
             />
-            {/* Fallback/Poster overlay if needed could go here */}
+            {/* Fallback for videos the IFrame API refuses to embed (owner
+                disabled embedding, or region-restricted) — codes 100/101/150.
+                Nothing our code can do about it, so we show why instead of a
+                silent blank player. */}
+            {playbackError !== null && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 text-center px-6 pointer-events-auto">
+                    <p className="text-white/80 text-sm">This video can&apos;t be played here.</p>
+                    <a
+                        href={`https://www.youtube.com/watch?v=${videoId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-red-500 hover:text-red-400 underline underline-offset-2"
+                    >
+                        Watch on YouTube
+                    </a>
+                </div>
+            )}
         </div>
     );
 }

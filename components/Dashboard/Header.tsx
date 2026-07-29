@@ -182,7 +182,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
               >
                 <div className="flex items-center">
                   <Search className="text-gray-500 mr-3 group-hover:text-white transition-colors" size={16} />
-                  <span>Search reels, videos, top stories...</span>
+                  <span>Search videos, top stories...</span>
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
                   <kbd className="px-2 py-0.5 text-[10px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
@@ -450,7 +450,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                       {/* Videos Section */}
                       {searchResults.videos.length > 0 && (
                         <div className="mb-1">
-                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Videos & Reels</div>
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Videos</div>
                           {searchResults.videos.map((video: any, idx: number) => {
                             const vId = typeof video.id === 'object' ? video.id.videoId : video.id;
                             const thumb = video.snippet?.thumbnails?.default?.url || video.thumbnail;

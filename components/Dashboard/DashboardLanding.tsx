@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
-  { id: 'reels',        label: 'Reels' },
   { id: 'news',         label: 'News' },
   { id: 'music',        label: 'Music' },
   { id: 'comedy',       label: 'Comedy' },
@@ -61,8 +60,6 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
   const [loadingStories, setLoadingStories] = useState(true);
 
-  const reelsRef = useRef<HTMLDivElement>(null);
-  const reelsScrollRef = useRef<HTMLDivElement>(null);
   const moviesScrollRef = useRef<HTMLDivElement>(null);
   const longFormScrollRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +102,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Filter stories by global activeCategory
   const filteredStories = useMemo(() => {
-    if (activeCategory === 'all' || activeCategory === 'reels') return stories;
+    if (activeCategory === 'all') return stories;
     return stories.filter(
       (s) => s.category?.slug?.current === activeCategory || s.category?.title?.toLowerCase() === activeCategory
     );
@@ -136,10 +133,6 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
 
 
-  const filteredReels = useMemo(() => {
-    return reels || [];
-  }, [reels]);
-
   // Long-form videos (news, comedy, etc.) — filter for non-short content
   const longFormVideos = useMemo(() => {
     return (reels || []).filter((v: any) => {
@@ -157,14 +150,15 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     return shuffled.slice(0, 3);
   }, [stories]);
 
-  // Handle scroll for reels
-  const handleScrollToReels = () => {
-    reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  // Stable random progress values for continue watching
+  // Deterministic "progress" values for continue watching. This used to call
+  // Math.random() during render, which produced a different value on the
+  // server (SSR) than on the client (hydration), causing a hydration
+  // mismatch on every one of these progress bars — React warns "A tree
+  // hydrated but some attributes ... didn't match" for exactly this reason.
+  // A pure function of the index gives the same varied-looking spread
+  // without ever disagreeing between server and client.
   const progressValues = useMemo(() => {
-    return MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20);
+    return MOVIES_DATA.slice(0, 8).map((_, i) => ((i * 37 + 13) % 60) + 20);
   }, []);
 
 
@@ -225,75 +219,6 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           </section>
         )}
 
-
-        {/* ═══ Sawa Reels Section ═══ */}
-        <section ref={reelsRef} className="scroll-mt-20">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 relative">
-              <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Sawa Reels</h2>
-            </div>
-            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
-          </div>
-
-          <div className="relative group/slider">
-            <div
-              ref={reelsScrollRef}
-              className="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar pb-4"
-            >
-              {filteredReels.length > 0 ? filteredReels.map((reel: any) => (
-                <div
-                  key={reel.id}
-                  onClick={() => onPlayReel(reel)}
-                  className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-white/5 hover:border-white/20 transition-colors"
-                >
-                  <Image
-                    src={reel.thumbnail || `https://i.ytimg.com/vi/${reel.id}/maxresdefault.jpg`}
-                    alt={reel.title}
-                    fill
-                    className="object-cover group-hover/card:scale-105 transition-transform duration-500"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-
-                  <div className="absolute top-2 right-2 flex items-center gap-1 text-white/90 text-xs font-bold bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                    <Play size={10} className="fill-current" />
-                    {formatCount(reel.viewCount)}
-                  </div>
-
-                  <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
-                    <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
-                      {reel.title}
-                    </h3>
-                    <p className="text-white/70 text-xs truncate">
-                      @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase()}
-                    </p>
-                  </div>
-
-                  {/* Play Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
-                      <Play size={24} className="text-white fill-white ml-1" />
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="w-full py-12 text-center text-white/30 text-sm">
-                  No reels found for this category.
-                </div>
-              )}
-            </div>
-
-            <button onClick={() => scrollLeft(reelsScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
-              <ChevronLeft size={20} />
-            </button>
-            <button onClick={() => scrollRight(reelsScrollRef)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </section>
 
         {/* ═══ Long-Form Videos (News, Comedy, etc.) ═══ */}
         {longFormVideos.length > 0 && (
