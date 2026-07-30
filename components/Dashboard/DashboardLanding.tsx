@@ -338,37 +338,15 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   return (
     <div className="w-full pb-12" style={{ zoom: 0.9 }}>
       {/* Navigation Pills — sticky */}
-      <div className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-white/5 px-2 sm:px-6 lg:px-8">
-        {PILL_TABS.slice(0, 1).map((tab, idx) => (
+      <div className="sticky top-0 z-40 bg-[color:var(--background)]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-[color:var(--border)]/60 px-2 sm:px-6 lg:px-8">
+        {PILL_TABS.map((tab, idx) => (
           <button
             key={`${tab.id}-${idx}`}
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
-                : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-
-        {/* Reels navigates to its own page rather than filtering in-page content. */}
-        <Link
-          href="/dashboard/reels"
-          className="px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
-        >
-          Reels
-        </Link>
-
-        {PILL_TABS.slice(1).map((tab, idx) => (
-          <button
-            key={`${tab.id}-${idx}`}
-            onClick={() => onCategoryChange(tab.id)}
-            className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
-              activeCategory === tab.id
-                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
-                : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
+                ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/70 hover:text-[color:var(--foreground)] border border-[color:var(--border)]/60'
             }`}
           >
             {tab.label}
@@ -417,21 +395,11 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
               </div>
             </div>
 
-            {/* Bottom-left metadata overlay */}
-            <div className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 z-10 max-w-xl">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider border border-white/15">
-                  {heroItem.type === 'admin_video' ? 'Featured Video' : heroItem.type === 'blog' ? 'Featured Story' : heroItem.type === 'youtube' ? 'Trending Culture' : 'Featured Cinema'}
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight line-clamp-2 drop-shadow-md">
-                {heroItem.title}
-              </h1>
-              {heroItem.subtitle && (
-                <p className="text-xs sm:text-sm text-white/80 font-medium line-clamp-1 mt-1 drop-shadow-sm">
-                  {heroItem.subtitle}
-                </p>
-              )}
+            {/* Bottom-left movie title badge — intentionally white over image */}
+            <div className="absolute bottom-4 left-4 z-10">
+              <span className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10">
+                {bannerMovie.title}
+              </span>
             </div>
           </section>
         )}
@@ -449,20 +417,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
                 </h2>
               </div>
-              {homeSearchQuery ? (
-                <button
-                  type="button"
-                  onClick={clearHomeSearch}
-                  className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors"
-                >
-                  Clear
-                </button>
-              ) : (
-                <Link href="/dashboard/reels" className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">
-                  View all
-                </Link>
-              )}
+              <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Sawa Reels</h2>
             </div>
+            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+          </div>
 
             <div className="relative group/slider">
               <div
@@ -497,15 +455,29 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                       </div>
                     </div>
 
-                    <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
-                      <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
-                        {reel.title}
-                      </h3>
-                      <p className="text-white/70 text-xs truncate">{reel.channelTitle}</p>
+                  {/* Intentionally white — sits on a photo overlay rather than a themed surface */}
+                  <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
+                    <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
+                      {reel.title}
+                    </h3>
+                    <p className="text-white/70 text-xs truncate">
+                      @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase()}
+                    </p>
+                  </div>
+
+                  {/* Play Icon Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
+                      <Play size={24} className="text-white fill-white ml-1" />
                     </div>
-                  </Link>
-                ))}
-              </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="w-full py-12 text-center text-[color:var(--muted-foreground)] text-sm">
+                  No reels found for this category.
+                </div>
+              )}
+            </div>
 
               <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
                 <ChevronLeft size={20} />
@@ -523,7 +495,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Film className="w-5 h-5 text-[#CE1126]" />
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">News & Comedy</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">News & Comedy</h2>
               </div>
               <button onClick={() => onCategoryChange('news')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
             </div>
@@ -561,8 +533,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                       </div>
                     </div>
                     <div className="flex flex-col gap-1 px-1">
-                      <h3 className="text-white text-sm font-bold truncate">{video.title}</h3>
-                      <p className="text-white/50 text-xs truncate">{video.channelTitle}</p>
+                      <h3 className="text-[color:var(--foreground)] text-sm font-bold truncate">{video.title}</h3>
+                      <p className="text-[color:var(--muted-foreground)] text-xs truncate">{video.channelTitle}</p>
                     </div>
                   </div>
                 ))}
@@ -581,15 +553,15 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         <section>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-4">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Top Stories</h2>
-              <p className="text-white/50 text-sm">Stay updated with what matters in our culture, community and country.</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Top Stories</h2>
+              <p className="text-[color:var(--muted-foreground)] text-sm">Stay updated with what matters in our culture, community and country.</p>
             </div>
           </div>
 
           <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6 sm:overflow-visible">
             {loadingStories ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="w-[260px] sm:w-auto flex-shrink-0 aspect-[4/5] rounded-xl bg-white/5 animate-pulse snap-start" />
+                <div key={i} className="w-[260px] sm:w-auto flex-shrink-0 aspect-[4/5] rounded-xl bg-[color:var(--surface)]/70 animate-pulse snap-start" />
               ))
             ) : filteredStories.length > 0 ? (
               filteredStories.slice(0, 8).map((story: any, index: number) => {
@@ -603,14 +575,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 return (
                   <div
                     key={story._id}
-                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/25 hover:shadow-lg hover:shadow-black/30 transition-all duration-300 flex flex-col"
+                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-[color:var(--surface)]/70 border border-[color:var(--border)]/60 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all flex flex-col"
                   >
                     <div className="relative h-44 sm:h-52 overflow-hidden flex-shrink-0">
                       <div
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                         style={{ backgroundImage: `url(${getImageUrl(story.mainImage, index)})` }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
 
                       {/* Category badge */}
                       <div className="absolute top-3 left-3">
@@ -631,36 +603,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     </div>
 
                     <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                      <h3 className="text-sm sm:text-base font-bold text-white mb-2 group-hover:text-white/90 transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-sm sm:text-base font-bold text-[color:var(--foreground)] mb-2 group-hover:text-red-500 transition-colors leading-snug line-clamp-2">
                         {story.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-medium tracking-wide mt-auto pt-2">
+                      <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-[10px] font-bold tracking-widest mt-auto pt-2">
                         <span>{dateText}</span>
-                      </div>
-
-                      {/* Stats Row */}
-                      <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-white/5 text-zinc-400">
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1.5 hover:text-white/80 transition-colors" title="Likes">
-                            <Image
-                              src="/logos_and_pwas/like.png"
-                              alt="Likes"
-                              width={14}
-                              height={14}
-                              className="w-3.5 h-3.5 object-contain"
-                            />
-                            <span className="font-mono text-[10px] font-medium text-zinc-300">{formatCount(likes)}</span>
-                          </span>
-                          <span className="flex items-center gap-1 hover:text-white transition-colors" title="Comments">
-                            <MessageCircle className="w-3 h-3 text-zinc-500" />
-                            <span className="font-mono text-[10px] font-medium text-zinc-400">{formatCount(comments)}</span>
-                          </span>
-                        </div>
-                        <span className="flex items-center gap-1 text-zinc-500" title="Views">
-                          <Eye className="w-3 h-3 text-zinc-500" />
-                          <span className="font-mono text-[10px] font-medium text-zinc-500">{formatCount(views)}</span>
-                        </span>
+                        <div className="w-1 h-1 rounded-full bg-[color:var(--border)]" />
+                        <span>{story.readTime || "3 min read"}</span>
                       </div>
 
                       {/* Link overlay — triggers NProgress top loader */}
@@ -683,7 +633,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 );
               })
             ) : (
-              <div className="col-span-full py-10 text-center text-white/40 bg-white/5 rounded-xl border border-white/5 w-full">
+              <div className="col-span-full py-10 text-center text-[color:var(--muted-foreground)] bg-[color:var(--surface)]/70 rounded-xl border border-[color:var(--border)]/40 w-full">
                 No stories found for this category.
               </div>
             )}
@@ -701,7 +651,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Film className="w-5 h-5 text-amber-500" />
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Continue Watching</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Continue Watching</h2>
             </div>
             <button onClick={() => onCategoryChange('cinema')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
           </div>
@@ -746,8 +696,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   </div>
 
                   <div className="flex flex-col gap-1 px-1">
-                    <h3 className="text-white text-sm font-bold truncate group-hover/card:text-white/80 transition-colors">{movie.title}</h3>
-                    <div className="flex items-center gap-2 text-white/50 text-xs">
+                    <h3 className="text-[color:var(--foreground)] text-sm font-bold truncate group-hover/card:text-[color:var(--foreground)]/80 transition-colors">{movie.title}</h3>
+                    <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-xs">
                       <span>{movie.genres[0]}</span>
                       <span>•</span>
                       <span>{movie.duration}</span>

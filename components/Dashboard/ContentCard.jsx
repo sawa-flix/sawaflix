@@ -39,7 +39,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
-      className="group relative bg-[#1A1F2B]/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:border-gray-700 hover:shadow-2xl hover:shadow-black/50"
+      className="group relative bg-[color:var(--surface)]/70 backdrop-blur-sm border border-[color:var(--border)] rounded-xl overflow-hidden transition-all duration-300 hover:border-[color:var(--foreground)]/30 hover:shadow-2xl hover:shadow-black/20"
     >
       {/* Thumbnail Container */}
       <div className="relative aspect-video w-full overflow-hidden">
@@ -52,26 +52,26 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-red-900/40 via-[#1A1F2B] to-purple-900/30 flex items-center justify-center">
-            <div className="text-gray-500 text-4xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-900/40 via-[color:var(--surface)] to-purple-900/30 flex items-center justify-center">
+            <div className="text-[color:var(--muted-foreground)] text-4xl">
               {item.content_type === "audio" ? "🎵" : "🎬"}
             </div>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2B] via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--surface)] via-transparent to-transparent opacity-60" />
       </div>
 
       {/* Content Info */}
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold text-white truncate pr-2 group-hover:text-red-500 transition-colors">
+          <h3 className="text-lg font-semibold text-[color:var(--foreground)] truncate pr-2 group-hover:text-red-500 transition-colors">
             {item.title}
           </h3>
         </div>
 
-        <div className="flex items-center text-sm text-gray-400 mb-4 space-x-3">
+        <div className="flex items-center text-sm text-[color:var(--muted-foreground)] mb-4 space-x-3">
           <span className="capitalize">{item.type || "Content"}</span>
-          <span className="w-1 h-1 bg-gray-600 rounded-full" />
+          <span className="w-1 h-1 bg-[color:var(--border)] rounded-full" />
           <div className="flex items-center">
             <Eye className="w-3.5 h-3.5 mr-1" />
             <span>{item.views?.toLocaleString() || 0} views</span>
@@ -83,7 +83,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
           <div className="flex gap-2">
             <button
               onClick={() => onEdit(item)}
-              className="flex items-center px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-200 text-xs font-medium rounded-lg border border-gray-700 transition-colors"
+              className="flex items-center px-3 py-1.5 bg-[color:var(--surface)]/60 hover:bg-[color:var(--surface)]/80 text-[color:var(--foreground)] text-xs font-medium rounded-lg border border-[color:var(--border)] transition-colors"
             >
               <Edit2 className="w-3 h-3 mr-1.5" />
               Edit
@@ -92,7 +92,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
             {(normalizedStatus === 'draft' || !normalizedStatus) && (
                <button
                 onClick={() => onDelete(item.id)}
-                className="flex items-center justify-center p-1.5 bg-gray-800/30 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg border border-gray-700/50 hover:border-red-500/30 transition-all"
+                className="flex items-center justify-center p-1.5 bg-[color:var(--surface)]/40 hover:bg-red-500/20 text-[color:var(--muted-foreground)] hover:text-red-400 rounded-lg border border-[color:var(--border)]/50 hover:border-red-500/30 transition-all"
                 title="Delete"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -110,7 +110,7 @@ const ContentCard = ({ item, onEdit, onDelete }) => {
           {normalizedStatus === 'published' && (
              <button
               onClick={() => onDelete(item.id)}
-              className="flex items-center justify-center p-1.5 bg-gray-800/30 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg border border-gray-700/50 hover:border-red-500/30 transition-all"
+              className="flex items-center justify-center p-1.5 bg-[color:var(--surface)]/40 hover:bg-red-500/20 text-[color:var(--muted-foreground)] hover:text-red-400 rounded-lg border border-[color:var(--border)]/50 hover:border-red-500/30 transition-all"
               title="Delete"
             >
               <Trash2 className="w-3.5 h-3.5" />

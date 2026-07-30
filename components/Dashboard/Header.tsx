@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
+import ThemeToggle from '../ThemeToggle';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
@@ -209,46 +210,12 @@ const Header = ({
 
   return (
     <>
-    <header
-      className={
-        isReelsRoute
-          ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
-          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
-      }
-    >
-      {/* Phone-only compact bar for Reels (TikTok-style) */}
-      {isReelsRoute && (
-        <div className="flex md:hidden items-center h-full px-3 gap-1.5">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            aria-label="Back"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
-          >
-            <ArrowLeft size={16} />
-          </button>
-
-          <div className="flex flex-1 items-center justify-end">
-            <ReelsSearchBar floating />
-          </div>
-
-          <button
-            type="button"
-            onClick={toggleMute}
-            aria-label={isMuted ? 'Unmute' : 'Mute'}
-            aria-pressed={!isMuted}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
-          >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
-        </div>
-      )}
-
-      <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[color:var(--background)]/40 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl">
+      <div className="flex items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8">
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
-            className="lg:hidden p-1.5 mr-1 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="lg:hidden p-2 mr-2 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-[color:var(--background)]"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -266,16 +233,16 @@ const Header = ({
               <button
                 type="button"
                 onClick={() => setIsSearchFocused(true)}
-                className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl
-                           text-white/50 text-xs hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
+                className="w-full flex items-center justify-between pl-4 pr-4 py-2 bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl
+                           text-[color:var(--muted-foreground)] text-sm hover:border-[color:var(--foreground)]/30 hover:bg-[color:var(--surface-hover)]/60 transition-all duration-300 group"
               >
                 <div className="flex items-center">
-                  <Search className="text-gray-500 mr-2.5 group-hover:text-white transition-colors" size={14} />
-                  <span>Search videos, top stories...</span>
+                  <Search className="text-[color:var(--muted-foreground)] mr-3 group-hover:text-[color:var(--foreground)] transition-colors" size={16} />
+                  <span>Search reels, videos, top stories...</span>
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
+                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-[color:var(--muted-foreground)]/60 bg-[color:var(--surface)]/5 border border-[color:var(--border)] rounded">⌘</kbd>
+                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-[color:var(--muted-foreground)]/60 bg-[color:var(--surface)]/5 border border-[color:var(--border)] rounded">K</kbd>
                 </div>
               </button>
             </div>
@@ -287,7 +254,7 @@ const Header = ({
           {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
-              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="md:hidden p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
               <Search size={17} />
@@ -297,14 +264,8 @@ const Header = ({
           {/* Notifications Bell */}
           <div className="relative">
             <button
-              onClick={() => {
-                if (!isAuthenticated) {
-                  openAuthModal('to view notifications');
-                  return;
-                }
-                setShowNotifications(!showNotifications);
-              }}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all relative group"
               aria-label="Notifications"
             >
               <Bell size={18} className="group-hover:scale-110 transition-transform" />
@@ -352,253 +313,68 @@ const Header = ({
             )}
           </div>
 
-          {/* Sawai AI Assistant */}
-          <button
-            type="button"
-            onClick={toggleSawai}
-            className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer flex items-center justify-center"
-            aria-label="Open Sawai Assistant"
-            title="Sawai AI"
-          >
-            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-white/20 group-hover:border-white/50 transition-all group-hover:scale-105 shadow-sm">
-              <Image
-                src="/logos_and_pwas/android-chrome-192x192.png"
-                alt="Sawai"
-                width={24}
-                height={24}
-                className="w-full h-full object-contain rounded-full"
-              />
-            </div>
-          </button>
+          <ThemeToggle />
 
-          {isAuthenticated ? (
-            <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer" aria-label="Settings">
-              <Settings size={16} />
-            </Link>
-          ) : (
+          <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer">
+            <Settings size={18} />
+          </Link>
+
+
+          <div className="relative">
             <button
-              onClick={() => openAuthModal('to access settings')}
-              className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-              aria-label="Settings"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center space-x-3 p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
+              aria-label="User profile menu"
             >
-              <Settings size={16} />
-            </button>
-          )}
-
-          {isAuthenticated ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
-                aria-label="User profile menu"
-              >
-                {userProfile?.profile_image_url ? (
-                  <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0 group-hover:ring-white/60 transition-all">
-                    <Image
-                      src={userProfile.profile_image_url}
-                      alt="User Avatar"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-[11px] ring-2 ring-white/20 shadow-md flex-shrink-0">
-                    {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-[11.5px] font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[100px]">
-                    {userProfile?.username || currentUser?.email?.split('@')[0]}
-                  </span>
-                  <span className="text-[8px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
-                    Account
-                  </span>
+              {userProfile?.profile_image_url ? (
+                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[color:var(--border)] shadow-sm flex-shrink-0">
+                  <Image
+                    src={userProfile.profile_image_url}
+                    alt="User Avatar"
+                    fill
+                    className="object-cover aspect-square"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className="w-8 h-8 bg-[color:var(--surface)] rounded-full flex items-center justify-center border border-[color:var(--border)] shadow-sm flex-shrink-0">
+                  <User size={14} className="text-[color:var(--muted-foreground)]" />
                 </div>
                 <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
-              <AnimatePresence>
-                {showProfileMenu && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden"
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-[color:var(--surface)] rounded-xl shadow-xl border border-[color:var(--border)] py-2 z-50">
+                <div className="px-4 py-2 border-b border-[color:var(--border)]">
+                  <p className="text-sm font-medium text-[color:var(--foreground)]">{userProfile?.username || 'Guest'}</p>
+                  <p className="text-xs text-[color:var(--muted-foreground)]">{currentUser?.email || 'N/A'}</p>
+                </div>
+                <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
+                  Update Profile
+                </Link>
+                <a href="#" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
+                  Help & Support
+                </a>
+                <hr className="my-2 border-[color:var(--border)]" />
+                <form action={handleSignOut}>
+                  <button
+                    type="submit"
+                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
                   >
-                    {/* Top User Card Header */}
-                    <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
-                      {userProfile?.profile_image_url ? (
-                        <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0">
-                          <Image
-                            src={userProfile.profile_image_url}
-                            alt="Avatar"
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
-                          {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-white truncate leading-tight">
-                            {userProfile?.username || currentUser?.email?.split('@')[0]}
-                          </p>
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
-                        </div>
-                        <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
-                          {currentUser?.email || 'Logged in user'}
-                        </p>
-                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
-                          <span>Community Member</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Navigation Items */}
-                    <div className="space-y-0.5 py-1">
-                      <Link 
-                        href="/dashboard/profile" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <User size={15} />
-                          </div>
-                          <span>My Profile</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <Link 
-                        href="/dashboard/edit-profile" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <Edit3 size={15} />
-                          </div>
-                          <span>Edit Profile</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <Link 
-                        href="/dashboard/favorites" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <Bookmark size={15} />
-                          </div>
-                          <span>Saved & Favorites</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <Link 
-                        href="/dashboard/blogs" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <BookOpen size={15} />
-                          </div>
-                          <span>Stories & Dev.to Blogs</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <Link 
-                        href="/creator-dashboard" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <Video size={15} />
-                          </div>
-                          <span>Creator Studio</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <div className="my-1.5 border-t border-white/[0.06]" />
-
-                      <Link 
-                        href="/dashboard/settings" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <Settings size={15} />
-                          </div>
-                          <span>Settings</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-
-                      <Link 
-                        href="/dashboard/support" 
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                            <HelpCircle size={15} />
-                          </div>
-                          <span>Help & Support</span>
-                        </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-                    </div>
-
-                    {/* Sign Out Button */}
-                    <div className="mt-1 pt-1.5 border-t border-white/[0.06]">
-                      <form action={handleSignOut}>
-                        <button
-                          type="submit"
-                          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer"
-                        >
-                          <div className="p-1.5 rounded-lg bg-red-500/15 text-red-400">
-                            <LogOut size={15} />
-                          </div>
-                          <span className="font-bold text-red-400">Sign Out</span>
-                        </button>
-                      </form>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <button
-              onClick={() => openAuthModal('to create your account')}
-              aria-label="Sign up"
-              className="flex items-center justify-center rounded-xl bg-[#CE1126] text-white shadow-sm transition-all duration-200 hover:bg-red-700 cursor-pointer sm:bg-white sm:text-[#CE1126] sm:hover:bg-gray-100 sm:border sm:border-[#CE1126]/20 sm:px-4 sm:py-2.5 sm:shadow-md"
-            >
-              <UserPlus size={18} className="sm:mr-2" />
-              <span className="hidden sm:inline text-sm font-bold">Sign Up</span>
-            </button>
-          )}
+                    Sign Out
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
 
       {showMobileSearchBar && (
-        <div className="md:hidden absolute top-16 left-0 right-0 p-4 bg-gray-900/95 backdrop-blur-md border-b border-gray-800 shadow-lg animate-fade-in-down">
+        <div className="md:hidden absolute top-16 left-0 right-0 p-4 bg-[color:var(--surface)]/95 backdrop-blur-md border-b border-[color:var(--border)] shadow-lg animate-fade-in-down">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[color:var(--muted-foreground)]" size={16} />
             <input
               type="text"
               value={searchValue}
@@ -607,15 +383,15 @@ const Header = ({
                 document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
               placeholder="Search titles, people, genres..."
-              className="w-full pl-10 pr-4 py-2 bg-black border border-white/60 rounded-sm
-                         text-white placeholder-gray-500 focus:outline-none focus:ring-1 
-                         focus:ring-white transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-sm
+                         text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] focus:outline-none focus:ring-1 
+                         focus:ring-[color:var(--foreground)] transition-all duration-200"
               autoFocus
             />
             <button
               type="button"
               onClick={() => setShowMobileSearchBar(false)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]"
               aria-label="Close search bar"
             >
               <X size={16} />
@@ -660,11 +436,11 @@ const Header = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.97 }}
               transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-              className="w-full max-w-[560px] bg-[#12151C] border border-white/[0.08] rounded-xl sm:rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden pointer-events-auto flex flex-col max-h-[70vh] sm:max-h-[65vh]"
+              className="w-full max-w-[560px] bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl sm:rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden pointer-events-auto flex flex-col max-h-[70vh] sm:max-h-[65vh]"
             >
               {/* Search Input */}
               <form onSubmit={handleSearchSubmit} className="relative w-full shrink-0">
-                <Search className="absolute left-4 sm:left-5 top-1/2 transform -translate-y-1/2 text-white/30" size={18} />
+                <Search className="absolute left-4 sm:left-5 top-1/2 transform -translate-y-1/2 text-[color:var(--muted-foreground)]/60" size={18} />
                 <input
                   autoFocus
                   type="text"
@@ -672,22 +448,22 @@ const Header = ({
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="Search videos, stories, movies..."
                   className="w-full pl-11 sm:pl-13 pr-11 py-3.5 sm:py-4 bg-transparent
-                             text-white text-[15px] sm:text-base placeholder-white/25 focus:outline-none tracking-wide"
+                             text-[color:var(--foreground)] text-[15px] sm:text-base placeholder-[color:var(--muted-foreground)]/70 focus:outline-none tracking-wide"
                 />
                 {searchValue ? (
                   <button
                     type="button"
                     onClick={() => setSearchValue('')}
-                    className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
+                    className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md text-[color:var(--muted-foreground)]/70 hover:text-[color:var(--foreground)]/90 hover:bg-[color:var(--surface)]/10 transition-all"
                   >
                     <X size={14} />
                   </button>
                 ) : (
-                  <kbd className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white/20 bg-white/[0.04] border border-white/[0.06] rounded">
+                  <kbd className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--muted-foreground)]/70 bg-[color:var(--surface)]/10 border border-[color:var(--border)]/30 rounded">
                     ESC
                   </kbd>
                 )}
-                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+                <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[color:var(--foreground)]/10 to-transparent" />
               </form>
 
               {/* Results Container */}
@@ -695,21 +471,21 @@ const Header = ({
                 {searchValue.trim() ? (
                   isSearching ? (
                     <div className="flex flex-col items-center justify-center py-10 gap-3">
-                      <div className="w-5 h-5 border-[1.5px] border-white/20 border-t-white/60 rounded-full animate-spin" />
-                      <span className="text-[11px] text-white/20 tracking-widest uppercase font-medium">Searching...</span>
+                      <div className="w-5 h-5 border-[1.5px] border-[color:var(--border)]/20 border-t-[color:var(--foreground)]/40 rounded-full animate-spin" />
+                      <span className="text-[11px] text-[color:var(--muted-foreground)] tracking-widest uppercase font-medium">Searching...</span>
                     </div>
                   ) : searchResults.videos.length === 0 && searchResults.stories.length === 0 && searchResults.movies.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-white/25">
+                    <div className="flex flex-col items-center justify-center py-10 text-[color:var(--muted-foreground)]/80">
                       <Search size={24} className="mb-2.5 opacity-40" />
-                      <p className="text-sm font-medium">No results for &quot;{searchValue}&quot;</p>
-                      <p className="text-xs text-white/15 mt-1">Try a different keyword</p>
+                      <p className="text-sm font-medium text-[color:var(--foreground)]">No results for &quot;{searchValue}&quot;</p>
+                      <p className="text-xs text-[color:var(--muted-foreground)] mt-1">Try a different keyword</p>
                     </div>
                   ) : (
                     <div className="py-2">
                       {/* Stories Section */}
                       {searchResults.stories.length > 0 && (
                         <div className="mb-1">
-                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Stories</div>
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-[color:var(--muted-foreground)]">Stories</div>
                           {searchResults.stories.map((story: any, idx: number) => (
                             <button
                               key={story._id || idx}
@@ -718,16 +494,16 @@ const Header = ({
                                 setSearchValue('');
                                 router.push(`/dashboard/blogs/${story.slug?.current}`);
                               }}
-                              className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
+                              className="flex items-center gap-3 w-full px-4 py-2 hover:bg-[color:var(--surface)]/10 transition-colors text-left group"
                             >
-                              <div className="w-9 h-9 sm:w-10 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+                              <div className="w-9 h-9 sm:w-10 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-[color:var(--surface)]/10">
                                 <Image src={getImageUrl(story.mainImage, idx)} alt={story.title} fill className="object-cover" unoptimized />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-[13px] font-semibold text-white/80 truncate group-hover:text-white transition-colors">{story.title}</h4>
-                                <p className="text-[11px] text-white/30 truncate mt-0.5">{story.category?.title || 'Story'}</p>
+                                <h4 className="text-[13px] font-semibold text-[color:var(--foreground)]/85 truncate group-hover:text-[color:var(--foreground)] transition-colors">{story.title}</h4>
+                                <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5">{story.category?.title || 'Story'}</p>
                               </div>
-                              <ArrowLeft size={12} className="text-white/10 group-hover:text-white/30 transition-colors rotate-180 flex-shrink-0" />
+                              <ArrowLeft size={12} className="text-[color:var(--muted-foreground)]/50 group-hover:text-[color:var(--foreground)]/60 transition-colors rotate-180 flex-shrink-0" />
                             </button>
                           ))}
                         </div>
@@ -736,7 +512,7 @@ const Header = ({
                       {/* Videos Section */}
                       {searchResults.videos.length > 0 && (
                         <div className="mb-1">
-                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Videos</div>
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-[color:var(--muted-foreground)]">Videos & Reels</div>
                           {searchResults.videos.map((video: any, idx: number) => {
                             // Same canonical mapper Reels itself uses — not a
                             // second ad-hoc field-extraction implementation.
@@ -765,16 +541,16 @@ const Header = ({
                                   stashReelForHandoff(mapped);
                                   router.push(`/dashboard/reels?id=${encodeURIComponent(mapped.id)}`);
                                 }}
-                                className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
+                                className="flex items-center gap-3 w-full px-4 py-2 hover:bg-[color:var(--surface)]/10 transition-colors text-left group"
                               >
-                                <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
-                                  <Image src={mapped.thumbnail} alt="Thumbnail" fill className="object-cover" unoptimized />
+                                <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-[color:var(--surface)]/10">
+                                  <Image src={thumb || '/images/bg1.jpg'} alt="Thumbnail" fill className="object-cover" unoptimized />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-[13px] font-semibold text-white/80 line-clamp-1 group-hover:text-white transition-colors">{mapped.title}</h4>
-                                  <p className="text-[11px] text-white/30 truncate mt-0.5">{mapped.channelTitle}</p>
+                                  <h4 className="text-[13px] font-semibold text-[color:var(--foreground)]/85 line-clamp-1 group-hover:text-[color:var(--foreground)] transition-colors">{title}</h4>
+                                  <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5">{channel}</p>
                                 </div>
-                                <ArrowLeft size={12} className="text-white/10 group-hover:text-white/30 transition-colors rotate-180 flex-shrink-0" />
+                                <ArrowLeft size={12} className="text-[color:var(--muted-foreground)]/50 group-hover:text-[color:var(--foreground)]/60 transition-colors rotate-180 flex-shrink-0" />
                               </button>
                             );
                           })}
@@ -784,7 +560,7 @@ const Header = ({
                       {/* Movies Section */}
                       {searchResults.movies?.length > 0 && (
                         <div className="mb-1">
-                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Movies & Series</div>
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-[color:var(--muted-foreground)]">Movies & Series</div>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 px-4 pb-2">
                             {searchResults.movies.map((movie: any, idx: number) => (
                               <button
@@ -794,18 +570,18 @@ const Header = ({
                                   setSearchValue('');
                                   router.push(`/dashboard/movie`);
                                 }}
-                                className="group flex flex-col rounded-lg overflow-hidden bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-white/[0.1] transition-all"
+                                className="group flex flex-col rounded-lg overflow-hidden bg-[color:var(--surface)]/10 hover:bg-[color:var(--surface)]/20 border border-[color:var(--border)]/20 hover:border-[color:var(--border)]/40 transition-all"
                               >
                                 <div className="w-full aspect-[2/3] relative overflow-hidden">
                                   <Image src={movie.image || '/images/bg1.jpg'} alt={movie.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--border)]/60 via-transparent to-transparent" />
                                   <div className="absolute bottom-1.5 left-1.5">
-                                    <span className="px-1.5 py-0.5 bg-white/10 backdrop-blur-sm rounded text-[9px] font-bold text-white/70">{movie.year}</span>
+                                    <span className="px-1.5 py-0.5 bg-[color:var(--surface)]/20 backdrop-blur-sm rounded text-[9px] font-bold text-[color:var(--foreground)]/75">{movie.year}</span>
                                   </div>
                                 </div>
                                 <div className="p-2">
-                                  <h4 className="text-[11px] sm:text-xs font-semibold text-white/70 truncate group-hover:text-white transition-colors">{movie.title}</h4>
-                                  <p className="text-[9px] sm:text-[10px] text-white/25 truncate mt-0.5">{movie.genre?.slice(0, 2).join(' · ')}</p>
+                                  <h4 className="text-[11px] sm:text-xs font-semibold text-[color:var(--foreground)]/75 truncate group-hover:text-[color:var(--foreground)] transition-colors">{movie.title}</h4>
+                                  <p className="text-[9px] sm:text-[10px] text-[color:var(--muted-foreground)] truncate mt-0.5">{movie.genre?.slice(0, 2).join(' · ')}</p>
                                 </div>
                               </button>
                             ))}
@@ -815,9 +591,9 @@ const Header = ({
                     </div>
                   )
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-10 text-white/20">
+                  <div className="flex flex-col items-center justify-center py-10 text-[color:var(--muted-foreground)]/75">
                     <Search size={20} className="mb-2 opacity-30" />
-                    <p className="text-[13px]">Search across SawaFlix</p>
+                    <p className="text-[13px] text-[color:var(--foreground)]">Search across SawaFlix</p>
                   </div>
                 )}
               </div>
@@ -826,7 +602,7 @@ const Header = ({
               {searchValue.trim() && (searchResults.videos.length > 0 || searchResults.stories.length > 0 || searchResults.movies?.length > 0) && (
                 <button 
                   onClick={handleSearchSubmit}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-[11px] font-semibold text-white/40 hover:text-white/60 tracking-widest uppercase border-t border-white/[0.06] transition-all shrink-0"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[color:var(--surface)]/10 hover:bg-[color:var(--surface)]/20 text-[11px] font-semibold text-[color:var(--muted-foreground)]/70 hover:text-[color:var(--foreground)] tracking-widest uppercase border-t border-[color:var(--border)]/30 transition-all shrink-0"
                 >
                   <span>View all results</span>
                   <ArrowLeft size={10} className="rotate-180" />
