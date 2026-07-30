@@ -1,34 +1,21 @@
 'use client';
 
-import { ChevronLeft, Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface ReelHeaderProps {
-  title?: string;
   isMuted: boolean;
   onToggleMute: () => void;
-  onBack: () => void;
 }
 
 /**
- * One persistent header for the whole Reels page — back button, title,
- * global mute toggle. The old implementation duplicated a watermark/mute
- * button on every single card; since only one card is ever visible at a
- * time in a fullscreen swipe feed, a single page-level header is simpler
- * and removes that duplication.
+ * Mute toggle, floating over the top-right of the Reels box. No back
+ * button here — Reels renders inside the normal dashboard shell now (left
+ * sidebar, header, browser back all work as on any other page), so a
+ * dedicated in-page back control would just duplicate existing navigation.
  */
-export function ReelHeader({ title = 'Reels', isMuted, onToggleMute, onBack }: ReelHeaderProps) {
+export function ReelHeader({ isMuted, onToggleMute }: ReelHeaderProps) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-between p-4">
-      <button
-        type="button"
-        onClick={onBack}
-        aria-label="Back to dashboard"
-        className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-2 text-xs font-bold uppercase tracking-widest text-white/80 backdrop-blur-md transition-colors hover:bg-white/10 hover:text-white"
-      >
-        <ChevronLeft size={16} />
-        {title}
-      </button>
-
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-end p-4">
       <button
         type="button"
         onClick={onToggleMute}

@@ -36,3 +36,16 @@ export function creatorAvatarUrl(channelTitle: string | undefined | null): strin
   const seed = encodeURIComponent(channelTitle || 'SawaFlix');
   return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`;
 }
+
+/** `mm:ss` (or `h:mm:ss` past an hour) for the scrub indicator — e.g. 84 -> "01:24". */
+export function formatDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}

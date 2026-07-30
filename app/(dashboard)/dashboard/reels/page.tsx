@@ -29,7 +29,13 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
   }
 
   return (
-    <div className="h-dvh w-full">
+    // Sized to the dashboard's own content area, not the browser viewport:
+    // the shared <main> is h-[calc(100vh-4rem)] (header), and DashboardWrapper
+    // gives this route pb-4 instead of every other page's pb-40 (that 10rem
+    // is trailing scroll space for flowing content — a fixed-height video
+    // panel doesn't need it). 2rem top + 1rem bottom padding remains, so
+    // 100vh - 7rem is what's actually available here.
+    <div className="h-[calc(100vh-7rem)] min-h-[500px] w-full">
       <ReelsFeed initialVideos={videos} initialHasMore={hasMore} initialVideoId={initialVideoId} />
     </div>
   );

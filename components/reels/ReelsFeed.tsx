@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import { RotateCcw, Film } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { useReels } from '@/hooks/reels/useReels';
@@ -20,7 +19,6 @@ interface ReelsFeedProps {
 }
 
 export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: ReelsFeedProps) {
-  const router = useRouter();
   const { videos, loading, error, hasMore, loadMore, retry } = useReels({
     initialVideos,
     initialHasMore,
@@ -92,6 +90,14 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // TikTok-style auto-advance: called by a card when its video ends.
+  const goToNext = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const nextIndex = Math.min(activeIndex + 1, videos.length - 1);
+    container.scrollTo({ top: nextIndex * container.clientHeight, behavior: 'smooth' });
+  }, [activeIndex, videos.length, containerRef]);
+
   const toggleMute = () => {
     setIsMuted((prev) => {
       const next = !prev;
@@ -129,12 +135,12 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#0B0E14]">
-      <ReelHeader isMuted={isMuted} onToggleMute={toggleMute} onBack={() => router.push('/dashboard')} />
+      <ReelHeader isMuted={isMuted} onToggleMute={toggleMute} />
 
       <div
         ref={containerRef}
         className="relative h-full w-full snap-y snap-mandatory overflow-y-scroll scroll-smooth
-                   lg:h-[calc(100%-5rem)] lg:w-auto lg:aspect-[9/16] lg:max-h-full
+                   lg:h-full lg:w-auto lg:aspect-[9/16] lg:max-h-full
                    lg:rounded-[1.75rem] lg:ring-1 lg:ring-white/10 lg:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)]"
         style={{ scrollbarWidth: 'none' }}
       >
@@ -155,8 +161,11 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
                   isPaused={!isActive || manuallyPaused}
                   isMuted={isMuted}
                   isDesktop={isDesktop}
+                  hasNext={index < videos.length - 1}
                   itemRef={setItemRef(index)}
                   onTogglePlay={() => setManuallyPaused((prev) => !prev)}
+                  onEnded={goToNext}
+                  onResume={() => setManuallyPaused(false)}
                 />
               )}
             </div>

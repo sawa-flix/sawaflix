@@ -106,6 +106,12 @@ export function YouTubePlayer({
                     origin: window.location.origin,
                     playsinline: 1,
                     showinfo: 0,
+                    // Two more real, currently-honored parameters for
+                    // minimizing YouTube's own chrome (showinfo above is
+                    // deprecated and ignored by YouTube since 2018 — kept
+                    // only for legacy embeds, not relied on):
+                    disablekb: 1, // no iframe keyboard shortcuts (we own all keyboard handling in ReelsFeed)
+                    fs: 0,        // no fullscreen button — one less path to YouTube's own controls surfacing
                 },
                 events: {
                     onReady: (event) => {
