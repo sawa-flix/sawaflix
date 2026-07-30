@@ -65,7 +65,7 @@ const RightSidebar = () => {
   };
 
   return (
-    <div className="w-full h-full p-4 flex flex-col bg-[#0B0E14] overflow-y-auto scrollbar-none border-l border-white/5">
+    <div className="w-full h-full p-4 flex flex-col bg-[color:var(--background)] overflow-y-auto scrollbar-none border-l border-[color:var(--border)]">
 
 
       {/* Trending Section (Hidden in Music Context) */}
@@ -73,16 +73,16 @@ const RightSidebar = () => {
         <>
           <div className="space-y-3 mb-4">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[14px] font-black uppercase tracking-widest text-white/40">Trending</h3>
+              <h3 className="text-[14px] font-black uppercase tracking-widest text-[color:var(--muted-foreground)]">Trending</h3>
               <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
             </div>
             
             {loading && !featuredVideo ? (
-              <div className="w-full h-56 rounded-2xl bg-white/5 animate-pulse" />
+              <div className="w-full h-56 rounded-2xl bg-[color:var(--surface)]/20 animate-pulse" />
             ) : (
               <div 
                 onClick={() => handleItemClick(trendingMusic.video, videos)}
-                className="group cursor-pointer rounded-2xl p-2 bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300"
+                className="group cursor-pointer rounded-2xl p-2 bg-[color:var(--surface)]/30 hover:bg-[color:var(--surface)]/50 border border-[color:var(--border)]/50 transition-all duration-300"
               >
                 <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
                   <Image
@@ -94,29 +94,29 @@ const RightSidebar = () => {
                     priority
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--surface)]/80 via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-3 right-3">
                      <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
-                     <h2 className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-md">
+                     <h2 className="text-sm font-bold text-[color:var(--foreground)] line-clamp-2 leading-snug drop-shadow-md">
                        {trendingMusic.title}
                      </h2>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-3 text-[10px] font-bold text-[#AAAAAA] uppercase tracking-wider">
+                  <div className="flex items-center gap-3 text-[10px] font-bold text-[color:var(--muted-foreground)] uppercase tracking-wider">
                      <span>{trendingMusic.views} views</span>
                      <span>•</span>
                      <span>{trendingMusic.likes} likes</span>
                   </div>
-                  <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                  <div className="w-8 h-8 bg-[color:var(--surface)]/20 rounded-full flex items-center justify-center group-hover:bg-[color:var(--surface)] group-hover:text-black transition-all">
                      <Zap size={14} className="fill-current" />
                   </div>
                 </div>
               </div>
             )}
           </div>
-          <div className="h-px bg-white/5 my-4" />
+          <div className="h-px bg-[color:var(--border)]/40 my-4" />
         </>
       )}
 
@@ -124,38 +124,38 @@ const RightSidebar = () => {
       {activeCategory === 'music' && (
         <>
           <div className="space-y-4 mb-6 mt-2">
-            <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">Top Artists</h3>
+            <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-[color:var(--muted-foreground)]">Top Artists</h3>
             <div className="flex flex-col gap-2 px-2">
               {TOP_ARTISTS.map(artist => (
-                 <Link href={`/dashboard/artist/${artist.id}`} key={artist.id} className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer group">
-                   <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-white/10 shadow-lg group-hover:scale-105 transition-transform">
+                 <Link href={`/dashboard/artist/${artist.id}`} key={artist.id} className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer group">
+                   <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-[color:var(--border)] shadow-lg group-hover:scale-105 transition-transform">
                      <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
                    </div>
                    <div>
-                     <h4 className="text-sm font-bold text-white group-hover:text-white/90">{artist.name}</h4>
-                     <p className="text-[10px] text-[#AAAAAA] uppercase tracking-wider font-bold">Artist</p>
+                     <h4 className="text-sm font-bold text-[color:var(--foreground)] group-hover:text-[color:var(--foreground)]/90">{artist.name}</h4>
+                     <p className="text-[10px] text-[color:var(--muted-foreground)] uppercase tracking-wider font-bold">Artist</p>
                    </div>
                  </Link>
               ))}
             </div>
           </div>
-          <div className="h-px bg-white/5 my-4" />
+          <div className="h-px bg-[color:var(--border)]/40 my-4" />
         </>
       )}
 
       {/* Recommendations / Hit Songs */}
       <div className="space-y-4 mb-6">
-        <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-white/40">
+        <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-[color:var(--muted-foreground)]">
           {activeCategory === 'music' ? 'Hit Songs' : 'Suggested for you'}
         </h3>
         {loading ? (
            <div className="flex flex-col gap-4">
              {[1,2,3,4,5,6].map(i => (
                <div key={i} className="flex gap-3 animate-pulse px-2">
-                 <div className="w-[100px] h-[56px] bg-white/5 rounded-lg shrink-0" />
+                 <div className="w-[100px] h-[56px] bg-[color:var(--surface)]/10 rounded-lg shrink-0" />
                  <div className="flex-1 py-1 space-y-2">
-                   <div className="h-3 bg-white/5 rounded w-full" />
-                   <div className="h-2 bg-white/5 rounded w-2/3" />
+                   <div className="h-3 bg-[color:var(--surface)]/10 rounded w-full" />
+                   <div className="h-2 bg-[color:var(--surface)]/10 rounded w-2/3" />
                  </div>
                </div>
              ))}
@@ -166,7 +166,7 @@ const RightSidebar = () => {
                <div
                  key={video.id}
                  onClick={() => handleItemClick(video, videos)}
-                 className="flex gap-3 p-2 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer group"
+                 className="flex gap-3 p-2 rounded-xl hover:bg-[color:var(--surface)]/10 border border-transparent hover:border-[color:var(--border)]/40 transition-all duration-200 cursor-pointer group"
                >
                  <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
                    <Image
@@ -177,11 +177,11 @@ const RightSidebar = () => {
                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                      unoptimized
                    />
-                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                   <div className="absolute inset-0 bg-[color:var(--border)]/20 group-hover:bg-transparent transition-colors" />
                  </div>
                  <div className="flex-1 min-w-0 py-0.5">
-                   <h4 className="text-xs font-bold text-white line-clamp-2 mb-1 leading-tight group-hover:text-white/90">{video.title}</h4>
-                   <p className="text-[10px] text-[#AAAAAA] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
+                   <h4 className="text-xs font-bold text-[color:var(--foreground)] line-clamp-2 mb-1 leading-tight group-hover:text-[color:var(--foreground)]/90">{video.title}</h4>
+                   <p className="text-[10px] text-[color:var(--muted-foreground)] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
                  </div>
                </div>
              ))}

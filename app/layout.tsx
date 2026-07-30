@@ -5,6 +5,7 @@ import { NotificationProvider } from '../contexts/NotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import NotificationPrompt from '@/components/NotificationPrompt';
+import ThemeProvider from '../components/ThemeProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -105,6 +106,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var stored=localStorage.getItem('theme');var theme=stored==='light'||stored==='dark'?stored:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme', theme);document.documentElement.style.colorScheme=theme;}catch(e){}})();`
+        }} />
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
         <script dangerouslySetInnerHTML={{
@@ -118,22 +122,24 @@ export default function RootLayout({
         }} />
       </head>
       <body suppressHydrationWarning>
-        <style dangerouslySetInnerHTML={{__html: `
-          #nprogress .bar {
-            background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
-          }
-          #nprogress .peg {
-            box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
-          }
-        `}} />
-        <NextTopLoader color="transparent" showSpinner={false} />
-        <AdminNotificationProvider>
-          <NotificationProvider>
-            {children}
-          </NotificationProvider>
-        </AdminNotificationProvider>
-        <PWAInstallPrompt />
-        <NotificationPrompt />
+        <ThemeProvider>
+          <style dangerouslySetInnerHTML={{__html: `
+            #nprogress .bar {
+              background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
+            }
+            #nprogress .peg {
+              box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
+            }
+          `}} />
+          <NextTopLoader color="transparent" showSpinner={false} />
+          <AdminNotificationProvider>
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
+          </AdminNotificationProvider>
+          <PWAInstallPrompt />
+          <NotificationPrompt />
+        </ThemeProvider>
       </body>
     </html>
   )

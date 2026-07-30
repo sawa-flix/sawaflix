@@ -169,8 +169,8 @@ export default function LeftSidebar({
         href={item.route}
         onClick={handleItemClick}
         className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer ${isActive
-            ? 'bg-white/10 text-white font-medium'
-            : 'text-[#AAAAAA] hover:bg-white/10 hover:text-white'
+            ? 'bg-[color:var(--surface)]/60 text-[color:var(--foreground)] font-medium'
+            : 'text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)]'
           }`}
       >
         <div className="flex items-center space-x-4">
@@ -181,7 +181,7 @@ export default function LeftSidebar({
           ) : (
             Icon && <Icon
               size={20}
-              className={`transition-colors shrink-0 ${isActive ? 'text-white' : 'text-[#AAAAAA] group-hover:text-white'}`}
+              className={`transition-colors shrink-0 ${isActive ? 'text-[color:var(--foreground)]' : 'text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)]'}`}
             />
           )}
           <span className={`text-sm tracking-tight ${isActive ? 'font-semibold' : ''}`}>
@@ -199,7 +199,7 @@ export default function LeftSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#06080C] border-r border-white/5">
+    <div className="h-full flex flex-col bg-[color:var(--surface)] border-r border-[color:var(--border)]">
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-none">
         {/* Top Section */}
         <div className="space-y-1 mb-6">
@@ -216,16 +216,16 @@ export default function LeftSidebar({
 
         {/* You Section */}
         <div className="space-y-1 mb-6">
-          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer w-fit mb-2">
-            <span className="text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 group-hover:text-white transition-colors">You</span>
-            <ChevronRight size={14} className="ml-1 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-[color:var(--surface)]/10 rounded-lg cursor-pointer w-fit mb-2">
+            <span className="text-[13px] font-black uppercase tracking-[0.1em] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">You</span>
+            <ChevronRight size={14} className="ml-1 text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
           </Link>
           {loading ? (
             <div className="space-y-2 px-3">
               {[1, 2, 3].map(i => (
                 <div key={i} className="flex items-center gap-4 py-2 animate-pulse">
-                  <div className="w-5 h-5 bg-white/5 rounded-full" />
-                  <div className="w-24 h-3 bg-white/5 rounded" />
+                  <div className="w-5 h-5 bg-[color:var(--surface)]/10 rounded-full" />
+                  <div className="w-24 h-3 bg-[color:var(--surface)]/10 rounded" />
                 </div>
               ))}
             </div>
