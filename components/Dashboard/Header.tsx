@@ -6,9 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '../../utils/supabase/client'; 
-import { User as SupabaseUser } from '@supabase/supabase-js'; 
-import { handleSignOut } from '../../app/(auth)/actions'; 
+import { createClient } from '../../utils/supabase/client';
+import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -18,6 +17,8 @@ import { YouTubeApiService } from '../../services/youtubeApi';
 import { getStories } from '../../lib/sanity/queries';
 import { urlFor } from '../../lib/sanity/client';
 import { MOVIES_DATA } from '../Movie/constants';
+import { useAuthSession } from '../../hooks/useAuthSession';
+import { useAuthModal } from '../../contexts/AuthModalContext';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -31,7 +32,8 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const [searchValue, setSearchValue] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileSearchBar, setShowMobileSearchBar] = useState(false);
-  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
+  const { user: currentUser, isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -49,29 +51,28 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    if (!currentUser) {
+      setUserProfile(null);
+      return;
+    }
+
+    const fetchUserProfile = async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      setCurrentUser(user);
+      const { data: profileData, error } = await supabase
+        .from('users')
+        .select('username, email, profile_image_url')
+        .eq('id', currentUser.id)
+        .single<UserProfileData>();
 
-      if (user) {
-        const { data: profileData, error } = await supabase
-          .from('users')
-          .select('username, email, profile_image_url')
-          .eq('id', user.id)
-          .single<UserProfileData>();
-
-        if (error) {
-          console.error('Error fetching user profile:', error.message);
-        } else if (profileData) {
-          setUserProfile(profileData);
-        }
+      if (error) {
+        console.error('Error fetching user profile:', error.message);
+      } else if (profileData) {
+        setUserProfile(profileData);
       }
     };
 
-    fetchUserData();
-  }, []);
+    fetchUserProfile();
+  }, [currentUser]);
 
   // Debounced Search Effect
   useEffect(() => {
@@ -254,57 +255,66 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           </Link>
 
 
-          <div className="relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-3 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-              aria-label="User profile menu"
-            >
-              {userProfile?.profile_image_url ? (
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-sm flex-shrink-0">
-                  <Image
-                    src={userProfile.profile_image_url}
-                    alt="User Avatar"
-                    fill
-                    className="object-cover aspect-square"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700 shadow-sm flex-shrink-0">
-                  <User size={14} className="text-gray-400" />
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center space-x-3 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                aria-label="User profile menu"
+              >
+                {userProfile?.profile_image_url ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-sm flex-shrink-0">
+                    <Image
+                      src={userProfile.profile_image_url}
+                      alt="User Avatar"
+                      fill
+                      className="object-cover aspect-square"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700 shadow-sm flex-shrink-0">
+                    <User size={14} className="text-gray-400" />
+                  </div>
+                )}
+                <span className="hidden sm:block text-sm font-medium">
+                  {userProfile?.username || currentUser?.email}
+                </span>
+                <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
+                  <div className="px-4 py-2 border-b border-gray-700">
+                    <p className="text-sm font-medium text-white">{userProfile?.username}</p>
+                    <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
+                  </div>
+                  <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-zinc-300 hover:bg-gray-700 hover:text-white transition-colors">
+                    Update Profile
+                  </Link>
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                    Help & Support
+                  </a>
+                  <hr className="my-2 border-gray-700" />
+                  <form action={handleSignOut}>
+                    <button
+                      type="submit"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </form>
                 </div>
               )}
-              <span className="hidden sm:block text-sm font-medium">
-                {userProfile?.username || currentUser?.email || 'Guest'}
-              </span>
-              <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthModal('to create your account')}
+              className="px-4 py-2 rounded-xl bg-[#CE1126] text-white text-sm font-bold hover:bg-red-700 transition-all cursor-pointer"
+            >
+              Sign Up
             </button>
-
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-700">
-                  <p className="text-sm font-medium text-white">{userProfile?.username || 'Guest'}</p>
-                  <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
-                </div>
-                <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-zinc-300 hover:bg-gray-700 hover:text-white transition-colors">
-                  Update Profile
-                </Link>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                  Help & Support
-                </a>
-                <hr className="my-2 border-gray-700" />
-                <form action={handleSignOut}>
-                  <button
-                    type="submit"
-                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </header>

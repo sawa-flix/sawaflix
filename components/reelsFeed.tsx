@@ -87,7 +87,7 @@ export default function ReelsFeed({ videos, initialVideoId }: ReelsFeedProps) {
   const requireAuth = (actionType: string, videoId: string) => {
     if (!isAuthenticated) {
       localStorage.setItem('sawaflix_pending_action', JSON.stringify({ type: actionType, videoId }));
-      router.push('/login?redirectedFrom=' + encodeURIComponent(window.location.pathname));
+      router.push('/dashboard?redirectedFrom=' + encodeURIComponent(window.location.pathname));
       return false;
     }
     return true;

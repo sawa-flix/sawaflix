@@ -112,7 +112,7 @@ export default function PublicProfilePage({ params }) {
                         Return Home
                     </Link>
                     <Link
-                        href="/login"
+                        href="/dashboard"
                         className="px-10 py-4 bg-red-600 text-white rounded-full font-black text-[10px] tracking-widest uppercase hover:bg-red-500 transition-all shadow-2xl shadow-red-600/20 active:scale-95"
                     >
                         Creator Login

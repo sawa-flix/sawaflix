@@ -34,7 +34,7 @@ export default function EditProfilePage(): React.ReactElement {
         } = await supabase.auth.getUser();
 
         if (!authUser) {
-          router.push('/login');
+          router.push('/dashboard');
           return;
         }
 

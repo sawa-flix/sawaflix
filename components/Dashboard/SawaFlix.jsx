@@ -19,7 +19,7 @@ import FavoriteButton from '../common/FavoriteButton';
 import { playbackService } from '@/services/playbackService';
 import { PremiumPaywall } from '../PremiumPaywall';
 import DashboardLanding from './DashboardLanding';
-import AuthModal from './AuthModal';
+import { useAuthModal } from '../../contexts/AuthModalContext';
 
 const CATEGORIES = [
   { id: "all",           label: "All",          query: "Cameroon shorts viral 2026" },
@@ -758,12 +758,10 @@ function SawaFlixContent({ videoId: videoIdProp }) {
 
   const [activeCategory, setActiveCategory] = useState(catParam || "all");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalPrompt, setAuthModalPrompt] = useState('');
+  const { openAuthModal } = useAuthModal();
 
   const handleRequestAuth = (promptMessage = '') => {
-    setAuthModalPrompt(promptMessage);
-    setShowAuthModal(true);
+    openAuthModal(promptMessage);
   };
 
   useEffect(() => {
@@ -1205,13 +1203,6 @@ function SawaFlixContent({ videoId: videoIdProp }) {
         }
         .animate-ping-once { animation: ping-once 0.7s ease-out forwards; }
       `}</style>
-
-      {/* Google OAuth Auth Modal — shown when guest clicks Like or Comment */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        promptMessage={authModalPrompt}
-      />
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {/* Red Sign In Button Feel */}
             <Link 
-              href="/login" 
+              href="/dashboard" 
               className="bg-[#E50914] hover:bg-[#C11119] text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
             >
               Sign In
@@ -122,7 +122,7 @@ export default function Navbar() {
               ))}
               <div className="flex flex-col gap-3 mt-6">
                 <Link
-                  href="/login"
+                  href="/dashboard"
                   className="w-full text-center bg-[#E50914] text-white px-4 py-2.5 rounded font-bold transition-all"
                   onClick={() => setIsOpen(false)}
                 >

@@ -40,10 +40,10 @@ const UserProfilePage = async () => {
     return (
       <div className="min-h-screen bg-[#06080C] flex items-center justify-center">
         <Link
-          href="/login"
+          href="/dashboard"
           className="px-8 py-3 bg-[#CE1126] text-white rounded-full font-bold text-sm hover:bg-red-700 transition"
         >
-          Please Login
+          Please Sign Up
         </Link>
       </div>
     );

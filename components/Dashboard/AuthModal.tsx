@@ -14,30 +14,39 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, promptMessage = 'to interact with Sawaflix' }: AuthModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
+  const handleGoogleSignUp = async () => {
+    setError(null);
+    setSuccessMessage(null);
+    setIsGoogleLoading(true);
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Always use the exact origin the user is currently on to prevent PKCE cookie domain mismatches.
+      const redirectBase = window.location.origin;
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Redirect back to the exact page the user was on
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`,
+          redirectTo: `${redirectBase}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
-      if (error) {
-        console.error('[AuthModal] OAuth Error:', error.message);
-        setIsLoading(false);
+      if (oauthError) {
+        setError('Unable to continue with Google right now. Please try again.');
+        setIsGoogleLoading(false);
       }
-      // On success, browser is redirected — loading state stays until navigation
     } catch (err) {
-      console.error('[AuthModal] Unexpected Error:', err);
-      setIsLoading(false);
+      setError('Unable to continue with Google right now. Please try again.');
+      setIsGoogleLoading(false);
     }
   };
 
@@ -96,11 +105,11 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
               <motion.button
                 id="auth-modal-google-btn"
                 whileTap={{ scale: 0.97 }}
-                onClick={handleGoogleLogin}
-                disabled={isLoading}
+                onClick={handleGoogleSignUp}
+                disabled={isGoogleLoading}
                 className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-2xl bg-white text-[#1a1a1a] font-bold text-sm hover:bg-white/90 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
+                {isGoogleLoading ? (
                   <Loader2 size={18} className="animate-spin text-gray-500" />
                 ) : (
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -110,7 +119,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
                     <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335" />
                   </svg>
                 )}
-                {isLoading ? 'Signing in…' : 'Continue with Google'}
+                {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
               </motion.button>
 
               <p className="text-white/20 text-xs text-center leading-relaxed">
@@ -125,3 +134,4 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
     </AnimatePresence>
   );
 }
+

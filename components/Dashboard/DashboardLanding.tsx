@@ -7,6 +7,8 @@ import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useAuthModal } from '@/contexts/AuthModalContext';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -56,6 +58,8 @@ interface DashboardLandingProps {
 
 export default function DashboardLanding({ onPlayReel, reels, activeCategory, onCategoryChange }: DashboardLandingProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -78,6 +82,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Handle playing the banner movie
   const handleBannerPlay = () => {
+    if (!isAuthenticated) {
+      openAuthModal('to watch this movie');
+      return;
+    }
     if (bannerMovie) {
       router.push(`/dashboard/movie`);
     }
