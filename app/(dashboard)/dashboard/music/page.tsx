@@ -147,7 +147,7 @@ export default function MusicPage(): React.ReactElement {
   );
 
   return (
-    <div className="min-h-full bg-gray-900 text-white p-2 xs:p-3 sm:p-6 lg:p-8 pb-32">
+    <div className="min-h-full bg-[color:var(--background)] text-[color:var(--foreground)] p-2 xs:p-3 sm:p-6 lg:p-8 pb-32">
       {/* Page Header */}
       <div className="mb-4 sm:mb-8 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4">
         <div className="min-w-0 flex-1">

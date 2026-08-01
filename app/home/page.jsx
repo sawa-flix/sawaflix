@@ -32,14 +32,14 @@ const SawaFlix = () => {
   const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
 
   const ContentCard = ({ item, type }) => (
-    <div className="group relative bg-gray-800 rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+    <div className="group relative bg-[color:var(--surface)] rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
       <div className="relative">
         <img src={item.image} alt={item.title} className="w-full h-48 sm:h-56 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--background)]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <button className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-700 cursor-pointer">
           <Play size={20} className="text-white fill-current" />
         </button>
-        <div className="absolute top-3 right-3 bg-black/60 rounded-full px-2 py-1">
+        <div className="absolute top-3 right-3 bg-[color:var(--surface)]/60 rounded-full px-2 py-1">
           <div className="flex items-center text-yellow-400 text-sm">
             <Star size={14} className="mr-1 fill-current" />
             <span>{type === 'movie' ? item.rating : '★★★★★'}</span>
@@ -47,8 +47,8 @@ const SawaFlix = () => {
         </div>
       </div>
       <div className="p-4">
-        <h3 className="text-white font-semibold text-sm sm:text-base mb-1 truncate">{item.title}</h3>
-        <p className="text-gray-400 text-xs sm:text-sm">
+        <h3 className="text-[color:var(--foreground)] font-semibold text-sm sm:text-base mb-1 truncate">{item.title}</h3>
+        <p className="text-[color:var(--muted-foreground)] text-xs sm:text-sm">
           {type === 'movie' ? `${item.year || '2024'} • ${item.genre || 'Movie'}` : `${item.artist} • ${item.plays || 'Music'}`}
         </p>
       </div>
@@ -61,20 +61,20 @@ const SawaFlix = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1489599849323-2429c9b59ec8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')" }}
       />
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-[color:var(--background)]/60" />
       <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-[color:var(--foreground)] mb-4">
             Sawa<span className="text-red-500">Flix</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-200 mb-6 max-w-2xl">
+          <p className="text-lg sm:text-xl text-[color:var(--muted-foreground)] mb-6 max-w-2xl">
             The Ultimate Music And Movies Experience
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto px-4 sm:px-0">
             <button className="w-full sm:w-auto bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full font-semibold transition-colors duration-200 cursor-pointer">
               Watch Now
             </button>
-            <button className="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white hover:text-black active:bg-gray-200 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full font-semibold transition-all duration-200 cursor-pointer">
+            <button className="w-full sm:w-auto bg-transparent border-2 border-[color:var(--foreground)] text-[color:var(--foreground)] hover:bg-[color:var(--foreground)] hover:text-[color:var(--background)] active:bg-[color:var(--surface)] px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full font-semibold transition-all duration-200 cursor-pointer">
               Listen Now
             </button>
           </div>
@@ -85,7 +85,7 @@ const SawaFlix = () => {
 
   return (
     // Added overflow-x-hidden here to remove horizontal scrollbar
-    <div className="min-h-screen bg-gray-900 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[color:var(--background)] flex flex-col overflow-x-hidden">
       {/* Main Content */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-6">
         <HeroSection />
@@ -93,7 +93,7 @@ const SawaFlix = () => {
         {/* Trending Now */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[color:var(--foreground)] flex items-center">
               <span className="w-1 h-8 bg-red-600 mr-3 rounded-full"></span>
               Trending Now
             </h2>
@@ -108,7 +108,7 @@ const SawaFlix = () => {
         {/* Movies For You */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[color:var(--foreground)] flex items-center">
               <span className="w-1 h-8 bg-blue-600 mr-3 rounded-full"></span>
               Movies For You
             </h2>
@@ -123,7 +123,7 @@ const SawaFlix = () => {
         {/* Music For You */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[color:var(--foreground)] flex items-center">
               <span className="w-1 h-8 bg-purple-600 mr-3 rounded-full"></span>
               Music For You
             </h2>

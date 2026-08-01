@@ -341,7 +341,8 @@ export default function MusicPage() {
           position: sticky;
           top: 0;
           z-index: 50;
-          background: rgba(11,14,20,0.95);
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
           backdrop-filter: blur(10px);
         }
         .tabs-row::-webkit-scrollbar { display: none; }
@@ -355,15 +356,16 @@ export default function MusicPage() {
           transition: all 0.25s ease;
           border: none;
           background: transparent;
-          color: #AAAAAA;
+          color: var(--muted-foreground);
         }
         .tab-btn:hover {
-          color: #fff;
-          background: rgba(255,255,255,0.1);
+          color: var(--foreground);
+          background: var(--primary-soft);
+          border-color: var(--primary);
         }
         .tab-btn.active {
-          background: rgba(255,255,255,0.1);
-          color: #fff;
+          background: var(--primary);
+          color: var(--background);
           font-weight: 600;
         }
 
