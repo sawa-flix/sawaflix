@@ -216,7 +216,6 @@ export default function MoviePage(): React.ReactElement {
             <p className="mt-2 text-sm text-gray-400">Check back after the next catalog synchronization.</p>
           </div>
         )}
-      </div>
 
       {playingMovie && (
         <div
