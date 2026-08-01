@@ -151,7 +151,8 @@ const DetailRow: React.FC<DetailRowProps> = ({ icon, label, value }) => (
       <p className="text-xs text-gray-400">{label}</p>
       <p className="text-xs font-semibold text-white truncate">{value}</p>
     </div>
-  </div>
+
+    </div>
 );
 
 export default RightSidebarContent;

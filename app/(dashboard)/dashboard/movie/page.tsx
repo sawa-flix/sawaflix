@@ -35,19 +35,19 @@ export default function MoviePage(): React.ReactElement {
 
   return (
     <>
-      <div className="movie-page-root flex flex-col xl:flex-row gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-white pb-20">
+      <div className="movie-page-root flex flex-col xl:flex-row gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-[color:var(--foreground)] pb-20">
         {/* ========== LEFT CONTENT AREA ========== */}
         <div className="flex-1 min-w-0 flex flex-col pt-2">
           {/* Filters Bar - Sticky above banner */}
-          <div className="sticky top-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md py-3 mb-6 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-white/5 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="sticky top-0 z-40 bg-[color:var(--surface)]/95 backdrop-blur-md py-3 mb-6 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-[color:var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0">
             {FILTERS.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={`cursor-pointer shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all ${
                   activeFilter === filter
-                    ? 'bg-white text-[#0B0E14]'
-                    : 'bg-[#1A1E26] text-gray-300 hover:bg-[#252A36]'
+                    ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/70 hover:text-[color:var(--foreground)] border border-[color:var(--border)]/60'
                 }`}
                 aria-pressed={activeFilter === filter}
               >
@@ -82,7 +82,7 @@ export default function MoviePage(): React.ReactElement {
         </div>
 
         {/* ========== RIGHT SIDEBAR (DESKTOP ONLY) ========== */}
-        <div className="hidden xl:block w-[340px] shrink-0 sticky top-4 h-[calc(100vh-2rem)] rounded-xl overflow-y-auto scrollbar-hide bg-[#0E121A] border border-white/5 shadow-2xl p-6">
+        <div className="hidden xl:block w-[340px] shrink-0 sticky top-4 h-[calc(100vh-2rem)] rounded-xl overflow-y-auto scrollbar-hide bg-[color:var(--surface)] border border-[color:var(--border)] shadow-2xl p-6">
           <RightSidebarContent
             movie={selectedMovie}
             onClose={() => setSelectedMovie(featuredMovie)}

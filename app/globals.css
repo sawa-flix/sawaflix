@@ -10,6 +10,7 @@
   --border: #334155;
   --muted-foreground: #94A3B8;
   --primary: #E50914;
+  --primary-soft: rgba(229, 9, 20, 0.12);
   /* Netflix-like Red / Design Accent */
   --secondary: #1E293B;
   --accent: #E50914;
@@ -115,6 +116,7 @@ html {
   --border: #E2E8F0;
   --muted-foreground: #64748B;
   --primary: #E50914;
+  --primary-soft: rgba(229, 9, 20, 0.12);
   --secondary: #CBD5E1;
   --accent: #E50914;
   --card-bg: #FFFFFF;

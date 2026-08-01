@@ -65,25 +65,25 @@ const LandingPage = () => {
           priority
         />
         {/* Desktop Content Overlay */}
-        <div className="absolute inset-0 z-10 bg-black opacity-70 flex items-center justify-center px-4">
+        <div className="absolute inset-0 z-10 bg-[color:var(--surface)]/90 flex items-center justify-center px-4">
           <div className="lg:max-w-lg lg:mx-auto lg:w-full">
             <div className="text-center mb-12">
               {/* <h1 className="text-white text-5xl font-bold tracking-wide">SAWAFLIX</h1> */}
             </div>
             <div className="mb-12">
               <p className='bg-red-600 w-[100px] text-center rounded-md'>SawaFlix ✨</p>
-              <h2 className="text-5xl font-bold text-white mb-6">
+              <h2 className="text-5xl font-bold text-[color:var(--foreground)] mb-6">
                 {t("landing.welcome_title")}
               </h2>
 
-              <div className="space-y-4 text-gray-200 leading-relaxed text-lg">
+              <div className="space-y-4 text-[color:var(--muted-foreground)] leading-relaxed text-lg">
                 {/* <p>
                   Discover the rich tapestry of Cameroonian cinema and music all in one place. SAWAFLIX is your 
                   gateway to authentic local content, featuring blockbuster movies and chart-topping hits from 
                   your favorite Cameroonian artists.
                 </p> */}
 
-                <p className=" text-white ">
+                <p className="text-[color:var(--foreground)]">
                   {t("landing.welcome_subtitle")}
                 </p>
               </div>
@@ -97,20 +97,20 @@ const LandingPage = () => {
               </button>
               <button 
                 onClick={() => router.push('/sign-up')}
-                className="w-full bg-white hover:bg-white/10 text-black cursor-pointer font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                className="w-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] cursor-pointer font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
               >
                 {t("common.sign_up")}
               </button>
             </div>
             <div className="mt-12 text-center">
-              <div className="bg-white bg-opacity-90 border border-white rounded-xl p-6">
-                <p className="text-sm text-gray-700 mb-2">
+              <div className="bg-[color:var(--surface)]/95 border border-[color:var(--border)] rounded-xl p-6">
+                <p className="text-sm text-[color:var(--foreground)] mb-2">
                   🎬 {t("landing.movies_count")}
                 </p>
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-[color:var(--foreground)] mb-2">
                   🎵 {t("landing.music_access")}
                 </p>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-[color:var(--foreground)]">
                   🌟 {t("landing.users_count")}
                 </p>
               </div>
@@ -121,8 +121,8 @@ const LandingPage = () => {
 
       {/* Right Side - Forms */}
       <div className="w-full lg:w-[480px] flex flex-col justify-center px-8 lg:px-12 py-12 relative z-20">
-        <div className="bg-[#151C25]/80 backdrop-blur-xl rounded-[2.5rem] border border-gray-800/50 p-10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="bg-[color:var(--surface)]/80 backdrop-blur-xl rounded-[2.5rem] border border-[color:var(--border)]/50 p-10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[color:var(--primary)]/5 rounded-full blur-2xl pointer-events-none" />
 
         {/* Mobile View */}
         <div className="lg:hidden min-h-screen relative overflow-hidden">
@@ -160,14 +160,14 @@ const LandingPage = () => {
 
             {/* Trending Section */}
             <div className="flex-1">
-              <h2 className="text-white text-xl font-bold mb-4">Trending</h2>
+              <h2 className="text-[color:var(--foreground)] text-xl font-bold mb-4">Trending</h2>
 
               {/* Movie Posters */}
               <div>
                 {/* First Row */}
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-yellow-500 via-orange-500 to-red-600 rounded-lg overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                    <div className="absolute inset-0 bg-[color:var(--background)]/40"></div>
                     <Image
                       src="/cameroon4.jpg"
                       alt="The Beekeeper"
@@ -218,7 +218,7 @@ const LandingPage = () => {
                 {/* Second Row */}
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="aspect-[2/3] bg-gradient-to-br from-green-600 to-teal-700 rounded-lg overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                    <div className="absolute inset-0 bg-[color:var(--background)]/30"></div>
                     <Image
                       src="/CeCe Winans.jpeg"
                       alt="The Beekeeper"
@@ -227,7 +227,7 @@ const LandingPage = () => {
                     />
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 rounded-lg overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                    <div className="absolute inset-0 bg-[color:var(--background)]/40"></div>
                     <Image
                       src="/cameroon.jpg"
                       alt="The Beekeeper"
@@ -240,7 +240,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                   <div className="aspect-[2/3] bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+                    <div className="absolute inset-0 bg-[color:var(--background)]/50"></div>
                     <Image
                       src="/cameroon2.jpg"
                       alt="The Beekeeper"
@@ -293,39 +293,39 @@ const LandingPage = () => {
             {/* LanguageToggle Removed */}
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email</label>
+            <label className="block text-xs font-bold text-[color:var(--muted-foreground)] uppercase tracking-widest mb-2 ml-1">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("landing.email_placeholder")}
-              className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all font-medium"
+              className="w-full bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl px-5 py-4 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)] transition-all font-medium"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+            <label className="block text-xs font-bold text-[color:var(--muted-foreground)] uppercase tracking-widest mb-2 ml-1">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t("landing.password_placeholder")}
-              className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all font-medium"
+              className="w-full bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl px-5 py-4 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)] transition-all font-medium"
             />
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-300 transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 bg-gray-900 border-gray-800 rounded checked:bg-red-600 transition-all cursor-pointer"
+                className="w-4 h-4 bg-[color:var(--surface)] border border-[color:var(--border)] rounded checked:bg-[color:var(--primary)] transition-all cursor-pointer"
               />
               <span>{t("landing.remember_me")}</span>
             </label>
-            <button type="button" className="text-red-700 hover:text-red-600 font-bold">{t("landing.forgot_password")}</button>
+            <button type="button" className="text-[color:var(--primary)] hover:text-[color:var(--primary)] font-bold">{t("landing.forgot_password")}</button>
           </div>
 
           <button
