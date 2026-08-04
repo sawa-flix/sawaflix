@@ -19,6 +19,7 @@ import FavoriteButton from '../common/FavoriteButton';
 import { playbackService } from '@/services/playbackService';
 import { PremiumPaywall } from '../PremiumPaywall';
 import DashboardLanding from './DashboardLanding';
+import { useAuthModal } from '../../contexts/AuthModalContext';
 
 const CATEGORIES = [
   { id: "all", label: "All", query: "Cameroon shorts viral 2026" },
@@ -206,7 +207,7 @@ const HTML5Player = ({ videoId, videoUrl, isActive, isPaused, isMuted, restricti
 };
 
 // ─── Video Feed Item ──────────────────────────────────────────────────────────
-const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onToggleFullscreen }) => {
+const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onToggleFullscreen, isAuthenticated, onRequestAuth }) => {
   const [isDesktop, setIsDesktop] = useState(true);
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -367,16 +368,34 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
 
   const handleLike = (e) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      localStorage.setItem('sawaflix_pending_action', JSON.stringify({ type: 'like', videoId: video.id, videoOrigin }));
+      onRequestAuth('to like this video');
+      return;
+    }
+
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikeCount(c => nextLiked ? c + 1 : Math.max(c - 1, 0));
 
+<<<<<<< HEAD
     // Call the server action completely outside the state updater function
+=======
+>>>>>>> feat/login-popup
     youtubeApi.likeVideo(video.id, videoOrigin).catch(() => {
-      // revert on failure
       setIsLiked(!nextLiked);
       setLikeCount(c => !nextLiked ? c + 1 : Math.max(c - 1, 0));
     });
+  };
+
+  const handleComment = (e) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      localStorage.setItem('sawaflix_pending_action', JSON.stringify({ type: 'comment', videoId: video.id, videoOrigin }));
+      onRequestAuth('to comment on this video');
+      return;
+    }
+    setCommentOpen(true);
   };
 
   const handleShare = async (e) => {
@@ -537,9 +556,15 @@ const VideoFeedItem = ({ video, isActive, isMuted, setIsMuted, isFullscreen, onT
                     <span className="text-[11px] font-bold text-white drop-shadow-lg mt-1.5 leading-none">{formatCount(displayLikes)}</span>
                   </button>
 
+<<<<<<< HEAD
                   <button onClick={e => { e.stopPropagation(); setCommentOpen(true); }} className="flex flex-col items-center group/btn">
                     <div className="p-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
                       <MessageCircle size={22} className="text-white fill-white" />
+=======
+                  <button onClick={handleComment} className="flex flex-col items-center group/btn">
+                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 group-hover/btn:bg-white/20 transition-all duration-300">
+                      <MessageCircle size={18} className="text-white fill-white" />
+>>>>>>> feat/login-popup
                     </div>
                     <span className="text-[11px] font-bold text-white drop-shadow-lg mt-1.5 leading-none">{formatCount(displayComments)}</span>
                   </button>
@@ -760,6 +785,41 @@ function SawaFlixContent({ videoId: videoIdProp }) {
   const videoId = videoIdProp || videoIdParam;
 
   const [activeCategory, setActiveCategory] = useState(catParam || "all");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { openAuthModal } = useAuthModal();
+
+  const handleRequestAuth = (promptMessage = '') => {
+    openAuthModal(promptMessage);
+  };
+
+  useEffect(() => {
+    import('@/utils/supabase/client').then(({ createClient }) => {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const auth = !!session;
+        setIsAuthenticated(auth);
+        if (auth) {
+          const pendingStr = localStorage.getItem('sawaflix_pending_action');
+          if (pendingStr) {
+            try {
+              const action = JSON.parse(pendingStr);
+              console.log('[ActionReplay] Replaying pending action:', action);
+              if (action.type === 'like' && action.videoId) {
+                // Fire the actual like API call silently in the background
+                youtubeApi.likeVideo(action.videoId, action.videoOrigin || 'youtube')
+                  .then(() => console.log('[ActionReplay] LIKE replayed successfully for video', action.videoId))
+                  .catch(err => console.error('[ActionReplay] LIKE replay failed:', err));
+              }
+              // For comments we just clear — comment replay requires a UI interaction
+              localStorage.removeItem('sawaflix_pending_action');
+            } catch (e) {
+              console.error('[ActionReplay] Failed to parse pending action:', e);
+            }
+          }
+        }
+      });
+    });
+  }, []);
 
   useEffect(() => {
     if (catParam && catParam !== activeCategory) {
@@ -1148,6 +1208,8 @@ function SawaFlixContent({ videoId: videoIdProp }) {
                     setIsMuted={setIsMuted}
                     isFullscreen={isFullscreen}
                     onToggleFullscreen={handleToggleFullscreen}
+                    isAuthenticated={isAuthenticated}
+                    onRequestAuth={handleRequestAuth}
                   />
                 </div>
               ))}

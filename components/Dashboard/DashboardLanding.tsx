@@ -7,6 +7,8 @@ import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useAuthModal } from '@/contexts/AuthModalContext';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -55,6 +57,8 @@ interface DashboardLandingProps {
 
 export default function DashboardLanding({ onPlayReel, reels, activeCategory, onCategoryChange }: DashboardLandingProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -76,6 +80,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Handle playing the banner movie
   const handleBannerPlay = () => {
+    if (!isAuthenticated) {
+      openAuthModal('to watch this movie');
+      return;
+    }
     if (bannerMovie) {
       router.push(`/dashboard/movie`);
     }
@@ -156,6 +164,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     return shuffled.slice(0, 3);
   }, [stories]);
 
+<<<<<<< HEAD
   // Deterministic "progress" values for continue watching. This used to call
   // Math.random() during render, which produced a different value on the
   // server (SSR) than on the client (hydration), causing a hydration
@@ -165,6 +174,17 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   // without ever disagreeing between server and client.
   const progressValues = useMemo(() => {
     return MOVIES_DATA.slice(0, 8).map((_, i) => ((i * 37 + 13) % 60) + 20);
+=======
+  // Handle scroll for reels
+  const handleScrollToReels = () => {
+    reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Stable random progress values for continue watching (avoid hydration mismatch)
+  const [progressValues, setProgressValues] = useState<number[]>([]);
+  useEffect(() => {
+    setProgressValues(MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20));
+>>>>>>> feat/login-popup
   }, []);
 
 
@@ -459,7 +479,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
                     {/* Red progress bar */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                      <div className="h-full bg-[#CE1126]" style={{ width: `${progressValues[idx]}%` }} />
+                      <div className="h-full bg-[#CE1126]" style={{ width: progressValues[idx] ? `${progressValues[idx]}%` : '0%' }} />
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">

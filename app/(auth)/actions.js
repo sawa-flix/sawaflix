@@ -274,7 +274,7 @@ export async function updatePasswordDirectly(formData) {
     return {
       success: true,
       message: 'Password updated successfully! You can now log in with your new password.',
-      redirectTo: '/login?message=password_updated_success'
+      redirectTo: '/dashboard?message=password_updated_success'
     };
 
   } catch (error) {
@@ -341,13 +341,12 @@ export async function handleSignOut() {
 
   if (error) {
     console.error('🔴 Sign out error:', error.message);
-    return redirect('/login?error=signout_failed');
+    return redirect('/dashboard?error=signout_failed');
   }
 
   // Revalidate all paths
   revalidatePath('/');
   revalidatePath('/dashboard');
-  revalidatePath('/login');
 
   console.log('✅ User signed out successfully');
   return redirect('/');

@@ -20,7 +20,7 @@ export async function GET(request) {
     }
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.redirect(new URL('/login?error=auth_config_missing', request.url))
+      return NextResponse.redirect(new URL('/dashboard?error=auth_config_missing', request.url))
     }
 
     const cookieStore = await cookies()
@@ -71,7 +71,7 @@ export async function GET(request) {
     // ── STEP 1: Require a code ─────────────────────────────────────────────
     if (!code) {
       if (isDev) console.log('🔴 No code in callback URL')
-      return redirectWithCookies('/login?error=invalid_reset_link')
+      return redirectWithCookies('/dashboard?error=invalid_reset_link')
     }
 
     // ── STEP 2: Password reset → /update-password ──────────────────────────
@@ -93,7 +93,7 @@ export async function GET(request) {
 
       if (exchangeError || !session?.user) {
         console.error('🔴 Exchange failed:', exchangeError?.message || 'No session')
-        return redirectWithCookies('/login?error=auth_failed')
+        return redirectWithCookies('/dashboard?error=auth_failed')
       }
 
       const user = session.user
@@ -165,11 +165,11 @@ export async function GET(request) {
 
     } catch (exchangeErr) {
       console.error('🔴 Exchange exception:', exchangeErr)
-      return redirectWithCookies('/login?error=auth_failed')
+      return redirectWithCookies('/dashboard?error=auth_failed')
     }
 
   } catch (topErr) {
     console.error('🔴 CALLBACK TOP-LEVEL ERROR:', topErr)
-    return NextResponse.redirect(new URL('/login?error=callback_error', request.url))
+    return NextResponse.redirect(new URL('/dashboard?error=callback_error', request.url))
   }
 }
