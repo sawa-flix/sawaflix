@@ -164,28 +164,17 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     return shuffled.slice(0, 3);
   }, [stories]);
 
-<<<<<<< HEAD
-  // Deterministic "progress" values for continue watching. This used to call
-  // Math.random() during render, which produced a different value on the
-  // server (SSR) than on the client (hydration), causing a hydration
-  // mismatch on every one of these progress bars — React warns "A tree
-  // hydrated but some attributes ... didn't match" for exactly this reason.
-  // A pure function of the index gives the same varied-looking spread
-  // without ever disagreeing between server and client.
+  // Deterministic progress values for continue watching (pure function avoids SSR hydration mismatch)
   const progressValues = useMemo(() => {
     return MOVIES_DATA.slice(0, 8).map((_, i) => ((i * 37 + 13) % 60) + 20);
-=======
+  }, []);
+
+  const reelsRef = useRef<HTMLDivElement>(null);
+
   // Handle scroll for reels
   const handleScrollToReels = () => {
     reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-
-  // Stable random progress values for continue watching (avoid hydration mismatch)
-  const [progressValues, setProgressValues] = useState<number[]>([]);
-  useEffect(() => {
-    setProgressValues(MOVIES_DATA.slice(0, 8).map(() => Math.floor(Math.random() * 60) + 20));
->>>>>>> feat/login-popup
-  }, []);
 
 
 
