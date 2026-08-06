@@ -6,6 +6,7 @@ import type { Video } from '@/types/youtube';
 import { likeYouTubeVideoAction } from '@/app/actions/youtube';
 import { formatCount } from '@/utils/formatCount';
 import { useFavorites } from '@/contexts/FavoriteContext';
+import { likeService } from '@/services/likeService';
 
 interface ReelActionsProps {
   video: Video;
@@ -46,6 +47,15 @@ export function ReelActions({ video, commentsCount, onShowComments }: ReelAction
         console.error('[ReelActions] Like failed:', err);
         setLiked(!nextLiked);
         setLikeCount((prev) => prev + (nextLiked ? -1 : 1));
+        return;
+      }
+      // Additive: persist locally too so profile "likes given" stats can
+      // count it. The external backend call above is unchanged either way.
+      try {
+        if (nextLiked) await likeService.like('youtube_video', video.id);
+        else await likeService.unlike('youtube_video', video.id);
+      } catch (err) {
+        console.warn('[ReelActions] local like persistence failed:', err);
       }
     });
   };

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tee /c/Users/Kingsley/AppData/Local/Temp/claude/c--Users-Kingsley-sawaflix/922538c3-4883-4b33-86a4-ed1d840cbd64/scratchpad/tsc_out.txt)",
+      "Bash(grep -iE \"reel|Dashboard/Header|DashboardWrapper\" /c/Users/Kingsley/AppData/Local/Temp/claude/c--Users-Kingsley-sawaflix/922538c3-4883-4b33-86a4-ed1d840cbd64/scratchpad/tsc_out.txt || echo \"NO MATCHES - clean\")",
+      "Read(//c/Users/Kingsley/AppData/Local/Temp/claude/c--Users-Kingsley-sawaflix/922538c3-4883-4b33-86a4-ed1d840cbd64/scratchpad/**)",
+      "Bash(npx eslint *)",
+      "Bash(npm run *)",
+      "Bash(tee /c/Users/Kingsley/AppData/Local/Temp/claude/c--Users-Kingsley-sawaflix/922538c3-4883-4b33-86a4-ed1d840cbd64/scratchpad/tsc_out2.txt)",
+      "Bash(git diff *)",
+      "Bash(git stash *)",
+      "Bash(NEXT_PRIVATE_WORKER_THREADS=0 npx next build --experimental-debug-memory-usage)",
+      "Bash(node -e \"const icons = require\\('lucide-react'\\); console.log\\('SearchX' in icons\\);\")"
+    ]
+  }
+}

@@ -116,7 +116,11 @@ async function handleResponse(response: Response) {
             const errorData = await response.json();
             errorMessage = errorData.error || errorMessage;
         } catch {}
-        throw new Error(errorMessage);
+        // Attach the status so callers can tell a rate limit (429) apart from
+        // any other failure without parsing the message string.
+        const err = new Error(errorMessage) as Error & { status?: number };
+        err.status = response.status;
+        throw err;
     }
     return response.json();
 }
