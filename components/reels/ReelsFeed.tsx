@@ -1,12 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw, Film } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { useReels } from '@/hooks/reels/useReels';
 import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
+import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
 import { useActiveReel } from '@/hooks/reels/useActiveReel';
 import { useIntersection } from '@/hooks/reels/useIntersection';
+import { useReelsSearchStore } from '@/store/reelsSearchStore';
+import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsSearchStore } from '@/store/reelsSearchStore';
 import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
 import { ReelCard } from './ReelCard';
@@ -40,33 +44,27 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   const search = useReelsSearch();
 
   const isSearching = search.isActive;
+  const videos = isSearching ? search.videos : feed.videos;
+  const loading = isSearching ? search.loading : feed.loading;
+  const error = isSearching ? search.error : feed.error;
+  const hasMore = isSearching ? search.hasMore : feed.hasMore;
+  const loadMore = isSearching ? search.loadMore : feed.loadMore;
+  const retry = isSearching ? search.retry : feed.retry;
 
   // Which search video (if any) the user has opened into the swipeable
   // viewer. null while browsing the results dropdown or when search isn't
   // active at all — see `searchMode` below for the three states this drives.
   const [selectedSearchVideoId, setSelectedSearchVideoId] = useState<string | null>(null);
 
-  // idle: normal autoplay feed.
-  // searching: results dropdown open (in the top navbar) — the feed stays
-  // exactly as it was underneath (same video, same scroll position), just
-  // paused, instead of vanishing behind a blank screen while typing.
-  // viewingSearchResult: swipeable/autoplay list sourced from search.videos
-  // and scrolled to the selected result.
+  // idle: normal autoplay feed, unchanged.
+  // searching: results dropdown open (in ReelHeader) — no player mounted, nothing autoplays.
+  // viewingSearchResult: same swipeable/autoplay list the normal feed uses,
+  // sourced from search.videos and scrolled to the selected result.
   const searchMode: 'idle' | 'searching' | 'viewingSearchResult' = !isSearching
     ? 'idle'
     : selectedSearchVideoId
     ? 'viewingSearchResult'
     : 'searching';
-
-  // Only actually switch what's on screen once a result has been opened —
-  // merely typing/browsing the dropdown keeps showing the normal feed.
-  const isViewingSearchResult = searchMode === 'viewingSearchResult';
-  const videos = isViewingSearchResult ? search.videos : feed.videos;
-  const loading = isViewingSearchResult ? search.loading : feed.loading;
-  const error = isViewingSearchResult ? search.error : feed.error;
-  const hasMore = isViewingSearchResult ? search.hasMore : feed.hasMore;
-  const loadMore = isViewingSearchResult ? search.loadMore : feed.loadMore;
-  const retry = isViewingSearchResult ? search.retry : feed.retry;
 
   const { containerRef, activeIndex, setItemRef } = useActiveReel({ threshold: 0.8 });
   const [sentinelRef, sentinelVisible] = useIntersection<HTMLDivElement>({ threshold: 0.1 });
@@ -75,11 +73,11 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   const [manuallyPaused, setManuallyPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
 
-  // Remembers where the feed was scrolled to right before opening a search
-  // result into the viewer, so leaving that viewer can put the user back
-  // where they left off instead of snapping to the top.
+  // Remembers where the culture feed was scrolled to when a search starts,
+  // so clearing the search can put the user back where they left off
+  // instead of snapping to the top.
   const savedFeedScrollTopRef = useRef(0);
-  const wasViewingSearchResultRef = useRef(false);
+  const wasSearchingRef = useRef(false);
 
   // True from the moment a search result is picked until the swipeable list
   // has actually scrolled to it and IntersectionObserver has confirmed that
@@ -90,14 +88,17 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
 
   const handleSearchChange = useCallback(
     (value: string) => {
-      // Editing the query again always drops back to showing the feed (with
-      // the dropdown open) for whatever the new results turn out to be —
-      // never straight back into an autoplay viewer for a stale selection.
+      if (!search.query.trim() && value.trim() && containerRef.current) {
+        savedFeedScrollTopRef.current = containerRef.current.scrollTop;
+      }
+      // Editing the query again always drops back to the discovery grid for
+      // whatever the new results turn out to be — never straight back into
+      // an autoplay viewer for a stale selection.
       setSelectedSearchVideoId(null);
       setIsOpeningResult(false);
       search.setQuery(value);
     },
-    [search]
+    [search, containerRef]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -106,30 +107,20 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
     search.clear();
   }, [search]);
 
-  const handleSelectSearchResult = useCallback(
-    (video: Video) => {
-      // The feed's scroll position is never disturbed just by typing/
-      // browsing the dropdown (it stays the visible content the whole
-      // time) — the only moment it's actually about to change is right
-      // here, switching to search.videos for the viewer.
-      if (containerRef.current) {
-        savedFeedScrollTopRef.current = containerRef.current.scrollTop;
-      }
-      setSelectedSearchVideoId(video.id);
-      setIsOpeningResult(true);
-    },
-    [containerRef]
-  );
+  const handleSelectSearchResult = useCallback((video: Video) => {
+    setSelectedSearchVideoId(video.id);
+    setIsOpeningResult(true);
+  }, []);
 
-  // Restore the feed's scroll position once the search-result viewer closes
-  // (query edited again, or search cleared entirely) — mirrors the snapshot
-  // taken in handleSelectSearchResult above.
+  // Restore the feed's scroll position once search is cleared. (Entering
+  // search needs no equivalent reset: the loading state below unmounts the
+  // scroll container entirely, so it remounts at the top for free.)
   useEffect(() => {
-    if (wasViewingSearchResultRef.current && !isViewingSearchResult && containerRef.current) {
+    if (wasSearchingRef.current && !isSearching && containerRef.current) {
       containerRef.current.scrollTop = savedFeedScrollTopRef.current;
     }
-    wasViewingSearchResultRef.current = isViewingSearchResult;
-  }, [isViewingSearchResult, containerRef]);
+    wasSearchingRef.current = isSearching;
+  }, [isSearching, containerRef]);
 
   // Entering viewingSearchResult: jump the swipeable list straight to the
   // row the user picked from the dropdown, once (not on every render — the
@@ -173,13 +164,64 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   // dependency array) so entering/leaving search mode later — which also
   // changes `videos` — can never re-trigger this a second time.
   const hasAppliedDeepLinkRef = useRef(false);
+  // ReelCard there on the next render. Guarded by a ref (not just the
+  // dependency array) so entering/leaving search mode later — which also
+  // changes `videos` — can never re-trigger this a second time.
+  const hasAppliedDeepLinkRef = useRef(false);
   useEffect(() => {
+    if (hasAppliedDeepLinkRef.current || isSearching || !initialVideoId || videos.length === 0) return;
+    hasAppliedDeepLinkRef.current = true;
     if (hasAppliedDeepLinkRef.current || isSearching || !initialVideoId || videos.length === 0) return;
     hasAppliedDeepLinkRef.current = true;
     const index = videos.findIndex((v) => v.id === initialVideoId);
     const container = containerRef.current;
     if (index <= 0 || !container) return;
     container.scrollTo({ top: index * container.clientHeight, behavior: 'auto' });
+  }, [videos, isSearching, initialVideoId, containerRef]);
+
+  // Bridges this component's real search state/handlers up to the shared
+  // dashboard Header (the top navbar), which is a sibling in the tree, not
+  // a parent/child of this page — it can't read this via props. Header's
+  // ReelsSearchBar only ever reads from and calls into this store; no
+  // search logic lives there. No dependency array: cheap to run every
+  // render, and it keeps the store honest without an exhaustive-deps list.
+  useEffect(() => {
+    useReelsSearchStore.setState({
+      active: true,
+      query: search.query,
+      results: search.videos,
+      loading: search.loading,
+      error: search.error,
+      hasMore: search.hasMore,
+      showResults: searchMode === 'searching',
+      setQuery: handleSearchChange,
+      clear: handleClearSearch,
+      loadMore: search.loadMore,
+      retry: search.retry,
+      selectResult: handleSelectSearchResult,
+    });
+  });
+
+  // Reset the store on unmount (navigating away from Reels) so the navbar
+  // never renders stale results or calls handlers from an unmounted page.
+  useEffect(() => {
+    return () => {
+      useReelsSearchStore.setState({
+        active: false,
+        query: '',
+        results: [],
+        loading: false,
+        error: null,
+        hasMore: false,
+        showResults: false,
+        setQuery: () => {},
+        clear: () => {},
+        loadMore: async () => {},
+        retry: async () => {},
+        selectResult: () => {},
+      });
+    };
+  }, []);
   }, [videos, isSearching, initialVideoId, containerRef]);
 
   // Bridges this component's real search state/handlers up to the shared
@@ -257,6 +299,11 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
+      // Typing into the search input shouldn't also toggle play/pause (' ')
+      // or mute ('m') — both are letters/space a user needs to type freely.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+
       if (e.key === ' ') {
         e.preventDefault();
         setManuallyPaused((prev) => !prev);
@@ -292,14 +339,17 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   // Search itself now lives in the top navbar (components/Dashboard/Header.tsx's
   // ReelsSearchBar, via the store above) — ReelHeader here is just the mute
   // toggle. Always mounted, including through loading/error, so it stays
-  // sticky. The feed below keeps rendering the whole time a search is open
-  // (forced-paused via searchMode === 'searching' below) — it only swaps to
-  // showing something else if a specific search result gets opened.
+  // sticky. Only the content below it swaps between backdrop / skeleton / error / video list.
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#0B0E14]">
       <ReelHeader isMuted={isMuted} onToggleMute={toggleMute} />
 
-      {isOpeningResult ? (
+      {searchMode === 'searching' ? (
+        // Nothing plays while browsing the results dropdown (rendered inside
+        // ReelHeader above) — a plain backdrop, no player mounted, so
+        // there's structurally nothing that could autoplay here.
+        <div className="h-full w-full bg-[#0B0E14]" />
+      ) : isOpeningResult ? (
         // Between picking a search result and the swipeable list actually
         // confirming it active (scroll + IntersectionObserver) — once this
         // clears, the now-active ReelCard's own spinner takes over for the
@@ -308,10 +358,10 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
       ) : loading && videos.length === 0 ? (
         <ReelLoading />
       ) : error && videos.length === 0 ? (
-        // viewingSearchResult can never have 0 videos (it only ever opens
-        // from an already-populated dropdown row), so this is always the
-        // normal feed's own error state — same one shown whether or not a
-        // search happens to be open above it.
+        // Unreachable while searching — the results dropdown owns that
+        // error state, and viewingSearchResult can never have 0 videos (it
+        // only ever opens from an already-populated dropdown row). This is
+        // exclusively the normal-feed error state now, unchanged behavior.
         <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#0B0E14] px-6 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
             <Film size={24} className="text-white/40" />
@@ -349,7 +399,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
                   <ReelCard
                     video={video}
                     isActive={isActive}
-                    isPaused={!isActive || manuallyPaused || searchMode === 'searching'}
+                    isPaused={!isActive || manuallyPaused}
                     isMuted={isMuted}
                     isDesktop={isDesktop}
                     hasNext={index < videos.length - 1}
@@ -372,6 +422,11 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
             </div>
           )}
 
+          {/* Infinite-scroll trigger, placed a couple cards before the end so
+              the next page has time to arrive before the user gets there. */}
+          {hasMore && videos.length > 0 && <div ref={sentinelRef} className="h-1 w-full" />}
+        </div>
+      )}
           {/* Infinite-scroll trigger, placed a couple cards before the end so
               the next page has time to arrive before the user gets there. */}
           {hasMore && videos.length > 0 && <div ref={sentinelRef} className="h-1 w-full" />}

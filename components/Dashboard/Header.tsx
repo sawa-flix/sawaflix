@@ -18,11 +18,6 @@ import { getStories } from '../../lib/sanity/queries';
 import { urlFor } from '../../lib/sanity/client';
 import { MOVIES_DATA } from '../Movie/constants';
 import { ReelsSearchBar } from '../reels/ReelsSearchBar';
-import { useAuthSession } from '../../hooks/useAuthSession';
-import { useAuthModal } from '../../contexts/AuthModalContext';
-import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
-import { useHomeSearchStore } from '@/store/homeSearchStore';
-import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -32,6 +27,21 @@ type UserProfileData = {
   profile_image_url: string | null;
 };
 
+const Header = ({
+  sidebarOpen,
+  toggleSidebar,
+  hideSearch,
+  searchDisabled,
+  isReelsRoute,
+}: {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  hideSearch?: boolean;
+  /** Suppresses the global search UI only — unlike hideSearch, doesn't switch notifications to admin context. Used on /dashboard/reels, which renders its own search (ReelsSearchBar) in this same slot instead. */
+  searchDisabled?: boolean;
+  /** Renders Reels' own search bar (via the shared store) in the slot the global search normally occupies. */
+  isReelsRoute?: boolean;
+}) => {
 const Header = ({
   sidebarOpen,
   toggleSidebar,
@@ -139,6 +149,7 @@ const Header = ({
   // Keyboard shortcuts: Escape to close, ⌘K / Ctrl+K to open
   useEffect(() => {
     if (searchDisabled) return;
+    if (searchDisabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSearchFocused) {
         setIsSearchFocused(false);
@@ -151,6 +162,7 @@ const Header = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchFocused, searchDisabled]);
   }, [isSearchFocused, searchDisabled]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -193,6 +205,7 @@ const Header = ({
         </div>
 
         {!hideSearch && !searchDisabled && (
+        {!hideSearch && !searchDisabled && (
           <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
               <button
                 type="button"
@@ -212,7 +225,10 @@ const Header = ({
             </div>
         )}
 
+        {isReelsRoute && <ReelsSearchBar />}
+
         <div className="flex items-center space-x-2">
+          {!hideSearch && !searchDisabled && (
           {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
