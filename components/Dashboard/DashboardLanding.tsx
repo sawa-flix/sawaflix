@@ -7,6 +7,8 @@ import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useAuthModal } from '@/contexts/AuthModalContext';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -55,6 +57,8 @@ interface DashboardLandingProps {
 
 export default function DashboardLanding({ onPlayReel, reels, activeCategory, onCategoryChange }: DashboardLandingProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -76,6 +80,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Handle playing the banner movie
   const handleBannerPlay = () => {
+    if (!isAuthenticated) {
+      openAuthModal('to watch this movie');
+      return;
+    }
     if (bannerMovie) {
       router.push(`/dashboard/movie`);
     }
@@ -156,16 +164,17 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     return shuffled.slice(0, 3);
   }, [stories]);
 
-  // Deterministic "progress" values for continue watching. This used to call
-  // Math.random() during render, which produced a different value on the
-  // server (SSR) than on the client (hydration), causing a hydration
-  // mismatch on every one of these progress bars — React warns "A tree
-  // hydrated but some attributes ... didn't match" for exactly this reason.
-  // A pure function of the index gives the same varied-looking spread
-  // without ever disagreeing between server and client.
+  // Deterministic progress values for continue watching (pure function avoids SSR hydration mismatch)
   const progressValues = useMemo(() => {
     return MOVIES_DATA.slice(0, 8).map((_, i) => ((i * 37 + 13) % 60) + 20);
   }, []);
+
+  const reelsRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll for reels
+  const handleScrollToReels = () => {
+    reelsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
 
 
@@ -459,7 +468,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
                     {/* Red progress bar */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                      <div className="h-full bg-[#CE1126]" style={{ width: `${progressValues[idx]}%` }} />
+                      <div className="h-full bg-[#CE1126]" style={{ width: progressValues[idx] ? `${progressValues[idx]}%` : '0%' }} />
                     </div>
 
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">

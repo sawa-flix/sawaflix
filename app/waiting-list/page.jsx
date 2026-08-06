@@ -19,7 +19,7 @@ export default function WaitingListPage() {
                 localStorage.clear();
                 sessionStorage.clear();
             }
-            router.push('/login?message=signed_out');
+            router.push('/dashboard?message=signed_out');
         } catch (error) {
             console.error('Logout error:', error);
             setIsLoggingOut(false);

@@ -21,7 +21,7 @@ export default function SettingsPage() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.access_token) {
-          router.push('/login');
+          router.push('/dashboard');
           return;
         }
 

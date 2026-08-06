@@ -25,6 +25,8 @@ import {
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
 import { usePathname } from 'next/navigation';
+import { useAuthSession } from '../../hooks/useAuthSession';
+import { useAuthModal } from '../../contexts/AuthModalContext';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -45,6 +47,8 @@ export default function LeftSidebar({
   userProfile?: any;
 }) {
   const pathname = usePathname();
+  const { isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(propProfile || null);
   const [verificationStatus, setVerificationStatus] = useState<string>(propStatus || 'none');
   const [userRole, setUserRole] = useState<string | null>(propUserRole || null);
@@ -127,18 +131,19 @@ export default function LeftSidebar({
   ];
 
   const youItems: any[] = [
-    { 
-      name: 'Your profile', 
-      icon: userProfile?.profile_image_url ? null : User, 
+    {
+      name: 'Your profile',
+      icon: userProfile?.profile_image_url ? null : User,
       imageUrl: userProfile?.profile_image_url,
-      id: 'profile', 
-      route: '/dashboard/profile', 
-      badge: null 
+      id: 'profile',
+      route: '/dashboard/profile',
+      badge: null,
+      requiresAuth: true,
     },
-    { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null },
-    { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null },
-    { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null },
-    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null },
+    { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null, requiresAuth: true },
+    { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null, requiresAuth: true },
+    { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null, requiresAuth: true },
+    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null, requiresAuth: true },
   ];
 
   const creatorItems = [
@@ -165,11 +170,20 @@ export default function LeftSidebar({
       isActive = pathname?.toLowerCase().startsWith(item.route.toLowerCase());
     }
 
+    const needsAuth = item.requiresAuth && !isAuthenticated;
+
     return (
       <Link
         key={item.id}
         href={item.route}
-        onClick={handleItemClick}
+        onClick={(e) => {
+          if (needsAuth) {
+            e.preventDefault();
+            openAuthModal(`to access ${item.name}`);
+            return;
+          }
+          handleItemClick();
+        }}
         className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer ${isActive
             ? 'bg-white/10 text-white font-medium'
             : 'text-[#AAAAAA] hover:bg-white/10 hover:text-white'
@@ -218,7 +232,18 @@ export default function LeftSidebar({
 
         {/* You Section */}
         <div className="space-y-1 mb-6">
-          <Link href="/dashboard/profile" onClick={() => onNavigate?.()} className="group flex items-center px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer w-fit mb-2">
+          <Link
+            href="/dashboard/profile"
+            onClick={(e) => {
+              if (!isAuthenticated) {
+                e.preventDefault();
+                openAuthModal('to access your account');
+                return;
+              }
+              onNavigate?.();
+            }}
+            className="group flex items-center px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer w-fit mb-2"
+          >
             <span className="text-[13px] font-black uppercase tracking-[0.1em] text-zinc-500 group-hover:text-white transition-colors">You</span>
             <ChevronRight size={14} className="ml-1 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
           </Link>

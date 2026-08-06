@@ -178,7 +178,7 @@ export default function PublicProfilePage({ params }) {
     );
   }
 
-  const isOwner = !!(currentUser && profile?.id === currentUser.id);
+  const isOwner = !!(currentUser && (profile?.id === currentUser.id || profile?.userId === currentUser.id));
 
   return (
     <div className="relative min-h-screen bg-[#06080C] text-white">

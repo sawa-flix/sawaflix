@@ -21,7 +21,7 @@ const LandingPage = () => {
   };
 
   const handleJoinAsUser = () => {
-    router.push('/login');
+    router.push('/dashboard');
   };
 
   const handleSignIn = async (e) => {
@@ -90,7 +90,7 @@ const LandingPage = () => {
             </div>
             <div className="space-y-4">
               <button 
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('/dashboard')}
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
               >
                 {t("common.login")}

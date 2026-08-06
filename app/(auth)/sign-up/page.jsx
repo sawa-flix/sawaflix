@@ -315,7 +315,7 @@ function SignUpContent() {
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base space-y-2">
                   <p>
                     Already have an account?{' '}
-                    <Link href="/login" className="text-red-500 hover:underline font-medium">Sign In</Link>
+                    <Link href="/dashboard" className="text-red-500 hover:underline font-medium">Sign In</Link>
                   </p>
                 </div>
               </>

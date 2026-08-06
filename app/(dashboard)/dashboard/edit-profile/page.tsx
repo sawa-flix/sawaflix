@@ -18,48 +18,56 @@ export default function EditProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        router.push('/login');
-        return;
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) {
+          router.push('/login');
+          return;
+        }
+
+        const { data: row } = await supabase
+          .from('users')
+          .select(
+            `id, username, email, phone, profile_image_url, cover_image_url, bio, created_at,
+             region, ethnic_group, village, language_preference, location_region, favored_genres,
+             social_links, verification_status, role`
+          )
+          .eq('id', authUser.id)
+          .single();
+
+        const socialLinks = row?.social_links ?? null;
+        const verificationStatus = (row?.verification_status ?? 'none').toLowerCase();
+        const role = (row?.role ?? 'viewer').toLowerCase();
+
+        setProfile({
+          id: authUser.id,
+          username: row?.username ?? authUser.user_metadata?.full_name ?? 'User',
+          email: row?.email ?? authUser.email ?? null,
+          bio: row?.bio ?? null,
+          profileImageUrl: row?.profile_image_url ?? null,
+          coverImageUrl: row?.cover_image_url ?? null,
+          createdAt: row?.created_at ?? authUser.created_at ?? new Date().toISOString(),
+          verified: verificationStatus === 'approved',
+          region: row?.location_region ?? row?.region ?? null,
+          village: row?.village ?? null,
+          ethnicGroup: row?.ethnic_group ?? null,
+          languagePreference: row?.language_preference ?? null,
+          favoredGenres: row?.favored_genres ?? [],
+          socialLinks,
+          website: socialLinks?.website ?? null,
+          phone: row?.phone ?? null,
+          role: row?.role ?? null,
+          isApprovedCreator: role === 'admin' || verificationStatus === 'approved',
+          isPendingCreator: role === 'creator' && verificationStatus === 'pending',
+        });
+      } catch (error) {
+        // Without this, a network/query failure would leave isLoading true
+        // forever — the page would be stuck on "Loading profile..." with no
+        // way out.
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsLoading(false);
       }
-
-      const { data: row } = await supabase
-        .from('users')
-        .select(
-          `id, username, email, phone, profile_image_url, cover_image_url, bio, created_at,
-           region, ethnic_group, village, language_preference, location_region, favored_genres,
-           social_links, verification_status, role`
-        )
-        .eq('id', authUser.id)
-        .single();
-
-      const socialLinks = row?.social_links ?? null;
-      const verificationStatus = (row?.verification_status ?? 'none').toLowerCase();
-      const role = (row?.role ?? 'viewer').toLowerCase();
-
-      setProfile({
-        id: authUser.id,
-        username: row?.username ?? authUser.user_metadata?.full_name ?? 'User',
-        email: row?.email ?? authUser.email ?? null,
-        bio: row?.bio ?? null,
-        profileImageUrl: row?.profile_image_url ?? null,
-        coverImageUrl: row?.cover_image_url ?? null,
-        createdAt: row?.created_at ?? authUser.created_at ?? new Date().toISOString(),
-        verified: verificationStatus === 'approved',
-        region: row?.location_region ?? row?.region ?? null,
-        village: row?.village ?? null,
-        ethnicGroup: row?.ethnic_group ?? null,
-        languagePreference: row?.language_preference ?? null,
-        favoredGenres: row?.favored_genres ?? [],
-        socialLinks,
-        website: socialLinks?.website ?? null,
-        phone: row?.phone ?? null,
-        role: row?.role ?? null,
-        isApprovedCreator: role === 'admin' || verificationStatus === 'approved',
-        isPendingCreator: role === 'creator' && verificationStatus === 'pending',
-      });
-      setIsLoading(false);
     };
 
     fetchProfile();
