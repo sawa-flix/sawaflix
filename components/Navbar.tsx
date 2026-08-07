@@ -80,7 +80,7 @@ export default function Navbar() {
               href="/dashboard" 
               className="bg-[#E50914] hover:bg-[#C11119] text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
             >
-              Sign In
+              Get Started
             </Link>
           </div>
 
