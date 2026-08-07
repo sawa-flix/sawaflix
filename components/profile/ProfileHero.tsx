@@ -2,114 +2,154 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Calendar, Edit2, Crown, Camera } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MapPin, Calendar, Link2, Pencil, LayoutDashboard, UploadCloud } from 'lucide-react';
+import type { ProfileData } from '@/types/profile';
+import { formatJoinDate } from '@/utils/profile/profileHelpers';
+import { ProfileAvatar } from './ProfileAvatar';
+import { ProfileBadges } from './ProfileBadges';
+import { ProfileShare } from './ProfileShare';
 
 interface ProfileHeroProps {
-  username: string | null;
-  profileImageUrl: string | null;
-  coverImageUrl: string | null;
-  bio: string | null;
-  createdAt: string;
-  region?: string | null;
-  isPremium?: boolean;
+  profile: ProfileData;
+  isOwner: boolean;
+  /** Whether to show the creator-only action slots (Creator Dashboard/Upload for the owner, Subscribe for a visitor). */
+  isCreator: boolean;
+  isFollowing?: boolean;
+  onToggleFollow?: () => void;
+  /** /dashboard/profile edits via a direct link; /creator/[username] edits via an in-page toggle against the external backend — pass whichever applies. */
+  onEditClick?: () => void;
 }
 
-export default function ProfileHero({
-  username,
-  profileImageUrl,
-  coverImageUrl,
-  bio,
-  createdAt,
-  region,
-  isPremium = true,
-}: ProfileHeroProps) {
-  const joinDate = new Date(createdAt).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
+/**
+ * Shared hero for both profile types — `isOwner`/`isCreator` only change
+ * which action buttons render, not the structure. Owner: Edit Profile +
+ * Share, plus Creator Dashboard/Upload if isCreator. Visitor: Follow +
+ * Share, plus a disabled "Subscribe" (future-ready) if isCreator.
+ */
+export function ProfileHero({ profile, isOwner, isCreator, isFollowing, onToggleFollow, onEditClick }: ProfileHeroProps) {
+  const location = [profile.village, profile.region].filter(Boolean).join(', ');
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#0E121A]">
-      {/* Cover Image */}
-      <div className="relative h-44 md:h-52 w-full">
-        {coverImageUrl ? (
-          <Image src={coverImageUrl} alt="Cover" fill className="object-cover" unoptimized />
+    <section className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0E121A]">
+      <div className="relative h-40 w-full sm:h-56 md:h-64">
+        {profile.coverImageUrl ? (
+          <Image src={profile.coverImageUrl} alt="" fill unoptimized className="object-cover" priority />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800/80 to-[#0E121A]">
-            <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]" />
-          </div>
+          <div className="h-full w-full bg-gradient-to-br from-[#1E293B] via-[#0E121A] to-black" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A] via-black/20 to-transparent" />
-
-        {/* Edit Profile Button */}
-        <div className="absolute top-4 right-4">
-          <Link
-            href="/dashboard/edit-profile"
-            className="flex items-center gap-2 px-4 py-2 bg-black/50 backdrop-blur-md border border-white/20 rounded-lg text-white text-xs font-semibold hover:bg-white/10 transition-all"
-          >
-            <Edit2 size={13} />
-            Edit Profile
-          </Link>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A] via-transparent to-black/20" />
       </div>
 
-      {/* Profile Info Block */}
-      <div className="relative px-5 pb-5">
-        {/* Avatar — centered on mobile, left on desktop */}
-        <div className="flex justify-center md:justify-start">
-          <div className="relative -mt-12 md:-mt-12">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-[#0E121A] overflow-hidden bg-zinc-800 shadow-xl">
-              <Image
-                src={profileImageUrl || '/default-profile-pic.jpg'}
-                alt="Profile"
-                fill
-                className="object-cover rounded-full"
-                unoptimized
-              />
+      <div className="relative px-5 pb-5 sm:px-8 sm:pb-8">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="-mt-16 sm:-mt-20">
+          <ProfileAvatar src={profile.profileImageUrl} name={profile.username} size="lg" />
+        </motion.div>
+
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">{profile.username}</h1>
+              <ProfileBadges verified={profile.verified} isCreator={isCreator} />
             </div>
-            <Link
-              href="/dashboard/edit-profile"
-              className="absolute bottom-0 right-0 w-7 h-7 bg-zinc-700 hover:bg-zinc-600 rounded-full flex items-center justify-center border-2 border-[#0E121A] transition-all shadow-lg"
-            >
-              <Camera size={12} className="text-white" />
-            </Link>
+            <p className="text-sm text-gray-400">@{profile.username}</p>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {isOwner ? (
+              <>
+                {onEditClick ? (
+                  <button
+                    type="button"
+                    onClick={onEditClick}
+                    className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-white/90"
+                  >
+                    <Pencil size={14} />
+                    Edit Profile
+                  </button>
+                ) : (
+                  <Link
+                    href="/dashboard/edit-profile"
+                    className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-white/90"
+                  >
+                    <Pencil size={14} />
+                    Edit Profile
+                  </Link>
+                )}
+                {isCreator && (
+                  <>
+                    <Link
+                      href="/creator-dashboard"
+                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+                    >
+                      <LayoutDashboard size={14} />
+                      Creator Dashboard
+                    </Link>
+                    <Link
+                      href="/creator-dashboard/post/upload"
+                      className="flex items-center gap-1.5 rounded-full bg-[#E50914] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                    >
+                      <UploadCloud size={14} />
+                      Upload
+                    </Link>
+                  </>
+                )}
+                <ProfileShare title={profile.username} />
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onToggleFollow}
+                  aria-pressed={isFollowing}
+                  className={`rounded-full px-6 py-2.5 text-sm font-bold transition-colors ${
+                    isFollowing ? 'bg-white/10 text-white/70 hover:bg-white/15' : 'bg-[#E50914] text-white hover:bg-red-700'
+                  }`}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </button>
+                {isCreator && (
+                  <button
+                    type="button"
+                    disabled
+                    title="Subscriptions are coming soon"
+                    className="cursor-not-allowed rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-bold text-white/30"
+                  >
+                    Subscribe
+                  </button>
+                )}
+                <ProfileShare title={profile.username} />
+              </>
+            )}
           </div>
         </div>
 
-        {/* Name + Badges */}
-        <div className="mt-3 flex flex-col items-center md:items-start gap-2">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-              {username || 'Your Name'}
-            </h1>
-            {isPremium && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 border border-amber-500/40 rounded-full text-amber-400 text-[10px] font-bold uppercase tracking-widest">
-                <Crown size={10} />
-                Premium Member
-              </span>
-            )}
-          </div>
+        {profile.bio && <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-300">{profile.bio}</p>}
 
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs text-zinc-400">
-            {region && (
-              <span className="flex items-center gap-1.5">
-                <MapPin size={12} className="text-amber-500" />
-                {region}
-              </span>
-            )}
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-gray-500">
+          {location && (
             <span className="flex items-center gap-1.5">
-              <Calendar size={12} className="text-amber-500" />
-              Member since {joinDate}
+              <MapPin size={13} />
+              {location}
             </span>
-          </div>
-
-          {bio && (
-            <p className="text-sm text-zinc-400 leading-relaxed max-w-2xl text-center md:text-left line-clamp-2 mt-1">
-              {bio}
-            </p>
+          )}
+          <span className="flex items-center gap-1.5">
+            <Calendar size={13} />
+            Joined {formatJoinDate(profile.createdAt)}
+          </span>
+          {profile.website && (
+            <a
+              href={profile.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[#E50914] hover:text-red-400"
+            >
+              <Link2 size={13} />
+              {profile.website.replace(/^https?:\/\//, '')}
+            </a>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

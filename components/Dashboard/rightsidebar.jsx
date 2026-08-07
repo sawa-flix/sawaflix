@@ -3,8 +3,9 @@ import { useVideos } from '@/hooks/useVideos';
 import { Loader2, Music, Laugh, Newspaper, Zap } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 
 const TOP_ARTISTS = [
   { id: 'jovi', name: 'Jovi', image: 'https://i.ibb.co/TD26rNtX/jovi-2.png' },
@@ -24,6 +25,7 @@ const CATEGORIES = [
 
 const RightSidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("music");
 
   React.useEffect(() => {
@@ -60,7 +62,11 @@ const RightSidebar = () => {
     if (activeCategory === 'music') {
       playTrack(videoToPlay, allVideos);
     } else {
-      window.dispatchEvent(new CustomEvent('openSawaReel', { detail: videoToPlay }));
+      // Hand the already-fetched video object to the Reels page directly —
+      // it's from a different query than the culture feed Reels loads
+      // server-side, so it usually wouldn't be found there by id alone.
+      stashReelForHandoff(videoToPlay);
+      router.push(`/dashboard/reels?id=${encodeURIComponent(videoToPlay.id)}`);
     }
   };
 

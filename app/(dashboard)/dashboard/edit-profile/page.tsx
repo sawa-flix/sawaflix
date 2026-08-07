@@ -1,212 +1,158 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import EditProfileForm from '@/components/profile/EditProfileForm';
-import { UserProfile } from '@/components/profile/types';
-import { DEFAULT_USER_PROFILE } from '@/components/profile/constants';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ProfileEditForm, type ProfileEditableFields } from '@/components/profile/ProfileEditForm';
+import type { ProfileData } from '@/types/profile';
 
-/**
- * Edit Profile Page
- * Allows users to edit their profile information
- * Integrates with Supabase for authentication and data updates
- */
-
-export default function EditProfilePage(): React.ReactElement {
+export default function EditProfilePage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  // Fetch user data on mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchProfile = async () => {
       try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
-
+        const { data: { user: authUser } } = await supabase.auth.getUser();
         if (!authUser) {
-          router.push('/dashboard');
+          router.push('/login');
           return;
         }
 
-        // Fetch profile from database
-        const { data: profileData, error } = await supabase
+        const { data: row } = await supabase
           .from('users')
           .select(
-            'id, username, email, profile_image_url, cover_image_url, bio, created_at'
+            `id, username, email, phone, profile_image_url, cover_image_url, bio, created_at,
+             region, ethnic_group, village, language_preference, location_region, favored_genres,
+             social_links, verification_status, role`
           )
           .eq('id', authUser.id)
           .single();
 
-        if (error) {
-          console.error('Error fetching profile:', error);
-          setUser({
-            ...DEFAULT_USER_PROFILE,
-            id: authUser.id,
-            email: authUser.email || '',
-            fullName: authUser.user_metadata?.full_name || 'User',
-          });
-        } else if (profileData) {
-          setUser({
-            ...DEFAULT_USER_PROFILE,
-            id: authUser.id,
-            email: authUser.email || '',
-            fullName: profileData.username || 'User',
-            avatar: profileData.profile_image_url || DEFAULT_USER_PROFILE.avatar,
-            coverImage:
-              profileData.cover_image_url || DEFAULT_USER_PROFILE.coverImage,
-            bio: profileData.bio || DEFAULT_USER_PROFILE.bio,
-            joinDate: new Date(profileData.created_at).toLocaleDateString(
-              'en-US',
-              {
-                year: 'numeric',
-                month: 'long',
-              }
-            ),
-          });
-        }
+        const socialLinks = row?.social_links ?? null;
+        const verificationStatus = (row?.verification_status ?? 'none').toLowerCase();
+        const role = (row?.role ?? 'viewer').toLowerCase();
+
+        setProfile({
+          id: authUser.id,
+          username: row?.username ?? authUser.user_metadata?.full_name ?? 'User',
+          email: row?.email ?? authUser.email ?? null,
+          bio: row?.bio ?? null,
+          profileImageUrl: row?.profile_image_url ?? null,
+          coverImageUrl: row?.cover_image_url ?? null,
+          createdAt: row?.created_at ?? authUser.created_at ?? new Date().toISOString(),
+          verified: verificationStatus === 'approved',
+          region: row?.location_region ?? row?.region ?? null,
+          village: row?.village ?? null,
+          ethnicGroup: row?.ethnic_group ?? null,
+          languagePreference: row?.language_preference ?? null,
+          favoredGenres: row?.favored_genres ?? [],
+          socialLinks,
+          website: socialLinks?.website ?? null,
+          phone: row?.phone ?? null,
+          role: row?.role ?? null,
+          isApprovedCreator: role === 'admin' || verificationStatus === 'approved',
+          isPendingCreator: role === 'creator' && verificationStatus === 'pending',
+        });
       } catch (error) {
-        console.error('Error:', error);
-        setErrorMessage('Failed to load profile');
+        // Without this, a network/query failure would leave isLoading true
+        // forever — the page would be stuck on "Loading profile..." with no
+        // way out.
+        console.error('Error fetching profile:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [supabase, router]);
+    fetchProfile();
+    // supabase client instance is stable across renders; router is provided by Next.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Handle save
-  const handleSave = async (data: Partial<UserProfile>) => {
-    setIsSaving(true);
-    setErrorMessage('');
+  const handleSave = async (fields: ProfileEditableFields) => {
     setSuccessMessage('');
 
-    try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) throw new Error('Not authenticated');
 
-      if (!authUser) {
-        throw new Error('Not authenticated');
-      }
+    // Persists every field the form actually collects — the previous
+    // implementation collected phone/region/language here and then silently
+    // dropped them, never writing them to Supabase.
+    const { error } = await supabase
+      .from('users')
+      .update({
+        username: fields.username,
+        bio: fields.bio,
+        phone: fields.phone,
+        region: fields.region,
+        village: fields.village,
+        language_preference: fields.languagePreference,
+        favored_genres: fields.favoredGenres,
+        social_links: fields.socialLinks,
+      })
+      .eq('id', authUser.id);
 
-      // Update profile in database
-      const { error } = await supabase
-        .from('users')
-        .update({
-          username: data.fullName,
-          email: data.email,
-          bio: data.bio,
-          profile_image_url: data.avatar,
-          cover_image_url: data.coverImage,
-        })
-        .eq('id', authUser.id);
+    if (error) throw error;
 
-      if (error) {
-        throw error;
-      }
-
-      setSuccessMessage('Profile updated successfully!');
-      setUser((prev) =>
-        prev ? { ...prev, ...data } : null
-      );
-
-      // Redirect after success
-      setTimeout(() => {
-        router.push('/dashboard/profile');
-      }, 2000);
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Failed to save profile. Please try again.'
-      );
-    } finally {
-      setIsSaving(false);
-    }
+    setSuccessMessage('Profile updated successfully!');
+    setTimeout(() => router.push('/dashboard/profile'), 1200);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#0B0E14]">
         <div className="text-center">
-          <Loader2 size={40} className="text-[#CE1126] animate-spin mx-auto mb-4" />
+          <Loader2 size={40} className="mx-auto mb-4 animate-spin text-[#CE1126]" />
           <p className="text-gray-400">Loading profile...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!profile) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#0B0E14]">
         <p className="text-gray-400">Unable to load profile. Please try again.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#06080C] text-white font-sans pb-32" style={{ zoom: '0.85' }}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-12">
-        {/* Header */}
+    <div className="min-h-screen bg-[#06080C] pb-32 font-sans text-white">
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 md:px-8">
         <div className="mb-12">
           <Link
             href="/dashboard/profile"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6 group"
+            className="group mb-6 inline-flex items-center gap-2 text-gray-400 transition hover:text-white"
           >
-            <ArrowLeft
-              size={16}
-              className="group-hover:-translate-x-1 transition-transform"
-            />
+            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             Back to Profile
           </Link>
-
           <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
+            <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
               Edit <span className="text-[#CE1126]">Profile</span>
             </h1>
-            <p className="text-gray-400">
-              Update your personal information and preferences
-            </p>
+            <p className="text-gray-400">Update your personal information and preferences</p>
           </div>
         </div>
 
-        {/* Success/Error Messages */}
         {successMessage && (
-          <div className="mb-6 p-4 bg-green-600/10 border border-green-600/30 rounded-lg text-green-400 flex items-center gap-3">
-            <div className="w-2 h-2 bg-green-400 rounded-full" />
+          <div className="mb-6 flex items-center gap-3 rounded-lg border border-green-600/30 bg-green-600/10 p-4 text-green-400">
+            <div className="h-2 w-2 rounded-full bg-green-400" />
             {successMessage}
           </div>
         )}
 
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-red-600/10 border border-red-600/30 rounded-lg text-red-400 flex items-center gap-3">
-            <div className="w-2 h-2 bg-red-400 rounded-full" />
-            {errorMessage}
-          </div>
-        )}
-
-        {/* Form Container */}
-        <div className="bg-[#0E121A] border border-white/5 rounded-xl p-6 md:p-8">
-          <EditProfileForm
-            user={user}
-            onSave={handleSave}
-            onCancel={() => router.push('/dashboard/profile')}
-          />
+        <div className="rounded-xl border border-white/5 bg-[#0E121A] p-6 md:p-8">
+          <ProfileEditForm profile={profile} onSave={handleSave} onCancel={() => router.push('/dashboard/profile')} />
         </div>
       </div>
     </div>
   );
 }
-

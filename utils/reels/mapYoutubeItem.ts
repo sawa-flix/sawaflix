@@ -9,6 +9,8 @@ import type { Video } from '@/types/youtube';
  */
 export interface RawYoutubeFeedItem {
   id?: string | { videoId?: string };
+  /** Some backend responses flatten the id straight onto the item instead of nesting it under `id`/`id.videoId` — seen on search results specifically. */
+  videoId?: string;
   snippet?: {
     title?: string;
     description?: string;
@@ -37,9 +39,18 @@ export interface RawYoutubeFeedItem {
   viewCount?: string;
 }
 
-/** Extracts the plain video-id string regardless of which feed-item shape arrived. */
+/**
+ * Extracts the plain video-id string regardless of which feed-item shape
+ * arrived. Checks `id.videoId` (raw YouTube Data API shape), `id` (already
+ * flattened), then `videoId` (a third, flatter shape some endpoints use) —
+ * in that order, so a valid `item.id` is never overridden by a coincidental
+ * `videoId` field. This was previously narrower (id-only) and would filter
+ * an item out entirely, not just mis-map it, if the id only existed under
+ * `videoId` — the one case a missing/wrong id here silently drops a real result.
+ */
 export function extractVideoId(item: RawYoutubeFeedItem): string | undefined {
-  return typeof item.id === 'object' ? item.id?.videoId : item.id;
+  if (typeof item.id === 'object') return item.id?.videoId || item.videoId;
+  return item.id || item.videoId;
 }
 
 /**

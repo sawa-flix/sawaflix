@@ -17,6 +17,7 @@ import { YouTubeApiService } from '../../services/youtubeApi';
 import { getStories } from '../../lib/sanity/queries';
 import { urlFor } from '../../lib/sanity/client';
 import { MOVIES_DATA } from '../Movie/constants';
+import { ReelsSearchBar } from '../reels/ReelsSearchBar';
 import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 
@@ -28,7 +29,21 @@ type UserProfileData = {
   profile_image_url: string | null;
 };
 
-const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boolean; toggleSidebar: () => void; hideSearch?: boolean }) => {
+const Header = ({
+  sidebarOpen,
+  toggleSidebar,
+  hideSearch,
+  searchDisabled,
+  isReelsRoute,
+}: {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  hideSearch?: boolean;
+  /** Suppresses the global search UI only — unlike hideSearch, doesn't switch notifications to admin context. Used on /dashboard/reels, which renders its own search (ReelsSearchBar) in this same slot instead. */
+  searchDisabled?: boolean;
+  /** Renders Reels' own search bar (via the shared store) in the slot the global search normally occupies. */
+  isReelsRoute?: boolean;
+}) => {
   const [searchValue, setSearchValue] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileSearchBar, setShowMobileSearchBar] = useState(false);
@@ -120,6 +135,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
 
   // Keyboard shortcuts: Escape to close, ⌘K / Ctrl+K to open
   useEffect(() => {
+    if (searchDisabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSearchFocused) {
         setIsSearchFocused(false);
@@ -132,7 +148,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchFocused]);
+  }, [isSearchFocused, searchDisabled]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +189,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
           </div>
         </div>
 
-        {!hideSearch && (
+        {!hideSearch && !searchDisabled && (
           <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
               <button
                 type="button"
@@ -193,8 +209,10 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
             </div>
         )}
 
+        {isReelsRoute && <ReelsSearchBar />}
+
         <div className="flex items-center space-x-2">
-          {!hideSearch && (
+          {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
               className="md:hidden p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"

@@ -149,8 +149,11 @@ const DashboardWrapper = ({ children }) => {
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Header - Unified across all pages */}
-        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+        {/* Header - Unified across all pages. Reels has its own isolated
+            search (see components/reels/ReelHeader.tsx), so the global
+            search is suppressed there to avoid two search UIs fighting
+            over the same keystrokes and navigating away from /dashboard/reels. */}
+        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
 
         <div className="relative z-10 pt-16">
           {/* Mobile sidebar overlay */}

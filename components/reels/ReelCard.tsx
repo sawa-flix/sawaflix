@@ -1,15 +1,17 @@
 'use client';
 
-import { useCallback, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import type { Video } from '@/types/youtube';
 import { YouTubePlayer } from '@/components/YoutubePlayer';
 import { useComments } from '@/hooks/useComments';
 import { useScrubGesture } from '@/hooks/reels/useScrubGesture';
 import { followYouTubeChannelAction } from '@/app/actions/youtube';
+import { followService } from '@/services/followService';
 import { ReelOverlay } from './ReelOverlay';
 import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
+import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
 
 interface ReelCardProps {
@@ -37,12 +39,20 @@ interface ReelCardProps {
 export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [, startTransition] = useTransition();
   const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment } =
     useComments(video.id);
 
+  // A new video id means a fresh player load — the loading spinner should
+  // show again rather than keep showing "ready" from whatever was playing before.
+  useEffect(() => {
+    setIsPlayerReady(false);
+  }, [video.id]);
+
   const handlePlayerReady = useCallback((player: YT.Player) => {
     playerRef.current = player;
+    setIsPlayerReady(true);
   }, []);
 
   const getPlayer = useCallback(() => playerRef.current, []);
@@ -74,6 +84,15 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       } catch (err) {
         console.error('[ReelCard] Follow failed:', err);
         setIsFollowing(!next);
+        return;
+      }
+      // Additive: persist locally too so profile stats can count it. The
+      // external backend call above is unchanged/unaffected either way.
+      try {
+        if (next) await followService.follow('youtube_channel', video.channelId);
+        else await followService.unfollow('youtube_channel', video.channelId);
+      } catch (err) {
+        console.warn('[ReelCard] local follow persistence failed:', err);
       }
     });
   };
@@ -135,6 +154,18 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
           onEnded={handleEnded}
         />
       </div>
+
+      {/* Only the active reel gets a loading skeleton — inactive/±1
+          placeholders shouldn't show one while off-screen or waiting their
+          turn. Reuses ReelLoading (same skeleton as the initial feed load,
+          the route-level loading.tsx, and the search-result-opening
+          transition) rather than a one-off spinner, so every "a reel is
+          loading" moment across the app looks the same. */}
+      {isActive && !isPlayerReady && (
+        <div className="pointer-events-none absolute inset-0 z-[1]">
+          <ReelLoading />
+        </div>
+      )}
 
       <AnimatePresence>
         {isScrubbing && <ReelScrubIndicator currentTime={scrubTime} duration={duration} />}
