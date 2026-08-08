@@ -21,7 +21,11 @@ import { ReelsSearchBar } from '../reels/ReelsSearchBar';
 import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
+<<<<<<< HEAD
 import { useHomeSearchStore } from '@/store/homeSearchStore';
+=======
+import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+>>>>>>> 349e89b3bb2f47c290ea5b10d16e6b2dd0451dce
 
 const youtubeApi = new YouTubeApiService();
 
@@ -505,6 +509,15 @@ const Header = ({
                                     results: searchResults.videos.map((v: any) => mapYoutubeItem(v)),
                                   });
                                   setSearchValue('');
+<<<<<<< HEAD
+=======
+                                  // Same handoff the right sidebar uses: hand the
+                                  // already-fetched video straight to Reels so it
+                                  // opens playing, instead of just filtering the
+                                  // dashboard's own feed by title text.
+                                  stashReelForHandoff(mapped);
+                                  router.push(`/dashboard/reels?id=${encodeURIComponent(mapped.id)}`);
+>>>>>>> 349e89b3bb2f47c290ea5b10d16e6b2dd0451dce
                                 }}
                                 className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
                               >
