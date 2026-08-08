@@ -21,7 +21,7 @@ import { ReelsSearchBar } from '../reels/ReelsSearchBar';
 import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
-import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import { useHomeSearchStore } from '@/store/homeSearchStore';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -211,8 +211,6 @@ const Header = ({
             </div>
         )}
 
-        {isReelsRoute && <ReelsSearchBar />}
-
         <div className="flex items-center space-x-2">
           {!hideSearch && !searchDisabled && (
             <button
@@ -223,6 +221,11 @@ const Header = ({
               <Search size={18} />
             </button>
           )}
+
+          {/* Reels has its own search (opens the same spotlight modal as
+              the buttons above, just scoped to Reels' own video results) —
+              shown in this same icon slot instead of the global search. */}
+          {isReelsRoute && <ReelsSearchBar />}
 
           {/* Notifications Bell */}
           <div className="relative">
@@ -490,13 +493,18 @@ const Header = ({
                                 key={mapped.id || idx}
                                 onClick={() => {
                                   setIsSearchFocused(false);
+                                  // Doesn't play this video directly — shows
+                                  // the whole search's results in the home
+                                  // page's own Reels row (DashboardLanding),
+                                  // the same card style/location reels
+                                  // normally appear in. Picking a card from
+                                  // there is what actually opens it into the
+                                  // real Reels page.
+                                  useHomeSearchStore.setState({
+                                    query: searchValue,
+                                    results: searchResults.videos.map((v: any) => mapYoutubeItem(v)),
+                                  });
                                   setSearchValue('');
-                                  // Same handoff the right sidebar uses: hand the
-                                  // already-fetched video straight to Reels so it
-                                  // opens playing, instead of just filtering the
-                                  // dashboard's own feed by title text.
-                                  stashReelForHandoff(mapped);
-                                  router.push(`/dashboard/reels?id=${encodeURIComponent(mapped.id)}`);
                                 }}
                                 className="flex items-center gap-3 w-full px-4 py-2 hover:bg-white/[0.04] transition-colors text-left group"
                               >

@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
+import { useHomeSearchStore } from '@/store/homeSearchStore';
+import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -59,6 +61,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const router = useRouter();
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
+  const { query: homeSearchQuery, results: homeSearchResults, clear: clearHomeSearch } = useHomeSearchStore();
   const [bannerMovie, setBannerMovie] = useState<any>(null);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
@@ -144,8 +147,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Sample of the same feed, shown as a row of vertical reel cards linking
   // into the real Reels page (/dashboard/reels?id=...) — deep-link support
-  // there jumps straight to the tapped video.
-  const reelsPreview = useMemo(() => (reels || []).slice(0, 10), [reels]);
+  // there jumps straight to the tapped video. When a home-page search has
+  // results (see store/homeSearchStore.ts), this row shows those instead —
+  // picking a card is a search result, still opening into the real Reels
+  // page rather than playing in place.
+  const reelsPreview = useMemo(
+    () => (homeSearchResults.length > 0 ? homeSearchResults : (reels || []).slice(0, 10)),
+    [reels, homeSearchResults]
+  );
 
   // Long-form videos (news, comedy, etc.) — filter for non-short content
   const longFormVideos = useMemo(() => {
@@ -256,7 +265,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           </section>
         )}
 
-        {/* ═══ Reels Preview — links into the real /dashboard/reels feed ═══ */}
+        {/* ═══ Reels Preview — links into the real /dashboard/reels feed, or
+            a home-page search's results while one is active ═══ */}
         {reelsPreview.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
@@ -264,11 +274,23 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 <div className="w-6 h-6 relative">
                   <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Reels</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
+                </h2>
               </div>
-              <Link href="/dashboard/reels" className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">
-                View all
-              </Link>
+              {homeSearchQuery ? (
+                <button
+                  type="button"
+                  onClick={clearHomeSearch}
+                  className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors"
+                >
+                  Clear
+                </button>
+              ) : (
+                <Link href="/dashboard/reels" className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">
+                  View all
+                </Link>
+              )}
             </div>
 
             <div className="relative group/slider">
@@ -280,6 +302,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   <Link
                     key={reel.id}
                     href={`/dashboard/reels?id=${reel.id}`}
+                    // Hands the already-fetched video straight to the Reels
+                    // page (same mechanism the right sidebar and home search
+                    // use) — needed for search results specifically, since
+                    // they usually won't be in the Reels page's own
+                    // server-fetched culture feed for a plain ?id= lookup
+                    // to find on its own.
+                    onClick={() => stashReelForHandoff(reel)}
                     className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-white/5 hover:border-white/20 transition-colors"
                   >
                     <Image
