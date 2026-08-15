@@ -73,7 +73,7 @@ const DashboardWrapper = ({ children }) => {
                     console.warn("Backend profile fetch returned non-ok status:", res.status);
                 }
             } catch (apiErr) {
-                console.error("API check failed (likely network error or timeout):", apiErr);
+                console.warn("API check failed (likely network error or timeout):", apiErr.message || apiErr);
             }
 
             // 2. Always fetch Supabase profile as source of truth for permissions
@@ -84,7 +84,7 @@ const DashboardWrapper = ({ children }) => {
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
                 supabaseProfile = profile;
 
                 const { data: submission } = await supabase

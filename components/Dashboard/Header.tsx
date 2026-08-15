@@ -80,7 +80,7 @@ const Header = ({
         .from('users')
         .select('username, email, profile_image_url')
         .eq('id', currentUser.id)
-        .single<UserProfileData>();
+        .maybeSingle<UserProfileData>();
 
       if (error) {
         console.error('Error fetching user profile:', error.message);
