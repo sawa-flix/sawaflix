@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 
@@ -16,52 +14,40 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, promptMessage = 'to interact with Sawaflix' }: AuthModalProps) {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
+  // Full OAuth code flow (not GIS One Tap / signInWithIdToken). Navigates
+  // away to Google's consent screen; app/(auth)/auth/callback/route.js
+  // exchanges the code and redirects back into the app, so there's nothing
+  // left to do here after the call.
+  const handleGoogleSignIn = async () => {
     setError(null);
-
-    if (!credentialResponse.credential) {
-      setError('Unable to continue with Google right now. Please try again.');
-      return;
-    }
-
     setIsGoogleLoading(true);
+
     try {
       const supabase = createClient();
-      const { data, error: signInError } = await supabase.auth.signInWithIdToken({
+      const redirectBase = window.location.origin;
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        token: credentialResponse.credential,
+        options: {
+          redirectTo: `${redirectBase}/auth/callback`,
+          scopes: 'openid email profile https://www.googleapis.com/auth/youtube.force-ssl',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
-      if (signInError || !data.user) {
-        throw signInError || new Error('No user returned from Supabase');
+      if (oauthError) {
+        setError('Unable to continue with Google right now. Please try again.');
+        setIsGoogleLoading(false);
       }
-
-      // Enrich the public.users row created by the on_auth_user_created trigger
-      // with the profile fields only the OAuth payload carries.
-      const meta = data.user.user_metadata ?? {};
-      const { error: syncError } = await supabase.from('users').upsert(
-        {
-          id: data.user.id,
-          email: data.user.email,
-          username: meta.full_name || meta.name || data.user.email?.split('@')[0] || 'User',
-          profile_image_url: meta.avatar_url || meta.picture || null,
-          verification_status: 'approved',
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'id' }
-      );
-      if (syncError) console.error('Profile sync warning:', syncError.message);
-
-      router.refresh();
-      onClose();
     } catch (err) {
       console.error('Google Sign-In Error:', err);
       setError('Unable to continue with Google right now. Please try again.');
-    } finally {
       setIsGoogleLoading(false);
     }
   };
@@ -121,8 +107,10 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
               <div className="relative w-full">
                 <motion.button
                   id="auth-modal-google-btn"
+                  type="button"
                   whileTap={{ scale: 0.97 }}
                   disabled={isGoogleLoading}
+                  onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-2xl bg-white text-[#1a1a1a] font-bold text-sm hover:bg-white/90 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isGoogleLoading ? (
@@ -137,23 +125,6 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
                   )}
                   {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
                 </motion.button>
-
-                {/* Real Google Identity Services button, kept invisible and
-                    stacked on top so clicks land on it while the styled
-                    button above stays purely visual. This is required to get
-                    a genuine ID token (signInWithIdToken needs a JWT, which
-                    only Google's own button/One Tap can issue). */}
-                {!isGoogleLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 overflow-hidden [&>div]:w-full!">
-                    <GoogleLogin
-                      onSuccess={handleGoogleCredential}
-                      onError={() => setError('Unable to continue with Google right now. Please try again.')}
-                      width="300"
-                      theme="filled_black"
-                      shape="pill"
-                    />
-                  </div>
-                )}
               </div>
 
               {error && (

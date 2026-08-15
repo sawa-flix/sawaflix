@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { BACKEND_URL } from '@/lib/apiConfig'
 
 export async function GET(request) {
   try {
@@ -99,6 +100,21 @@ export async function GET(request) {
       const user = session.user
       if (isDev) console.log('🟢 Session OK for:', user.email, '| Cookies to set:', pendingCookies.length)
 
+      // Google returns provider_token (access_token) on every OAuth login, and
+      // provider_refresh_token only when consent is (re-)granted — which we force
+      // via prompt=consent on every signInWithOAuth call, so a fresh refresh token
+      // is captured on every login. These are only present on this initial exchange;
+      // Supabase does not resurface them on later getSession() calls, so they must
+      // be persisted here or they're lost.
+      const googleAccessToken = session.provider_token || null
+      const googleRefreshToken = session.provider_refresh_token || null
+      if (isDev) {
+        console.log('🟢 Google provider tokens:', {
+          access: googleAccessToken ? 'YES' : 'NO',
+          refresh: googleRefreshToken ? 'YES' : 'NO',
+        })
+      }
+
       // ── Sync profile to public.users ────────────────────────────────────
       let isFirstOAuthUser = false
       try {
@@ -127,6 +143,10 @@ export async function GET(request) {
           profile_image_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
           verification_status: 'approved', // OAuth = already verified
           updated_at: new Date().toISOString(),
+          // Only overwrite when Google actually returned a value on this login —
+          // never null out a previously stored, still-valid refresh token.
+          ...(googleAccessToken ? { google_access_token: googleAccessToken } : {}),
+          ...(googleRefreshToken ? { google_refresh_token: googleRefreshToken } : {}),
         }
 
         if (supabaseServiceRoleKey) {
@@ -156,6 +176,51 @@ export async function GET(request) {
       } catch (syncErr) {
         // Non-fatal — user can continue even if profile sync has an issue
         console.error('🟡 Profile sync error (non-fatal):', syncErr?.message)
+      }
+
+      // ── Sync Google tokens to backend (for real YouTube API calls) ─────
+      // Only meaningful for Google logins — provider_token is always null on
+      // email-confirmation code exchanges, so skip rather than POST garbage.
+      // Never blocks the redirect: tokens are already durably saved to
+      // public.users above as a fallback if this sync fails.
+      if (googleAccessToken) {
+        try {
+          const syncController = new AbortController()
+          const syncTimeout = setTimeout(() => syncController.abort(), 8000)
+
+          const backendSyncRes = await fetch(`${BACKEND_URL}/api/auth/sync-tokens`, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              session: {
+                user: { id: user.id },
+                provider_token: googleAccessToken,
+                provider_refresh_token: googleRefreshToken,
+              },
+            }),
+            signal: syncController.signal,
+          })
+
+          clearTimeout(syncTimeout)
+
+          if (!backendSyncRes.ok) {
+            const errText = await backendSyncRes.text().catch(() => '')
+            console.error('🟡 Backend token sync warning:', backendSyncRes.status, errText)
+          } else if (isDev) {
+            console.log('🟢 Backend token sync OK for:', user.email)
+          }
+        } catch (backendSyncErr) {
+          // Non-fatal — a YouTube like/comment attempt will just fail later
+          // (e.g. Render cold start, transient network error). Never block
+          // sign-in on this.
+          console.error('🟡 Backend token sync error (non-fatal):', backendSyncErr?.message)
+        }
+      } else if (isDev) {
+        console.log('🟡 Skipping backend token sync — no Google provider token on this exchange')
       }
 
       const redirectTarget = isFirstOAuthUser ? '/dashboard?welcome=oauth' : '/dashboard'

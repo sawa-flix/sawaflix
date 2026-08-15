@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { likeYouTubeVideoAction } from '@/app/actions/youtube';
@@ -11,6 +11,8 @@ import { likeService } from '@/services/likeService';
 interface ReelActionsProps {
   video: Video;
   commentsCount: number;
+  realLikeCount?: string | number;
+  realIsLiked?: boolean;
   onShowComments: () => void;
 }
 
@@ -25,7 +27,7 @@ function parseCount(value: string | number | undefined): number {
  * Like/comment/share/save all call the existing server actions and
  * favorites context — nothing here reimplements backend logic.
  */
-export function ReelActions({ video, commentsCount, onShowComments }: ReelActionsProps) {
+export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, onShowComments }: ReelActionsProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(() => parseCount(video.likeCount));
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -34,7 +36,23 @@ export function ReelActions({ video, commentsCount, onShowComments }: ReelAction
 
   const saved = isFavorite(video.id);
 
+  // Hydrate liked+likeCount from the server once, the first time real values
+  // arrive — locked out permanently once the user taps like (see handleLike),
+  // so a late/slow stats response can never undo their optimistic tap.
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (hydratedRef.current) return;
+    if (realIsLiked !== undefined) {
+      setLiked(realIsLiked);
+      hydratedRef.current = true;
+    }
+    if (realLikeCount !== undefined) {
+      setLikeCount(parseCount(realLikeCount));
+    }
+  }, [realIsLiked, realLikeCount]);
+
   const handleLike = () => {
+    hydratedRef.current = true;
     const nextLiked = !liked;
     // Optimistic update — rolled back if the server action throws.
     setLiked(nextLiked);
