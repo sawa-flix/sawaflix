@@ -5,6 +5,7 @@ import { NotificationProvider } from '../contexts/NotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import NotificationPrompt from '@/components/NotificationPrompt';
+import GoogleAuthProvider from '@/components/providers/GoogleAuthProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -127,13 +128,15 @@ export default function RootLayout({
           }
         `}} />
         <NextTopLoader color="transparent" showSpinner={false} />
-        <AdminNotificationProvider>
-          <NotificationProvider>
-            {children}
-          </NotificationProvider>
-        </AdminNotificationProvider>
-        <PWAInstallPrompt />
-        <NotificationPrompt />
+        <GoogleAuthProvider>
+          <AdminNotificationProvider>
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
+          </AdminNotificationProvider>
+          <PWAInstallPrompt />
+          <NotificationPrompt />
+        </GoogleAuthProvider>
       </body>
     </html>
   )
