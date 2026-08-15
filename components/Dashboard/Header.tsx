@@ -21,6 +21,7 @@ import { ReelsSearchBar } from '../reels/ReelsSearchBar';
 import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
+import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 
 const youtubeApi = new YouTubeApiService();
