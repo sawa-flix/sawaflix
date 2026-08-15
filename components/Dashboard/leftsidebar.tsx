@@ -19,7 +19,8 @@ import {
   Tv,
   MonitorPlay,
   BookOpen,
-  Download
+  Download,
+  Clapperboard
 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../utils/supabase/client';
@@ -116,6 +117,7 @@ export default function LeftSidebar({
 
   const topItems = [
     { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
+    { name: 'Reels', icon: Clapperboard, id: 'reels', route: '/dashboard/reels', badge: null },
   ];
 
   const exploreItems = [

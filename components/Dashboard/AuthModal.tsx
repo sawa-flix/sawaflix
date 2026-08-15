@@ -22,14 +22,15 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, promptMessage = 'to interact with Sawaflix' }: AuthModalProps) {
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
+  // Full OAuth code flow (not GIS One Tap / signInWithIdToken). Navigates
+  // away to Google's consent screen; app/(auth)/auth/callback/route.js
+  // exchanges the code and redirects back into the app, so there's nothing
+  // left to do here after the call.
+  const handleGoogleSignIn = async () => {
     setError(null);
-    setSuccessMessage(null);
     setIsGoogleLoading(true);
 
     try {
@@ -38,10 +39,18 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
       }
 
       const supabase = createClient();
+      const redirectBase = window.location.origin;
 
       const { data, error: signInError } = await supabase.auth.signInWithIdToken({
         provider: 'google',
-        token: credentialResponse.credential,
+        options: {
+          redirectTo: `${redirectBase}/auth/callback`,
+          scopes: 'openid email profile https://www.googleapis.com/auth/youtube.force-ssl',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
       if (signInError || !data.user) {
@@ -97,7 +106,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
             className="fixed z-[101] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[380px] bg-[#0F1117] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
           >
             {/* Header gradient accent */}
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#CE1126] via-[#007A5E] to-[#FCD116]" />
+            <div className="absolute top-0 inset-x-0 h-1 bg-red-600" />
 
             {/* Close button */}
             <button
@@ -119,17 +128,18 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
                   Sign in {promptMessage}
                 </h2>
                 <p className="text-white/40 text-sm leading-relaxed">
-                  Join millions watching the best of Cameroon — for free.
+                  Join millions watching the best of Cameroon for free.
                 </p>
               </div>
 
-              {/* Google OAuth Button — styled decoy underneath, real (invisible) GIS button on top */}
+              {/* Google OAuth Button */}
               <div className="relative w-full">
                 <motion.button
                   id="auth-modal-google-btn"
+                  type="button"
                   whileTap={{ scale: 0.97 }}
                   disabled={isGoogleLoading}
-                  tabIndex={-1}
+                  onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-2xl bg-white text-[#1a1a1a] font-bold text-sm hover:bg-white/90 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isGoogleLoading ? (
@@ -144,17 +154,11 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
                   )}
                   {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
                 </motion.button>
-
-                <div className="absolute inset-0 opacity-0 overflow-hidden [&>div]:w-full [&_iframe]:!w-full">
-                  <GoogleLogin
-                    onSuccess={handleGoogleCredential}
-                    onError={() => setError('Unable to continue with Google right now. Please try again.')}
-                    theme="filled_black"
-                    shape="pill"
-                    width="100%"
-                  />
-                </div>
               </div>
+
+              {error && (
+                <p className="text-red-400 text-xs text-center -mt-2">{error}</p>
+              )}
 
               <p className="text-white/20 text-xs text-center leading-relaxed">
                 By signing in you agree to our{' '}

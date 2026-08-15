@@ -18,9 +18,15 @@ const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Disable right sidebar for reels, movie, and profile pages
-  const hideRightSidebarPaths = ['/reels', '/movie', '/profile', '/edit-profile'];
+  // Disable right sidebar for movie and profile pages. Reels renders inside
+  // the normal dashboard shell like every other page — header, left
+  // sidebar, and right sidebar all stay visible.
+  const hideRightSidebarPaths = ['/movie', '/profile', '/edit-profile'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
+  // Every other page uses pb-40 as trailing scroll space below flowing
+  // content. Reels is a fixed-height video panel, not flowing content —
+  // that reserved 10rem was just shrinking the box for no reason.
+  const isReelsRoute = pathname?.includes('/reels');
 
   const [verificationStatus, setVerificationStatus] = useState('none');
   const [userRole, setUserRole] = useState(null);
@@ -146,7 +152,7 @@ const DashboardWrapper = ({ children }) => {
         {/* Header - Unified across all pages */}
         <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-        <div className="relative z-10 pt-16"> 
+        <div className="relative z-10 pt-16">
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -173,11 +179,11 @@ const DashboardWrapper = ({ children }) => {
               border-r border-white/5 shadow-2xl shadow-black/50
             `}
           >
-            <LeftSidebar 
-              onNavigate={closeSidebar} 
+            <LeftSidebar
+              onNavigate={closeSidebar}
               verificationStatus={verificationStatus}
               userRole={userRole}
-              userProfile={userProfile} 
+              userProfile={userProfile}
             />
           </aside>
 
@@ -188,21 +194,12 @@ const DashboardWrapper = ({ children }) => {
             </aside>
           )}
 
-          {/* Main Content Area — Scrollable center */}
-          {pathname?.includes('/reels') ? (
-            // Reels: break out of ALL layout chrome, fill full remaining space
-            <main className="h-[calc(100vh-4rem)] lg:ml-72 xl:mr-80 overflow-hidden bg-transparent">
-              <div className="h-full w-full p-0 m-0">
-                {children}
-              </div>
-            </main>
-          ) : (
-            <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
-              <div className="px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto pb-40 transition-all duration-500">
-                {children}
-              </div>
-            </main>
-          )}
+          {/* Main Content Area — Scrollable center, shared by every page */}
+          <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+            <div className={`px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto transition-all duration-500 ${isReelsRoute ? 'pb-4' : 'pb-40'}`}>
+              {children}
+            </div>
+          </main>
         </div>
 
         {/* Persistent Player */}

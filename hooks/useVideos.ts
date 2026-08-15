@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
 import type { Video } from '@/types/youtube';
 import { get, set } from 'idb-keyval';
+import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
 
 interface UseVideosResult {
     videos: Video[];
@@ -26,20 +27,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
     const isLoadingRef = useRef(false);
     const currentCategoryRef = useRef(categoryQuery);
 
-    const mapYouTubeItem = (item: any): Video => ({
-        id: typeof item.id === 'object' ? item.id.videoId : item.id,
-        title: item.snippet?.title || item.title,
-        description: item.snippet?.description || item.description,
-        thumbnail: item.snippet?.thumbnails?.high?.url || item.thumbnail,
-        channelId: item.snippet?.channelId || item.channelId,
-        channelTitle: item.snippet?.channelTitle || item.channelTitle || item.metadata?.channel_title || 'YouTube Channel',
-        publishedAt: item.snippet?.publishedAt || item.publishedAt || item.metadata?.published_at || new Date().toISOString(),
-        videoUrl: `https://www.youtube.com/watch?v=${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-        embedUrl: `https://www.youtube.com/embed/${typeof item.id === 'object' ? item.id.videoId : item.id}`,
-        likeCount: item.statistics?.likeCount || item.likeCount,
-        commentCount: item.statistics?.commentCount || item.commentCount,
-        origin: 'youtube'
-    });
+    const mapYouTubeItem = mapYoutubeItem;
 
     const mapSawaflixItem = (item: any): Video => ({
         id: item.id,

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { UserStats } from './types';
-import { Film, Music, BookmarkSquare, Download } from 'lucide-react';
+import { Film, Music, Bookmark, Download } from 'lucide-react';
 
 interface UserStatsGridProps {
   stats: UserStats;
@@ -32,8 +32,8 @@ export default function UserStatsGrid({ stats }: UserStatsGridProps): React.Reac
       isRed: false
     },
     { 
-      icon: BookmarkSquare, 
-      label: 'Watchlist', 
+      icon: Bookmark,
+      label: 'Watchlist',
       value: stats.watchlistItems,
       isRed: true
     },

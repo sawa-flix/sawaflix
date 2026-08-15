@@ -12,9 +12,13 @@ export function useNotifications() {
   // Use a stable ref for supabase client to prevent re-renders triggering new subscriptions
   const supabaseRef = useRef(createClient());
   const supabase = supabaseRef.current;
-  // Guard to prevent setting up realtime more than once
-  const realtimeSetupRef = useRef(false);
   const channelRef = useRef<any>(null);
+  // Tracks an in-flight removeChannel() call so a subsequent setup (e.g. a
+  // remount) can wait for it — the effect's cleanup itself can't be async,
+  // so without this, a fire-and-forget removal from cleanup can still be
+  // in-flight when the next setup tries to create a channel with the same
+  // topic name.
+  const teardownRef = useRef<Promise<unknown> | null>(null);
 
   const mapNotification = (n: any): Notification => ({
     id: n.id,
@@ -145,23 +149,34 @@ export function useNotifications() {
     fetchNotifications();
     fetchUnreadCount();
 
-    // Only set up realtime once — guard with a ref to prevent double-subscription
-    // which causes: "cannot add postgres_changes callbacks after subscribe()"
-    if (realtimeSetupRef.current) return;
-    realtimeSetupRef.current = true;
-
     let isMounted = true;
 
     const setupRealtime = async () => {
+      // Wait for any in-flight teardown — from this call or a previous
+      // instance's cleanup — before doing anything else. supabase-js can
+      // hand back the SAME (already-subscribed) channel object from
+      // .channel() if a prior channel with this exact topic name hasn't
+      // finished being removed yet, and calling .on() on an
+      // already-subscribed channel throws "cannot add postgres_changes
+      // callbacks ... after subscribe()". This happens on any remount that
+      // reuses the same topic (`notifications-${user.id}`) — most visibly
+      // during dev via React Fast Refresh, but the race exists regardless of
+      // what triggers the remount.
+      if (teardownRef.current) {
+        await teardownRef.current;
+      }
+      if (!isMounted) return;
+
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user || !isMounted) return;
 
-      // Clean up any previous channel before creating a new one
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        const toRemove = channelRef.current;
         channelRef.current = null;
+        await supabase.removeChannel(toRemove);
       }
+      if (!isMounted) return;
 
       const channel = supabase
         .channel(`notifications-${user.id}`)
@@ -212,12 +227,16 @@ export function useNotifications() {
     return () => {
       isMounted = false;
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        const toRemove = channelRef.current;
         channelRef.current = null;
+        // Can't await inside a cleanup function, so track the promise
+        // instead — the next setupRealtime() call (if any) awaits it.
+        teardownRef.current = supabase.removeChannel(toRemove).finally(() => {
+          teardownRef.current = null;
+        });
       }
-      realtimeSetupRef.current = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount — fetchNotifications/fetchUnreadCount are stable useCallbacks
 
   return {

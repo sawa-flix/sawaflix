@@ -55,6 +55,7 @@ export default function GenreSection() {
           <SectionHeader
             title="Explore Music Genres"
             subtitle="Discover the vibrant rhythms and melodies that define our culture."
+            size="sm"
           />
         </div>
 
