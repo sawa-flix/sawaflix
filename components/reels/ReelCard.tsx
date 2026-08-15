@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import type { Video } from '@/types/youtube';
 import { YouTubePlayer } from '@/components/YoutubePlayer';
 import { useComments } from '@/hooks/useComments';
+import { useVideoStats } from '@/hooks/useVideoStats';
 import { useScrubGesture } from '@/hooks/reels/useScrubGesture';
 import { followYouTubeChannelAction } from '@/app/actions/youtube';
 import { ReelOverlay } from './ReelOverlay';
@@ -39,7 +40,8 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
   const [isFollowing, setIsFollowing] = useState(false);
   const [, startTransition] = useTransition();
   const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment } =
-    useComments(video.id);
+    useComments(isActive ? video.id : null);
+  const { stats } = useVideoStats(isActive ? video.id : null);
 
   const handlePlayerReady = useCallback((player: YT.Player) => {
     playerRef.current = player;
@@ -145,6 +147,8 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       <ReelActions
         video={video}
         commentsCount={comments.length}
+        realLikeCount={stats?.likeCount}
+        realIsLiked={stats?.isLiked}
         onShowComments={() => setIsOpen(true)}
       />
 

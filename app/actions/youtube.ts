@@ -190,10 +190,13 @@ export async function getVideoDetailsAction(videoId: string): Promise<VideoDetai
         throw new Error('Video ID cannot be empty');
     }
 
+    const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/videos/external/youtube/${encodeURIComponent(videoId)}`;
-    
+
     try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+        });
         return handleResponse(response);
     } catch (error: any) {
         console.error('getVideoDetailsAction error:', error);

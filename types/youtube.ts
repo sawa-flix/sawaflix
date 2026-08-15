@@ -36,6 +36,7 @@ export interface VideoDetails {
     publishedAt: string;
     channelId?: string;
     channelTitle?: string;
+    isLiked?: boolean;
 }
 
 export interface Comment {
