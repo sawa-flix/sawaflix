@@ -5,6 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
+
+interface GoogleIdTokenPayload {
+  name?: string;
+  given_name?: string;
+  picture?: string;
+}
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,10 +34,14 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
     setIsGoogleLoading(true);
 
     try {
+      if (!credentialResponse.credential) {
+        throw new Error('No credential returned from Google');
+      }
+
       const supabase = createClient();
       const redirectBase = window.location.origin;
 
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      const { data, error: signInError } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         options: {
           redirectTo: `${redirectBase}/auth/callback`,
@@ -41,13 +53,30 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
         },
       });
 
-      if (oauthError) {
-        setError('Unable to continue with Google right now. Please try again.');
-        setIsGoogleLoading(false);
+      if (signInError || !data.user) {
+        throw signInError || new Error('Sign-in failed');
       }
+
+      const meta = jwtDecode<GoogleIdTokenPayload>(credentialResponse.credential);
+
+      await supabase.from('users').upsert(
+        {
+          id: data.user.id,
+          email: data.user.email,
+          username: meta.name || meta.given_name || data.user.email?.split('@')[0],
+          profile_image_url: meta.picture || null,
+          verification_status: 'approved',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+
+      setSuccessMessage('Signed in successfully!');
+      onClose();
     } catch (err) {
       console.error('Google Sign-In Error:', err);
       setError('Unable to continue with Google right now. Please try again.');
+    } finally {
       setIsGoogleLoading(false);
     }
   };
