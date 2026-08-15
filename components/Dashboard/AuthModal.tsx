@@ -8,6 +8,12 @@ import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 
+interface GoogleIdTokenPayload {
+  name?: string;
+  given_name?: string;
+  picture?: string;
+}
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
