@@ -510,12 +510,8 @@ const Header = ({
                             // Same canonical mapper Reels itself uses — not a
                             // second ad-hoc field-extraction implementation.
                             const mapped = mapYoutubeItem(video);
-                            // Same canonical mapper Reels itself uses — not a
-                            // second ad-hoc field-extraction implementation.
-                            const mapped = mapYoutubeItem(video);
                             return (
                               <button
-                                key={mapped.id || idx}
                                 key={mapped.id || idx}
                                 onClick={() => {
                                   setIsSearchFocused(false);
@@ -542,11 +538,8 @@ const Header = ({
                               >
                                 <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
                                   <Image src={mapped.thumbnail} alt="Thumbnail" fill className="object-cover" unoptimized />
-                                  <Image src={mapped.thumbnail} alt="Thumbnail" fill className="object-cover" unoptimized />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-[13px] font-semibold text-white/80 line-clamp-1 group-hover:text-white transition-colors">{mapped.title}</h4>
-                                  <p className="text-[11px] text-white/30 truncate mt-0.5">{mapped.channelTitle}</p>
                                   <h4 className="text-[13px] font-semibold text-white/80 line-clamp-1 group-hover:text-white transition-colors">{mapped.title}</h4>
                                   <p className="text-[11px] text-white/30 truncate mt-0.5">{mapped.channelTitle}</p>
                                 </div>
