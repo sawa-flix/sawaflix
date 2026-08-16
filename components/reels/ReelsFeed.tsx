@@ -1,16 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw, Film } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { useReels } from '@/hooks/reels/useReels';
 import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
-import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
 import { useActiveReel } from '@/hooks/reels/useActiveReel';
 import { useIntersection } from '@/hooks/reels/useIntersection';
-import { useReelsSearchStore } from '@/store/reelsSearchStore';
-import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsSearchStore } from '@/store/reelsSearchStore';
 import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
 import { ReelCard } from './ReelCard';
@@ -177,64 +173,13 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   // dependency array) so entering/leaving search mode later — which also
   // changes `videos` — can never re-trigger this a second time.
   const hasAppliedDeepLinkRef = useRef(false);
-  // ReelCard there on the next render. Guarded by a ref (not just the
-  // dependency array) so entering/leaving search mode later — which also
-  // changes `videos` — can never re-trigger this a second time.
-  const hasAppliedDeepLinkRef = useRef(false);
   useEffect(() => {
-    if (hasAppliedDeepLinkRef.current || isSearching || !initialVideoId || videos.length === 0) return;
-    hasAppliedDeepLinkRef.current = true;
     if (hasAppliedDeepLinkRef.current || isSearching || !initialVideoId || videos.length === 0) return;
     hasAppliedDeepLinkRef.current = true;
     const index = videos.findIndex((v) => v.id === initialVideoId);
     const container = containerRef.current;
     if (index <= 0 || !container) return;
     container.scrollTo({ top: index * container.clientHeight, behavior: 'auto' });
-  }, [videos, isSearching, initialVideoId, containerRef]);
-
-  // Bridges this component's real search state/handlers up to the shared
-  // dashboard Header (the top navbar), which is a sibling in the tree, not
-  // a parent/child of this page — it can't read this via props. Header's
-  // ReelsSearchBar only ever reads from and calls into this store; no
-  // search logic lives there. No dependency array: cheap to run every
-  // render, and it keeps the store honest without an exhaustive-deps list.
-  useEffect(() => {
-    useReelsSearchStore.setState({
-      active: true,
-      query: search.query,
-      results: search.videos,
-      loading: search.loading,
-      error: search.error,
-      hasMore: search.hasMore,
-      showResults: searchMode === 'searching',
-      setQuery: handleSearchChange,
-      clear: handleClearSearch,
-      loadMore: search.loadMore,
-      retry: search.retry,
-      selectResult: handleSelectSearchResult,
-    });
-  });
-
-  // Reset the store on unmount (navigating away from Reels) so the navbar
-  // never renders stale results or calls handlers from an unmounted page.
-  useEffect(() => {
-    return () => {
-      useReelsSearchStore.setState({
-        active: false,
-        query: '',
-        results: [],
-        loading: false,
-        error: null,
-        hasMore: false,
-        showResults: false,
-        setQuery: () => {},
-        clear: () => {},
-        loadMore: async () => {},
-        retry: async () => {},
-        selectResult: () => {},
-      });
-    };
-  }, []);
   }, [videos, isSearching, initialVideoId, containerRef]);
 
   // Bridges this component's real search state/handlers up to the shared
@@ -307,13 +252,6 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Typing into the search input shouldn't also toggle play/pause (' ')
-      // or mute ('m') — both are letters/space a user needs to type freely.
-      const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
-
-      // Typing into the search input shouldn't also toggle play/pause (' ')
-      // or mute ('m') — both are letters/space a user needs to type freely.
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
 
@@ -432,11 +370,6 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
             </div>
           )}
 
-          {/* Infinite-scroll trigger, placed a couple cards before the end so
-              the next page has time to arrive before the user gets there. */}
-          {hasMore && videos.length > 0 && <div ref={sentinelRef} className="h-1 w-full" />}
-        </div>
-      )}
           {/* Infinite-scroll trigger, placed a couple cards before the end so
               the next page has time to arrive before the user gets there. */}
           {hasMore && videos.length > 0 && <div ref={sentinelRef} className="h-1 w-full" />}

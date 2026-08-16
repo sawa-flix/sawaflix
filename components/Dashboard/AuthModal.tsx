@@ -21,7 +21,6 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
-  const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
     setError(null);
 
     if (!credentialResponse.credential) {
@@ -35,7 +34,6 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
       const { data, error: signInError } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: credentialResponse.credential,
-        token: credentialResponse.credential,
       });
 
       if (signInError || !data.user) {
@@ -45,21 +43,22 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
       // Enrich the public.users row created by the on_auth_user_created trigger
       // with the profile fields only the OAuth payload carries.
       const meta = data.user.user_metadata ?? {};
-      const { error: syncError } = await supabase.from('users')
-        .update({
+      const { error: syncError } = await supabase.from('users').upsert(
+        {
+          id: data.user.id,
           email: data.user.email,
           username: meta.full_name || meta.name || data.user.email?.split('@')[0] || 'User',
           profile_image_url: meta.avatar_url || meta.picture || null,
           verification_status: 'approved',
           updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.user.id);
+        },
+        { onConflict: 'id' }
+      );
       if (syncError) console.error('Profile sync warning:', syncError.message);
 
       router.refresh();
       onClose();
     } catch (err) {
-      console.error('Google Sign-In Error:', err);
       console.error('Google Sign-In Error:', err);
       setError('Unable to continue with Google right now. Please try again.');
     } finally {
@@ -117,6 +116,11 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to interac
                   Join millions watching the best of Cameroon for free.
                 </p>
               </div>
+
+              {/* Error message */}
+              {error && (
+                <p className="text-red-400 text-xs text-center">{error}</p>
+              )}
 
               {/* Google OAuth Button — styled decoy underneath, real (invisible) GIS button on top */}
               <div className="relative w-full">
