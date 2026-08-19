@@ -14,15 +14,48 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// Permanent — set once the app is confirmed installed (native "Install"
+// accepted, or the site is being viewed inside the installed app itself)
+// so the popup never shows on this device again, even back in the browser.
+const INSTALLED_KEY = 'sawaflix_pwa_installed';
+// How many times "Maybe Later" (or a declined native prompt) has been hit —
+// drives the escalating cooldown below.
+const DISMISS_COUNT_KEY = 'sawaflix_pwa_dismiss_count';
+// Epoch ms the popup is allowed to show again after a dismissal.
+const DISMISSED_UNTIL_KEY = 'sawaflix_pwa_dismissed_until';
+const DAY_MS = 24 * 60 * 60 * 1000;
+const FIRST_COOLDOWN_DAYS = 7;
+const REPEAT_COOLDOWN_DAYS = 30;
+
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if app is already installed (running in standalone mode)
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    // Check if app is already installed (running in standalone mode, or
+    // launched from the iOS home screen — navigator.standalone is Safari's
+    // older but still-necessary signal for that case).
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+    if (isStandalone) {
       setIsInstalled(true);
+      localStorage.setItem(INSTALLED_KEY, 'true');
+      return;
+    }
+
+    // Installed previously (possibly from a different tab/session on this
+    // device) — never show again, permanently.
+    if (localStorage.getItem(INSTALLED_KEY) === 'true') {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Still within a previous dismissal's cooldown window.
+    const dismissedUntil = Number(localStorage.getItem(DISMISSED_UNTIL_KEY) || '0');
+    if (dismissedUntil && Date.now() < dismissedUntil) {
       return;
     }
 
@@ -60,6 +93,17 @@ export default function PWAInstallPrompt() {
     };
   }, []);
 
+  // Escalating cooldown: 7 days after the first dismissal, 30 days after
+  // every one after that. Shared by the "Maybe Later" button and a declined
+  // native install prompt, so either way of saying no backs off the same.
+  const recordDismissal = () => {
+    const prevCount = Number(localStorage.getItem(DISMISS_COUNT_KEY) || '0');
+    const nextCount = prevCount + 1;
+    const cooldownDays = nextCount === 1 ? FIRST_COOLDOWN_DAYS : REPEAT_COOLDOWN_DAYS;
+    localStorage.setItem(DISMISS_COUNT_KEY, String(nextCount));
+    localStorage.setItem(DISMISSED_UNTIL_KEY, String(Date.now() + cooldownDays * DAY_MS));
+  };
+
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       // We have the native prompt — trigger it
@@ -68,7 +112,10 @@ export default function PWAInstallPrompt() {
       setDeferredPrompt(null);
       setShowPrompt(false);
       if (outcome === 'accepted') {
-        localStorage.setItem('sawaflix_pwa_installed', 'true');
+        localStorage.setItem(INSTALLED_KEY, 'true');
+        setIsInstalled(true);
+      } else {
+        recordDismissal();
       }
     } else {
       // If we don't have the prompt, show a sleeker in-app instruction instead of an alert
@@ -87,7 +134,7 @@ export default function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem('sawaflix_pwa_dismissed', new Date().toISOString());
+    recordDismissal();
   };
 
   // Don't render anything if the app is already installed
@@ -133,7 +180,7 @@ export default function PWAInstallPrompt() {
               onClick={handleDismiss}
               className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors cursor-pointer"
             >
-              Later
+              Maybe Later
             </button>
           </div>
         </motion.div>
