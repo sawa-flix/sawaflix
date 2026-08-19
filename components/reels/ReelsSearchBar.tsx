@@ -1,8 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronRight, RotateCcw, Search, SearchX, X } from 'lucide-react';
 import { useReelsSearchStore } from '@/store/reelsSearchStore';
+
+interface ReelsSearchBarProps {
+  /** Phones' fullscreen compact bar: collapses to a single floating icon
+   * (matching the mute button next to it) until tapped, instead of the
+   * always-visible inline bar the desktop header uses in its normal row. */
+  floating?: boolean;
+}
 
 /**
  * Reels' own search — rendered inside the shared dashboard Header (top
@@ -12,12 +20,26 @@ import { useReelsSearchStore } from '@/store/reelsSearchStore';
  * from useReelsSearchStore, which ReelsFeed keeps in sync — this component
  * owns no search logic itself, purely presentation.
  */
-export function ReelsSearchBar() {
+export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
   const { query, results, loading, error, hasMore, showResults, setQuery, clear, loadMore, retry, selectResult } =
     useReelsSearchStore();
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (floating && !isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-label="Search reels"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+      >
+        <Search size={18} />
+      </button>
+    );
+  }
 
   return (
-    <div className="relative flex flex-1 mx-2 sm:mx-4 md:mx-8 md:max-w-xl">
+    <div className={floating ? 'relative flex w-full' : 'relative flex flex-1 mx-2 sm:mx-4 md:mx-8 md:max-w-xl'}>
       <div className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-2 text-white/50 transition-colors focus-within:border-white/30 focus-within:bg-black/60">
         <Search size={16} className="shrink-0 text-gray-500" />
         <input
@@ -27,13 +49,17 @@ export function ReelsSearchBar() {
           placeholder="Search reels..."
           aria-label="Search reels"
           autoComplete="off"
+          autoFocus={floating}
           className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
         />
-        {query && (
+        {(query || floating) && (
           <button
             type="button"
-            onClick={clear}
-            aria-label="Clear search"
+            onClick={() => {
+              clear();
+              if (floating) setIsOpen(false);
+            }}
+            aria-label={floating ? 'Close search' : 'Clear search'}
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-white"
           >
             <X size={13} />

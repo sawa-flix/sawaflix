@@ -8,18 +8,18 @@ interface ReelHeaderProps {
 }
 
 /**
- * Mute toggle, floating over the top-left of the Reels box. Search used to
- * live here too, but now lives in the shared dashboard top navbar instead
- * (components/Dashboard/Header.tsx's ReelsSearchBar) — see
- * store/reelsSearchStore.ts for how ReelsFeed bridges its search state up
- * there. No back button here — Reels renders inside the normal dashboard
- * shell (left sidebar, header, browser back all work as on any other
- * page), so a dedicated in-page back control would just duplicate existing
- * navigation.
+ * Mute toggle, floating over the top-left of the Reels box. Desktop only —
+ * on phones the header renders a compact fullscreen bar (back + search +
+ * mute, all floating over the video with no reserved bar space) instead,
+ * reading mute state via store/reelsMuteStore.ts the same way search is
+ * bridged via store/reelsSearchStore.ts. No back button here on desktop —
+ * Reels renders inside the normal dashboard shell (left sidebar, header,
+ * browser back all work as on any other page), so a dedicated in-page back
+ * control would just duplicate existing navigation.
  */
 export function ReelHeader({ isMuted, onToggleMute }: ReelHeaderProps) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start p-4">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 hidden items-start p-4 md:flex">
       <button
         type="button"
         onClick={onToggleMute}

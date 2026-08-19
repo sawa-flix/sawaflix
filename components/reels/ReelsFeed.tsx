@@ -8,6 +8,7 @@ import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
 import { useActiveReel } from '@/hooks/reels/useActiveReel';
 import { useIntersection } from '@/hooks/reels/useIntersection';
 import { useReelsSearchStore } from '@/store/reelsSearchStore';
+import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
 import { ReelCard } from './ReelCard';
 import { ReelHeader } from './ReelHeader';
@@ -223,6 +224,20 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
         retry: async () => {},
         selectResult: () => {},
       });
+    };
+  }, []);
+
+  // Bridges mute state up to the header the same way search is bridged
+  // above — see store/reelsMuteStore.ts. Header's phone-only compact bar
+  // renders its own mute button reading from this store; ReelHeader (the
+  // in-video overlay) stays desktop-only.
+  useEffect(() => {
+    useReelsMuteStore.setState({ active: true, isMuted, toggleMute });
+  });
+
+  useEffect(() => {
+    return () => {
+      useReelsMuteStore.setState({ active: false, isMuted: true, toggleMute: () => {} });
     };
   }, []);
 

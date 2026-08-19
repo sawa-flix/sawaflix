@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck } from 'lucide-react';
+import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ import { useAuthModal } from '../../contexts/AuthModalContext';
 import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
 import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import { useReelsMuteStore } from '@/store/reelsMuteStore';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -57,6 +58,7 @@ const Header = ({
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<{videos: any[], stories: any[], movies: any[]}>({ videos: [], stories: [], movies: [] });
   const [isSearching, setIsSearching] = useState(false);
+  const { isMuted, toggleMute } = useReelsMuteStore();
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
@@ -173,8 +175,46 @@ const Header = ({
 
   return (
     <>
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl">
-      <div className="flex items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8">
+    <header
+      className={
+        isReelsRoute
+          ? 'fixed top-0 left-0 right-0 z-50 h-16 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
+          : 'fixed top-0 left-0 right-0 z-50 h-16 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
+      }
+    >
+      {/* Phone-only compact bar for Reels (TikTok-style): no bar background
+          at all here, just back / search / mute floating directly over the
+          fullscreen video (the dashboard shell stops reserving space for
+          the header on this route+breakpoint — see DashboardWrapper).
+          Desktop keeps the normal opaque header even on /dashboard/reels. */}
+      {isReelsRoute && (
+        <div className="flex md:hidden items-center h-full px-4 gap-2">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Back"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+          >
+            <ArrowLeft size={20} />
+          </button>
+
+          <div className="flex flex-1 items-center justify-end">
+            <ReelsSearchBar floating />
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+            aria-pressed={!isMuted}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+          >
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+        </div>
+      )}
+
+      <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8`}>
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}

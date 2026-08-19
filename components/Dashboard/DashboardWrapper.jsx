@@ -155,7 +155,11 @@ const DashboardWrapper = ({ children }) => {
             over the same keystrokes and navigating away from /dashboard/reels. */}
         <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
 
-        <div className="relative z-10 pt-16">
+        {/* No top padding reserved on phones while on Reels — Header renders
+            transparent there (just floating back/search/mute buttons), so
+            the video itself should run edge-to-edge instead of leaving a
+            4rem gap under it. Desktop/tablet keep the normal offset. */}
+        <div className={`relative z-10 ${isReelsRoute ? 'pt-0 md:pt-16' : 'pt-16'}`}>
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -198,8 +202,14 @@ const DashboardWrapper = ({ children }) => {
           )}
 
           {/* Main Content Area — Scrollable center, shared by every page */}
-          <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
-            <div className={`px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto transition-all duration-500 ${isReelsRoute ? 'pb-4' : 'pb-40'}`}>
+          <main className={`${isReelsRoute ? 'h-dvh md:h-[calc(100vh-4rem)]' : 'h-[calc(100vh-4rem)]'} lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+            <div
+              className={
+                isReelsRoute
+                  ? 'w-full max-w-[1920px] mx-auto transition-all duration-500 px-0 py-0 md:px-4 md:py-8 lg:px-10 md:pb-4'
+                  : 'px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto transition-all duration-500 pb-40'
+              }
+            >
               {children}
             </div>
           </main>
