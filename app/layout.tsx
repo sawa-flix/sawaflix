@@ -81,9 +81,13 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    // Cache-busted the same way manifest.json is below — browsers (and this
+    // app's Serwist service worker in production) cache favicons very
+    // stickily, so just overwriting the file on disk isn't enough to make
+    // an already-visited browser pick up the new appIcon-based one.
+    icon: '/favicon.ico?v=2',
+    shortcut: '/favicon.ico?v=2',
+    apple: '/favicon.ico?v=2',
   },
   category: 'entertainment',
   manifest: '/manifest.json?v=2',

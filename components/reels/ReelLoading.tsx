@@ -1,11 +1,23 @@
+import Image from 'next/image';
+
 /**
  * Full-screen loading skeleton for the Reels feed, matching the visual
  * language of components/Dashboard/Skeletons.jsx (animate-pulse + white/5
- * blocks) rather than inventing a new loading style.
+ * blocks) rather than inventing a new loading style. The brand mark
+ * floats centered above the skeleton, using the same animate-pulse as the
+ * skeleton blocks below it rather than a separate spin/breathe animation.
  */
 export function ReelLoading() {
   return (
     <div className="relative flex h-full w-full items-center justify-center bg-[#0B0E14]">
+      <Image
+        src="/loader.png"
+        alt=""
+        width={289}
+        height={290}
+        className="absolute z-10 h-14 w-14 animate-pulse object-contain"
+        priority
+      />
       <div className="relative h-full w-full animate-pulse overflow-hidden bg-white/5 lg:h-[calc(100%-5rem)] lg:w-auto lg:aspect-[9/16] lg:rounded-[1.75rem]">
         <div className="absolute inset-x-4 bottom-24 space-y-3">
           <div className="h-3 w-1/3 rounded bg-white/10" />

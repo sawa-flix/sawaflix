@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, BellRing } from 'lucide-react';
+import Image from 'next/image';
+import { X, Bell } from 'lucide-react';
 
 export default function NotificationPrompt({ userId }: { userId?: string }) {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -162,7 +163,7 @@ export default function NotificationPrompt({ userId }: { userId?: string }) {
           
           <div className="flex items-start gap-4 pr-6">
             <div className="w-12 h-12 bg-[#222222] border border-[#333333] rounded-lg flex items-center justify-center shrink-0">
-              <BellRing size={22} className="text-white" />
+              <Image src="/loader.png" alt="" width={289} height={290} className="h-10 w-10 object-contain" />
             </div>
             <div className="flex flex-col pt-0.5">
               <h3 className="text-white font-medium text-base tracking-tight">Stay Updated</h3>
