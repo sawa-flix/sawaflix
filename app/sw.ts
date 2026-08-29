@@ -81,25 +81,40 @@ serwist.addEventListeners();
 
 self.addEventListener('push', function (event: PushEvent) {
   if (event.data) {
-    const data = event.data.json();
+    try {
+      const data = event.data.json();
 
-    const options = {
-      body: data.body,
-      icon: '/icons/icon-192x192.png', // Using the PWA logo as requested
-      data: { url: data.url },
-      vibrate: [200, 100, 200],
-    };
+      const options: NotificationOptions = {
+        body: data.body || data.message || 'New update on SawaFlix',
+        icon: data.icon || '/logos_and_pwas/android-chrome-192x192.png',
+        badge: '/logos_and_pwas/favicon-32x32.png',
+        image: data.image || data.thumbnail || undefined,
+        data: { url: data.url || '/dashboard' },
+        vibrate: [200, 100, 200],
+        tag: data.id || 'sawaflix-notification',
+      };
 
-    event.waitUntil(self.registration.showNotification(data.title, options));
+      event.waitUntil(self.registration.showNotification(data.title || 'SawaFlix', options));
+    } catch (e) {
+      console.error('Error handling push event:', e);
+    }
   }
 });
 
 self.addEventListener('notificationclick', function (event: NotificationEvent) {
   event.notification.close();
   
-  if (event.notification.data && event.notification.data.url) {
-    event.waitUntil(
-      self.clients.openWindow(event.notification.data.url)
-    );
-  }
+  const targetUrl = event.notification.data?.url || '/dashboard';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client && 'url' in client && client.url.includes(self.location.origin)) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

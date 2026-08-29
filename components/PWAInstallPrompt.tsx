@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Smartphone } from 'lucide-react';
+import { X, Download } from 'lucide-react';
+import Image from 'next/image';
 
 // Define the BeforeInstallPromptEvent type
 interface BeforeInstallPromptEvent extends Event {
@@ -34,7 +35,7 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if app is already installed (running in standalone mode, or
-    // launched from the iOS home screen — navigator.standalone is Safari's
+    // launched from an iOS home screen — navigator.standalone is Safari's
     // older but still-necessary signal for that case).
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -59,37 +60,26 @@ export default function PWAInstallPrompt() {
       return;
     }
 
-    // Check if the prompt was already caught globally by the script in layout.tsx
+    // Do not wait for the browser's install event to appear. Some browsers
+    // never fire `beforeinstallprompt`, but the app still benefits from a
+    // clear, branded install CTA when it is otherwise eligible.
     const globalPrompt = (window as any).deferredPrompt;
     if (globalPrompt) {
       setDeferredPrompt(globalPrompt);
-      setTimeout(() => setShowPrompt(true), 1500);
     }
 
-    // Listen for the native install prompt event in case it fires after mount
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show our custom prompt
-      setTimeout(() => setShowPrompt(true), 1500);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Fallback: if beforeinstallprompt never fires (dev mode, or already
-    // eligible but event consumed), show the prompt after a short delay
-    // so users can still see the install experience.
-    const fallbackTimer = setTimeout(() => {
-      setShowPrompt((current) => {
-        // Only show if not already shown by beforeinstallprompt
-        if (!current) return true;
-        return current;
-      });
-    }, 2500);
+    const showTimer = setTimeout(() => setShowPrompt(true), 1500);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      clearTimeout(fallbackTimer);
+      clearTimeout(showTimer);
     };
   }, []);
 
@@ -106,7 +96,7 @@ export default function PWAInstallPrompt() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // We have the native prompt — trigger it
+      // We have the native prompt — trigger it.
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       setDeferredPrompt(null);
@@ -117,19 +107,14 @@ export default function PWAInstallPrompt() {
       } else {
         recordDismissal();
       }
-    } else {
-      // If we don't have the prompt, show a sleeker in-app instruction instead of an alert
-      // or simply focus the user on the browser's install icon
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      const isIOS = /iphone|ipad|ipod/.test(userAgent);
-      
-      if (isIOS) {
-        alert('To install: tap the Share icon at the bottom, then "Add to Home Screen"');
-      } else {
-        alert('To install on Desktop: Look for the Install icon (usually a monitor with a down-arrow or a + sign) on the right side of your address bar, then click "Install".');
-        setShowPrompt(false);
-      }
+      return;
     }
+
+    // If the browser does not expose a native install event, keep the experience
+    // self-contained and quietly close the prompt rather than forcing a system
+    // alert popup that users often ignore.
+    setShowPrompt(false);
+    recordDismissal();
   };
 
   const handleDismiss = () => {
@@ -148,7 +133,7 @@ export default function PWAInstallPrompt() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-6 right-6 z-[9999] w-[340px] max-w-[calc(100vw-3rem)] rounded-xl bg-[#111111] border border-[#222222] shadow-2xl p-5 flex flex-col gap-4 overflow-hidden"
+          className="fixed bottom-5 right-5 z-[9999] w-[320px] max-w-[calc(100vw-2rem)] rounded-lg bg-[#11151c]/95 border border-white/10 shadow-2xl p-4 flex flex-col gap-3 overflow-hidden backdrop-blur-xl"
         >
           <button 
             onClick={handleDismiss}
@@ -158,27 +143,34 @@ export default function PWAInstallPrompt() {
             <X size={16} />
           </button>
           
-          <div className="flex items-start gap-4 pr-6">
-            <div className="w-12 h-12 bg-[#b80000] rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-              <Smartphone size={22} className="text-white" />
+          <div className="flex items-start gap-3 pr-5">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1E2330] to-[#0E121A] border border-white/15 flex items-center justify-center shrink-0 shadow-lg p-1.5 overflow-hidden">
+              <Image 
+                src="/logos_and_pwas/android-chrome-192x192.png" 
+                alt="SawaFlix App" 
+                width={192} 
+                height={192} 
+                className="h-full w-full object-contain drop-shadow" 
+                priority
+              />
             </div>
             <div className="flex flex-col pt-0.5">
-              <h3 className="text-white font-medium text-base tracking-tight">Get the Sawaflix App</h3>
-              <p className="text-[#888888] text-sm mt-1 leading-snug">Install for zero load times and an offline experience.</p>
+              <h3 className="text-white font-bold text-sm tracking-tight">Install SawaFlix App</h3>
+              <p className="text-zinc-400 text-xs mt-1 leading-snug">Add to your home screen for smooth playback and offline culture.</p>
             </div>
           </div>
           
-          <div className="flex gap-3 mt-1">
+          <div className="flex gap-2.5 mt-1">
             <button
               onClick={handleInstallClick}
-              className="flex-1 bg-[#b80000] hover:bg-[#a00000] text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 bg-[#CE1126] hover:bg-[#b00e1f] text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#CE1126]/30 active:scale-95"
             >
-              <Download size={16} />
-              Install
+              <Download size={15} />
+              Install App
             </button>
             <button
               onClick={handleDismiss}
-              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors cursor-pointer"
+              className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white font-medium py-2.5 px-3 rounded-xl text-xs transition-all cursor-pointer border border-white/10 active:scale-95"
             >
               Maybe Later
             </button>

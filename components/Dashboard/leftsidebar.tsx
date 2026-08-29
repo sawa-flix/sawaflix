@@ -117,7 +117,7 @@ export default function LeftSidebar({
 
   const topItems = [
     { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
-    { name: 'Reels', icon: Clapperboard, id: 'reels', route: '/dashboard/reels', badge: null },
+    { name: 'Reels', icon: Clapperboard, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'reels', route: '/dashboard/reels', badge: null },
   ];
 
   const exploreItems = [
@@ -191,8 +191,8 @@ export default function LeftSidebar({
       >
         <div className="flex items-center space-x-4">
           {item.imageUrl ? (
-            <div className="w-5 h-5 rounded-full overflow-hidden relative shrink-0">
-              <Image src={item.imageUrl} alt="Profile" fill className="object-cover" unoptimized />
+            <div className={`relative shrink-0 ${item.id === 'reels' ? 'h-6 w-6' : 'h-5 w-5 rounded-full overflow-hidden'}`}>
+              <Image src={item.imageUrl} alt={item.id === 'reels' ? '' : 'Profile'} fill className={item.id === 'reels' ? 'object-contain' : 'object-cover'} unoptimized />
             </div>
           ) : (
             Icon && <Icon

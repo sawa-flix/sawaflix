@@ -11,7 +11,7 @@ export interface NotificationItemData {
   title: string;
   message: string;
   read: boolean;
-  timestamp: Date | string;
+  timestamp: Date | string | number;
   thumbnail?: string;
   contentId?: string;
 }
@@ -99,12 +99,12 @@ const NotificationPanel = ({
               <div className="flex items-center gap-3 w-full">
                 <div className="relative shrink-0">
                   {n.thumbnail ? (
-                    <div className="w-10 h-10 bg-[#161B22]/80 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 group-hover:border-white/20 transition-all shadow-md">
+                    <div className="w-10 h-10 bg-[#161B22]/80 backdrop-blur-md rounded-xl overflow-hidden border border-white/10 group-hover:border-white/25 transition-all shadow-md relative shrink-0">
                       <Image src={n.thumbnail} alt="" fill className="object-cover" unoptimized />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/5 shadow-md bg-[#161B22]/80 backdrop-blur-md relative">
-                      <Image src="/icons/icon-192x192.png" alt="SawaFlix" fill className="object-cover" unoptimized />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 shadow-md bg-gradient-to-br from-[#1E2330] to-[#0E121A] flex items-center justify-center relative shrink-0">
+                      <Image src="/logos_and_pwas/android-chrome-192x192.png" alt="SawaFlix" fill className="object-contain p-1.5 drop-shadow" unoptimized />
                     </div>
                   )}
                   {!n.read && (

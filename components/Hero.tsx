@@ -57,7 +57,7 @@ export default function Hero() {
           <div className="flex flex-col items-center pt-4 md:pt-6">
             <Link
               href="/dashboard"
-              className="group flex items-center justify-center gap-2 w-full md:w-auto md:px-10 py-3 md:py-3.5 bg-red-600 text-white rounded-lg font-black text-sm md:text-base transition-all active:scale-[0.97] shadow-xl shadow-red-600/20 hover:bg-red-700"
+              className="group flex items-center justify-center gap-2 w-full md:w-auto md:px-10 py-3 md:py-3.5 border border-white/40 bg-white/15 text-white rounded-lg font-black text-sm md:text-base transition-all active:scale-[0.97] shadow-xl shadow-black/20 hover:bg-white/25"
             >
               Get Started
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />

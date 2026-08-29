@@ -1,7 +1,9 @@
+import BrandLoader from '../../components/BrandLoader';
+
 export default function Loading() {
   return (
-    <div style={{ height: "100vh", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0B0E14" }}>
-      <div style={{ color: "white", fontFamily: "sans-serif" }}>Loading Studio...</div>
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#0B0E14]">
+      <BrandLoader label="Loading Studio" />
     </div>
   );
 }

@@ -23,16 +23,15 @@ interface NotificationItemProps {
 const getIcon = (type: NotificationType) => {
   switch (type) {
     case 'like': return <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />;
-    case 'comment': return <MessageCircle className="w-3.5 h-3.5 text-white fill-white/20" />;
-    case 'follow': return <UserPlus className="w-3.5 h-3.5 text-green-500" />;
-    case 'reel_interaction': return <Video className="w-3.5 h-3.5 text-purple-500" />;
-    case 'music_interaction': return <Music className="w-3.5 h-3.5 text-pink-500" />;
-    case 'mention': return <AtSign className="w-3.5 h-3.5 text-yellow-500" />;
-    default: return <Info className="w-3.5 h-3.5 text-white" />;
+    case 'comment': return <MessageCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400/20" />;
+    case 'follow': return <UserPlus className="w-3.5 h-3.5 text-emerald-400" />;
+    case 'reel_interaction': return <Video className="w-3.5 h-3.5 text-purple-400" />;
+    case 'music_interaction': return <Music className="w-3.5 h-3.5 text-pink-400" />;
+    case 'mention': return <AtSign className="w-3.5 h-3.5 text-amber-400" />;
+    case 'new_post': return <Video className="w-3.5 h-3.5 text-red-400" />;
+    default: return <Info className="w-3.5 h-3.5 text-zinc-300" />;
   }
 };
-
-import { useRouter } from 'next/navigation';
 
 export const NotificationItem: React.FC<NotificationItemProps> = ({ 
   notification, 
@@ -56,27 +55,29 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     >
       {/* Indicator for Unread */}
       {!notification.read && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#CE1126] shadow-[0_0_10px_rgba(206,17,38,0.5)]" />
       )}
 
-      {/* Actor Image / Icon */}
+      {/* Actor Image / SawaFlix Logo */}
       <div className="relative flex-shrink-0">
         <div className="relative">
           {notification.actorImage ? (
             <img 
               src={notification.actorImage} 
-              alt={notification.actorName} 
-              className="w-12 h-12 rounded-full object-cover ring-2 ring-white/5 shadow-xl group-hover:ring-white/30 transition-all duration-300"
+              alt={notification.actorName || 'User'} 
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-white/10 shadow-xl group-hover:ring-[#CE1126]/50 transition-all duration-300"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center ring-2 ring-white/5 group-hover:ring-white/30 transition-all duration-300">
-              {getIcon(notification.type)}
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1E2330] to-[#0E121A] p-2 flex items-center justify-center ring-2 ring-white/10 group-hover:ring-[#CE1126]/50 transition-all duration-300 shadow-xl">
+              <img 
+                src="/logos_and_pwas/android-chrome-192x192.png" 
+                alt="SawaFlix" 
+                className="w-full h-full object-contain drop-shadow"
+              />
             </div>
           )}
-          <div className="absolute -bottom-0.5 -right-0.5 p-1.5 bg-[#0B0E14] rounded-full ring-1 ring-white/10 shadow-2xl group-hover:scale-110 transition-transform duration-300">
-            <div className="scale-75 origin-center">
-              {getIcon(notification.type)}
-            </div>
+          <div className="absolute -bottom-1 -right-1 p-1 bg-[#0B0E14] rounded-full ring-1 ring-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+            {getIcon(notification.type)}
           </div>
         </div>
       </div>

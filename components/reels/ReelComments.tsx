@@ -109,7 +109,7 @@ export function ReelComments({ isOpen, isDesktop, comments, loading, error, onCl
             type="submit"
             disabled={!text.trim()}
             aria-label="Send comment"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-600 text-white disabled:opacity-30"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white text-[#0B0E14] transition-colors hover:bg-white/85 disabled:opacity-30"
           >
             <Send size={16} />
           </button>

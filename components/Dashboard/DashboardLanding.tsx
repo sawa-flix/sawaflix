@@ -197,7 +197,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
                 : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
             }`}
           >
@@ -219,7 +219,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
                 : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
             }`}
           >
@@ -272,7 +272,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 relative">
-                  <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
+                  <Image src="/logos_and_pwas/loaderLogo.png" alt="" fill sizes="24px" className="object-contain" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                   {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}

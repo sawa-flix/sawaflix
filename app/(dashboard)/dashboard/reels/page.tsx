@@ -4,7 +4,7 @@ import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils
 import { ReelsFeed } from '@/components/reels/ReelsFeed';
 
 interface ReelsPageProps {
-  searchParams: Promise<{ id?: string }>;
+  searchParams?: { id?: string };
 }
 
 /**
@@ -14,7 +14,7 @@ interface ReelsPageProps {
  * 1 is owned by useReels inside ReelsFeed.
  */
 export default async function ReelsPage({ searchParams }: ReelsPageProps) {
-  const { id: initialVideoId } = await searchParams;
+  const { id: initialVideoId } = searchParams ?? {};
 
   let videos: Video[] = [];
   let hasMore = false;

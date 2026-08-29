@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { BACKEND_URL } from '@/lib/apiConfig';
 import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
 import PendingState from '@/components/Dashboard/PendingState';
-import { Loader2 } from 'lucide-react';
+import BrandLoader from '@/components/BrandLoader';
 import { createClient } from '@/utils/supabase/client';
 
 export default function CreatorPendingPage() {
@@ -40,7 +40,7 @@ export default function CreatorPendingPage() {
         return (
             <DashboardWrapper>
                 <div className="flex items-center justify-center min-h-[60vh]">
-                    <Loader2 className="w-10 h-10 text-red-600 animate-spin" />
+                    <BrandLoader label="Loading profile" className="min-h-0" />
                 </div>
             </DashboardWrapper>
         );

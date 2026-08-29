@@ -5,11 +5,11 @@ const SawaflixLogo = ({ className = "" }) => {
     return (
         <div className={`flex items-center group transition-all ${className}`}>
             <Image
-                src="/sawalogo.png"
+                src="/logos_and_pwas/headerLogo..png"
                 alt="SawaFlix Logo"
-                width={500}
-                height={150}
-                className="w-auto h-10 sm:h-[72px] object-contain object-left group-hover:scale-105 transition-transform duration-300"
+                width={980}
+                height={228}
+                className="w-auto h-8 sm:h-10 rounded-md object-contain object-left group-hover:scale-105 transition-transform duration-300"
                 priority
             />
         </div>

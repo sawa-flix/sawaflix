@@ -81,21 +81,37 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: [
+      { url: '/logos_and_pwas/favicon.ico' },
+      { url: '/logos_and_pwas/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logos_and_pwas/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/logos_and_pwas/favicon.ico',
+    apple: [
+      { url: '/logos_and_pwas/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+    ],
   },
   category: 'entertainment',
-  manifest: '/manifest.json?v=2',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'Sawaflix',
+    statusBarStyle: 'black-translucent',
+    title: 'SawaFlix',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#CE1126',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#0B0E14' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B0E14' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -108,6 +124,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logos_and_pwas/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <script dangerouslySetInnerHTML={{
           __html: `
             window.deferredPrompt = null;

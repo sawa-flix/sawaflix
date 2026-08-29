@@ -16,6 +16,7 @@ import {
   RefreshCcw,
   ChevronLeft
 } from 'lucide-react';
+import BrandLoader from '@/components/BrandLoader';
 
 
 const RESEND_TIMER_SECONDS = 60; // 1 Minute to resend
@@ -357,7 +358,7 @@ const VerifyOtpPageContent = () => {
 
 export default function VerifyOtpPage() {
   return (
-    <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center text-white">Loading...</div>}>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-black"><BrandLoader /></div>}>
       <VerifyOtpPageContent />
     </Suspense>
   );

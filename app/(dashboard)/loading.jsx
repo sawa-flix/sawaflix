@@ -1,10 +1,10 @@
 import DashboardWrapper from "../../components/Dashboard/DashboardWrapper";
-import { FeedSkeleton } from "../../components/Dashboard/Skeletons";
+import BrandLoader from "../../components/BrandLoader";
 
 export default function Loading() {
   return (
     <DashboardWrapper>
-      <FeedSkeleton />
+      <BrandLoader label="Entering Sawaflix" className="min-h-[60vh]" />
     </DashboardWrapper>
   );
 }
