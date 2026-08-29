@@ -133,46 +133,48 @@ export default function PWAInstallPrompt() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-5 right-5 z-[9999] w-[320px] max-w-[calc(100vw-2rem)] rounded-lg bg-[#11151c]/95 border border-white/10 shadow-2xl p-4 flex flex-col gap-3 overflow-hidden backdrop-blur-xl"
+          className="fixed bottom-5 right-5 z-[9999] w-[340px] max-w-[calc(100vw-2rem)] rounded-md bg-[#11151c]/95 border border-white/10 shadow-2xl p-5 flex flex-col gap-4 overflow-hidden backdrop-blur-xl"
         >
           <button 
             onClick={handleDismiss}
-            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors cursor-pointer"
+            className="absolute top-3.5 right-3.5 text-zinc-500 hover:text-white transition-colors cursor-pointer"
             aria-label="Dismiss"
           >
             <X size={16} />
           </button>
           
-          <div className="flex items-start gap-3 pr-5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1E2330] to-[#0E121A] border border-white/15 flex items-center justify-center shrink-0 shadow-lg p-1.5 overflow-hidden">
+          <div className="flex items-center gap-3.5 pr-5">
+            <div className="w-12 h-12 rounded-md bg-[#0B0E14] border border-white/10 flex items-center justify-center shrink-0 shadow-md p-1.5 overflow-hidden">
               <Image 
                 src="/logos_and_pwas/android-chrome-192x192.png" 
                 alt="SawaFlix App" 
                 width={192} 
                 height={192} 
-                className="h-full w-full object-contain drop-shadow" 
+                className="h-full w-full object-contain" 
                 priority
               />
             </div>
-            <div className="flex flex-col pt-0.5">
-              <h3 className="text-white font-bold text-sm tracking-tight">Install SawaFlix App</h3>
-              <p className="text-zinc-400 text-xs mt-1 leading-snug">Add to your home screen for smooth playback and offline culture.</p>
+            <div className="flex flex-col">
+              <h3 className="text-white font-semibold text-[13px] tracking-tight">Install SawaFlix App</h3>
+              <p className="text-zinc-400 text-[11px] mt-0.5 leading-snug">Add to your home screen for smooth playback and offline culture.</p>
             </div>
           </div>
+
+          <div className="h-px bg-white/5" />
           
-          <div className="flex gap-2.5 mt-1">
-            <button
-              onClick={handleInstallClick}
-              className="flex-1 bg-[#CE1126] hover:bg-[#b00e1f] text-white font-bold py-2.5 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#CE1126]/30 active:scale-95"
-            >
-              <Download size={15} />
-              Install App
-            </button>
+          <div className="flex gap-3 justify-end">
             <button
               onClick={handleDismiss}
-              className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white font-medium py-2.5 px-3 rounded-xl text-xs transition-all cursor-pointer border border-white/10 active:scale-95"
+              className="px-5 py-2 bg-white/10 hover:bg-white/15 text-zinc-200 hover:text-white font-medium text-xs rounded-md transition-all cursor-pointer active:scale-[0.97]"
             >
               Maybe Later
+            </button>
+            <button
+              onClick={handleInstallClick}
+              className="px-5 py-2 bg-white hover:bg-zinc-100 text-[#0B0E14] font-bold text-xs rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.97] shadow-sm"
+            >
+              <Download size={13} />
+              Install
             </button>
           </div>
         </motion.div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck, Volume2, VolumeX } from 'lucide-react';
+import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck, Volume2, VolumeX, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -371,9 +371,11 @@ const Header = ({
           ) : (
             <button
               onClick={() => openAuthModal('to create your account')}
-              className="px-4 py-2 rounded-xl bg-[#CE1126] text-white text-sm font-bold hover:bg-red-700 transition-all cursor-pointer"
+              aria-label="Sign up"
+              className="flex items-center justify-center rounded-xl bg-[#CE1126] text-white shadow-sm transition-all duration-200 hover:bg-red-700 cursor-pointer sm:bg-white sm:text-[#CE1126] sm:hover:bg-gray-100 sm:border sm:border-[#CE1126]/20 sm:px-4 sm:py-2.5 sm:shadow-md"
             >
-              Sign Up
+              <UserPlus size={18} className="sm:mr-2" />
+              <span className="hidden sm:inline text-sm font-bold">Sign Up</span>
             </button>
           )}
         </div>

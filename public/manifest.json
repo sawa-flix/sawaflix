@@ -11,6 +11,16 @@
   "categories": ["entertainment", "music", "video"],
   "icons": [
     {
+      "src": "/logos_and_pwas/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/logos_and_pwas/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
       "src": "/icons/icon-48x48.png",
       "sizes": "48x48",
       "type": "image/png"
@@ -41,7 +51,7 @@
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/logos_and_pwas/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
@@ -63,7 +73,7 @@
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/logos_and_pwas/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -79,17 +89,17 @@
     {
       "name": "Dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/logos_and_pwas/favicon-32x32.png", "sizes": "32x32" }]
     },
     {
       "name": "Reels",
       "url": "/dashboard/reels",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/logos_and_pwas/favicon-32x32.png", "sizes": "32x32" }]
     },
     {
       "name": "Music",
       "url": "/dashboard/music",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/logos_and_pwas/favicon-32x32.png", "sizes": "32x32" }]
     }
   ]
 }
