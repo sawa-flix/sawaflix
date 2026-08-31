@@ -35,15 +35,16 @@ export const NotificationDropdown: React.FC = () => {
         <NotificationPanel 
           title="Notifications"
           subtitle={`${unreadCount} new updates`}
-          notifications={notifications.slice(0, 5).map(n => ({
+          notifications={notifications.slice(0, 15).map(n => ({
             id: n.id,
             type: n.type,
             title: n.title,
             message: n.message,
             read: n.read,
-            timestamp: n.createdAt,
-            thumbnail: n.thumbnail,
-            contentId: n.contentId
+            timestamp: (n as any).createdAt || (n as any).timestamp,
+            thumbnail: (n as any).thumbnail,
+            contentId: (n as any).contentId,
+            category: (n as any).category
           }))}
           unreadCount={unreadCount}
           onMarkAllRead={markAllRead}
@@ -59,7 +60,7 @@ export const NotificationDropdown: React.FC = () => {
             }
             setIsOpen(false);
           }}
-          accentColor="blue"
+          accentColor="red"
           viewAllHref="/dashboard/notification"
         />
       </div>

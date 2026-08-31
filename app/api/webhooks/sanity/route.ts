@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma/prisma';
 import { Client } from '@upstash/qstash';
+import { notificationService } from '@/services/notificationService';
 
 const qstash = new Client({ token: process.env.QSTASH_TOKEN || 'dummy_token' });
 
@@ -13,7 +14,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ ignored: true });
     }
 
-    // 1. Fetch all subscribers from Neon
+    const storySlug = body.slug?.current || body._id || '';
+
+    // 1. Broadcast in-app notification to all users in Supabase
+    try {
+      await notificationService.broadcastNotification({
+        title: `New Story: ${body.title || 'Untitled Story'}`,
+        message: body.excerpt || 'Read the latest story on Sawaflix!',
+        type: 'story',
+        contentType: 'story',
+        category: 'story',
+        contentId: storySlug,
+        actorName: 'SawaFlix Editorial',
+      });
+    } catch (notifErr) {
+      console.warn("Failed to broadcast in-app notification for Sanity story:", notifErr);
+    }
+
+    // 2. Fetch all subscribers from Neon
     const subscribers = await prisma.pushSubscription.findMany();
     
     if (subscribers.length === 0) {

@@ -54,7 +54,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     else if (category === 'news' || message.includes('news') || title.includes('news')) targetCat = 'news';
 
     // Navigation logic
-    if (contentType === 'reel' || contentType === 'video' || contentId.length === 11) {
+    if (contentType === 'blog' || contentType === 'story' || notification.type === 'blog' || notification.type === 'story' || (notification.type === 'new_post' && (category === 'blog' || category === 'story' || message.includes('blog') || message.includes('story') || title.includes('blog') || title.includes('story')))) {
+      if (contentId.startsWith('http://') || contentId.startsWith('https://')) {
+        window.open(contentId, '_blank');
+      } else {
+        router.push(`/dashboard/blogs/${contentId}`);
+      }
+    } else if (contentType === 'reel' || contentType === 'video' || contentId.length === 11) {
       router.push(`/video/${contentId}?cat=${targetCat}`);
     } else if (contentType === 'music') {
       router.push(`/dashboard/musicpage?id=${contentId}`);
@@ -62,7 +68,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       router.push(`/dashboard/profile?id=${(notification as any).actorId || contentId}`);
     } else {
       // Fallback
-      router.push(`/video/${contentId}?cat=${targetCat}`);
+      if (contentId.startsWith('http://') || contentId.startsWith('https://')) {
+        window.open(contentId, '_blank');
+      } else {
+        router.push(`/video/${contentId}?cat=${targetCat}`);
+      }
     }
   };
 

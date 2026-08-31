@@ -160,6 +160,68 @@ export const notificationService = {
       console.error("Error deleting notification:", error);
       throw error;
     }
+  },
+
+  /**
+   * Broadcast a notification to all registered users (e.g. for new blog posts, announcements)
+   */
+  async broadcastNotification(notificationData: {
+    title: string;
+    message: string;
+    type?: NotificationType;
+    contentId?: string;
+    contentType?: 'video' | 'reel' | 'music' | 'user' | 'blog' | 'story';
+    category?: string;
+    thumbnail?: string;
+    actorId?: string;
+    actorName?: string;
+    actorImage?: string;
+  }): Promise<number> {
+    try {
+      const supabase = await createAdminClient();
+      
+      // Fetch all users
+      const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select("id");
+        
+      if (usersError || !users || users.length === 0) {
+        console.warn("No users found or error fetching users for broadcast:", usersError);
+        return 0;
+      }
+
+      const rows = users.map((u) => ({
+        user_id: u.id,
+        actor_id: notificationData.actorId || null,
+        type: notificationData.type || 'new_post',
+        title: notificationData.title,
+        message: notificationData.message,
+        is_read: false,
+        data: {
+          actorName: notificationData.actorName || 'SawaFlix Editorial',
+          actorImage: notificationData.actorImage || null,
+          contentId: notificationData.contentId,
+          contentType: notificationData.contentType || 'blog',
+          category: notificationData.category || 'blog',
+          thumbnail: notificationData.thumbnail || null,
+        }
+      }));
+
+      // Batch insert into notifications table
+      const { error: insertError } = await supabase
+        .from("notifications")
+        .insert(rows);
+
+      if (insertError) {
+        console.error("Error broadcasting notification:", insertError);
+        throw insertError;
+      }
+
+      return rows.length;
+    } catch (err) {
+      console.error("Failed to broadcast notification:", err);
+      return 0;
+    }
   }
 };
 

@@ -6,6 +6,8 @@ export type NotificationType =
   | 'music_interaction' 
   | 'mention' 
   | 'new_post'
+  | 'blog'
+  | 'story'
   | 'system';
 
 export interface Notification {
@@ -17,8 +19,8 @@ export interface Notification {
   type: NotificationType;
   title: string;
   message: string;
-  contentId?: string; // ID of the related content (post, reel, etc.)
-  contentType?: 'video' | 'reel' | 'music' | 'user';
+  contentId?: string; // ID or slug of the related content (post, reel, blog, etc.)
+  contentType?: 'video' | 'reel' | 'music' | 'user' | 'blog' | 'story';
   category?: string;
   thumbnail?: string;
   read: boolean;
@@ -34,7 +36,7 @@ export interface NotificationPayload {
   title: string;
   message: string;
   contentId?: string;
-  contentType?: 'video' | 'reel' | 'music' | 'user';
+  contentType?: 'video' | 'reel' | 'music' | 'user' | 'blog' | 'story';
   category?: string;
   thumbnail?: string;
 }

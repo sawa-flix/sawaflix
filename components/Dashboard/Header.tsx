@@ -1,7 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck, Volume2, VolumeX, UserPlus } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  Search, 
+  Bell, 
+  User, 
+  Settings, 
+  ChevronDown, 
+  ChevronRight, 
+  ArrowLeft, 
+  CheckCheck, 
+  Volume2, 
+  VolumeX, 
+  UserPlus, 
+  LogOut, 
+  Sparkles, 
+  Bookmark, 
+  Edit3, 
+  BookOpen, 
+  HelpCircle, 
+  ShieldCheck 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -320,53 +341,197 @@ const Header = ({
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-3 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
                 aria-label="User profile menu"
               >
                 {userProfile?.profile_image_url ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-sm flex-shrink-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-red-500/40 shadow-md flex-shrink-0 group-hover:ring-red-500/70 transition-all">
                     <Image
                       src={userProfile.profile_image_url}
                       alt="User Avatar"
                       fill
-                      className="object-cover aspect-square"
+                      className="object-cover"
                       unoptimized
                     />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700 shadow-sm flex-shrink-0">
-                    <User size={14} className="text-gray-400" />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/10 shadow-md flex-shrink-0">
+                    {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
-                <span className="hidden sm:block text-sm font-medium">
-                  {userProfile?.username || currentUser?.email}
-                </span>
-                <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <div className="hidden sm:flex flex-col text-left">
+                  <span className="text-xs font-semibold text-white group-hover:text-red-400 transition-colors leading-none truncate max-w-[110px]">
+                    {userProfile?.username || currentUser?.email?.split('@')[0]}
+                  </span>
+                  <span className="text-[9px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
+                    Account
+                  </span>
+                </div>
+                <ChevronDown size={14} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-700">
-                    <p className="text-sm font-medium text-white">{userProfile?.username}</p>
-                    <p className="text-xs text-gray-400">{currentUser?.email || 'N/A'}</p>
-                  </div>
-                  <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-zinc-300 hover:bg-gray-700 hover:text-white transition-colors">
-                    Update Profile
-                  </Link>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                    Help & Support
-                  </a>
-                  <hr className="my-2 border-gray-700" />
-                  <form action={handleSignOut}>
-                    <button
-                      type="submit"
-                      className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
-                </div>
-              )}
+              <AnimatePresence>
+                {showProfileMenu && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden"
+                  >
+                    {/* Top User Card Header */}
+                    <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
+                      {userProfile?.profile_image_url ? (
+                        <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-red-500/50 shadow-md flex-shrink-0">
+                          <Image
+                            src={userProfile.profile_image_url}
+                            alt="Avatar"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
+                          {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white truncate leading-tight">
+                            {userProfile?.username || currentUser?.email?.split('@')[0]}
+                          </p>
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
+                        </div>
+                        <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
+                          {currentUser?.email || 'Logged in user'}
+                        </p>
+                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-red-500/20 border border-red-500/40 rounded-md text-[10px] font-extrabold text-red-300 tracking-wider uppercase shadow-sm">
+                          <span>Community Member</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="space-y-0.5 py-1">
+                      <Link 
+                        href="/dashboard/profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                            <User size={15} />
+                          </div>
+                          <span>My Profile</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/edit-profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                            <Edit3 size={15} />
+                          </div>
+                          <span>Edit Profile</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/favorites" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                            <Bookmark size={15} />
+                          </div>
+                          <span>Saved & Favorites</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/blogs" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-rose-400 group-hover:bg-rose-500/10 transition-colors">
+                            <BookOpen size={15} />
+                          </div>
+                          <span>Stories & Dev.to Blogs</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/creator-dashboard" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-amber-400 group-hover:bg-amber-500/10 transition-colors">
+                            <Video size={15} />
+                          </div>
+                          <span>Creator Studio</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <div className="my-1.5 border-t border-white/[0.06]" />
+
+                      <Link 
+                        href="/dashboard/settings" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <Settings size={15} />
+                          </div>
+                          <span>Settings</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/support" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <HelpCircle size={15} />
+                          </div>
+                          <span>Help & Support</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+                    </div>
+
+                    {/* Sign Out Button */}
+                    <div className="mt-1 pt-1.5 border-t border-white/[0.06]">
+                      <form action={handleSignOut}>
+                        <button
+                          type="submit"
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer"
+                        >
+                          <div className="p-1.5 rounded-lg bg-red-500/15 text-red-400">
+                            <LogOut size={15} />
+                          </div>
+                          <span className="font-bold text-red-400">Sign Out</span>
+                        </button>
+                      </form>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <button
