@@ -99,16 +99,13 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'sawaFlix',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
-    { media: '(prefers-color-scheme: dark)', color: '#0B0E14' },
-  ],
+  themeColor: '#FFFFFF',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -127,8 +124,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://i.ibb.co" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logos_and_pwas/apple-touch-icon.png" />
+        <meta name="theme-color" content="#FFFFFF" />
+        <meta name="background-color" content="#FFFFFF" />
+        <meta name="msapplication-navbutton-color" content="#FFFFFF" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <script dangerouslySetInnerHTML={{
           __html: `
             window.deferredPrompt = null;
@@ -140,7 +140,56 @@ export default function RootLayout({
         }} />
       </head>
       <body suppressHydrationWarning>
+        {/* Instant Native PWA White Splash Screen with dark "sawaFlix" label */}
+        <div id="pwa-native-splash" style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#FFFFFF',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          transition: 'opacity 0.4s ease-out, visibility 0.4s ease-out',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '90px',
+              height: '90px',
+              borderRadius: '22px',
+              backgroundColor: '#FFFFFF',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+              border: '1px solid #f4f4f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px',
+              overflow: 'hidden'
+            }}>
+              <img src="/logos_and_pwas/android-chrome-192x192.png" alt="sawaFlix" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textAlign: 'center' }}>
+              <span style={{ fontSize: '28px', fontWeight: 900, color: '#0B0E14', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                sawaFlix
+              </span>
+              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.25em' }}>
+                Authentic Culture &amp; Entertainment
+              </span>
+            </div>
+            <div style={{ width: '96px', height: '3px', backgroundColor: '#f4f4f5', borderRadius: '9999px', overflow: 'hidden', marginTop: '8px' }}>
+              <div style={{ width: '50%', height: '100%', backgroundColor: '#0B0E14', borderRadius: '9999px', animation: 'pwaSplashPulse 1.2s infinite ease-in-out' }} />
+            </div>
+          </div>
+        </div>
+
         <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pwaSplashPulse {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
           #nprogress .bar {
             background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
           }
@@ -148,7 +197,33 @@ export default function RootLayout({
             box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
           }
         `}} />
-        <PWASplashScreen />
+
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              function hideSplash() {
+                var splash = document.getElementById('pwa-native-splash');
+                if (splash) {
+                  splash.style.opacity = '0';
+                  splash.style.pointerEvents = 'none';
+                  setTimeout(function() {
+                    if (splash && splash.parentNode) {
+                      splash.parentNode.removeChild(splash);
+                    }
+                  }, 450);
+                }
+              }
+              if (document.readyState === 'complete') {
+                setTimeout(hideSplash, 600);
+              } else {
+                window.addEventListener('load', function() {
+                  setTimeout(hideSplash, 600);
+                });
+              }
+            })();
+          `
+        }} />
+
         <NextTopLoader color="transparent" showSpinner={false} />
         <GoogleAuthProvider>
           <AdminNotificationProvider>
