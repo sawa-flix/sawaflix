@@ -292,17 +292,17 @@ function EditProfileForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 px-6 py-3 bg-[#CE1126] rounded-lg text-white font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-1 px-6 py-3 bg-white hover:bg-zinc-100 rounded-xl text-[#0E121A] font-bold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-95"
         >
           {isLoading ? (
             <>
-              <Loader2 size={18} className="animate-spin" />
-              Saving...
+              <Loader2 size={18} className="animate-spin text-zinc-700" />
+              <span>Saving...</span>
             </>
           ) : (
             <>
               <Save size={18} />
-              Save Changes
+              <span>Save Changes</span>
             </>
           )}
         </button>

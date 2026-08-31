@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, Loader2, Save, X } from 'lucide-react';
 import type { ProfileData } from '@/types/profile';
 
 export interface ProfileEditableFields {
@@ -30,26 +30,18 @@ const SOCIAL_FIELDS: Array<{ key: string; label: string; placeholder: string }> 
   { key: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/@you' },
 ];
 
-/**
- * Single source of truth for profile editing, replacing the two
- * previously-colliding EditProfileForm.tsx/.jsx files. Used by both
- * /dashboard/edit-profile and the /creator/[username] "Customize Channel"
- * flow. Avatar/cover uploads persist immediately via /api/creator/upload
- * (which writes profile_image_url/cover_image_url directly) — the rest of
- * the fields persist only when "Save" is pressed.
- */
 export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormProps) {
   const [fields, setFields] = useState<ProfileEditableFields>({
-    username: profile.username,
+    username: profile.username || '',
     bio: profile.bio ?? '',
     phone: profile.phone ?? '',
     region: profile.region ?? '',
     village: profile.village ?? '',
-    languagePreference: profile.languagePreference ?? '',
-    favoredGenres: profile.favoredGenres,
+    languagePreference: profile.languagePreference ?? 'English',
+    favoredGenres: profile.favoredGenres || [],
     socialLinks: profile.socialLinks ?? {},
   });
-  const [genresInput, setGenresInput] = useState(profile.favoredGenres.join(', '));
+  const [genresInput, setGenresInput] = useState((profile.favoredGenres || []).join(', '));
   const [avatarUrl, setAvatarUrl] = useState(profile.profileImageUrl);
   const [coverUrl, setCoverUrl] = useState(profile.coverImageUrl);
   const [uploading, setUploading] = useState<'profile_image' | 'cover_image' | null>(null);
@@ -57,6 +49,8 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
   const [error, setError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const initial = (fields.username || 'U').trim().charAt(0).toUpperCase() || 'U';
 
   const handleUpload = async (file: File, category: 'profile_image' | 'cover_image') => {
     setUploading(category);
@@ -99,19 +93,36 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
-        <div className="rounded-lg border border-red-600/30 bg-red-600/10 p-4 text-sm text-red-400">{error}</div>
+        <div className="rounded-xl border border-red-600/30 bg-red-600/10 p-4 text-sm text-red-400 font-medium">
+          {error}
+        </div>
       )}
 
+      {/* Cover Photo */}
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-500">Cover Photo</p>
+        <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-zinc-400">Cover Photo</p>
         <button
           type="button"
           onClick={() => coverInputRef.current?.click()}
-          className="relative h-40 w-full overflow-hidden rounded-xl border border-white/10 bg-[#151C25]"
+          className="relative h-44 sm:h-52 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151C25] group cursor-pointer shadow-lg"
         >
-          {coverUrl && <Image src={coverUrl} alt="" fill unoptimized className="object-cover" />}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-            {uploading === 'cover_image' ? <Loader2 className="animate-spin text-white" /> : <Camera className="text-white" />}
+          {coverUrl ? (
+            <Image src={coverUrl} alt="Cover" fill unoptimized className="object-cover" />
+          ) : (
+            <div className="relative h-full w-full">
+              <Image src="/hero-bg.png" alt="Default Cover" fill unoptimized className="object-cover opacity-50 brightness-75" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs">
+            {uploading === 'cover_image' ? (
+              <Loader2 className="animate-spin text-white" size={24} />
+            ) : (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/70 border border-white/20 text-white text-xs font-bold">
+                <Camera size={16} />
+                <span>Change Cover Photo</span>
+              </div>
+            )}
           </div>
         </button>
         <input
@@ -123,15 +134,26 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
         />
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Profile Avatar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <button
           type="button"
           onClick={() => avatarInputRef.current?.click()}
-          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-white/10 bg-[#151C25]"
+          className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-[#0E121A] ring-2 ring-white/10 bg-[#151C25] group cursor-pointer shadow-xl"
         >
-          {avatarUrl && <Image src={avatarUrl} alt="" fill unoptimized className="object-cover" />}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-            {uploading === 'profile_image' ? <Loader2 size={18} className="animate-spin text-white" /> : <Camera size={18} className="text-white" />}
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt="Avatar" fill unoptimized className="object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-black text-2xl text-white bg-gradient-to-br from-[#242C3D] via-[#151B26] to-[#0A0D14]">
+              {initial}
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+            {uploading === 'profile_image' ? (
+              <Loader2 size={20} className="animate-spin text-white" />
+            ) : (
+              <Camera size={20} className="text-white" />
+            )}
           </div>
         </button>
         <input
@@ -141,24 +163,31 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
           className="hidden"
           onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'profile_image')}
         />
-        <p className="text-xs text-gray-500">Tap either photo to replace it. Saves immediately.</p>
+        <div>
+          <h4 className="text-sm font-bold text-white">Profile Photo</h4>
+          <p className="text-xs text-zinc-400 mt-0.5">Click the photo to upload a new avatar. JPG, PNG or WebP.</p>
+        </div>
       </div>
 
+      {/* Fields Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Username">
+        <Field label="Full Name">
           <input
             type="text"
             value={fields.username}
             onChange={(e) => setFields((f) => ({ ...f, username: e.target.value }))}
             className={inputClass}
+            placeholder="e.g. Fonyuy Gita"
+            required
           />
         </Field>
-        <Field label="Phone">
+        <Field label="Phone Number (Optional)">
           <input
             type="tel"
             value={fields.phone}
             onChange={(e) => setFields((f) => ({ ...f, phone: e.target.value }))}
             className={inputClass}
+            placeholder="+237 6XX XXX XXX"
           />
         </Field>
         <Field label="Region">
@@ -167,22 +196,25 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
             value={fields.region}
             onChange={(e) => setFields((f) => ({ ...f, region: e.target.value }))}
             className={inputClass}
+            placeholder="e.g. North West, Littoral"
           />
         </Field>
-        <Field label="Village">
+        <Field label="Village / Origin">
           <input
             type="text"
             value={fields.village}
             onChange={(e) => setFields((f) => ({ ...f, village: e.target.value }))}
             className={inputClass}
+            placeholder="e.g. Bamenda, Douala"
           />
         </Field>
-        <Field label="Language">
+        <Field label="Language Preference">
           <input
             type="text"
             value={fields.languagePreference}
             onChange={(e) => setFields((f) => ({ ...f, languagePreference: e.target.value }))}
             className={inputClass}
+            placeholder="e.g. English, French, Pidgin"
           />
         </Field>
         <Field label="Favorite Genres (comma separated)">
@@ -190,23 +222,27 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
             type="text"
             value={genresInput}
             onChange={(e) => setGenresInput(e.target.value)}
-            placeholder="Drama, Comedy, Action"
+            placeholder="Drama, Comedy, Action, Music"
             className={inputClass}
           />
         </Field>
       </div>
 
-      <Field label="Bio">
+      {/* Bio */}
+      <Field label="Bio & Tagline">
         <textarea
           value={fields.bio}
           onChange={(e) => setFields((f) => ({ ...f, bio: e.target.value }))}
           rows={3}
           className={inputClass}
+          placeholder="Tell the community about yourself or your favorite cultural stories..."
+          maxLength={500}
         />
       </Field>
 
+      {/* Social Links */}
       <div>
-        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-500">Social Links</p>
+        <p className="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-400">Social Links (Optional)</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {SOCIAL_FIELDS.map(({ key, label, placeholder }) => (
             <Field key={key} label={label}>
@@ -224,21 +260,31 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
         </div>
       </div>
 
-      <div className="flex justify-end gap-3">
+      {/* Form Action Buttons — Light / White Save Changes button */}
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border border-white/10 px-6 py-2.5 text-sm font-bold text-gray-300 hover:bg-white/5"
+          className="px-6 py-2.5 rounded-xl border border-white/10 text-zinc-300 hover:text-white hover:bg-white/5 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="flex items-center gap-2 rounded-full bg-[#E50914] px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-100 text-[#0E121A] px-7 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-60 cursor-pointer"
         >
-          {isSaving && <Loader2 size={14} className="animate-spin" />}
-          Save Changes
+          {isSaving ? (
+            <>
+              <Loader2 size={16} className="animate-spin text-zinc-700" />
+              <span>Saving…</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Save Changes</span>
+            </>
+          )}
         </button>
       </div>
     </form>
@@ -246,12 +292,12 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
 }
 
 const inputClass =
-  'w-full rounded-xl border border-white/10 bg-[#151C25] px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-white/30';
+  'w-full rounded-xl border border-white/10 bg-[#11151C] px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-white/30 transition-colors';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-gray-500">{label}</span>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-400">{label}</span>
       {children}
     </label>
   );

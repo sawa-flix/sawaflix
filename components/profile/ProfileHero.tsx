@@ -27,8 +27,8 @@ export function ProfileHero({
   onToggleFollow,
   onEditClick,
 }: ProfileHeroProps) {
-  const location = [profile.village, profile.region || 'Cameroon'].filter(Boolean).join(', ');
-  const defaultBio = 'Celebrating Cameroonian stories.';
+  const location = [profile.village, profile.region || 'Cameroon'].filter(Boolean).join(', ') || 'Bamenda, Cameroon';
+  const bioText = profile.bio || 'Celebrating Cameroonian stories.';
 
   return (
     <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/10 bg-[#0E121A] shadow-2xl">
@@ -44,9 +44,19 @@ export function ProfileHero({
             priority
           />
         ) : (
-          <div className="h-full w-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-800/40 via-[#0E121A] to-[#06080C]" />
+          <div className="relative h-full w-full">
+            <Image
+              src="/hero-bg.png"
+              alt="SawaFlix Background"
+              fill
+              unoptimized
+              className="object-cover object-center opacity-40 brightness-75"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/40" />
+          </div>
         )}
-        {/* Subtle Dark Glass Overlays for contrast */}
+        {/* Dark Vignette Overlays for contrast */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A] via-black/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent hidden sm:block" />
       </div>
@@ -80,7 +90,7 @@ export function ProfileHero({
                 {/* Premium / Creator Badge */}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-gradient-to-r from-red-500/20 via-red-500/10 to-amber-500/10 text-white border border-red-500/30 shadow-sm">
                   <Crown size={12} className="text-red-400 fill-red-400" />
-                  <span>{isCreator ? 'Creator Pro' : 'Premium Member'}</span>
+                  <span>{isCreator ? 'CREATOR PRO' : 'PREMIUM MEMBER'}</span>
                 </span>
               </div>
 
@@ -95,7 +105,7 @@ export function ProfileHero({
                 </span>
                 <span className="text-zinc-600 hidden sm:inline">•</span>
                 <span className="italic text-zinc-400">
-                  &ldquo;{profile.bio || defaultBio}&rdquo;
+                  &ldquo;{bioText}&rdquo;
                 </span>
               </div>
             </div>
