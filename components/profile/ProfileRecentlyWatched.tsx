@@ -61,7 +61,7 @@ export function ProfileRecentlyWatched({ items }: ProfileRecentlyWatchedProps) {
 
   const scrollRight = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      scrollRef.current.scrollBy({ left: 280, behavior: 'smooth' });
     }
   };
 
@@ -76,22 +76,24 @@ export function ProfileRecentlyWatched({ items }: ProfileRecentlyWatchedProps) {
       : DEFAULT_RECENT_MOVIES;
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock size={18} className="text-[#CE1126]" />
-          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+          <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
+            <Clock size={14} className="text-red-400" />
+          </div>
+          <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
             Recently Watched
           </h2>
         </div>
 
         <Link
           href="/dashboard/movie"
-          className="text-xs font-bold text-[#CE1126] hover:text-red-400 flex items-center gap-1 transition-colors group"
+          className="text-[11px] sm:text-xs font-bold text-[#CE1126] hover:text-red-400 flex items-center gap-0.5 transition-colors group"
         >
           <span>View all</span>
-          <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+          <ChevronRight size={13} className="transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
 
@@ -99,16 +101,16 @@ export function ProfileRecentlyWatched({ items }: ProfileRecentlyWatchedProps) {
       <div className="relative group">
         <div
           ref={scrollRef}
-          className="flex items-start gap-4 overflow-x-auto pb-3 scrollbar-none scroll-smooth snap-x"
+          className="flex items-start gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-none scroll-smooth snap-x"
         >
           {movies.map((movie) => (
             <Link
               key={movie.id}
               href={`/dashboard/video/${movie.id}`}
-              className="group/card flex-none w-[150px] sm:w-[170px] md:w-[190px] snap-start space-y-2 cursor-pointer"
+              className="group/card flex-none w-[125px] sm:w-[155px] md:w-[175px] snap-start space-y-1.5 cursor-pointer"
             >
               {/* Poster Card */}
-              <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-[#151B25] border border-white/10 shadow-lg group-hover/card:border-white/25 transition-all">
+              <div className="relative aspect-[16/10] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#151B25] border border-white/10 shadow-lg group-hover/card:border-white/25 transition-all">
                 <Image
                   src={movie.image}
                   alt={movie.title}
@@ -122,18 +124,18 @@ export function ProfileRecentlyWatched({ items }: ProfileRecentlyWatchedProps) {
 
                 {/* Hover Play Button */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
-                  <div className="w-10 h-10 rounded-full bg-[#CE1126] flex items-center justify-center text-white shadow-xl transform scale-90 group-hover/card:scale-100 transition-transform">
-                    <Play size={18} className="fill-white translate-x-0.5" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#CE1126] flex items-center justify-center text-white shadow-xl transform scale-90 group-hover/card:scale-100 transition-transform">
+                    <Play size={15} className="fill-white translate-x-0.5" />
                   </div>
                 </div>
               </div>
 
               {/* Title & Genre */}
               <div className="px-0.5">
-                <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover/card:text-[#CE1126] transition-colors">
+                <h4 className="text-xs font-bold text-white truncate group-hover/card:text-[#CE1126] transition-colors">
                   {movie.title}
                 </h4>
-                <p className="text-[11px] text-zinc-400 font-medium">
+                <p className="text-[10px] text-zinc-400 font-medium">
                   {movie.genre}
                 </p>
               </div>
@@ -145,10 +147,10 @@ export function ProfileRecentlyWatched({ items }: ProfileRecentlyWatchedProps) {
         <button
           type="button"
           onClick={scrollRight}
-          className="absolute right-0 top-[38%] -translate-y-1/2 translate-x-3 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-10 hidden sm:flex"
+          className="absolute right-0 top-[38%] -translate-y-1/2 translate-x-2.5 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-10 hidden sm:flex"
           aria-label="Scroll right"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
     </section>

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MapPin, Crown, Pencil, LayoutDashboard, UploadCloud } from 'lucide-react';
+import { MapPin, Pencil, LayoutDashboard, UploadCloud } from 'lucide-react';
 import type { ProfileData } from '@/types/profile';
 import { formatJoinDate } from '@/utils/profile/profileHelpers';
 import { ProfileAvatar } from './ProfileAvatar';
@@ -31,9 +31,9 @@ export function ProfileHero({
   const bioText = profile.bio || 'Celebrating Cameroonian stories.';
 
   return (
-    <section className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/10 bg-[#0E121A] shadow-2xl">
+    <section className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-white/10 bg-[#0E121A] shadow-2xl">
       {/* Cover Background Banner */}
-      <div className="relative h-44 sm:h-56 md:h-64 w-full overflow-hidden bg-gradient-to-r from-[#1A1F2C] via-[#0E121A] to-[#0A0D14]">
+      <div className="relative h-32 sm:h-48 md:h-56 w-full overflow-hidden bg-gradient-to-r from-[#1A1F2C] via-[#0E121A] to-[#0A0D14]">
         {profile.coverImageUrl ? (
           <Image
             src={profile.coverImageUrl}
@@ -62,11 +62,11 @@ export function ProfileHero({
       </div>
 
       {/* Profile Details Bar */}
-      <div className="relative px-5 pb-6 sm:px-8 sm:pb-8">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 -mt-16 sm:-mt-20">
+      <div className="relative px-3.5 pb-4 sm:px-6 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-5 -mt-10 sm:-mt-14 md:-mt-18">
           
           {/* Avatar & User Details */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 text-center sm:text-left">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -81,26 +81,18 @@ export function ProfileHero({
               />
             </motion.div>
 
-            <div className="space-y-1.5 pt-1">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  {profile.username}
-                </h1>
-                
-                {/* Premium / Creator Badge */}
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-gradient-to-r from-red-500/20 via-red-500/10 to-amber-500/10 text-white border border-red-500/30 shadow-sm">
-                  <Crown size={12} className="text-red-400 fill-red-400" />
-                  <span>{isCreator ? 'CREATOR PRO' : 'PREMIUM MEMBER'}</span>
-                </span>
-              </div>
+            <div className="space-y-0.5 pt-0.5 sm:pt-1">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white">
+                {profile.username}
+              </h1>
 
-              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+              <p className="text-[11px] sm:text-xs text-zinc-400 font-medium">
                 Member since {formatJoinDate(profile.createdAt)}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-zinc-400 pt-0.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-0.5 text-[11px] sm:text-xs text-zinc-400 pt-0.5">
                 <span className="flex items-center gap-1 text-zinc-300 font-medium">
-                  <MapPin size={13} className="text-[#CE1126]" />
+                  <MapPin size={11} className="text-[#CE1126]" />
                   {location}
                 </span>
                 <span className="text-zinc-600 hidden sm:inline">•</span>
@@ -112,24 +104,24 @@ export function ProfileHero({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex shrink-0 flex-wrap items-center justify-center sm:justify-end gap-2.5 pt-2 md:pt-0">
+          <div className="flex shrink-0 flex-wrap items-center justify-center sm:justify-end gap-2 pt-1 sm:pt-0">
             {isOwner ? (
               <>
                 {onEditClick ? (
                   <button
                     type="button"
                     onClick={onEditClick}
-                    className="flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-100 px-5 py-2.5 text-xs sm:text-sm font-bold text-[#0E121A] transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-zinc-100 px-4 py-2 text-xs font-bold text-[#0E121A] transition-all shadow-md active:scale-95 cursor-pointer"
                   >
-                    <Pencil size={14} />
+                    <Pencil size={13} />
                     <span>Edit Profile</span>
                   </button>
                 ) : (
                   <Link
                     href="/dashboard/edit-profile"
-                    className="flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-100 px-5 py-2.5 text-xs sm:text-sm font-bold text-[#0E121A] transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-zinc-100 px-4 py-2 text-xs font-bold text-[#0E121A] transition-all shadow-md active:scale-95 cursor-pointer"
                   >
-                    <Pencil size={14} />
+                    <Pencil size={13} />
                     <span>Edit Profile</span>
                   </Link>
                 )}
@@ -138,16 +130,16 @@ export function ProfileHero({
                   <>
                     <Link
                       href="/creator-dashboard"
-                      className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2.5 text-xs sm:text-sm font-bold text-white transition-colors"
+                      className="flex items-center gap-1.5 rounded-lg sm:rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-3.5 py-2 text-xs font-bold text-white transition-colors"
                     >
-                      <LayoutDashboard size={14} />
-                      <span>Creator Studio</span>
+                      <LayoutDashboard size={13} />
+                      <span>Studio</span>
                     </Link>
                     <Link
                       href="/creator-dashboard/post/upload"
-                      className="flex items-center gap-1.5 rounded-xl bg-[#CE1126] hover:bg-red-700 px-4 py-2.5 text-xs sm:text-sm font-bold text-white transition-colors shadow-lg shadow-red-600/20"
+                      className="flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-[#CE1126] hover:bg-red-700 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-lg shadow-red-600/20"
                     >
-                      <UploadCloud size={14} />
+                      <UploadCloud size={13} />
                       <span>Upload</span>
                     </Link>
                   </>
@@ -160,7 +152,7 @@ export function ProfileHero({
                   type="button"
                   onClick={onToggleFollow}
                   aria-pressed={isFollowing}
-                  className={`rounded-xl px-6 py-2.5 text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer ${
+                  className={`rounded-lg sm:rounded-xl px-5 py-2 text-xs font-bold transition-all active:scale-95 cursor-pointer ${
                     isFollowing
                       ? 'bg-white/10 text-white hover:bg-white/15 border border-white/10'
                       : 'bg-[#CE1126] text-white hover:bg-red-700 shadow-lg shadow-red-600/20'

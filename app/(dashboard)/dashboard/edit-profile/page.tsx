@@ -119,21 +119,21 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#06080C] pb-32 font-sans text-white">
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 md:px-8">
-        <div className="mb-12">
+    <div className="min-h-screen bg-[#06080C] pb-24 font-sans text-white">
+      <div className="mx-auto max-w-3xl px-3.5 py-6 sm:px-6 sm:py-10 md:px-8">
+        <div className="mb-6 sm:mb-8">
           <Link
             href="/dashboard/profile"
-            className="group mb-6 inline-flex items-center gap-2 text-gray-400 transition hover:text-white"
+            className="group mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-400 transition hover:text-white"
           >
-            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
             Back to Profile
           </Link>
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
               Edit <span className="text-[#CE1126]">Profile</span>
             </h1>
-            <p className="text-gray-400">Update your personal information and preferences</p>
+            <p className="text-xs sm:text-sm text-zinc-400">Update your personal information and cultural preferences</p>
           </div>
         </div>
 

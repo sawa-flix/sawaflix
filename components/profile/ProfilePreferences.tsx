@@ -21,7 +21,6 @@ export function ProfilePreferences({
   const [selectedGenres, setSelectedGenres] = useState<string[]>(initialGenres);
   const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLanguage);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
   const toggleGenre = async (genre: string) => {
     const next = selectedGenres.includes(genre)
@@ -31,7 +30,6 @@ export function ProfilePreferences({
 
     if (userId) {
       try {
-        setIsSaving(true);
         const supabase = createClient();
         await supabase
           .from('users')
@@ -39,8 +37,6 @@ export function ProfilePreferences({
           .eq('id', userId);
       } catch (err) {
         console.warn('Error saving genres:', err);
-      } finally {
-        setIsSaving(false);
       }
     }
   };
@@ -66,19 +62,21 @@ export function ProfilePreferences({
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0E121A]/90 p-6 backdrop-blur-xl shadow-xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 lg:divide-x lg:divide-white/10">
+    <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0E121A]/90 p-4 sm:p-5 md:p-6 backdrop-blur-xl shadow-xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 lg:divide-x lg:divide-white/10">
         
         {/* Section 1: Viewing Preferences & Favorite Genres (5 Cols) */}
-        <div className="lg:col-span-5 space-y-3">
+        <div className="lg:col-span-5 space-y-2.5">
           <div className="flex items-center gap-2">
-            <Sliders size={18} className="text-[#CE1126]" />
-            <h3 className="text-sm font-bold text-white tracking-tight">Viewing Preferences</h3>
+            <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
+              <Sliders size={14} className="text-red-400" />
+            </div>
+            <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight">Viewing Preferences</h3>
           </div>
 
           <div>
-            <p className="text-xs text-zinc-400 font-medium mb-3">Favorite Genres</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[11px] sm:text-xs text-zinc-400 font-medium mb-2">Favorite Genres</p>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {ALL_GENRES.map((genre) => {
                 const isActive = selectedGenres.includes(genre);
                 return (
@@ -86,9 +84,9 @@ export function ProfilePreferences({
                     key={genre}
                     type="button"
                     onClick={() => toggleGenre(genre)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all cursor-pointer ${
                       isActive
-                        ? 'border border-white/20 bg-white/10 text-white shadow-sm'
+                        ? 'border border-white/25 bg-white/15 text-white shadow-sm'
                         : 'border border-white/5 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-zinc-200'
                     }`}
                   >
@@ -101,9 +99,9 @@ export function ProfilePreferences({
         </div>
 
         {/* Section 2: Preferred Language (3.5 Cols) */}
-        <div className="lg:col-span-3 lg:pl-8 space-y-3">
-          <p className="text-xs text-zinc-400 font-medium pt-1 mb-3">Preferred Language</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="lg:col-span-3 lg:pl-6 space-y-2.5">
+          <p className="text-[11px] sm:text-xs text-zinc-400 font-medium pt-0.5 mb-2">Preferred Language</p>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {LANGUAGES.map((lang) => {
               const isActive = selectedLanguage.toLowerCase() === lang.toLowerCase();
               return (
@@ -111,7 +109,7 @@ export function ProfilePreferences({
                   key={lang}
                   type="button"
                   onClick={() => selectLanguage(lang)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                  className={`px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all cursor-pointer ${
                     isActive
                       ? 'border border-red-500/80 bg-red-500/15 text-red-400 font-semibold shadow-sm'
                       : 'border border-white/5 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-zinc-200'
@@ -125,11 +123,13 @@ export function ProfilePreferences({
         </div>
 
         {/* Section 3: Notifications (3.5 Cols) */}
-        <div className="lg:col-span-4 lg:pl-8 space-y-3">
+        <div className="lg:col-span-4 lg:pl-6 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bell size={18} className="text-zinc-300" />
-              <h3 className="text-sm font-bold text-white tracking-tight">Notifications</h3>
+              <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
+                <Bell size={14} className="text-zinc-200" />
+              </div>
+              <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight">Notifications</h3>
             </div>
 
             {/* Toggle Switch */}
@@ -137,15 +137,15 @@ export function ProfilePreferences({
               type="button"
               onClick={toggleNotifications}
               aria-label="Toggle notifications"
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+              className={`w-10 h-5 sm:w-11 sm:h-6 flex items-center rounded-full p-0.5 sm:p-1 transition-colors cursor-pointer ${
                 notificationsEnabled ? 'bg-[#CE1126] justify-end' : 'bg-zinc-700 justify-start'
               }`}
             >
-              <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-white shadow-md" />
             </button>
           </div>
 
-          <p className="text-xs text-zinc-400 leading-relaxed pr-2">
+          <p className="text-[11px] sm:text-xs text-zinc-400 leading-relaxed pr-2">
             Stay updated on new releases and recommendations
           </p>
         </div>
