@@ -43,7 +43,7 @@ export default function UserDropdown({ profile }) {
         className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group focus:outline-none"
         aria-label="User menu"
       >
-        <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-red-500/40 group-hover:ring-red-500/70 transition-all flex items-center justify-center bg-gradient-to-br from-red-600 to-rose-700 shadow-md shrink-0">
+        <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 group-hover:ring-white/60 transition-all flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shadow-md shrink-0">
           {profile?.profileImage ? (
             <Image
               src={profile.profileImage}
@@ -58,7 +58,7 @@ export default function UserDropdown({ profile }) {
           )}
         </div>
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-semibold text-white group-hover:text-red-400 transition-colors leading-none truncate max-w-[110px]">
+          <span className="text-xs font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[110px]">
             {displayName}
           </span>
           <span className="text-[9px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
@@ -72,7 +72,7 @@ export default function UserDropdown({ profile }) {
         <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header Profile Card */}
           <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-red-500/50 shadow-md flex items-center justify-center bg-gradient-to-br from-red-600 to-rose-700 shrink-0">
+            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shrink-0">
               {profile?.profileImage ? (
                 <Image
                   src={profile.profileImage}
@@ -94,7 +94,7 @@ export default function UserDropdown({ profile }) {
               <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
                 {profile?.email || `@${profile?.username || 'creator'}`}
               </p>
-              <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-red-500/20 border border-red-500/40 rounded-md text-[10px] font-extrabold text-red-300 tracking-wider uppercase shadow-sm">
+              <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
                 <span>{profile?.category || 'Creator'}</span>
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function UserDropdown({ profile }) {
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                   <User size={15} />
                 </div>
                 <span>My Public Profile</span>
@@ -122,7 +122,7 @@ export default function UserDropdown({ profile }) {
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-amber-400 group-hover:bg-amber-500/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                   <Video size={15} />
                 </div>
                 <span>Creator Dashboard</span>
@@ -136,7 +136,7 @@ export default function UserDropdown({ profile }) {
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-rose-400 group-hover:bg-rose-500/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                   <BookOpen size={15} />
                 </div>
                 <span>Stories & Blogs</span>

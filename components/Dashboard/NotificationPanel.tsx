@@ -66,8 +66,8 @@ function getTypeBadge(type: string, category?: string) {
     return {
       label: 'BLOG STORY',
       icon: BookOpen,
-      bg: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
-      dot: 'bg-rose-500',
+      bg: 'bg-white/10 text-white border border-white/20',
+      dot: 'bg-white',
     };
   }
   if (t === 'music_interaction' || c === 'music' || t === 'music') {
@@ -90,8 +90,8 @@ function getTypeBadge(type: string, category?: string) {
     return {
       label: 'LIKE',
       icon: Heart,
-      bg: 'bg-red-500/15 text-red-400 border border-red-500/30',
-      dot: 'bg-red-500',
+      bg: 'bg-rose-500/15 text-rose-400 border border-rose-500/30',
+      dot: 'bg-rose-500',
     };
   }
   if (t === 'comment') {
@@ -105,8 +105,8 @@ function getTypeBadge(type: string, category?: string) {
   return {
     label: 'UPDATE',
     icon: Video,
-    bg: 'bg-red-600/15 text-red-400 border border-red-600/30',
-    dot: 'bg-red-500',
+    bg: 'bg-white/10 text-white border border-white/20',
+    dot: 'bg-white',
   };
 }
 
@@ -142,7 +142,7 @@ const NotificationPanel = ({
       style={{ maxHeight: 'calc(85vh - 70px)' }}
     >
       {/* Glow highlight at the top */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
 
       {/* Header */}
       <div className="px-5 py-4 border-b border-white/[0.07] bg-white/[0.01] flex items-center justify-between shrink-0">
@@ -160,7 +160,7 @@ const NotificationPanel = ({
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-white tracking-tight">{title}</h3>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-[10px] font-bold">
+                <span className="px-2 py-0.5 bg-white/10 text-white border border-white/20 rounded-full text-[10px] font-bold">
                   {unreadCount} new
                 </span>
               )}
@@ -177,8 +177,8 @@ const NotificationPanel = ({
         {unreadCount > 0 && (
           <button 
             onClick={onMarkAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-red-500/20 text-zinc-300 hover:text-red-400 
-                       border border-white/10 hover:border-red-500/30 transition-all duration-200 text-[11px] font-semibold group cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-white 
+                       border border-white/15 hover:border-white/30 transition-all duration-200 text-[11px] font-semibold group cursor-pointer shadow-sm"
             type="button"
           >
             <CheckCheck size={13} className="transition-transform group-hover:scale-110" />
@@ -191,30 +191,30 @@ const NotificationPanel = ({
       <div className="px-4 py-2 bg-black/20 border-b border-white/[0.04] flex items-center gap-1.5 shrink-0">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
             activeTab === 'all'
-              ? 'bg-red-600/20 text-red-400 border border-red-500/30 shadow-sm'
-              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+              ? 'bg-white/15 text-white border-white/30 shadow-sm backdrop-blur-sm'
+              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border-transparent'
           }`}
         >
           All ({notifications.length})
         </button>
         <button
           onClick={() => setActiveTab('unread')}
-          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+          className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
             activeTab === 'unread'
-              ? 'bg-red-600/20 text-red-400 border border-red-500/30 shadow-sm'
-              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+              ? 'bg-white/15 text-white border-white/30 shadow-sm backdrop-blur-sm'
+              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border-transparent'
           }`}
         >
           Unread ({unreadCount})
         </button>
         <button
           onClick={() => setActiveTab('blogs')}
-          className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border ${
             activeTab === 'blogs'
-              ? 'bg-red-600/20 text-red-400 border border-red-500/30 shadow-sm'
-              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+              ? 'bg-white/15 text-white border-white/30 shadow-sm backdrop-blur-sm'
+              : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border-transparent'
           }`}
         >
           <BookOpen size={11} />
@@ -249,31 +249,31 @@ const NotificationPanel = ({
                 key={n.id} 
                 onClick={() => onItemClick(n.id, n.contentId)}
                 className={`relative px-4 py-3.5 transition-all group cursor-pointer hover:bg-white/[0.04] ${
-                  !n.read ? 'bg-red-500/[0.03]' : ''
+                  !n.read ? 'bg-white/[0.03]' : ''
                 }`}
               >
                 {/* Left accent indicator for unread item */}
                 {!n.read && (
-                  <div className="absolute left-0 top-3 bottom-3 w-1 bg-red-500 rounded-r shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
+                  <div className="absolute left-0 top-3 bottom-3 w-1 bg-white rounded-r shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
                 )}
 
                 <div className="flex items-start gap-3.5">
                   {/* Thumbnail / Icon Container */}
                   <div className="relative shrink-0 mt-0.5">
                     {n.thumbnail ? (
-                      <div className="w-12 h-12 bg-black/40 rounded-xl overflow-hidden border border-white/10 group-hover:border-red-500/40 transition-all shadow-md relative">
+                      <div className="w-12 h-12 bg-black/40 rounded-xl overflow-hidden border border-white/10 group-hover:border-white/30 transition-all shadow-md relative">
                         <Image src={n.thumbnail} alt="" fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-xl border border-white/10 bg-gradient-to-br from-[#161B26] to-[#0A0D14] flex items-center justify-center group-hover:border-red-500/40 transition-all shadow-md relative">
-                        <BadgeIcon size={20} className={badge.dot === 'bg-rose-500' ? 'text-rose-400' : 'text-red-400'} />
+                      <div className="w-12 h-12 rounded-xl border border-white/10 bg-gradient-to-br from-[#161B26] to-[#0A0D14] flex items-center justify-center group-hover:border-white/30 transition-all shadow-md relative">
+                        <BadgeIcon size={20} className="text-white" />
                       </div>
                     )}
 
                     {/* Unread indicator dot */}
                     {!n.read && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0C0F17] shadow-sm animate-pulse" />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white rounded-full border-2 border-[#0C0F17] shadow-sm animate-pulse" />
                     )}
                   </div>
 
@@ -290,7 +290,7 @@ const NotificationPanel = ({
                     </div>
 
                     <h4 className={`text-[12.5px] font-semibold leading-snug truncate transition-colors ${
-                      !n.read ? 'text-white group-hover:text-red-400' : 'text-zinc-300 group-hover:text-white'
+                      !n.read ? 'text-white' : 'text-zinc-300 group-hover:text-white'
                     }`}>
                       {n.title}
                     </h4>

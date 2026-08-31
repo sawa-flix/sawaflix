@@ -16,7 +16,8 @@ import {
   VolumeX, 
   UserPlus, 
   LogOut, 
-  Sparkles, 
+  Video, 
+  Film, 
   Bookmark, 
   Edit3, 
   BookOpen, 
@@ -345,7 +346,7 @@ const Header = ({
                 aria-label="User profile menu"
               >
                 {userProfile?.profile_image_url ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-red-500/40 shadow-md flex-shrink-0 group-hover:ring-red-500/70 transition-all">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0 group-hover:ring-white/60 transition-all">
                     <Image
                       src={userProfile.profile_image_url}
                       alt="User Avatar"
@@ -355,12 +356,12 @@ const Header = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/10 shadow-md flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 shadow-md flex-shrink-0">
                     {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-white group-hover:text-red-400 transition-colors leading-none truncate max-w-[110px]">
+                  <span className="text-xs font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[110px]">
                     {userProfile?.username || currentUser?.email?.split('@')[0]}
                   </span>
                   <span className="text-[9px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
@@ -382,7 +383,7 @@ const Header = ({
                     {/* Top User Card Header */}
                     <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
                       {userProfile?.profile_image_url ? (
-                        <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-red-500/50 shadow-md flex-shrink-0">
+                        <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0">
                           <Image
                             src={userProfile.profile_image_url}
                             alt="Avatar"
@@ -392,7 +393,7 @@ const Header = ({
                           />
                         </div>
                       ) : (
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
                           {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
                         </div>
                       )}
@@ -406,7 +407,7 @@ const Header = ({
                         <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
                           {currentUser?.email || 'Logged in user'}
                         </p>
-                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-red-500/20 border border-red-500/40 rounded-md text-[10px] font-extrabold text-red-300 tracking-wider uppercase shadow-sm">
+                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
                           <span>Community Member</span>
                         </div>
                       </div>
@@ -420,7 +421,7 @@ const Header = ({
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                             <User size={15} />
                           </div>
                           <span>My Profile</span>
@@ -434,7 +435,7 @@ const Header = ({
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                             <Edit3 size={15} />
                           </div>
                           <span>Edit Profile</span>
@@ -448,7 +449,7 @@ const Header = ({
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                             <Bookmark size={15} />
                           </div>
                           <span>Saved & Favorites</span>
@@ -462,7 +463,7 @@ const Header = ({
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-rose-400 group-hover:bg-rose-500/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                             <BookOpen size={15} />
                           </div>
                           <span>Stories & Dev.to Blogs</span>
@@ -476,7 +477,7 @@ const Header = ({
                         className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-amber-400 group-hover:bg-amber-500/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
                             <Video size={15} />
                           </div>
                           <span>Creator Studio</span>
