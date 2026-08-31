@@ -87,7 +87,7 @@ export function ProfileHero({ profile, isOwner, isCreator, isFollowing, onToggle
                     </Link>
                     <Link
                       href="/creator-dashboard/post/upload"
-                      className="flex items-center gap-1.5 rounded-full bg-[#E50914] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                      className="flex items-center gap-1.5 rounded-full bg-[#CE1126] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700"
                     >
                       <UploadCloud size={14} />
                       Upload
@@ -103,7 +103,7 @@ export function ProfileHero({ profile, isOwner, isCreator, isFollowing, onToggle
                   onClick={onToggleFollow}
                   aria-pressed={isFollowing}
                   className={`rounded-full px-6 py-2.5 text-sm font-bold transition-colors ${
-                    isFollowing ? 'bg-white/10 text-white/70 hover:bg-white/15' : 'bg-[#E50914] text-white hover:bg-red-700'
+                    isFollowing ? 'bg-white/10 text-white/70 hover:bg-white/15' : 'bg-[#CE1126] text-white hover:bg-red-700'
                   }`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
@@ -142,7 +142,7 @@ export function ProfileHero({ profile, isOwner, isCreator, isFollowing, onToggle
               href={profile.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[#E50914] hover:text-red-400"
+              className="flex items-center gap-1.5 text-[#CE1126] hover:text-red-400"
             >
               <Link2 size={13} />
               {profile.website.replace(/^https?:\/\//, '')}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 
@@ -17,38 +18,50 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, promptMessage = 'to continue on SawaFlix' }: AuthModalProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
     setError(null);
-    setIsLoading(true);
 
+    if (!credentialResponse.credential) {
+      setError('Unable to continue with Google right now. Please try again.');
+      return;
+    }
+
+    setIsGoogleLoading(true);
     try {
       const supabase = createClient();
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sawaflix.com';
-
-      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+      const { data, error: signInError } = await supabase.auth.signInWithIdToken({
         provider: 'google',
-        options: {
-          redirectTo: `${origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
+        token: credentialResponse.credential,
       });
 
-      if (signInError) {
-        throw signInError;
+      if (signInError || !data.user) {
+        throw signInError || new Error('No user returned from Supabase');
       }
 
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      // Enrich public.users row with metadata from Google OAuth ID token
+      const meta = data.user.user_metadata ?? {};
+      const { error: syncError } = await supabase.from('users').upsert(
+        {
+          id: data.user.id,
+          email: data.user.email,
+          username: meta.full_name || meta.name || data.user.email?.split('@')[0] || 'User',
+          profile_image_url: meta.avatar_url || meta.picture || null,
+          verification_status: 'approved',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+      if (syncError) console.error('Profile sync warning:', syncError.message);
+
+      router.refresh();
+      onClose();
     } catch (err: any) {
       console.error('Google Sign-In Error:', err);
       setError(err?.message || 'Unable to continue with Google right now. Please try again.');
-      setIsLoading(false);
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -79,7 +92,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer z-30"
               aria-label="Close modal"
             >
               <X size={18} />
@@ -114,18 +127,14 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
               </div>
             )}
 
-            {/* Google Sign In Button */}
-            <div className="w-full mb-5">
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-white hover:bg-zinc-100 text-[#0E121A] font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed border border-white/20"
-              >
-                {isLoading ? (
+            {/* Google Sign In Button — GIS Client-Side Popup with ID Token */}
+            <div className="relative w-full mb-5 overflow-hidden rounded-xl">
+              {/* Styled visible button */}
+              <div className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-white text-[#0E121A] font-bold text-sm shadow-md transition-all duration-200 pointer-events-none border border-white/20">
+                {isGoogleLoading ? (
                   <>
                     <Loader2 size={18} className="animate-spin text-zinc-600" />
-                    <span>Connecting to Google…</span>
+                    <span>Signing in…</span>
                   </>
                 ) : (
                   <>
@@ -138,7 +147,20 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
                     <span>Continue with Google</span>
                   </>
                 )}
-              </button>
+              </div>
+
+              {/* Real Google Identity Services interactive button on top, scaled to cover entire button bounds */}
+              {!isGoogleLoading && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 cursor-pointer overflow-hidden z-20 transform scale-[1.35] origin-center [&>div]:w-full! [&_iframe]:cursor-pointer">
+                  <GoogleLogin
+                    onSuccess={handleGoogleCredential}
+                    onError={() => setError('Unable to continue with Google right now. Please try again.')}
+                    width="400"
+                    theme="filled_black"
+                    shape="rectangular"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Terms and Privacy Footer */}
