@@ -22,7 +22,7 @@ export const NotificationDropdown: React.FC = () => {
       >
         <Bell size={20} className="group-hover:text-white transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-in zoom-in duration-300">
+          <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-white text-black font-black rounded-full flex items-center justify-center text-[9px] shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-in zoom-in duration-300">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

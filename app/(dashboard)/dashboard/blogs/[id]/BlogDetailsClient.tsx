@@ -179,6 +179,15 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
         if (data) {
           setStory(data);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`read_sanity_story_${data._id}`, 'true');
+            if (data.slug?.current) {
+              localStorage.setItem(`read_sanity_story_${data.slug.current}`, 'true');
+            }
+            if (slug) {
+              localStorage.setItem(`read_sanity_story_${slug}`, 'true');
+            }
+          }
           if (data.category?._id) {
             const RELATED_QUERY = `*[_type == "story" && category._ref == $catId && _id != $currentId] | order(publishedAt desc)[0...3] {
               _id, title, slug, mainImage,

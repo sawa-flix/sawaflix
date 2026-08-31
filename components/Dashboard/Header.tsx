@@ -286,12 +286,12 @@ const Header = ({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer"
               aria-label="Notifications"
             >
               <Bell size={18} className="group-hover:scale-110 transition-transform" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] px-0.5 bg-red-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-md shadow-red-600/20 animate-in zoom-in duration-300">
+                <span className="absolute top-1 right-1 min-w-[14.5px] h-[14.5px] px-0.5 bg-white text-black font-black rounded-full flex items-center justify-center text-[8px] shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-in zoom-in duration-300 pointer-events-none">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
