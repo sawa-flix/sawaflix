@@ -1,13 +1,13 @@
 {
-  "name": "SawaFlix - Cameroonian Music, Culture & Entertainment",
-  "short_name": "SawaFlix",
+  "name": "sawaFlix",
+  "short_name": "sawaFlix",
   "description": "Experience authentic Cameroonian music, movies, reels, and culture on SawaFlix.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0B0E14",
-  "theme_color": "#CE1126",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "categories": ["entertainment", "music", "video"],
   "icons": [
     {

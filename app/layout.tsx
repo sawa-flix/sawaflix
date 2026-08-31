@@ -4,6 +4,7 @@ import { AdminNotificationProvider } from '../contexts/AdminNotificationContext'
 import { NotificationProvider } from '../contexts/NotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
+import PWASplashScreen from '@/components/PWASplashScreen';
 import NotificationPrompt from '@/components/NotificationPrompt';
 import GoogleAuthProvider from '@/components/providers/GoogleAuthProvider';
 
@@ -99,13 +100,13 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'SawaFlix',
+    title: 'sawaFlix',
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#0B0E14' },
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
     { media: '(prefers-color-scheme: dark)', color: '#0B0E14' },
   ],
   width: 'device-width',
@@ -147,6 +148,7 @@ export default function RootLayout({
             box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
           }
         `}} />
+        <PWASplashScreen />
         <NextTopLoader color="transparent" showSpinner={false} />
         <GoogleAuthProvider>
           <AdminNotificationProvider>
