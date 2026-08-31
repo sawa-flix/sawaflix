@@ -180,20 +180,43 @@ export const notificationService = {
     try {
       const supabase = await createAdminClient();
       
-      // Fetch all users
-      const { data: users, error: usersError } = await supabase
-        .from("users")
-        .select("id");
-        
-      if (usersError || !users || users.length === 0) {
-        console.warn("No users found or error fetching users for broadcast:", usersError);
+      const userIdsSet = new Set<string>();
+
+      // 1. Fetch from public.users table
+      try {
+        const { data: users, error: usersError } = await supabase
+          .from("users")
+          .select("id");
+        if (!usersError && users && Array.isArray(users)) {
+          users.forEach((u) => { if (u.id) userIdsSet.add(u.id); });
+        }
+      } catch (err) {
+        console.warn("Could not query public.users:", err);
+      }
+
+      // 2. Fetch from auth.admin.listUsers() to capture all registered accounts
+      try {
+        const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000,
+        });
+        if (!authError && authData?.users && Array.isArray(authData.users)) {
+          authData.users.forEach((u) => { if (u.id) userIdsSet.add(u.id); });
+        }
+      } catch (err) {
+        console.warn("Could not query auth.admin.listUsers():", err);
+      }
+
+      const allUserIds = Array.from(userIdsSet);
+      if (allUserIds.length === 0) {
+        console.warn("No users found across public.users or auth.admin for broadcast");
         return 0;
       }
 
-      const rows = users.map((u) => ({
-        user_id: u.id,
+      const rows = allUserIds.map((userId) => ({
+        user_id: userId,
         actor_id: notificationData.actorId || null,
-        type: notificationData.type || 'new_post',
+        type: notificationData.type || 'story',
         title: notificationData.title,
         message: notificationData.message,
         is_read: false,
@@ -201,8 +224,8 @@ export const notificationService = {
           actorName: notificationData.actorName || 'SawaFlix Editorial',
           actorImage: notificationData.actorImage || null,
           contentId: notificationData.contentId,
-          contentType: notificationData.contentType || 'blog',
-          category: notificationData.category || 'blog',
+          contentType: notificationData.contentType || 'story',
+          category: notificationData.category || 'story',
           thumbnail: notificationData.thumbnail || null,
         }
       }));
@@ -217,6 +240,7 @@ export const notificationService = {
         throw insertError;
       }
 
+      console.log(`Successfully broadcasted notification to ${rows.length} users`);
       return rows.length;
     } catch (err) {
       console.error("Failed to broadcast notification:", err);

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Notification, NotificationType } from '@/types/notification';
+import { getStories } from '@/lib/sanity/queries';
+import { urlFor } from '@/lib/sanity/client';
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -13,11 +15,6 @@ export function useNotifications() {
   const supabaseRef = useRef(createClient());
   const supabase = supabaseRef.current;
   const channelRef = useRef<any>(null);
-  // Tracks an in-flight removeChannel() call so a subsequent setup (e.g. a
-  // remount) can wait for it — the effect's cleanup itself can't be async,
-  // so without this, a fire-and-forget removal from cleanup can still be
-  // in-flight when the next setup tries to create a channel with the same
-  // topic name.
   const teardownRef = useRef<Promise<unknown> | null>(null);
 
   const mapNotification = (n: any): Notification => ({
@@ -42,18 +39,84 @@ export function useNotifications() {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) return;
 
-      const { data, error: fetchError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // 1. Fetch Supabase notifications
+      let supabaseNotifs: Notification[] = [];
+      if (user) {
+        const { data, error: fetchError } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
 
-      if (fetchError) throw fetchError;
+        if (!fetchError && data) {
+          supabaseNotifs = data.map(mapNotification);
+        }
+      }
 
-      setNotifications((data || []).map(mapNotification));
+      // 2. Fetch latest Sanity stories to ensure no stories are missed
+      let sanityNotifs: Notification[] = [];
+      try {
+        const stories = await getStories();
+        if (stories && Array.isArray(stories)) {
+          const recentStories = stories.slice(0, 10);
+          sanityNotifs = recentStories
+            .filter((story: any) => {
+              const slug = story.slug?.current || story._id;
+              // Avoid duplicates if already recorded in Supabase notifications
+              return !supabaseNotifs.some((sn) => sn.contentId === slug || sn.contentId === story._id);
+            })
+            .map((story: any) => {
+              let thumbUrl: string | undefined = undefined;
+              if (story.mainImage) {
+                try {
+                  thumbUrl = urlFor(story.mainImage).url();
+                } catch {
+                  thumbUrl = undefined;
+                }
+              }
+
+              let authorAvatar: string | undefined = undefined;
+              if (story.author?.avatar) {
+                try {
+                  authorAvatar = urlFor(story.author.avatar).url();
+                } catch {
+                  authorAvatar = undefined;
+                }
+              }
+
+              const isLocallyRead = typeof window !== 'undefined' 
+                && localStorage.getItem(`read_sanity_story_${story._id}`) === 'true';
+
+              return {
+                id: `sanity-story-${story._id}`,
+                userId: user?.id || 'guest',
+                actorId: story.author?._id || 'sanity-editorial',
+                actorName: story.author?.name || 'SawaFlix Editorial',
+                actorImage: authorAvatar,
+                type: 'story' as NotificationType,
+                title: `New Story: ${story.title || 'Untitled'}`,
+                message: story.excerpt || 'Read the latest story on Sawaflix!',
+                contentId: story.slug?.current || story._id,
+                contentType: 'story',
+                category: story.category?.title || 'Story',
+                thumbnail: thumbUrl,
+                read: isLocallyRead,
+                createdAt: story.publishedAt ? new Date(story.publishedAt).getTime() : Date.now(),
+              };
+            });
+        }
+      } catch (sanityErr) {
+        console.warn("Could not fetch Sanity stories for notifications:", sanityErr);
+      }
+
+      // Merge and sort by timestamp descending
+      const merged = [...supabaseNotifs, ...sanityNotifs].sort((a, b) => b.createdAt - a.createdAt);
+      setNotifications(merged);
+
+      const unread = merged.filter((n) => !n.read).length;
+      setUnreadCount(unread);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching notifications:', err);
@@ -64,37 +127,25 @@ export function useNotifications() {
   }, [supabase]);
 
   const fetchUnreadCount = useCallback(async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-
-      const { count, error: countError } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      if (countError) throw countError;
-      setUnreadCount(count || 0);
-    } catch (err: any) {
-      // Quietly log session-related errors as they are often transient lock issues
-      if (err.message?.includes('Lock broken')) {
-        console.warn('Unread count fetch postponed: session lock conflict');
-        return;
-      }
-      console.error('Error fetching unread count:', err);
-    }
-  }, [supabase]);
+    // Rely on merged notifications state to keep badge perfectly accurate
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     try {
-      const { error: updateError } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', id);
+      if (id.startsWith('sanity-story-')) {
+        const storyId = id.replace('sanity-story-', '');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`read_sanity_story_${storyId}`, 'true');
+        }
+      } else {
+        const { error: updateError } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      }
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
@@ -109,15 +160,24 @@ export function useNotifications() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) return;
 
-      const { error: updateError } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
+      // Mark all local sanity stories as read in localStorage
+      notifications.forEach((n) => {
+        if (n.id.startsWith('sanity-story-') && typeof window !== 'undefined') {
+          const storyId = n.id.replace('sanity-story-', '');
+          localStorage.setItem(`read_sanity_story_${storyId}`, 'true');
+        }
+      });
 
-      if (updateError) throw updateError;
+      if (user) {
+        const { error: updateError } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        if (updateError) throw updateError;
+      }
 
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
@@ -128,12 +188,19 @@ export function useNotifications() {
 
   const deleteNotification = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
+      if (id.startsWith('sanity-story-')) {
+        const storyId = id.replace('sanity-story-', '');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`read_sanity_story_${storyId}`, 'true');
+        }
+      } else {
+        const { error: deleteError } = await supabase
+          .from('notifications')
+          .update({ is_read: true })
+          .eq('id', id);
 
-      if (deleteError) throw deleteError;
+        if (deleteError) throw deleteError;
+      }
 
       const deletedNotification = notifications.find(n => n.id === id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));

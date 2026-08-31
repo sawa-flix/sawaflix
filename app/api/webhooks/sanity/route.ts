@@ -2,67 +2,86 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma/prisma';
 import { Client } from '@upstash/qstash';
 import { notificationService } from '@/services/notificationService';
+import { urlFor } from '@/lib/sanity/client';
 
 const qstash = new Client({ token: process.env.QSTASH_TOKEN || 'dummy_token' });
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+    console.log("Received Sanity webhook payload:", JSON.stringify(rawBody).slice(0, 300));
     
-    // Notice we use "story" because that is the name defined in sanity/schemas/story.ts
-    if (body._type !== 'story') {
-      return NextResponse.json({ ignored: true });
+    // Normalize document from different Sanity webhook payload formats
+    const doc = rawBody.result || rawBody.document || rawBody.data || rawBody;
+    
+    // Accept story, post, blog, or any document with a title
+    const docType = doc._type?.toLowerCase() || '';
+    if (docType && !['story', 'post', 'blog', 'article', 'news'].includes(docType) && !doc.title) {
+      return NextResponse.json({ ignored: true, reason: `Type '${docType}' is not a story` });
     }
 
-    const storySlug = body.slug?.current || body._id || '';
+    const title = doc.title || doc.name || doc.headline || 'New Story Published';
+    const excerpt = doc.excerpt || doc.description || doc.summary || 'Read the latest story on Sawaflix!';
+    const storySlug = doc.slug?.current || doc.slug || doc._id || '';
+    
+    let thumbnail: string | undefined = undefined;
+    if (doc.mainImage) {
+      try {
+        thumbnail = urlFor(doc.mainImage).url();
+      } catch {
+        thumbnail = typeof doc.mainImage === 'string' ? doc.mainImage : undefined;
+      }
+    }
 
     // 1. Broadcast in-app notification to all users in Supabase
     try {
-      await notificationService.broadcastNotification({
-        title: `New Story: ${body.title || 'Untitled Story'}`,
-        message: body.excerpt || 'Read the latest story on Sawaflix!',
+      const broadcastCount = await notificationService.broadcastNotification({
+        title: `New Story: ${title}`,
+        message: excerpt,
         type: 'story',
         contentType: 'story',
         category: 'story',
         contentId: storySlug,
-        actorName: 'SawaFlix Editorial',
+        thumbnail: thumbnail,
+        actorName: doc.author?.name || 'SawaFlix Editorial',
       });
+      console.log(`Sanity in-app broadcast sent to ${broadcastCount} users`);
     } catch (notifErr) {
       console.warn("Failed to broadcast in-app notification for Sanity story:", notifErr);
     }
 
-    // 2. Fetch all subscribers from Neon
-    const subscribers = await prisma.pushSubscription.findMany();
-    
-    if (subscribers.length === 0) {
-      return NextResponse.json({ success: true, message: "No subscribers" });
+    // 2. Fetch all subscribers from Neon for Web Push
+    try {
+      const subscribers = await prisma.pushSubscription.findMany();
+      
+      if (subscribers && subscribers.length > 0) {
+        const payload = {
+          title: `New Story: ${title}`,
+          body: excerpt, 
+          url: `/dashboard/blogs/${storySlug}`,
+          icon: thumbnail || '/logos_and_pwas/android-chrome-192x192.png'
+        };
+
+        const host = req.headers.get('host') || 'www.sawaflix.com';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        
+        const publishPromises = subscribers.map((sub) => {
+          return qstash.publishJSON({
+            url: `${protocol}://${host}/api/notifications/send-worker`,
+            body: { subscription: sub, payload },
+            retries: 3,
+          }).catch(err => console.warn("QStash push error:", err));
+        });
+
+        await Promise.all(publishPromises);
+      }
+    } catch (pushErr) {
+      console.warn("Push subscription dispatch skipped:", pushErr);
     }
 
-    // Construct the payload using actual Sanity schema fields
-    const payload = {
-      title: `New Story: ${body.title}`,
-      body: body.excerpt || 'Read the latest story on Sawaflix!', 
-      url: `/story/${body.slug?.current || ''}`
-    };
-
-    // 2. Add jobs to Upstash QStash
-    const publishPromises = subscribers.map((sub) => {
-      // Create absolute URL dynamically or use env variable
-      const host = req.headers.get('host') || 'www.sawaflix.com';
-      const protocol = host.includes('localhost') ? 'http' : 'https';
-      
-      return qstash.publishJSON({
-        url: `${protocol}://${host}/api/notifications/send-worker`,
-        body: { subscription: sub, payload },
-        retries: 3,
-      });
-    });
-
-    await Promise.all(publishPromises);
-
-    return NextResponse.json({ success: true, queued: subscribers.length });
-  } catch (error) {
+    return NextResponse.json({ success: true, title, slug: storySlug });
+  } catch (error: any) {
     console.error("Sanity webhook error:", error);
-    return NextResponse.json({ error: "Failed to queue notifications" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to process Sanity webhook" }, { status: 500 });
   }
 }
