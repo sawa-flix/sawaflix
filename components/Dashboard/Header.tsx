@@ -291,7 +291,7 @@ const Header = ({
             >
               <Bell size={18} className="group-hover:scale-110 transition-transform" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14.5px] h-[14.5px] px-0.5 bg-white text-black font-black rounded-full flex items-center justify-center text-[8px] shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-in zoom-in duration-300 pointer-events-none">
+                <span className="absolute top-1 right-1 min-w-[14.5px] h-[14.5px] px-0.5 bg-[#E50914] text-white font-black rounded-full flex items-center justify-center text-[8px] shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-in zoom-in duration-300 pointer-events-none">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
