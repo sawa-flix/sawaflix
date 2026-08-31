@@ -177,8 +177,8 @@ const DashboardWrapper = ({ children }) => {
           {/* Left Sidebar — Fixed & Unified */}
           <aside
             className={`
-              fixed top-16 left-0 z-50 lg:z-30
-              w-72 h-[calc(100vh-4rem)] bg-[#0B0E14]/80 backdrop-blur-xl
+              fixed top-14 left-0 z-50 lg:z-30
+              w-72 h-[calc(100vh-3.5rem)] bg-[#0B0E14]/80 backdrop-blur-xl
               transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0
@@ -196,13 +196,13 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Right Sidebar — Fixed & Unified */}
           {hasRightSidebar && (
-            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
                 <RightSidebar />
             </aside>
           )}
 
           {/* Main Content Area — Scrollable center, shared by every page */}
-          <main className={`${isReelsRoute ? 'h-dvh md:h-[calc(100vh-4rem)]' : 'h-[calc(100vh-4rem)]'} lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+          <main className={`${isReelsRoute ? 'h-dvh md:h-[calc(100vh-3.5rem)]' : 'h-[calc(100vh-3.5rem)]'} lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
             <div
               className={
                 isReelsRoute

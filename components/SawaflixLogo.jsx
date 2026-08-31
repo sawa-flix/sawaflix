@@ -9,7 +9,7 @@ const SawaflixLogo = ({ className = "" }) => {
                 alt="SawaFlix Logo"
                 width={980}
                 height={228}
-                className="w-auto h-8 sm:h-10 rounded-md object-contain object-left group-hover:scale-105 transition-transform duration-300"
+                className="w-auto h-6 sm:h-7 md:h-7.5 rounded-md object-contain object-left group-hover:scale-105 transition-transform duration-300"
                 priority
             />
         </div>

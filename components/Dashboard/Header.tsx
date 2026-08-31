@@ -200,24 +200,20 @@ const Header = ({
     <header
       className={
         isReelsRoute
-          ? 'fixed top-0 left-0 right-0 z-50 h-16 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
-          : 'fixed top-0 left-0 right-0 z-50 h-16 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
+          ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
+          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
       }
     >
-      {/* Phone-only compact bar for Reels (TikTok-style): no bar background
-          at all here, just back / search / mute floating directly over the
-          fullscreen video (the dashboard shell stops reserving space for
-          the header on this route+breakpoint — see DashboardWrapper).
-          Desktop keeps the normal opaque header even on /dashboard/reels. */}
+      {/* Phone-only compact bar for Reels (TikTok-style) */}
       {isReelsRoute && (
-        <div className="flex md:hidden items-center h-full px-4 gap-2">
+        <div className="flex md:hidden items-center h-full px-3 gap-1.5">
           <button
             type="button"
             onClick={() => router.back()}
             aria-label="Back"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={16} />
           </button>
 
           <div className="flex flex-1 items-center justify-end">
@@ -229,46 +225,45 @@ const Header = ({
             onClick={toggleMute}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
             aria-pressed={!isMuted}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
           >
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
         </div>
       )}
 
-      <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8`}>
+      <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
-            className="lg:hidden p-2 mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="lg:hidden p-1.5 mr-1 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
-          <div className="flex items-center space-x-3 group">
-            <div className="hidden sm:block"></div>
-            <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="flex items-center space-x-2 group">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <SawaflixLogo />
             </Link>
           </div>
         </div>
 
         {!hideSearch && !searchDisabled && (
-          <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-lg mx-6 relative">
               <button
                 type="button"
                 onClick={() => setIsSearchFocused(true)}
-                className="w-full flex items-center justify-between pl-4 pr-4 py-2 bg-black/40 border border-white/10 rounded-xl
-                           text-white/50 text-sm hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
+                className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl
+                           text-white/50 text-xs hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
               >
                 <div className="flex items-center">
-                  <Search className="text-gray-500 mr-3 group-hover:text-white transition-colors" size={16} />
+                  <Search className="text-gray-500 mr-2.5 group-hover:text-white transition-colors" size={14} />
                   <span>Search videos, top stories...</span>
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
-                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
-                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
                 </div>
               </button>
             </div>
@@ -276,14 +271,14 @@ const Header = ({
 
         {isReelsRoute && <ReelsSearchBar />}
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-1.5">
           {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
-              className="md:hidden p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
-              <Search size={18} />
+              <Search size={17} />
             </button>
           )}
 
@@ -291,12 +286,12 @@ const Header = ({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group"
               aria-label="Notifications"
             >
-              <Bell size={20} className="group-hover:scale-110 transition-transform" />
+              <Bell size={18} className="group-hover:scale-110 transition-transform" />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-in zoom-in duration-300">
+                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] px-0.5 bg-red-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-md shadow-red-600/20 animate-in zoom-in duration-300">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -333,20 +328,19 @@ const Header = ({
             )}
           </div>
 
-          <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
-            <Settings size={18} />
+          <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
+            <Settings size={16} />
           </Link>
-
 
           {isAuthenticated ? (
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
+                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
                 aria-label="User profile menu"
               >
                 {userProfile?.profile_image_url ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0 group-hover:ring-white/60 transition-all">
+                  <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0 group-hover:ring-white/60 transition-all">
                     <Image
                       src={userProfile.profile_image_url}
                       alt="User Avatar"
@@ -356,19 +350,19 @@ const Header = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white/20 shadow-md flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-[11px] ring-2 ring-white/20 shadow-md flex-shrink-0">
                     {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[110px]">
+                  <span className="text-[11.5px] font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[100px]">
                     {userProfile?.username || currentUser?.email?.split('@')[0]}
                   </span>
-                  <span className="text-[9px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
+                  <span className="text-[8px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
                     Account
                   </span>
                 </div>
-                <ChevronDown size={14} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
