@@ -11,6 +11,7 @@ import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import CultureInfiniteFeed from './CultureInfiniteFeed';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -464,6 +465,12 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             )}
           </div>
         </section>
+ 
+        {/* ═══ Cameroonian Culture Infinite Feed ═══ */}
+        <CultureInfiniteFeed
+          onPlayVideo={onPlayReel}
+          activeCategory={activeCategory}
+        />
 
         {/* ═══ Continue Watching Section ═══ */}
         <section>
