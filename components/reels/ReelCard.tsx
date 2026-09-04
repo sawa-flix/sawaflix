@@ -39,6 +39,9 @@ interface ReelCardProps {
  */
 export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
+  const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
+  const isNative = video.origin === 'sawaflix' || (Boolean(video.videoUrl) && !video.videoUrl.includes('youtube.com') && !video.videoUrl.includes('youtu.be'));
+
   const [isFollowing, setIsFollowing] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [, startTransition] = useTransition();
@@ -46,18 +49,44 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     useComments(isActive ? video.id : null);
   const { stats } = useVideoStats(isActive ? video.id : null);
 
-  // A new video id means a fresh player load — the loading spinner should
-  // show again rather than keep showing "ready" from whatever was playing before.
+  // A new video id means a fresh player load
   useEffect(() => {
     setIsPlayerReady(false);
   }, [video.id]);
+
+  // Sync native video playback with active/paused state
+  useEffect(() => {
+    if (!isNative || !nativeVideoRef.current) return;
+    const v = nativeVideoRef.current;
+    if (isActive && !isPaused) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [isActive, isPaused, isNative]);
+
+  // Sync native video mute state
+  useEffect(() => {
+    if (!isNative || !nativeVideoRef.current) return;
+    nativeVideoRef.current.muted = isMuted;
+  }, [isMuted, isNative]);
 
   const handlePlayerReady = useCallback((player: YT.Player) => {
     playerRef.current = player;
     setIsPlayerReady(true);
   }, []);
 
-  const getPlayer = useCallback(() => playerRef.current, []);
+  const getPlayer = useCallback(() => {
+    if (isNative && nativeVideoRef.current) {
+      const v = nativeVideoRef.current;
+      return {
+        seekTo: (time: number) => { if (v) v.currentTime = time; },
+        getCurrentTime: () => v?.currentTime || 0,
+        getDuration: () => v?.duration || 0,
+      } as any;
+    }
+    return playerRef.current;
+  }, [isNative]);
 
   const { isScrubbing, scrubTime, duration, handlers: scrubHandlers } = useScrubGesture({
     getPlayer,
@@ -65,15 +94,23 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     onScrubEnd: onResume,
   });
 
-  // TikTok-style auto-advance: a finished reel moves on to the next one
-  // instead of looping. Only loops itself as a fallback when there's
-  // genuinely nothing next to advance to (end of the loaded feed).
   const handleEnded = useCallback(() => {
     if (hasNext) {
       onEnded();
     } else {
       playerRef.current?.seekTo(0, true);
       playerRef.current?.playVideo();
+    }
+  }, [hasNext, onEnded]);
+
+  const handleNativeEnded = useCallback(() => {
+    if (hasNext) {
+      onEnded();
+    } else {
+      if (nativeVideoRef.current) {
+        nativeVideoRef.current.currentTime = 0;
+        nativeVideoRef.current.play().catch(() => {});
+      }
     }
   }, [hasNext, onEnded]);
 
@@ -88,8 +125,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         setIsFollowing(!next);
         return;
       }
-      // Additive: persist locally too so profile stats can count it. The
-      // external backend call above is unchanged/unaffected either way.
       try {
         if (next) await followService.follow('youtube_channel', video.channelId);
         else await followService.unfollow('youtube_channel', video.channelId);
@@ -108,8 +143,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       likeCount: 0,
       publishedAt: new Date().toISOString(),
     });
-    // Fire-and-forget: existing server action persists it server-side; the
-    // optimistic local entry above is what the user sees immediately.
     import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
       commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
         console.error('[ReelCard] Comment post failed:', err)
@@ -122,17 +155,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       ref={itemRef}
       className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-black"
     >
-      {/* Tap-to-pause / press-and-hold-to-scrub target — scoped to the
-          player itself so taps on the overlay/actions/comments (siblings
-          below, higher z-index) don't also toggle playback. A plain div
-          (not <button>) because it wraps the YouTube iframe, which is
-          itself focusable/interactive — nesting that inside a real
-          <button> would be invalid.
-          touchAction: 'pan-y' is what keeps this gesture from ever
-          fighting vertical swipe navigation: it tells the browser to keep
-          handling vertical drags as native scroll (they never reach the
-          scrub gesture at all), while leaving horizontal movement free
-          for useScrubGesture to interpret via Pointer Events. */}
       <div
         role="button"
         tabIndex={0}
@@ -147,14 +169,29 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         style={{ touchAction: 'pan-y' }}
         {...scrubHandlers}
       >
-        <YouTubePlayer
-          videoId={video.id}
-          isActive={isActive}
-          isPaused={isPaused || isScrubbing}
-          isMuted={isMuted}
-          onPlayerReady={handlePlayerReady}
-          onEnded={handleEnded}
-        />
+        {isNative ? (
+          <video
+            ref={nativeVideoRef}
+            src={video.videoUrl}
+            playsInline
+            muted={isMuted}
+            preload="auto"
+            crossOrigin="anonymous"
+            className="w-full h-full object-cover bg-black"
+            onLoadedData={() => setIsPlayerReady(true)}
+            onCanPlay={() => setIsPlayerReady(true)}
+            onEnded={handleNativeEnded}
+          />
+        ) : (
+          <YouTubePlayer
+            videoId={video.id}
+            isActive={isActive}
+            isPaused={isPaused || isScrubbing}
+            isMuted={isMuted}
+            onPlayerReady={handlePlayerReady}
+            onEnded={handleEnded}
+          />
+        )}
       </div>
 
       {/* Only the active reel gets a loading skeleton — inactive/±1

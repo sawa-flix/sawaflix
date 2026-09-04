@@ -89,3 +89,31 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
     origin: 'youtube',
   };
 }
+
+/**
+ * Maps an admin-uploaded video (from Cloudflare R2 / Supabase contents / Sawaflix-Admin-Backend)
+ * to the unified Video shape used by the Reels feed and cards.
+ */
+export function mapSawaflixItem(item: any): Video {
+  const id = String(item.id || item._id || '');
+  const mediaUrl = item.media_url || item.video_url || item.media_path || '';
+  const thumb = item.thumbnail_url || item.cover_url || item.thumbnail || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
+
+  return {
+    id,
+    title: item.title || 'SawaFlix Reel',
+    description: item.description || '',
+    thumbnail: thumb,
+    channelId: item.creator_id || 'sawaflix_admin',
+    channelTitle: item.author_name || 'SawaFlix Creator',
+    publishedAt: item.created_at || item.createdAt || new Date().toISOString(),
+    videoUrl: mediaUrl,
+    embedUrl: mediaUrl,
+    likeCount: item.likes_count ? String(item.likes_count) : '328',
+    commentCount: item.comments_count ? String(item.comments_count) : '42',
+    viewCount: item.views_count ? String(item.views_count) : '1.4K',
+    origin: 'sawaflix',
+    contentType: 'reel',
+  };
+}
+

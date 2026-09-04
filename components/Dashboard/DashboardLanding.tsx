@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import { Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp } from 'lucide-react';
+import { Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp, BookOpen, Sparkles, Video as VideoIcon } from 'lucide-react';
 import { MOVIES_DATA } from '../Movie/constants';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
@@ -63,7 +63,16 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
   const { query: homeSearchQuery, results: homeSearchResults, clear: clearHomeSearch } = useHomeSearchStore();
-  const [bannerMovie, setBannerMovie] = useState<any>(null);
+  const [heroItem, setHeroItem] = useState<{
+    id: string;
+    type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+    title: string;
+    subtitle?: string;
+    image: string;
+    badge: string;
+    targetUrl: string;
+  } | null>(null);
+  const [adminVideos, setAdminVideos] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
   const [loadingStories, setLoadingStories] = useState(true);
@@ -72,25 +81,139 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const longFormScrollRef = useRef<HTMLDivElement>(null);
   const reelsPreviewScrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and rotate banner every 10 minutes
+  // Fetch admin uploaded content for the banner pool
   useEffect(() => {
-    const getRandomMovie = () => MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
-    setBannerMovie(getRandomMovie());
-    const interval = setInterval(() => {
-      setBannerMovie(getRandomMovie());
-    }, 10 * 60 * 1000);
-    return () => clearInterval(interval);
+    async function fetchAdminContent() {
+      try {
+        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3001';
+        const res = await fetch(`${adminUrl}/api/public/featured`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+            setAdminVideos(json.data);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Direct fallback to Supabase contents table
+      try {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('contents')
+          .select('*')
+          .eq('visibility', 'public')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (data && data.length > 0) {
+          setAdminVideos(data.map((c: any) => ({
+            id: c.id,
+            type: 'admin_video',
+            title: c.title,
+            description: c.description,
+            image: c.cover_url || c.thumbnail_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+            badge: 'SawaFlix Original',
+            action_url: `/dashboard/reels?id=${c.id}`
+          })));
+        }
+      } catch (sbErr) {}
+    }
+    fetchAdminContent();
   }, []);
 
-  // Handle playing the banner movie
-  const handleBannerPlay = () => {
-    if (!isAuthenticated) {
+  // Multi-source pool: Admin Videos, YouTube Videos, Blog Articles, and Movies
+  const heroPool = useMemo(() => {
+    const pool: Array<{
+      id: string;
+      type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+      title: string;
+      subtitle?: string;
+      image: string;
+      badge: string;
+      targetUrl: string;
+    }> = [];
+
+    // 1. Admin Uploaded Videos
+    adminVideos.forEach((v: any) => {
+      pool.push({
+        id: v.id || v._id,
+        type: 'admin_video',
+        title: v.title || 'SawaFlix Original',
+        subtitle: v.description || 'Watch now exclusively on SawaFlix',
+        image: v.image || v.thumbnail_url || v.cover_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+        badge: 'SawaFlix Original',
+        targetUrl: v.action_url || `/dashboard/reels?id=${v.id || v._id}`
+      });
+    });
+
+    // 2. YouTube Culture Videos from reels
+    (reels || []).slice(0, 6).forEach((r: any) => {
+      pool.push({
+        id: r.id,
+        type: 'youtube',
+        title: r.title || 'Trending Culture',
+        subtitle: r.channelTitle || 'Watch on SawaFlix Reels',
+        image: r.thumbnail || `https://i.ytimg.com/vi/${r.id}/maxresdefault.jpg`,
+        badge: 'Trending Culture',
+        targetUrl: `/dashboard/reels?id=${r.id}`
+      });
+    });
+
+    // 3. Blog Stories from Sanity
+    (stories || []).slice(0, 6).forEach((s: any) => {
+      let imgUrl = 'https://i.ibb.co/27LNPd8v/sawaflixmusic-cover.png';
+      try {
+        if (s.mainImage) imgUrl = urlFor(s.mainImage).width(1200).height(600).url();
+      } catch (e) {}
+
+      pool.push({
+        id: s._id,
+        type: 'blog',
+        title: s.title || 'Area Tory Story',
+        subtitle: s.excerpt || 'Read the full cultural story on SawaFlix',
+        image: imgUrl,
+        badge: 'Area Tory Story',
+        targetUrl: `/dashboard/blogs/${s.slug?.current || s._id}`
+      });
+    });
+
+    // 4. Movies from MOVIES_DATA
+    MOVIES_DATA.slice(0, 3).forEach((m: any) => {
+      pool.push({
+        id: String(m.id),
+        type: 'movie',
+        title: m.title,
+        subtitle: m.genre || 'Sawa Cinema Highlight',
+        image: m.image,
+        badge: 'Sawa Cinema',
+        targetUrl: '/dashboard/movie'
+      });
+    });
+
+    return pool;
+  }, [adminVideos, reels, stories]);
+
+  // Pick random banner item and rotate every 3 minutes
+  useEffect(() => {
+    if (heroPool.length === 0) return;
+    const getRandomItem = () => heroPool[Math.floor(Math.random() * heroPool.length)];
+    setHeroItem(getRandomItem());
+    const interval = setInterval(() => {
+      setHeroItem(getRandomItem());
+    }, 3 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [heroPool]);
+
+  // Handle banner play/read navigation
+  const handleBannerClick = () => {
+    if (!heroItem) return;
+    if (heroItem.type === 'movie' && !isAuthenticated) {
       openAuthModal('to watch this movie');
       return;
     }
-    if (bannerMovie) {
-      router.push(`/dashboard/movie`);
-    }
+    router.push(heroItem.targetUrl);
   };
 
   // Fetch Sanity Stories using getStories() like StoryGrid does
@@ -231,37 +354,72 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
       <div className="px-2 sm:px-6 lg:px-8 flex flex-col gap-10">
 
-        {/* ═══ Dynamic Hero Banner — clean image, no text overlay ═══ */}
-        {bannerMovie && (
-          <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-white/5 bg-black">
+        {/* ═══ Dynamic Multi-Source Hero Banner (Admin Video, YouTube, Blog, Movie) ═══ */}
+        {heroItem && (
+          <section 
+            onClick={handleBannerClick}
+            className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-white/5 bg-black cursor-pointer"
+          >
             <Image
-              src={bannerMovie.image}
-              alt={bannerMovie.title}
+              src={heroItem.image}
+              alt={heroItem.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               unoptimized
               priority
               sizes="100vw"
             />
-            {/* Subtle bottom gradient only */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14]/60 via-transparent to-transparent" />
+            {/* Dark gradient for high contrast reading */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/40 to-transparent" />
 
-            {/* Play button */}
-            <div className="absolute inset-0 z-20 flex items-center justify-center">
-              <button
-                onClick={handleBannerPlay}
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-[#CE1126] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
-                <Play size={32} className="text-white relative z-10 ml-2 fill-current" />
-              </button>
+            {/* Top-right item type badge */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase border backdrop-blur-md ${
+                heroItem.type === 'admin_video' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/30'
+                  : heroItem.type === 'blog'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                  : heroItem.type === 'youtube'
+                  ? 'bg-red-500/20 text-red-300 border-red-400/30'
+                  : 'bg-white/10 text-white border-white/20'
+              }`}>
+                {heroItem.type === 'admin_video' && <Sparkles size={11} className="text-amber-400 animate-pulse" />}
+                {heroItem.type === 'blog' && <BookOpen size={11} className="text-emerald-400" />}
+                {heroItem.type === 'youtube' && <Play size={11} className="text-red-400 fill-current" />}
+                {heroItem.type === 'movie' && <Film size={11} className="text-yellow-400" />}
+                <span>{heroItem.badge}</span>
+              </span>
             </div>
 
-            {/* Bottom-left movie title badge */}
-            <div className="absolute bottom-4 left-4 z-10">
-              <span className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10">
-                {bannerMovie.title}
-              </span>
+            {/* Center Play / Read button */}
+            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+              <div
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500"
+              >
+                <div className="absolute inset-0 bg-[#CE1126] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
+                {heroItem.type === 'blog' ? (
+                  <BookOpen size={28} className="text-white relative z-10" />
+                ) : (
+                  <Play size={32} className="text-white relative z-10 ml-2 fill-current" />
+                )}
+              </div>
+            </div>
+
+            {/* Bottom-left metadata overlay */}
+            <div className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 z-10 max-w-xl">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider border border-white/15">
+                  {heroItem.type === 'admin_video' ? 'Featured Video' : heroItem.type === 'blog' ? 'Featured Story' : heroItem.type === 'youtube' ? 'Trending Culture' : 'Featured Cinema'}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight line-clamp-2 drop-shadow-md">
+                {heroItem.title}
+              </h1>
+              {heroItem.subtitle && (
+                <p className="text-xs sm:text-sm text-white/80 font-medium line-clamp-1 mt-1 drop-shadow-sm">
+                  {heroItem.subtitle}
+                </p>
+              )}
             </div>
           </section>
         )}

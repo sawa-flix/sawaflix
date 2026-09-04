@@ -139,18 +139,118 @@ export async function getUnifiedFeedAction() {
     }
 }
 
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.ADMIN_BACKEND_URL || 'http://localhost:3001';
+
 export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
     const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
+    let youtubeFeed: any[] = [];
+    let paginationData: any = { current_page: page, next_page: page + 1 };
+
+    // 1. Fetch YouTube culture feed
     try {
-        const response = await fetchWithTimeout(url);
-        return handleResponse(response);
-    } catch (error: any) {
-        console.error('getCultureFeedAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE' || error.message.includes('fetch failed')) {
-            return { success: true, feed: [], pagination: { current_page: page, next_page: null } };
+        const response = await fetchWithTimeout(url, {}, 5000, 1);
+        const resJson = await handleResponse(response);
+        youtubeFeed = resJson?.feed || [];
+        if (resJson?.pagination) {
+            paginationData = resJson.pagination;
         }
-        throw error;
+    } catch (error: any) {
+        console.warn('[getCultureFeedAction] YouTube backend feed warning:', error.message);
     }
+
+    // 2. Fetch Admin uploaded reels from Sawaflix-Admin-Backend and/or Supabase
+    let adminReels: any[] = [];
+    try {
+        // Try public admin endpoint first
+        const adminRes = await fetchWithTimeout(`${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`, {}, 3000, 0);
+        if (adminRes.ok) {
+            const adminData = await adminRes.json();
+            if (adminData?.data && Array.isArray(adminData.data)) {
+                adminReels = adminData.data;
+            }
+        }
+    } catch (adminErr: any) {
+        // Silently fall back to Supabase direct query
+    }
+
+    // Fallback: If admin backend endpoint didn't return reels, query Supabase directly
+    if (adminReels.length === 0) {
+        try {
+            const supabase = await createClient();
+            const { data: contents } = await supabase
+                .from('contents')
+                .select('*')
+                .eq('visibility', 'public')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (contents && contents.length > 0) {
+                adminReels = contents.map((c: any) => ({
+                    id: c.id,
+                    title: c.title,
+                    description: c.description,
+                    media_url: c.media_url || c.media_path,
+                    video_url: c.media_url || c.media_path,
+                    thumbnail_url: c.cover_url || c.thumbnail_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+                    author_name: c.author_name || 'SawaFlix Creator',
+                    duration: c.duration || 38,
+                    origin: 'sawaflix',
+                    is_reel: true
+                }));
+            }
+        } catch (sbErr: any) {
+            console.warn('[getCultureFeedAction] Supabase contents fallback warning:', sbErr.message);
+        }
+    }
+
+    // Transform admin reels to feed items matching YouTube raw feed shape
+    const formattedAdminFeed = adminReels.map((ar: any) => ({
+        id: ar.id,
+        videoId: ar.id,
+        title: ar.title || 'SawaFlix Reel',
+        description: ar.description || '',
+        thumbnail: ar.thumbnail_url || ar.cover_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+        channelTitle: ar.author_name || 'SawaFlix Creator',
+        channelId: ar.creator_id || 'sawaflix_admin',
+        media_url: ar.media_url || ar.video_url,
+        video_url: ar.media_url || ar.video_url,
+        origin: 'sawaflix',
+        duration: ar.duration || 38,
+        statistics: {
+            viewCount: '1.4K',
+            likeCount: '328',
+            commentCount: '42'
+        }
+    }));
+
+    // 3. Blend / Interleave Admin Reels with YouTube culture videos!
+    let mergedFeed: any[] = [];
+    if (formattedAdminFeed.length > 0 && youtubeFeed.length > 0) {
+        let adminIdx = 0;
+        let ytIdx = 0;
+        // Prioritize admin reel at index 0, then 2 YouTube videos, then 1 admin reel, etc.
+        while (adminIdx < formattedAdminFeed.length || ytIdx < youtubeFeed.length) {
+            if (adminIdx < formattedAdminFeed.length) {
+                mergedFeed.push(formattedAdminFeed[adminIdx++]);
+            }
+            if (ytIdx < youtubeFeed.length) {
+                mergedFeed.push(youtubeFeed[ytIdx++]);
+            }
+            if (ytIdx < youtubeFeed.length) {
+                mergedFeed.push(youtubeFeed[ytIdx++]);
+            }
+        }
+    } else if (formattedAdminFeed.length > 0) {
+        mergedFeed = formattedAdminFeed;
+    } else {
+        mergedFeed = youtubeFeed.length > 0 ? youtubeFeed : MOCK_VIDEOS;
+    }
+
+    return {
+        success: true,
+        feed: mergedFeed,
+        pagination: paginationData
+    };
 }
 
 export async function searchVideosAction(
