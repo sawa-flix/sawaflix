@@ -123,7 +123,7 @@ export default function LeftSidebar({
   const exploreItems = [
     { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
     { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
-    { name: 'LiveTv', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: null },
+    { name: 'Live TV', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: 'Live' },
     { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null },
     { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null },
     { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },

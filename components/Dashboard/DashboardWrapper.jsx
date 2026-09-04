@@ -21,7 +21,7 @@ const DashboardWrapper = ({ children }) => {
   // Disable right sidebar for movie and profile pages. Reels renders inside
   // the normal dashboard shell like every other page — header, left
   // sidebar, and right sidebar all stay visible.
-  const hideRightSidebarPaths = ['/movie', '/profile', '/edit-profile'];
+  const hideRightSidebarPaths = ['/movie', '/profile', '/edit-profile', '/livetv'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
   // Every other page uses pb-40 as trailing scroll space below flowing
   // content. Reels is a fixed-height video panel, not flowing content —
