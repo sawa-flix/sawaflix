@@ -112,11 +112,49 @@ export default function MusicPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/videos/external/youtube/music-categories`);
-        if (res.ok) {
-          const data = await res.json();
-          setMusicCategories(data);
+        let adminCategories = [];
+        try {
+          const adminUrl = process.env.NEXT_PUBLIC_ADMIN_BACKEND_URL || 'http://localhost:3001';
+          const adminRes = await fetch(`${adminUrl}/api/public/music`);
+          if (adminRes.ok) {
+            const adminData = await adminRes.json();
+            if (adminData.categories && Array.isArray(adminData.categories)) {
+              adminCategories = adminData.categories;
+            }
+          }
+        } catch (e) {
+          console.warn("Admin music fetch error:", e);
         }
+
+        let ytCategories = [];
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/videos/external/youtube/music-categories`);
+          if (res.ok) {
+            ytCategories = await res.json();
+          }
+        } catch (err) {
+          console.error("Failed to fetch youtube music categories:", err);
+        }
+
+        // Merge: SawaFlix Admin categories prioritized, then YouTube categories
+        const merged = [...adminCategories];
+        for (const ytCat of ytCategories) {
+          const existing = merged.find(
+            (m) => m.category.toLowerCase().trim() === ytCat.category.toLowerCase().trim()
+          );
+          if (existing) {
+            const existingIds = new Set(existing.videos.map((v) => String(v.id)));
+            ytCat.videos.forEach((v) => {
+              if (!existingIds.has(String(v.id))) {
+                existing.videos.push(v);
+              }
+            });
+          } else {
+            merged.push(ytCat);
+          }
+        }
+
+        setMusicCategories(merged);
       } catch (err) {
         console.error("Failed to fetch music categories:", err);
       } finally {
@@ -738,19 +776,19 @@ export default function MusicPage() {
                 const pl = allVids.map(v => ({
                   id: v.id,
                   title: v.title,
-                  artist: v.channelTitle,
-                  image: MUSIC_CARD_THUMB,
-                  src: v.videoUrl,
-                  duration: "3:00"
+                  artist: v.channelTitle || v.artist || 'SawaFlix',
+                  image: v.thumbnail || v.image || MUSIC_CARD_THUMB,
+                  src: v.videoUrl || v.src,
+                  duration: v.duration || "3:30"
                 }));
                 playTrack(
                   {
                     id: first.id,
                     title: first.title,
-                    artist: first.channelTitle,
-                    image: MUSIC_CARD_THUMB,
-                    src: first.videoUrl,
-                    duration: "3:00"
+                    artist: first.channelTitle || first.artist || 'SawaFlix',
+                    image: first.thumbnail || first.image || MUSIC_CARD_THUMB,
+                    src: first.videoUrl || first.src,
+                    duration: first.duration || "3:30"
                   },
                   pl
                 );
@@ -865,10 +903,10 @@ export default function MusicPage() {
                     const trackObj = {
                       id: video.id,
                       title: video.title,
-                      artist: video.channelTitle,
-                      image: MUSIC_CARD_THUMB,
-                      src: video.videoUrl,
-                      duration: "3:00"
+                      artist: video.channelTitle || video.artist || 'SawaFlix',
+                      image: video.thumbnail || video.image || MUSIC_CARD_THUMB,
+                      src: video.videoUrl || video.src,
+                      duration: video.duration || "3:30"
                     };
                     const isTrackPlaying = isPlaying && globalTrack?.id === trackObj.id;
                     const isCurrentTrack = globalTrack?.id === trackObj.id;
@@ -884,9 +922,10 @@ export default function MusicPage() {
                             const pl = categoryData.videos.map(v => ({
                               id: v.id,
                               title: v.title,
-                              artist: v.channelTitle,
-                              image: MUSIC_CARD_THUMB,
-                              src: v.videoUrl
+                              artist: v.channelTitle || v.artist || 'SawaFlix',
+                              image: v.thumbnail || v.image || MUSIC_CARD_THUMB,
+                              src: v.videoUrl || v.src,
+                              duration: v.duration || "3:30"
                             }));
                             playTrack(trackObj, pl);
                           }
@@ -894,7 +933,7 @@ export default function MusicPage() {
                       >
                         <div className="music-card-thumb">
                           <img
-                            src={MUSIC_CARD_THUMB}
+                            src={trackObj.image}
                             alt={trackObj.title}
                             loading="lazy"
                           />
@@ -919,7 +958,7 @@ export default function MusicPage() {
                             </div>
                           )}
                           {/* Duration badge */}
-                          <div className="duration-badge">3:00</div>
+                          <div className="duration-badge">{trackObj.duration}</div>
                         </div>
                         <p className="music-card-title">{trackObj.title}</p>
                         <p className="music-card-artist">{trackObj.artist}</p>
@@ -934,10 +973,10 @@ export default function MusicPage() {
                     const trackObj = {
                       id: video.id,
                       title: video.title,
-                      artist: video.channelTitle,
-                      image: MUSIC_CARD_THUMB,
-                      src: video.videoUrl,
-                      duration: "3:00"
+                      artist: video.channelTitle || video.artist || 'SawaFlix',
+                      image: video.thumbnail || video.image || MUSIC_CARD_THUMB,
+                      src: video.videoUrl || video.src,
+                      duration: video.duration || "3:30"
                     };
                     const isTrackPlaying = isPlaying && globalTrack?.id === trackObj.id;
                     const isCurrentTrack = globalTrack?.id === trackObj.id;
@@ -953,16 +992,17 @@ export default function MusicPage() {
                             const pl = categoryData.videos.map(v => ({
                               id: v.id,
                               title: v.title,
-                              artist: v.channelTitle,
-                              image: MUSIC_CARD_THUMB,
-                              src: v.videoUrl
+                              artist: v.channelTitle || v.artist || 'SawaFlix',
+                              image: v.thumbnail || v.image || MUSIC_CARD_THUMB,
+                              src: v.videoUrl || v.src,
+                              duration: v.duration || "3:30"
                             }));
                             playTrack(trackObj, pl);
                           }
                         }}
                       >
                         <div className="mobile-list-thumb">
-                          <img src={MUSIC_CARD_THUMB} alt={trackObj.title} />
+                          <img src={trackObj.image} alt={trackObj.title} />
                           {isTrackPlaying && (
                             <div className="cameroon-playing-indicator" style={{
                               position: 'absolute',

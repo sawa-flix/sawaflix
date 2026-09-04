@@ -79,18 +79,54 @@ export default function MusicPage(): React.ReactElement {
   // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
-      // If already loaded from cache, we can skip fetching or re-fetch in background
-      if (!isLoading && musicCategories.length > 0) return;
-
       try {
-        const res = await fetch(`${BACKEND_URL}/api/videos/external/youtube/music-categories`);
-        if (res.ok) {
-          const data = await res.json();
-          setMusicCategories(data);
-          
-          // Save to cache
-          localStorage.setItem('sawa_music_categories', JSON.stringify(data));
-          localStorage.setItem('sawa_music_categories_time', Date.now().toString());
+        let adminCategories: MusicCategory[] = [];
+        try {
+          const adminUrl = process.env.NEXT_PUBLIC_ADMIN_BACKEND_URL || 'http://localhost:3001';
+          const adminRes = await fetch(`${adminUrl}/api/public/music`);
+          if (adminRes.ok) {
+            const adminData = await adminRes.json();
+            if (adminData.categories && Array.isArray(adminData.categories)) {
+              adminCategories = adminData.categories;
+            }
+          }
+        } catch (aErr) {
+          console.warn('Could not fetch admin music:', aErr);
+        }
+
+        let ytCategories: MusicCategory[] = [];
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/videos/external/youtube/music-categories`);
+          if (res.ok) {
+            ytCategories = await res.json();
+          }
+        } catch (yErr) {
+          console.warn('Could not fetch youtube music categories:', yErr);
+        }
+
+        const merged: MusicCategory[] = [...adminCategories];
+        for (const ytCat of ytCategories) {
+          const existing = merged.find(
+            (m) => m.category.toLowerCase().trim() === ytCat.category.toLowerCase().trim()
+          );
+          if (existing) {
+            const existingIds = new Set(existing.videos.map((v) => String(v.id)));
+            ytCat.videos.forEach((v) => {
+              if (!existingIds.has(String(v.id))) {
+                existing.videos.push(v);
+              }
+            });
+          } else {
+            merged.push(ytCat);
+          }
+        }
+
+        if (merged.length > 0) {
+          setMusicCategories(merged);
+          try {
+            localStorage.setItem('sawa_music_categories', JSON.stringify(merged));
+            localStorage.setItem('sawa_music_categories_time', Date.now().toString());
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Failed to fetch music categories:', err);
@@ -100,7 +136,7 @@ export default function MusicPage(): React.ReactElement {
     };
 
     fetchCategories();
-  }, [isLoading, musicCategories.length]);
+  }, []);
 
   // Default fallback track
   const defaultTrack: Track = {
