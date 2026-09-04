@@ -32,7 +32,11 @@ export function formatRelativeTime(dateString: string | undefined | null): strin
 }
 
 /** Deterministic creator-avatar fallback for channels with no real avatar in the feed payload. */
-export function creatorAvatarUrl(channelTitle: string | undefined | null): string {
+export function creatorAvatarUrl(channelTitle: string | undefined | null, origin?: string): string {
+  const title = (channelTitle || '').toLowerCase().trim();
+  if (origin === 'sawaflix' || title.includes('sawaflix') || !title) {
+    return '/logos_and_pwas/android-chrome-192x192.png';
+  }
   const seed = encodeURIComponent(channelTitle || 'SawaFlix');
   return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`;
 }

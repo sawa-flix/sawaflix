@@ -65,8 +65,8 @@ export async function GET(
           description: video.description,
           thumbnail: video.cover_url || video.thumbnail,
           videoUrl: video.media_url,
-          channelTitle: video.creator_name || 'SawaFlix Creator',
-          channelId: video.creator_id,
+          channelTitle: video.creator_name || 'SawaFlix',
+          channelId: video.creator_id || 'sawaflix',
           type: video.category || video.content_type || 'video',
           origin: 'sawaflix',
           publishedAt: video.created_at
