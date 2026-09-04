@@ -9,25 +9,17 @@ import {
   Volume2, 
   VolumeX, 
   Maximize, 
-  RotateCcw, 
   Search, 
   Heart, 
-  Share2, 
-  Info, 
-  Calendar, 
   Clock, 
   MapPin, 
   Radio, 
-  Flame, 
   ChevronRight, 
   ChevronLeft,
-  SlidersHorizontal,
-  Check,
   Eye,
-  Film,
-  Music,
-  Trophy,
-  Globe
+  Globe,
+  Calendar,
+  Share2
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -49,8 +41,6 @@ interface TVStation {
   language: string;
   frequency: string;
   viewers: number;
-  badgeColor: string;
-  accentGradient: string;
   currentShow: {
     title: string;
     genre: string;
@@ -66,7 +56,6 @@ interface TVStation {
   };
   schedule: TVShow[];
   about: string;
-  videoUrl?: string;
   posterBg: string;
 }
 
@@ -83,8 +72,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Bilingual (Francais / English)',
     frequency: 'Canal+ 301 • TNT Ch 1 • Eutelsat 16A',
     viewers: 32450,
-    badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    accentGradient: 'from-amber-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Cameroon Feeling',
       genre: 'Culture & Talk Show',
@@ -110,7 +97,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '20:30', title: 'Le Grand Journal Televise 20h30', genre: 'News' },
       { time: '21:45', title: 'Tele-debat National', genre: 'Public Affairs' }
     ],
-    about: 'Cameroon Radio Television (CRTV) is Cameroon state broadcaster headquartered in Yaounde Mballa II. Established in 1985, it is the primary historical bilingual network transmitting nationwide across terrestrial TNT, satellite, and digital.',
+    about: 'Cameroon Radio Television (CRTV) is the national public broadcaster headquartered in Yaounde Mballa II. Founded in 1985, it is the historical bilingual network transmitting nationwide across terrestrial TNT, satellite, and digital.',
     posterBg: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=1200&auto=format&fit=crop'
   },
   {
@@ -124,8 +111,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais & English',
     frequency: 'Canal+ 302 • Startimes Ch 105 • SES 4',
     viewers: 41200,
-    badgeColor: 'bg-red-500/20 text-red-400 border-red-500/30',
-    accentGradient: 'from-red-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Jambo Television',
       genre: 'Entertainment & Variety',
@@ -164,8 +149,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais & English',
     frequency: 'Canal+ 303 • SES 4 • TNT Ch 3',
     viewers: 38900,
-    badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    accentGradient: 'from-blue-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Droit de Reponse',
       genre: 'Political Debate',
@@ -190,7 +173,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '19:00', title: 'Equinoxe Soir - Le Grand Debat', genre: 'Debate' },
       { time: '21:30', title: 'La Tribune Citoyenne', genre: 'Public' }
     ],
-    about: 'Equinoxe Television is Cameroon leading independent news and public affairs television station, created in 2006 by Severin Tchounkeu in Douala. Known for deep journalistic investigations and political debates.',
+    about: 'Equinoxe Television is Cameroon leading independent news and public affairs television station, created in 2006 by Severin Tchounkeu in Douala. Known for deep investigative journalism and debate.',
     posterBg: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1200&auto=format&fit=crop'
   },
   {
@@ -204,8 +187,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Bilingual (Francais / English)',
     frequency: 'Canal+ 305 • TNT Ch 2',
     viewers: 19500,
-    badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    accentGradient: 'from-emerald-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'The Debate: Cameroon Geopolitics',
       genre: 'Analysis',
@@ -229,7 +210,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '19:00', title: 'The World This Hour', genre: 'World News' },
       { time: '21:00', title: 'Grand Format Afrique Centrale', genre: 'Documentary' }
     ],
-    about: 'Launched in 2018 as CRTV dedicated 24-hour bilingual rolling news network, CRTV News delivers non-stop coverage of politics, business, and regional developments across Cameroon and the CEMAC zone.',
+    about: 'Launched in 2018 as CRTV dedicated 24-hour bilingual rolling news network, CRTV News delivers non-stop coverage of politics, business, and regional developments across Cameroon and Central Africa.',
     posterBg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200&auto=format&fit=crop'
   },
   {
@@ -243,8 +224,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Bilingual',
     frequency: 'Canal+ 306 • TNT Ch 3',
     viewers: 27800,
-    badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-    accentGradient: 'from-orange-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Elite One Live: Coton Sport vs Canon Yaounde',
       genre: 'Live Match',
@@ -281,8 +260,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 309 • TNT Ch 12',
     viewers: 23100,
-    badgeColor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    accentGradient: 'from-yellow-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Sacre Matin TV avec Cyrille Bojiko',
       genre: 'Entertainment Talk',
@@ -319,8 +296,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Bilingual (Francais / English)',
     frequency: 'Canal+ 304 • Eutelsat 16A',
     viewers: 22600,
-    badgeColor: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
-    accentGradient: 'from-violet-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Cartes sur Table',
       genre: 'Political & Social Talk',
@@ -357,8 +332,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 307 • SES 4',
     viewers: 31000,
-    badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    accentGradient: 'from-cyan-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Tour d Horizon',
       genre: 'Current Affairs & Debate',
@@ -395,8 +368,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'English',
     frequency: 'Canal+ 311 • TNT Ch 7',
     viewers: 17400,
-    badgeColor: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-    accentGradient: 'from-teal-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'The Breakfast Show',
       genre: 'Morning English Magazine',
@@ -433,8 +404,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 312',
     viewers: 28400,
-    badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-    accentGradient: 'from-rose-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Serie Culte: Madame... Monsieur',
       genre: 'Cameroonian Drama Series',
@@ -471,8 +440,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Bilingual',
     frequency: 'Canal+ 310 • Web Live',
     viewers: 16200,
-    badgeColor: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30',
-    accentGradient: 'from-fuchsia-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Dash Urban Spotlight',
       genre: 'Youth & Tech Culture',
@@ -508,8 +475,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais & Duala',
     frequency: 'TNT Ch 9 • Canal+ 315',
     viewers: 14800,
-    badgeColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-    accentGradient: 'from-sky-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Culture & Rythmes du Littoral',
       genre: 'Coastal Traditions',
@@ -545,8 +510,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 314 • TNT Ch 11',
     viewers: 13900,
-    badgeColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-    accentGradient: 'from-pink-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Matin Bonheur',
       genre: 'Family & Well-being',
@@ -561,7 +524,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       startTime: '11:45',
     },
     schedule: [
-      { time: '07:00', title: 'Prières et Méditations', genre: 'Faith' },
+      { time: '07:00', title: 'Prieres et Meditations', genre: 'Faith' },
       { time: '09:30', title: 'Matin Bonheur', genre: 'Lifestyle', isCurrent: true },
       { time: '11:45', title: 'Emissions Culturelles Sawa', genre: 'Culture' },
       { time: '14:00', title: 'Solidarite Citoyenne', genre: 'Social' },
@@ -582,8 +545,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 317 • TNT Ch 14',
     viewers: 15400,
-    badgeColor: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-    accentGradient: 'from-indigo-600/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Cam10 Debat Societe',
       genre: 'Public Affairs Panel',
@@ -619,8 +580,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     language: 'Francais',
     frequency: 'Canal+ 308 • Eutelsat',
     viewers: 34500,
-    badgeColor: 'bg-amber-600/20 text-amber-500 border-amber-600/30',
-    accentGradient: 'from-amber-700/30 via-slate-900 to-slate-950',
     currentShow: {
       title: 'Le Debat Panafricain: Souverainete & Geopolitique',
       genre: 'International Relations',
@@ -663,21 +622,12 @@ export default function LiveTVPage() {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(85);
-  const [activeTab, setActiveTab] = useState<'epg' | 'about' | 'reactions'>('epg');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [quality, setQuality] = useState<string>('1080p HD');
-  const [reactionsCount, setReactionsCount] = useState<{ [key: string]: number }>({
-    hearts: 1420,
-    flames: 980,
-    applause: 640,
-    stars: 820
-  });
-  const [recentReaction, setRecentReaction] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'schedule' | 'about'>('schedule');
 
   const playerRef = useRef<HTMLDivElement>(null);
-  const channelStripRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
 
-  // Load favorites from local storage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('sawaflix_fav_tv');
@@ -699,13 +649,6 @@ export default function LiveTVPage() {
     });
   };
 
-  const handleReaction = (type: 'hearts' | 'flames' | 'applause' | 'stars') => {
-    setReactionsCount((prev) => ({ ...prev, [type]: prev[type] + 1 }));
-    setRecentReaction(type);
-    setTimeout(() => setRecentReaction(null), 1200);
-  };
-
-  // Filter channels based on search and category
   const filteredStations = useMemo(() => {
     return CAMEROON_TV_STATIONS.filter((station) => {
       const matchesCategory =
@@ -729,49 +672,49 @@ export default function LiveTVPage() {
     }
   };
 
-  const scrollChannelStrip = (direction: 'left' | 'right') => {
-    if (channelStripRef.current) {
-      const offset = direction === 'left' ? -320 : 320;
-      channelStripRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+  const scrollStrip = (direction: 'left' | 'right') => {
+    if (stripRef.current) {
+      const offset = direction === 'left' ? -350 : 350;
+      stripRef.current.scrollBy({ left: offset, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="min-h-screen text-white pb-24">
-      {/* Page Header */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="min-h-screen text-white pb-28">
+      {/* Top Header: Crisp Light Accents */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-400">
-              <Tv className="w-5 h-5" />
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white shadow-sm">
+              <Tv className="w-5 h-5 stroke-[2]" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Cameroon Live TV
             </h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-semibold uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              Direct
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-zinc-950 text-[11px] font-bold tracking-wide uppercase shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live
             </span>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Official high-definition live television broadcasts from Yaounde, Douala, and across Cameroon.
+            Real-time television streams from Yaounde, Douala, and regional broadcasters across Cameroon.
           </p>
         </div>
 
-        {/* Search Input in Header */}
-        <div className="relative w-full md:w-80">
+        {/* Search Bar: Clean Light Outline */}
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search channel, show, or city..."
-            className="w-full bg-[#0E121B] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30 transition-all"
+            placeholder="Search channels, programs, cities..."
+            className="w-full bg-[#10141E] border border-white/10 focus:border-white/30 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white cursor-pointer"
             >
               Clear
             </button>
@@ -779,412 +722,200 @@ export default function LiveTVPage() {
         </div>
       </div>
 
-      {/* Main Broadcast Player & Live Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        {/* Cinema Video Viewport (8 cols on lg) */}
-        <div className="lg:col-span-8 flex flex-col gap-3">
-          <div
-            ref={playerRef}
-            className="relative aspect-video w-full rounded-2xl bg-[#07090E] border border-white/10 overflow-hidden shadow-2xl group flex flex-col justify-between select-none"
-          >
-            {/* Background Stream Simulation / Broadcast Feed */}
-            <div className="absolute inset-0 z-0">
-              <Image
-                src={selectedStation.posterBg}
-                alt={selectedStation.name}
-                fill
-                className="object-cover opacity-35 filter brightness-90 group-hover:scale-105 transition-transform duration-700"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/70" />
+      {/* Main Theater Experience: Clean & Great View */}
+      <div className="relative mb-6 rounded-3xl bg-[#090C12] border border-white/10 overflow-hidden shadow-2xl">
+        <div
+          ref={playerRef}
+          className="relative aspect-video w-full max-h-[70vh] flex flex-col justify-between overflow-hidden bg-black select-none group"
+        >
+          {/* Background Ambient Poster View */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={selectedStation.posterBg}
+              alt={selectedStation.name}
+              fill
+              className="object-cover opacity-45 filter brightness-95 group-hover:scale-[1.02] transition-transform duration-700"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/70" />
+          </div>
+
+          {/* Top Info Bar inside Player */}
+          <div className="relative z-10 p-4 sm:p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider shadow-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Broadcast
+              </span>
+              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs">
+                <span className="font-mono font-bold text-white">
+                  Ch {String(selectedStation.channelNumber).padStart(2, '0')}
+                </span>
+                <span className="text-zinc-400">•</span>
+                <span className="font-semibold text-white">{selectedStation.name}</span>
+              </div>
             </div>
 
-            {/* Top Bar inside Player */}
-            <div className="relative z-10 p-4 sm:p-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs text-zinc-200">
+                <Eye className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="font-mono font-medium">{selectedStation.viewers.toLocaleString()}</span>
+              </div>
+
+              <div className="hidden sm:flex items-center px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[11px] font-mono text-zinc-300">
+                1080p Full HD
+              </div>
+
+              <button
+                onClick={() => toggleFavorite(selectedStation.id)}
+                className="p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                title="Favorite channel"
+              >
+                <Heart
+                  className={`w-4 h-4 ${
+                    favorites.includes(selectedStation.id)
+                      ? 'fill-white text-white'
+                      : ''
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Brand Identity (Subtle, Clean) */}
+          <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+            <motion.div
+              key={selectedStation.id}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/25 flex items-center justify-center shadow-2xl mb-3"
+            >
+              <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.75]" />
+            </motion.div>
+            <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-lg">
+              {selectedStation.name}
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-200 max-w-md mt-1 drop-shadow font-medium">
+              {selectedStation.slogan}
+            </p>
+          </div>
+
+          {/* Bottom Controls Overlay */}
+          <div className="relative z-10 p-4 sm:p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+            {/* Show Info */}
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
+                    Now Playing
+                  </span>
+                  <span className="text-zinc-500">•</span>
+                  <span className="text-xs text-zinc-300 font-mono">
+                    {selectedStation.currentShow.startTime} - {selectedStation.currentShow.endTime}
+                  </span>
+                  <span className="text-zinc-500">•</span>
+                  <span className="text-[11px] text-zinc-400">
+                    {selectedStation.currentShow.genre}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-lg font-bold text-white truncate max-w-2xl">
+                  {selectedStation.currentShow.title}
+                </h3>
+              </div>
+
+              <div className="hidden md:block text-right">
+                <span className="text-[11px] text-zinc-400 uppercase tracking-wider">Up Next</span>
+                <p className="text-xs text-zinc-200 font-medium">
+                  {selectedStation.nextShow.title} ({selectedStation.nextShow.startTime})
+                </p>
+              </div>
+            </div>
+
+            {/* Clean Light Progress Bar */}
+            <div className="w-full bg-white/20 h-1 rounded-full overflow-hidden mb-4">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-500 shadow"
+                style={{ width: `${selectedStation.currentShow.progress}%` }}
+              />
+            </div>
+
+            {/* Control Buttons: Light & Sleek */}
+            <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600 text-white text-[11px] font-black uppercase tracking-wider shadow-lg">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  LIVE
-                </span>
-                <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                  <span className="text-xs font-bold text-white tracking-wide">
-                    Ch {String(selectedStation.channelNumber).padStart(2, '0')}
-                  </span>
-                  <span className="text-xs text-zinc-300 font-medium border-l border-white/20 pl-2">
-                    {selectedStation.name}
-                  </span>
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="w-10 h-10 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:bg-zinc-200 transition-all active:scale-95 cursor-pointer font-bold shadow-lg"
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-4 h-4 fill-current" />
+                  ) : (
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                  )}
+                </button>
+
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-2 rounded-full border border-white/15">
+                  <button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="text-zinc-200 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Toggle mute"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <VolumeX className="w-4 h-4" />
+                    ) : (
+                      <Volume2 className="w-4 h-4" />
+                    )}
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => {
+                      setVolume(Number(e.target.value));
+                      if (isMuted) setIsMuted(false);
+                    }}
+                    className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-[11px] text-zinc-300">
-                  <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>{selectedStation.viewers.toLocaleString()}</span>
+              <div className="flex items-center gap-2.5">
+                <div className="hidden sm:flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/15 text-xs text-zinc-300">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>{selectedStation.city}</span>
                 </div>
-                <div className="hidden sm:flex items-center px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-zinc-300">
-                  {quality}
-                </div>
+
                 <button
-                  onClick={() => toggleFavorite(selectedStation.id)}
-                  className="p-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-red-400 hover:bg-black/80 transition-colors cursor-pointer"
-                  title="Favorite station"
+                  onClick={toggleFullscreen}
+                  className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white transition-colors border border-white/15 cursor-pointer"
+                  title="Fullscreen"
                 >
-                  <Heart
-                    className={`w-4 h-4 ${
-                      favorites.includes(selectedStation.id)
-                        ? 'fill-red-500 text-red-500'
-                        : ''
-                    }`}
-                  />
+                  <Maximize className="w-4 h-4" />
                 </button>
               </div>
             </div>
-
-            {/* Center Broadcast Branding / Watermark */}
-            <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center">
-              <motion.div
-                key={selectedStation.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl mb-3"
-              >
-                <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-              </motion.div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white drop-shadow-md">
-                {selectedStation.name}
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-300 max-w-md mt-1 drop-shadow">
-                {selectedStation.slogan}
-              </p>
-            </div>
-
-            {/* Bottom Controls Overlay */}
-            <div className="relative z-10 p-4 sm:p-5 bg-gradient-to-t from-black via-black/80 to-transparent">
-              {/* Show info line */}
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-red-400 uppercase tracking-wider">
-                      Now Broadcasting
-                    </span>
-                    <span className="text-xs text-zinc-400">•</span>
-                    <span className="text-xs text-zinc-300">
-                      {selectedStation.currentShow.startTime} - {selectedStation.currentShow.endTime}
-                    </span>
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-white truncate max-w-xl">
-                    {selectedStation.currentShow.title}
-                  </h3>
-                </div>
-
-                <div className="hidden md:block text-right">
-                  <span className="text-[11px] text-zinc-400 uppercase">Next Up</span>
-                  <p className="text-xs text-zinc-300 font-medium">
-                    {selectedStation.nextShow.title} ({selectedStation.nextShow.startTime})
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-white/15 h-1 rounded-full overflow-hidden mb-3">
-                <div
-                  className="h-full bg-red-500 rounded-full transition-all duration-500"
-                  style={{ width: `${selectedStation.currentShow.progress}%` }}
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2.5">
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-9 h-9 rounded-xl bg-white text-zinc-950 flex items-center justify-center hover:bg-zinc-200 transition-all active:scale-95 cursor-pointer font-bold shadow-md"
-                    title={isPlaying ? 'Pause' : 'Play'}
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-4 h-4 fill-current" />
-                    ) : (
-                      <Play className="w-4 h-4 fill-current ml-0.5" />
-                    )}
-                  </button>
-
-                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10">
-                    <button
-                      onClick={() => setIsMuted(!isMuted)}
-                      className="text-zinc-300 hover:text-white transition-colors cursor-pointer"
-                    >
-                      {isMuted || volume === 0 ? (
-                        <VolumeX className="w-4 h-4" />
-                      ) : (
-                        <Volume2 className="w-4 h-4" />
-                      )}
-                    </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => {
-                        setVolume(Number(e.target.value));
-                        if (isMuted) setIsMuted(false);
-                      }}
-                      className="w-16 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="hidden sm:flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg border border-white/10 text-[11px] text-zinc-300">
-                    <MapPin className="w-3 h-3 text-zinc-400" />
-                    <span>{selectedStation.city}</span>
-                  </div>
-
-                  <button
-                    onClick={toggleFullscreen}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white transition-colors border border-white/10 cursor-pointer"
-                    title="Fullscreen"
-                  >
-                    <Maximize className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
-
-          {/* Quick Station Information Bar */}
-          <div className="p-4 rounded-2xl bg-[#0E121B] border border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white">
-                Ch {String(selectedStation.channelNumber).padStart(2, '0')}
-              </div>
-              <div>
-                <h4 className="font-semibold text-white text-sm">
-                  {selectedStation.callSign}
-                </h4>
-                <p className="text-[11px] text-zinc-400">{selectedStation.frequency}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-[11px]">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-zinc-300">
-                <Globe className="w-3.5 h-3.5 text-zinc-400" />
-                <span>{selectedStation.language}</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-zinc-300">
-                <Radio className="w-3.5 h-3.5 text-zinc-400" />
-                <span>{selectedStation.category}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Side Panel: TV Guide (EPG), About, and Reactions (4 cols on lg) */}
-        <div className="lg:col-span-4 flex flex-col h-[520px] rounded-2xl bg-[#0B0E14] border border-white/10 overflow-hidden shadow-xl">
-          {/* Tabs */}
-          <div className="p-2 bg-[#0E121B] border-b border-white/5 grid grid-cols-3 gap-1 shrink-0">
-            <button
-              onClick={() => setActiveTab('epg')}
-              className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                activeTab === 'epg'
-                  ? 'bg-white text-zinc-950 shadow'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              TV Guide (EPG)
-            </button>
-            <button
-              onClick={() => setActiveTab('about')}
-              className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                activeTab === 'about'
-                  ? 'bg-white text-zinc-950 shadow'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Station Info
-            </button>
-            <button
-              onClick={() => setActiveTab('reactions')}
-              className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                activeTab === 'reactions'
-                  ? 'bg-white text-zinc-950 shadow'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Live Cheers
-            </button>
-          </div>
-
-          {/* Tab 1: EPG / Program Schedule */}
-          {activeTab === 'epg' && (
-            <div className="flex-1 p-4 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-zinc-800">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                  Today Program Schedule
-                </span>
-                <span className="text-[11px] text-red-400 font-medium">Cameroon Time (GMT+1)</span>
-              </div>
-
-              {selectedStation.schedule.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`p-2.5 rounded-xl border transition-all ${
-                    item.isCurrent
-                      ? 'bg-red-500/10 border-red-500/30 text-white'
-                      : 'bg-[#11141E] border-white/5 text-zinc-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-semibold text-zinc-400">
-                      {item.time}
-                    </span>
-                    {item.isCurrent && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-500 text-white">
-                        On Air Now
-                      </span>
-                    )}
-                  </div>
-                  <h5 className="font-medium text-xs text-white mt-1">{item.title}</h5>
-                  <span className="text-[10px] text-zinc-400">{item.genre}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Tab 2: Station Info & Frequencies */}
-          {activeTab === 'about' && (
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
-              <div>
-                <h4 className="text-white font-semibold mb-1 text-sm">About {selectedStation.name}</h4>
-                <p className="text-zinc-400 leading-relaxed text-xs">{selectedStation.about}</p>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-white/5">
-                <div className="flex items-center justify-between py-1.5 border-b border-white/5">
-                  <span className="text-zinc-400">Headquarters</span>
-                  <span className="text-white font-medium">{selectedStation.city}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5 border-b border-white/5">
-                  <span className="text-zinc-400">Broadcast Frequencies</span>
-                  <span className="text-white font-medium text-right">{selectedStation.frequency}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5 border-b border-white/5">
-                  <span className="text-zinc-400">Official Language</span>
-                  <span className="text-white font-medium">{selectedStation.language}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5 border-b border-white/5">
-                  <span className="text-zinc-400">Station Type</span>
-                  <span className="text-white font-medium">{selectedStation.category}</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-zinc-400">Broadcaster Number</span>
-                  <span className="text-white font-medium font-mono">
-                    Channel {selectedStation.channelNumber}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tab 3: Live Cheers & Community Reactions */}
-          {activeTab === 'reactions' && (
-            <div className="flex-1 p-4 flex flex-col justify-between">
-              <div>
-                <h4 className="text-white font-semibold text-sm mb-1">Cheer Your Station</h4>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Support {selectedStation.name} during this live broadcast with instant viewer reactions.
-                </p>
-
-                {/* Reaction Buttons */}
-                <div className="grid grid-cols-2 gap-2.5 mt-4">
-                  <button
-                    onClick={() => handleReaction('hearts')}
-                    className="p-3 rounded-xl bg-[#11141E] hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform" />
-                      <span className="text-xs text-white font-medium">Love</span>
-                    </div>
-                    <span className="text-xs font-mono text-zinc-400">
-                      {reactionsCount.hearts.toLocaleString()}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleReaction('flames')}
-                    className="p-3 rounded-xl bg-[#11141E] hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
-                      <span className="text-xs text-white font-medium">Fire</span>
-                    </div>
-                    <span className="text-xs font-mono text-zinc-400">
-                      {reactionsCount.flames.toLocaleString()}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleReaction('applause')}
-                    className="p-3 rounded-xl bg-[#11141E] hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                      <span className="text-xs text-white font-medium">Bravo</span>
-                    </div>
-                    <span className="text-xs font-mono text-zinc-400">
-                      {reactionsCount.applause.toLocaleString()}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleReaction('stars')}
-                    className="p-3 rounded-xl bg-[#11141E] hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Radio className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
-                      <span className="text-xs text-white font-medium">Live Vibe</span>
-                    </div>
-                    <span className="text-xs font-mono text-zinc-400">
-                      {reactionsCount.stars.toLocaleString()}
-                    </span>
-                  </button>
-                </div>
-
-                {recentReaction && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-3 p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center text-red-300 text-xs font-medium"
-                  >
-                    Cheer recorded for {selectedStation.name}!
-                  </motion.div>
-                )}
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#11141E] border border-white/5 text-[11px] text-zinc-400 text-center">
-                Over 120,000 active viewers streaming Cameroonian TV channels on SawaFlix today.
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Quick Channel Carousel Strip */}
+      {/* Quick Channel Surfing Strip */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
-            Quick Channel Surfing
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            Quick Channel Strip
           </h3>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
-              onClick={() => scrollChannelStrip('left')}
+              onClick={() => scrollStrip('left')}
               className="p-1.5 rounded-lg bg-[#0E121B] hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="Scroll left"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => scrollChannelStrip('right')}
+              onClick={() => scrollStrip('right')}
               className="p-1.5 rounded-lg bg-[#0E121B] hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="Scroll right"
             >
@@ -1194,8 +925,8 @@ export default function LiveTVPage() {
         </div>
 
         <div
-          ref={channelStripRef}
-          className="flex gap-3 overflow-x-auto pb-2 scrollbar-none scroll-smooth"
+          ref={stripRef}
+          className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none scroll-smooth"
         >
           {CAMEROON_TV_STATIONS.map((station) => {
             const isSelected = selectedStation.id === station.id;
@@ -1203,23 +934,42 @@ export default function LiveTVPage() {
               <button
                 key={station.id}
                 onClick={() => setSelectedStation(station)}
-                className={`shrink-0 w-44 p-3 rounded-xl text-left border transition-all cursor-pointer ${
+                className={`shrink-0 w-44 p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#151A26] border-white/30 shadow-lg scale-[1.02]'
-                    : 'bg-[#0E121B] border-white/5 hover:border-white/20 hover:bg-[#121622]'
+                    ? 'bg-white text-zinc-950 border-white shadow-xl scale-[1.02]'
+                    : 'bg-[#0E121B] border-white/10 hover:border-white/25 hover:bg-[#121622] text-zinc-300 hover:text-white'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-mono text-[11px] font-bold text-zinc-400">
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className={`font-mono text-xs font-bold ${
+                      isSelected ? 'text-zinc-900' : 'text-zinc-400'
+                    }`}
+                  >
                     Ch {String(station.channelNumber).padStart(2, '0')}
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] font-semibold text-red-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                    LIVE
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full ${
+                      isSelected
+                        ? 'bg-zinc-950 text-white'
+                        : 'bg-white/10 text-zinc-300'
+                    }`}
+                  >
+                    Live
                   </span>
                 </div>
-                <h4 className="text-xs font-bold text-white truncate">{station.name}</h4>
-                <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                <h4
+                  className={`text-xs font-bold truncate ${
+                    isSelected ? 'text-zinc-950' : 'text-white'
+                  }`}
+                >
+                  {station.name}
+                </h4>
+                <p
+                  className={`text-[11px] truncate mt-0.5 ${
+                    isSelected ? 'text-zinc-700' : 'text-zinc-400'
+                  }`}
+                >
                   {station.currentShow.title}
                 </p>
               </button>
@@ -1228,155 +978,175 @@ export default function LiveTVPage() {
         </div>
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeCategory === cat
-                ? 'bg-white text-zinc-950 shadow-md'
-                : 'bg-[#0E121B] text-zinc-400 hover:text-white border border-white/5 hover:border-white/15'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {/* Two-Column Section: Schedule & Station Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Left Column: Schedule & Channel Details (5 cols on lg) */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="p-5 rounded-2xl bg-[#0E121B] border border-white/10">
+            <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('schedule')}
+                  className={`text-xs font-bold uppercase tracking-wider pb-1 transition-all cursor-pointer ${
+                    activeTab === 'schedule'
+                      ? 'text-white border-b-2 border-white'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  Schedule (EPG)
+                </button>
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={`text-xs font-bold uppercase tracking-wider pb-1 transition-all cursor-pointer ${
+                    activeTab === 'about'
+                      ? 'text-white border-b-2 border-white'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  Station Details
+                </button>
+              </div>
+              <span className="text-[11px] text-zinc-400 font-mono">GMT+1</span>
+            </div>
 
-      {/* Grid of All 15 Cameroonian TV Stations */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            All Channels ({filteredStations.length})
-          </h2>
-          <span className="text-xs text-zinc-400">
-            Showing verified authentic Cameroonian broadcast networks
-          </span>
+            {activeTab === 'schedule' ? (
+              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+                {selectedStation.schedule.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border transition-all ${
+                      item.isCurrent
+                        ? 'bg-white text-zinc-950 border-white shadow'
+                        : 'bg-[#121622] border-white/5 text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span
+                        className={`text-xs font-mono font-bold ${
+                          item.isCurrent ? 'text-zinc-900' : 'text-zinc-400'
+                        }`}
+                      >
+                        {item.time}
+                      </span>
+                      {item.isCurrent && (
+                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded-full bg-zinc-950 text-white">
+                          On Air Now
+                        </span>
+                      )}
+                    </div>
+                    <h5
+                      className={`text-xs font-semibold ${
+                        item.isCurrent ? 'text-zinc-950' : 'text-white'
+                      }`}
+                    >
+                      {item.title}
+                    </h5>
+                    <span
+                      className={`text-[11px] ${
+                        item.isCurrent ? 'text-zinc-700' : 'text-zinc-400'
+                      }`}
+                    >
+                      {item.genre}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3 text-xs text-zinc-300 leading-relaxed max-h-[380px] overflow-y-auto pr-1">
+                <div>
+                  <h4 className="font-semibold text-white text-sm mb-1">{selectedStation.name}</h4>
+                  <p className="text-zinc-400 text-xs">{selectedStation.about}</p>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 space-y-2">
+                  <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-zinc-400">Headquarters</span>
+                    <span className="text-white font-medium">{selectedStation.city}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-zinc-400">Transmission</span>
+                    <span className="text-white font-medium">{selectedStation.frequency}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-zinc-400">Language</span>
+                    <span className="text-white font-medium">{selectedStation.language}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-zinc-400">Genre</span>
+                    <span className="text-white font-medium">{selectedStation.category}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {filteredStations.length === 0 ? (
-          <div className="py-16 text-center rounded-2xl bg-[#0E121B] border border-white/5">
-            <Tv className="w-10 h-10 text-zinc-500 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-white">No television stations found</p>
-            <p className="text-xs text-zinc-400 mt-1">
-              Try adjusting your search query or category filter.
-            </p>
+        {/* Right Column: Category Filters & Channel Grid (7 cols on lg) */}
+        <div className="lg:col-span-7 flex flex-col gap-4">
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  activeCategory === cat
+                    ? 'bg-white text-zinc-950 shadow-md'
+                    : 'bg-[#0E121B] text-zinc-400 hover:text-white border border-white/10 hover:border-white/20'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+
+          {/* Grid of Channels */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {filteredStations.map((station) => {
               const isSelected = selectedStation.id === station.id;
               return (
                 <div
                   key={station.id}
-                  className={`group rounded-2xl bg-[#0E121B] border transition-all overflow-hidden flex flex-col justify-between ${
+                  onClick={() => {
+                    setSelectedStation(station);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`group p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                     isSelected
-                      ? 'border-white/30 shadow-xl'
-                      : 'border-white/5 hover:border-white/20 hover:bg-[#121622]'
+                      ? 'bg-[#151A26] border-white/40 shadow-xl ring-1 ring-white/20'
+                      : 'bg-[#0E121B] border-white/10 hover:border-white/25 hover:bg-[#121622]'
                   }`}
                 >
-                  {/* Card Header / Image Preview */}
-                  <div className="relative aspect-[16/9] w-full bg-[#07090E] overflow-hidden">
-                    <Image
-                      src={station.posterBg}
-                      alt={station.name}
-                      fill
-                      className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0E121B] via-black/20 to-black/60" />
-
-                    {/* Channel Number Badge */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/15 text-[11px] font-mono font-bold text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-white px-2 py-0.5 rounded-md bg-white/10 border border-white/10">
                         Ch {String(station.channelNumber).padStart(2, '0')}
                       </span>
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider shadow">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                        Live
-                      </span>
-                    </div>
-
-                    {/* Favorite Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(station.id);
-                      }}
-                      className="absolute top-3 right-3 p-1.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-red-400 transition-colors cursor-pointer"
-                      title="Bookmark"
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          favorites.includes(station.id) ? 'fill-red-500 text-red-500' : ''
-                        }`}
-                      />
-                    </button>
-
-                    {/* Overlay Play Button */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => {
-                          setSelectedStation(station);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="w-11 h-11 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                      >
-                        <Play className="w-5 h-5 fill-current ml-0.5" />
-                      </button>
-                    </div>
-
-                    {/* Station Name & City at Bottom of Preview */}
-                    <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
-                      <h3 className="font-bold text-sm text-white drop-shadow">
+                      <h4 className="text-xs font-bold text-white group-hover:text-zinc-100 transition-colors">
                         {station.name}
-                      </h3>
-                      <span className="text-[10px] text-zinc-300 drop-shadow">
-                        {station.city.split(' ')[0]}
-                      </span>
+                      </h4>
                     </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-zinc-300">
+                      Live
+                    </span>
                   </div>
 
-                  {/* Card Body */}
-                  <div className="p-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1">
-                        <span className="text-red-400 font-medium">Currently Airing</span>
-                        <span>{station.currentShow.startTime}</span>
-                      </div>
-                      <h4 className="text-xs font-semibold text-white truncate">
-                        {station.currentShow.title}
-                      </h4>
-                      <p className="text-[11px] text-zinc-400 line-clamp-2 mt-1 leading-relaxed">
-                        {station.currentShow.description}
-                      </p>
-                    </div>
+                  <div>
+                    <div className="text-[11px] text-zinc-400 mb-0.5">Now Airing:</div>
+                    <p className="text-xs font-semibold text-zinc-200 truncate">
+                      {station.currentShow.title}
+                    </p>
+                  </div>
 
-                    <div className="pt-3 mt-3 border-t border-white/5 flex items-center justify-between">
-                      <span className="text-[11px] text-zinc-400">
-                        {station.viewers.toLocaleString()} watching
-                      </span>
-                      <button
-                        onClick={() => {
-                          setSelectedStation(station);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-red-600 text-white shadow'
-                            : 'bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white border border-white/5'
-                        }`}
-                      >
-                        {isSelected ? 'Watching' : 'Watch Live'}
-                      </button>
-                    </div>
+                  <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-zinc-400">
+                    <span>{station.city.split(' ')[0]}</span>
+                    <span className="font-mono">{station.viewers.toLocaleString()} watching</span>
                   </div>
                 </div>
               );
             })}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
