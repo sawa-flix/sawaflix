@@ -47,11 +47,11 @@ function findFallbackAnswer(query: string): string {
       return item.answer;
     }
   }
-  return "🌟 **Welcome to SawaFlix Assistant!** SawaFlix is Cameroon's all-in-one platform for movies, music, reels, and rich cultural traditions. You can ask me about:\n- 🎬 **Movies & Series:** How to stream and find trending titles\n- 🎵 **Music & Artists:** Exploring Makossa, Bikutsi, and Afrobeats\n- 📱 **Reels:** Enjoying vertical short-form videos\n- 🚀 **Creator Hub:** Uploading and sharing your content\n- 🔔 **Notifications & PWA:** Installing the app and staying updated";
+  return "🌟 **Welcome to Sawai!** I'm SawaFlix's AI companion for movies, music, reels, and Cameroonian cultural traditions. You can ask me about:\n- 🎬 **Movies & Series:** How to stream and find trending titles\n- 🎵 **Music & Artists:** Exploring Makossa, Bikutsi, and Afrobeats\n- 📱 **Reels:** Enjoying vertical short-form videos\n- 🚀 **Creator Hub:** Uploading and sharing your content\n- 🔔 **Notifications & PWA:** Installing the app and staying updated";
 }
 
 const SYSTEM_PROMPT = `
-You are SawaBot, the friendly, witty, knowledgeable, and culturally proud AI assistant for SawaFlix (sawaflix.com).
+You are Sawai, the friendly, witty, knowledgeable, and culturally proud AI assistant for SawaFlix (sawaflix.com).
 SawaFlix is the premier African & Cameroonian streaming platform bringing together:
 1. Cameroonian Cinema & Films (from classics to modern blockbusters).
 2. Sawa Heritage & Culture (Ngondo water festival, Douala traditions, Wouri river, folklore, and local cuisine like Achu, Ndolé, Eru, and Koki).

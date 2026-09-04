@@ -36,7 +36,7 @@ export default function SawaBot() {
     {
       id: 'welcome-message',
       role: 'assistant',
-      content: "👋 **Mbote & Welcome to SawaFlix!** I'm **SawaBot**, your guide to Cameroon's movies, music, reels, and vibrant cultural traditions.\n\nHow can I help you today? Ask me about streaming, uploading, artists, or app features!",
+      content: "👋 **Mbote & Welcome to SawaFlix!** I'm **Sawai**, your guide to Cameroon's movies, music, reels, and vibrant cultural traditions.\n\nHow can I help you today? Ask me about streaming, uploading, artists, or app features!",
     },
   ]);
 
@@ -73,7 +73,7 @@ export default function SawaBot() {
       {
         id: 'welcome-message',
         role: 'assistant',
-        content: "✨ Chat cleared! I'm ready for your questions about SawaFlix movies, music, and culture.",
+        content: "✨ Chat cleared! I'm **Sawai**, ready for your questions about SawaFlix movies, music, and culture.",
       },
     ]);
     setError(null);
@@ -219,7 +219,7 @@ export default function SawaBot() {
                   className="w-full h-full object-contain rounded-full"
                 />
               </div>
-              <span>Ask SawaBot</span>
+              <span>Ask Sawai</span>
             </motion.div>
           )}
         </motion.button>
@@ -251,7 +251,7 @@ export default function SawaBot() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-white font-bold text-sm tracking-tight">SawaBot</h3>
+                    <h3 className="text-white font-bold text-sm tracking-tight">Sawai</h3>
                     <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15">
                       AI 2.5
                     </span>
@@ -365,7 +365,7 @@ export default function SawaBot() {
                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    <span className="text-[11px] text-zinc-400 ml-1.5">SawaBot is thinking...</span>
+                    <span className="text-[11px] text-zinc-400 ml-1.5">Sawai is thinking...</span>
                   </div>
                 </motion.div>
               )}
