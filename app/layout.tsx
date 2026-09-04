@@ -7,6 +7,7 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import PWASplashScreen from '@/components/PWASplashScreen';
 import NotificationPrompt from '@/components/NotificationPrompt';
 import GoogleAuthProvider from '@/components/providers/GoogleAuthProvider';
+import SawaBot from '@/components/ChatBot/SawaBot';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -159,6 +160,7 @@ export default function RootLayout({
           </AdminNotificationProvider>
           <PWAInstallPrompt />
           <NotificationPrompt />
+          <SawaBot />
         </GoogleAuthProvider>
       </body>
     </html>

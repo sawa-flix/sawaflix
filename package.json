@@ -10,6 +10,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.63",
+    "@ai-sdk/react": "^4.0.95",
     "@lottiefiles/dotlottie-react": "^0.15.2",
     "@portabletext/react": "^6.0.3",
     "@prisma/adapter-neon": "^7.8.0",
@@ -26,6 +28,7 @@
     "@upstash/qstash": "^2.11.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
+    "ai": "^7.0.92",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",

@@ -56,7 +56,15 @@ export async function POST(req: Request) {
       tag: `sawaflix-video-${body.slug}`,
     };
 
-    // 4. Add fan-out jobs to Upstash QStash (if configured)
+    // 4. Send Web Push immediately to all subscribers (direct delivery guarantees receipt when closed)
+    try {
+      const { sendWebPushToSubscribers } = await import('@/services/pushNotificationService');
+      sendWebPushToSubscribers(payload).catch((pErr) => console.warn('[AdminVideoWebhook] Direct push send warning:', pErr));
+    } catch (e: any) {
+      console.warn('[AdminVideoWebhook] Could not trigger direct sendWebPushToSubscribers:', e?.message);
+    }
+
+    // 5. Add fan-out jobs to Upstash QStash (if configured)
     if (qstash && subscribers.length > 0) {
       const publishPromises = subscribers.map((sub) => {
         // Create absolute URL dynamically so it works on localhost and production
@@ -76,7 +84,7 @@ export async function POST(req: Request) {
         });
       });
 
-      await Promise.all(publishPromises);
+      await Promise.all(publishPromises).catch((qErr) => console.warn('[AdminVideoWebhook] QStash enqueue warning:', qErr));
     }
 
     return NextResponse.json({ success: true, queued: subscribers.length, inAppNotified: true });

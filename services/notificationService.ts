@@ -241,6 +241,30 @@ export const notificationService = {
       }
 
       console.log(`Successfully broadcasted notification to ${rows.length} users`);
+
+      // 📢 Also deliver Web Push notifications to all subscribed endpoints so users get alerted even if the app is closed!
+      try {
+        const { sendWebPushToSubscribers } = await import('./pushNotificationService');
+        const targetUrl = notificationData.contentType === 'reel' 
+          ? `/dashboard/reels?id=${notificationData.contentId || ''}`
+          : (notificationData.contentType === 'music' ? '/dashboard/musicpage' : `/video/${notificationData.contentId || ''}`);
+
+        sendWebPushToSubscribers({
+          title: notificationData.title,
+          body: notificationData.message,
+          url: targetUrl,
+          image: notificationData.thumbnail,
+          tag: `sawaflix-${notificationData.contentId || Date.now()}`,
+          data: {
+            contentId: notificationData.contentId,
+            contentType: notificationData.contentType,
+            category: notificationData.category,
+          }
+        }).catch((err) => console.warn('[NotificationService] Background push dispatch error:', err));
+      } catch (pushErr) {
+        console.warn('[NotificationService] Failed to trigger sendWebPushToSubscribers:', pushErr);
+      }
+
       return rows.length;
     } catch (err) {
       console.error("Failed to broadcast notification:", err);
