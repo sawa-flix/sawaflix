@@ -114,29 +114,25 @@ export async function POST(req: Request) {
         messages,
       });
 
-      return result.toDataStreamResponse();
+      return result.toTextStreamResponse({
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+      });
     } catch (aiError: any) {
-      console.error("[SawaBot] Error calling Gemini 2.5 Flash API:", aiError?.message || aiError);
+      console.error("[Sawai] Error calling Gemini 2.5 Flash API:", aiError?.message || aiError);
       
       // Graceful fallback to knowledge base if Gemini encounters quota, network or model errors
       const fallbackText = `${findFallbackAnswer(latestUserMessage)}\n\n*(Note: Live AI cloud is currently busy; answering from SawaFlix local knowledge cache).*`;
       
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(`0:${JSON.stringify(fallbackText)}\n`));
-          controller.close();
-        },
-      });
-
-      return new Response(stream, {
+      return new Response(fallbackText, {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
-          'X-Vercel-AI-Data-Stream': 'v1',
         },
       });
     }
   } catch (error: any) {
-    console.error("[SawaBot] POST handler error:", error);
+    console.error("[Sawai] POST handler error:", error);
     return NextResponse.json(
       { error: "Failed to process chat message" },
       { status: 500 }

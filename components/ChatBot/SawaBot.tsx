@@ -135,10 +135,10 @@ export default function SawaBot() {
 
         const chunk = decoder.decode(value, { stream: true });
         
-        // Handle stream lines (e.g. 0:"text chunk")
+        // Handle both direct text chunks and legacy protocol lines
         const lines = chunk.split('\n');
         for (const line of lines) {
-          if (!line.trim()) continue;
+          if (!line) continue;
           if (line.startsWith('0:')) {
             try {
               const textContent = JSON.parse(line.substring(2));
@@ -158,8 +158,8 @@ export default function SawaBot() {
         );
       }
     } catch (err: any) {
-      console.error('[SawaBot] Send error:', err);
-      setError('Could not reach SawaBot server. Please check your network and try again.');
+      console.error('[Sawai] Send error:', err);
+      setError('Could not reach Sawai server. Please check your network and try again.');
     } finally {
       setIsLoading(false);
     }
