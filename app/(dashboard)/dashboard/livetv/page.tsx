@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Tv, 
   Play, 
@@ -15,11 +15,12 @@ import {
   MapPin, 
   Radio, 
   ChevronRight, 
-  ChevronLeft,
-  Eye,
-  Globe,
+  ChevronLeft, 
+  Eye, 
+  Globe, 
   Calendar,
-  Share2
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -41,6 +42,7 @@ interface TVStation {
   language: string;
   frequency: string;
   viewers: number;
+  logoUrl?: string;
   currentShow: {
     title: string;
     genre: string;
@@ -59,11 +61,165 @@ interface TVStation {
   posterBg: string;
 }
 
+const LIVE_TV_BANNER = "https://i.ibb.co/cSb3xbY8/Chat-GPT-Image-Sep-4-2026-11-43-12-PM.png";
+
 // 15 Authentic, Verified Cameroonian Television Broadcasters (Zero Hallucination)
 const CAMEROON_TV_STATIONS: TVStation[] = [
   {
-    id: 'crtv',
+    id: 'crtv-news',
     channelNumber: 1,
+    name: 'CRTV News',
+    callSign: 'CRTV Information 24/7',
+    slogan: 'L information en continu',
+    category: 'National & News',
+    city: 'Yaounde (Mballa II)',
+    language: 'Bilingual (Francais / English)',
+    frequency: 'Canal+ 305 • TNT Ch 2 • Eutelsat 16A',
+    viewers: 34500,
+    logoUrl: 'https://i.ibb.co/27tHg09j/images-7-removebg-preview.png',
+    currentShow: {
+      title: 'The Debate: Cameroon Geopolitics',
+      genre: 'News Analysis',
+      startTime: '11:00',
+      endTime: '12:00',
+      description: 'Live continuous round-the-clock news bulletin and economic updates covering central Africa, diplomatic affairs, and national governance.',
+      progress: 45,
+    },
+    nextShow: {
+      title: 'Eco 24 - CEMAC Financial Review',
+      genre: 'Economy',
+      startTime: '12:00',
+    },
+    schedule: [
+      { time: '06:00', title: 'Morning Bulletin 24', genre: 'News' },
+      { time: '09:00', title: 'Presse Diplomatique', genre: 'Analysis' },
+      { time: '11:00', title: 'The Debate: Cameroon Geopolitics', genre: 'News Analysis', isCurrent: true },
+      { time: '12:00', title: 'Eco 24 - CEMAC Financial Review', genre: 'Economy' },
+      { time: '14:00', title: 'Le Journal des 10 Regions', genre: 'News' },
+      { time: '17:00', title: 'Flash Info En Continu', genre: 'News' },
+      { time: '19:00', title: 'The World This Hour', genre: 'World News' },
+      { time: '21:00', title: 'Grand Format Afrique Centrale', genre: 'Documentary' }
+    ],
+    about: 'CRTV News is Cameroon official 24-hour bilingual rolling news network based in Yaounde Mballa II. It delivers non-stop coverage of politics, economy, culture, and diplomacy across Cameroon and the CEMAC sub-region.',
+    posterBg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200&auto=format&fit=crop'
+  },
+  {
+    id: 'canal2-international',
+    channelNumber: 2,
+    name: 'Canal 2 International',
+    callSign: 'Canal 2 International',
+    slogan: 'Toujours plus pres de vous',
+    category: 'Entertainment & Music',
+    city: 'Douala (Akwa)',
+    language: 'Francais & English',
+    frequency: 'Canal+ 302 • Startimes Ch 105 • SES 4',
+    viewers: 42800,
+    logoUrl: 'https://i.ibb.co/Zz5rp35J/canal2-logo-removebg-preview.png',
+    currentShow: {
+      title: 'Jambo Television',
+      genre: 'Entertainment & Variety',
+      startTime: '10:30',
+      endTime: '12:30',
+      description: 'The iconic Cameroonian entertainment show featuring live musical performances, comedy sketches, celebrity interviews, and cultural discussions.',
+      progress: 55,
+    },
+    nextShow: {
+      title: 'Le 12h45 Express',
+      genre: 'News',
+      startTime: '12:45',
+    },
+    schedule: [
+      { time: '07:00', title: 'C Comment le Matin', genre: 'Talk Show' },
+      { time: '10:30', title: 'Jambo Television', genre: 'Variety', isCurrent: true },
+      { time: '12:45', title: 'Le 12h45 Express', genre: 'News' },
+      { time: '14:00', title: 'Canal Presse', genre: 'Debate' },
+      { time: '16:30', title: 'Nostalgie Makossa & Bikutsi', genre: 'Music' },
+      { time: '18:00', title: 'Urban Jamz Kamer', genre: 'Music' },
+      { time: '19:50', title: 'Le 19h50 Grande Edition', genre: 'News' },
+      { time: '21:00', title: 'La Grande Soiree Cinema', genre: 'Movies' },
+      { time: '23:00', title: 'La Nuit du Rire', genre: 'Comedy' }
+    ],
+    about: 'Founded in 2004 by Emmanuel Chatue in Douala, Canal 2 International is the most-watched private television network in Cameroon, renowned for shows like Jambo, C Comment, Canal Presse, and Le 19h50.',
+    posterBg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=1200&auto=format&fit=crop'
+  },
+  {
+    id: 'equinoxe-tv',
+    channelNumber: 3,
+    name: 'Equinoxe TV',
+    callSign: 'Equinoxe Television',
+    slogan: 'Au-dela de l image, nous rendons compte',
+    category: 'National & News',
+    city: 'Douala (Carrefour de l Air)',
+    language: 'Francais & English',
+    frequency: 'Canal+ 303 • SES 4 • TNT Ch 3',
+    viewers: 39600,
+    logoUrl: 'https://i.ibb.co/fY4JqbfB/images-9-removebg-preview.png',
+    currentShow: {
+      title: 'Droit de Reponse',
+      genre: 'Political Debate',
+      startTime: '10:00',
+      endTime: '12:00',
+      description: 'Cameroon premier independent investigative talk show and societal debate panel analyzing top national headlines with respected political commentators.',
+      progress: 75,
+    },
+    nextShow: {
+      title: 'Regard Social',
+      genre: 'Investigative News',
+      startTime: '12:15',
+    },
+    schedule: [
+      { time: '06:30', title: 'Cadence Matinale', genre: 'Morning Show' },
+      { time: '08:00', title: 'Equinoxe Matin', genre: 'News' },
+      { time: '10:00', title: 'Droit de Reponse', genre: 'Debate', isCurrent: true },
+      { time: '12:15', title: 'Regard Social', genre: 'Investigation' },
+      { time: '14:00', title: 'Parole d Experts', genre: 'Economy' },
+      { time: '16:00', title: 'Zoom sur les Regions', genre: 'Report' },
+      { time: '18:00', title: 'Le Journal d Information', genre: 'News' },
+      { time: '19:00', title: 'Equinoxe Soir - Le Grand Debat', genre: 'Debate' },
+      { time: '21:30', title: 'La Tribune Citoyenne', genre: 'Public' }
+    ],
+    about: 'Equinoxe Television is Cameroon leading independent news channel, established in 2006 by Severin Tchounkeu in Douala. It is internationally respected for investigative journalism, Droit de Reponse, and Equinoxe Soir.',
+    posterBg: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1200&auto=format&fit=crop'
+  },
+  {
+    id: 'my-media-prime',
+    channelNumber: 4,
+    name: 'My Media Prime',
+    callSign: 'My Media Prime (MMP TV)',
+    slogan: 'L information au premier plan',
+    category: 'National & News',
+    city: 'Douala / Yaounde',
+    language: 'Francais & English',
+    frequency: 'Canal+ 316 • TNT Ch 8 • Web TV',
+    viewers: 24200,
+    logoUrl: 'https://i.ibb.co/q3H7zTLq/mymdiaprime-removebg-preview.png',
+    currentShow: {
+      title: 'MMP Matin - Le Grand Debat',
+      genre: 'Morning News & Analysis',
+      startTime: '09:30',
+      endTime: '11:45',
+      description: 'Dynamic morning public affairs broadcast exploring everyday economic questions, infrastructure developments, and cultural news across Cameroon.',
+      progress: 60,
+    },
+    nextShow: {
+      title: 'Journal de la Mi-Journee MMP',
+      genre: 'News Bulletin',
+      startTime: '12:00',
+    },
+    schedule: [
+      { time: '07:00', title: 'MMP Matin Express', genre: 'Morning Show' },
+      { time: '09:30', title: 'MMP Matin - Le Grand Debat', genre: 'Debate', isCurrent: true },
+      { time: '12:00', title: 'Journal de la Mi-Journee MMP', genre: 'News' },
+      { time: '14:30', title: 'Point Eco Afrique', genre: 'Economy' },
+      { time: '17:00', title: 'Jeunesse & Talents du Cameroun', genre: 'Culture' },
+      { time: '20:00', title: 'Le 20h Prime d Information', genre: 'News' }
+    ],
+    about: 'My Media Prime (MMP TV) is a modern private Cameroonian news, society, and culture broadcaster delivering crisp HD news reports, political talk shows, and urban features across Douala, Yaounde, and the diaspora.',
+    posterBg: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=1200&auto=format&fit=crop'
+  },
+  {
+    id: 'crtv',
+    channelNumber: 5,
     name: 'CRTV',
     callSign: 'Cameroon Radio Television',
     slogan: 'Au coeur de la nation',
@@ -71,7 +227,8 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Yaounde (Mballa II)',
     language: 'Bilingual (Francais / English)',
     frequency: 'Canal+ 301 • TNT Ch 1 • Eutelsat 16A',
-    viewers: 32450,
+    viewers: 36100,
+    logoUrl: 'https://i.ibb.co/27tHg09j/images-7-removebg-preview.png',
     currentShow: {
       title: 'Cameroon Feeling',
       genre: 'Culture & Talk Show',
@@ -97,125 +254,12 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '20:30', title: 'Le Grand Journal Televise 20h30', genre: 'News' },
       { time: '21:45', title: 'Tele-debat National', genre: 'Public Affairs' }
     ],
-    about: 'Cameroon Radio Television (CRTV) is the national public broadcaster headquartered in Yaounde Mballa II. Founded in 1985, it is the historical bilingual network transmitting nationwide across terrestrial TNT, satellite, and digital.',
+    about: 'Cameroon Radio Television (CRTV) is the national public broadcaster headquartered in Yaounde Mballa II. Founded in 1985, it is the primary historical bilingual network transmitting nationwide across terrestrial TNT, satellite, and digital.',
     posterBg: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=1200&auto=format&fit=crop'
   },
   {
-    id: 'canal2-international',
-    channelNumber: 2,
-    name: 'Canal 2 International',
-    callSign: 'Canal 2 International',
-    slogan: 'Toujours plus pres de vous',
-    category: 'Entertainment & Music',
-    city: 'Douala (Akwa)',
-    language: 'Francais & English',
-    frequency: 'Canal+ 302 • Startimes Ch 105 • SES 4',
-    viewers: 41200,
-    currentShow: {
-      title: 'Jambo Television',
-      genre: 'Entertainment & Variety',
-      startTime: '10:30',
-      endTime: '12:30',
-      description: 'The premier Cameroonian entertainment show hosted by veteran animators, featuring live music, comedy, and celebrity interviews.',
-      progress: 40,
-    },
-    nextShow: {
-      title: 'Le 12h45 Express',
-      genre: 'News',
-      startTime: '12:45',
-    },
-    schedule: [
-      { time: '07:00', title: 'C Comment le Matin', genre: 'Talk Show' },
-      { time: '10:30', title: 'Jambo Television', genre: 'Variety', isCurrent: true },
-      { time: '12:45', title: 'Le 12h45 Express', genre: 'News' },
-      { time: '14:00', title: 'Canal Presse', genre: 'Debate' },
-      { time: '16:30', title: 'Nostalgie Makossa & Bikutsi', genre: 'Music' },
-      { time: '18:00', title: 'Urban Jamz Kamer', genre: 'Music' },
-      { time: '19:50', title: 'Le 19h50 Grande Edition', genre: 'News' },
-      { time: '21:00', title: 'La Grande Soiree Cinema', genre: 'Movies' },
-      { time: '23:00', title: 'La Nuit du Rire', genre: 'Comedy' }
-    ],
-    about: 'Founded in 2004 by Emmanuel Chatue in Douala, Canal 2 International is the most widely watched private television network in Cameroon, renowned for shows like Jambo, C Comment, and Le 19h50.',
-    posterBg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    id: 'equinoxe-tv',
-    channelNumber: 3,
-    name: 'Equinoxe TV',
-    callSign: 'Equinoxe Television',
-    slogan: 'Au-dela de l image, nous rendons compte',
-    category: 'National & News',
-    city: 'Douala (Carrefour de l Air)',
-    language: 'Francais & English',
-    frequency: 'Canal+ 303 • SES 4 • TNT Ch 3',
-    viewers: 38900,
-    currentShow: {
-      title: 'Droit de Reponse',
-      genre: 'Political Debate',
-      startTime: '10:00',
-      endTime: '12:00',
-      description: 'Leading independent weekly political and societal debate panel analyzing top national issues in Cameroon with renowned experts.',
-      progress: 75,
-    },
-    nextShow: {
-      title: 'Regard Social',
-      genre: 'Investigative News',
-      startTime: '12:15',
-    },
-    schedule: [
-      { time: '06:30', title: 'Cadence Matinale', genre: 'Morning Show' },
-      { time: '08:00', title: 'Equinoxe Matin', genre: 'News' },
-      { time: '10:00', title: 'Droit de Reponse', genre: 'Debate', isCurrent: true },
-      { time: '12:15', title: 'Regard Social', genre: 'Investigation' },
-      { time: '14:00', title: 'Parole d Experts', genre: 'Economy' },
-      { time: '16:00', title: 'Zoom sur les Regions', genre: 'Report' },
-      { time: '18:00', title: 'Le Journal d Information', genre: 'News' },
-      { time: '19:00', title: 'Equinoxe Soir - Le Grand Debat', genre: 'Debate' },
-      { time: '21:30', title: 'La Tribune Citoyenne', genre: 'Public' }
-    ],
-    about: 'Equinoxe Television is Cameroon leading independent news and public affairs television station, created in 2006 by Severin Tchounkeu in Douala. Known for deep investigative journalism and debate.',
-    posterBg: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    id: 'crtv-news',
-    channelNumber: 4,
-    name: 'CRTV News',
-    callSign: 'CRTV Information 24/7',
-    slogan: 'L information en continu',
-    category: 'National & News',
-    city: 'Yaounde',
-    language: 'Bilingual (Francais / English)',
-    frequency: 'Canal+ 305 • TNT Ch 2',
-    viewers: 19500,
-    currentShow: {
-      title: 'The Debate: Cameroon Geopolitics',
-      genre: 'Analysis',
-      startTime: '11:00',
-      endTime: '12:00',
-      description: 'Live continuous round-the-clock news bulletin and economic updates covering central Africa and global diplomacy.',
-      progress: 30,
-    },
-    nextShow: {
-      title: 'Eco 24 - CEMAC Financial Review',
-      genre: 'Economy',
-      startTime: '12:00',
-    },
-    schedule: [
-      { time: '06:00', title: 'Morning Bulletin 24', genre: 'News' },
-      { time: '09:00', title: 'Presse Diplomatique', genre: 'Analysis' },
-      { time: '11:00', title: 'The Debate: Cameroon Geopolitics', genre: 'Talk', isCurrent: true },
-      { time: '12:00', title: 'Eco 24 - CEMAC Financial Review', genre: 'Economy' },
-      { time: '14:00', title: 'Le Journal des 10 Regions', genre: 'News' },
-      { time: '17:00', title: 'Flash Info En Continu', genre: 'News' },
-      { time: '19:00', title: 'The World This Hour', genre: 'World News' },
-      { time: '21:00', title: 'Grand Format Afrique Centrale', genre: 'Documentary' }
-    ],
-    about: 'Launched in 2018 as CRTV dedicated 24-hour bilingual rolling news network, CRTV News delivers non-stop coverage of politics, business, and regional developments across Cameroon and Central Africa.',
-    posterBg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
     id: 'crtv-sports',
-    channelNumber: 5,
+    channelNumber: 6,
     name: 'CRTV Sports',
     callSign: 'CRTV Sports & Entertainment',
     slogan: 'La passion du sport camerounais',
@@ -223,7 +267,8 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Yaounde',
     language: 'Bilingual',
     frequency: 'Canal+ 306 • TNT Ch 3',
-    viewers: 27800,
+    viewers: 28400,
+    logoUrl: 'https://i.ibb.co/27tHg09j/images-7-removebg-preview.png',
     currentShow: {
       title: 'Elite One Live: Coton Sport vs Canon Yaounde',
       genre: 'Live Match',
@@ -246,12 +291,12 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '19:00', title: 'Dimanche Sport Prime', genre: 'Talk Show' },
       { time: '21:30', title: 'Sports Combat: Boxe & Lutte Traditionnelle', genre: 'Martial Arts' }
     ],
-    about: 'CRTV Sports & Entertainment is the official television home of Cameroonian athletics, broadcasting the Elite One football championship, national sports leagues, and historic Lions Indomptables archives.',
+    about: 'CRTV Sports & Entertainment is the official television home of Cameroonian athletics, broadcasting the Elite One football championship, national leagues, and historic Lions Indomptables archives.',
     posterBg: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200&auto=format&fit=crop'
   },
   {
     id: 'balafon-tv',
-    channelNumber: 6,
+    channelNumber: 7,
     name: 'Balafon TV',
     callSign: 'Groupe Balafon Television',
     slogan: 'La tele qui vous ressemble',
@@ -259,7 +304,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala',
     language: 'Francais',
     frequency: 'Canal+ 309 • TNT Ch 12',
-    viewers: 23100,
+    viewers: 23800,
     currentShow: {
       title: 'Sacre Matin TV avec Cyrille Bojiko',
       genre: 'Entertainment Talk',
@@ -282,12 +327,12 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
       { time: '18:00', title: 'Balafon Music Awards Retrospective', genre: 'Specials' },
       { time: '20:30', title: 'Le Grand Talk du Soir', genre: 'Entertainment' }
     ],
-    about: 'Created in 2021 by broadcast personality Cyrille Bojiko under Groupe Balafon, Balafon TV is Douala fastest-growing music and entertainment network celebrated for championing Cameroonian urban sounds and cultural humor.',
+    about: 'Created in 2021 by broadcast personality Cyrille Bojiko under Groupe Balafon, Balafon TV is Douala fastest-growing entertainment network celebrated for championing Cameroonian urban sounds and cultural humor.',
     posterBg: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200&auto=format&fit=crop'
   },
   {
     id: 'stv',
-    channelNumber: 7,
+    channelNumber: 8,
     name: 'STV',
     callSign: 'Spectrum Television',
     slogan: 'Your window to the world',
@@ -323,7 +368,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'vision4',
-    channelNumber: 8,
+    channelNumber: 9,
     name: 'Vision 4',
     callSign: 'Vision 4 Television',
     slogan: 'La television africaine par excellence',
@@ -331,7 +376,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Yaounde (Nsam)',
     language: 'Francais',
     frequency: 'Canal+ 307 • SES 4',
-    viewers: 31000,
+    viewers: 31200,
     currentShow: {
       title: 'Tour d Horizon',
       genre: 'Current Affairs & Debate',
@@ -359,7 +404,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'canal2-english',
-    channelNumber: 9,
+    channelNumber: 10,
     name: 'Canal 2 English',
     callSign: 'Canal 2 International English',
     slogan: 'Giving voice to our community',
@@ -367,7 +412,8 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala / Bamenda / Buea',
     language: 'English',
     frequency: 'Canal+ 311 • TNT Ch 7',
-    viewers: 17400,
+    viewers: 17800,
+    logoUrl: 'https://i.ibb.co/Zz5rp35J/canal2-logo-removebg-preview.png',
     currentShow: {
       title: 'The Breakfast Show',
       genre: 'Morning English Magazine',
@@ -395,7 +441,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'canal2-movies',
-    channelNumber: 10,
+    channelNumber: 11,
     name: 'Canal 2 Movies',
     callSign: 'Canal 2 Cinema & Fictions',
     slogan: 'Le meilleur du 7eme art africain',
@@ -403,7 +449,8 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala',
     language: 'Francais',
     frequency: 'Canal+ 312',
-    viewers: 28400,
+    viewers: 28900,
+    logoUrl: 'https://i.ibb.co/Zz5rp35J/canal2-logo-removebg-preview.png',
     currentShow: {
       title: 'Serie Culte: Madame... Monsieur',
       genre: 'Cameroonian Drama Series',
@@ -431,7 +478,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'dash-tv',
-    channelNumber: 11,
+    channelNumber: 12,
     name: 'Dash TV',
     callSign: 'Dash Media Television',
     slogan: 'Live the Dream, Experience Dash',
@@ -439,7 +486,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala (Bonanjo)',
     language: 'Bilingual',
     frequency: 'Canal+ 310 • Web Live',
-    viewers: 16200,
+    viewers: 16400,
     currentShow: {
       title: 'Dash Urban Spotlight',
       genre: 'Youth & Tech Culture',
@@ -466,7 +513,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'dbs-tv',
-    channelNumber: 12,
+    channelNumber: 13,
     name: 'DBS TV',
     callSign: 'Douala Broadcasting System',
     slogan: 'La voix des berges du Wouri',
@@ -501,7 +548,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
   },
   {
     id: 'ltm-tv',
-    channelNumber: 13,
+    channelNumber: 14,
     name: 'LTM TV',
     callSign: 'Love Television & Media',
     slogan: 'La television au coeur de l humain',
@@ -509,7 +556,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala',
     language: 'Francais',
     frequency: 'Canal+ 314 • TNT Ch 11',
-    viewers: 13900,
+    viewers: 14200,
     currentShow: {
       title: 'Matin Bonheur',
       genre: 'Family & Well-being',
@@ -535,41 +582,6 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     posterBg: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=1200&auto=format&fit=crop'
   },
   {
-    id: 'cam10-tv',
-    channelNumber: 14,
-    name: 'Cam10 TV',
-    callSign: 'Cam10 Television',
-    slogan: 'L information au plus juste',
-    category: 'National & News',
-    city: 'Yaounde / Douala',
-    language: 'Francais',
-    frequency: 'Canal+ 317 • TNT Ch 14',
-    viewers: 15400,
-    currentShow: {
-      title: 'Cam10 Debat Societe',
-      genre: 'Public Affairs Panel',
-      startTime: '10:00',
-      endTime: '12:00',
-      description: 'Daily in-depth round table examining urban development, health, youth employment, and legal rights in Cameroon.',
-      progress: 50,
-    },
-    nextShow: {
-      title: 'Le 20 Heures Cam10',
-      genre: 'News',
-      startTime: '12:30',
-    },
-    schedule: [
-      { time: '07:30', title: 'La Matinale Cam10', genre: 'Morning Show' },
-      { time: '10:00', title: 'Cam10 Debat Societe', genre: 'Debate', isCurrent: true },
-      { time: '12:30', title: 'Le Journal d Information', genre: 'News' },
-      { time: '15:00', title: 'Entrepreneuriat Camerounais', genre: 'Economy' },
-      { time: '18:00', title: 'Sport & Jeunesse', genre: 'Sports' },
-      { time: '20:00', title: 'Le Grand Journal Cam10', genre: 'News' }
-    ],
-    about: 'Cam10 TV is a modern Cameroonian private news and generalist channel delivering straightforward reporting on everyday economic issues and society concerns across Yaounde and Douala.',
-    posterBg: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
     id: 'afrique-media',
     channelNumber: 15,
     name: 'Afrique Media',
@@ -579,7 +591,7 @@ const CAMEROON_TV_STATIONS: TVStation[] = [
     city: 'Douala & Yaounde',
     language: 'Francais',
     frequency: 'Canal+ 308 • Eutelsat',
-    viewers: 34500,
+    viewers: 34800,
     currentShow: {
       title: 'Le Debat Panafricain: Souverainete & Geopolitique',
       genre: 'International Relations',
@@ -681,48 +693,76 @@ export default function LiveTVPage() {
 
   return (
     <div className="min-h-screen text-white pb-28">
-      {/* Top Header: Crisp Light Accents */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1.5">
-            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white shadow-sm">
-              <Tv className="w-5 h-5 stroke-[2]" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Cameroon Live TV
-            </h1>
-            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-zinc-950 text-[11px] font-bold tracking-wide uppercase shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Real-time television streams from Yaounde, Douala, and regional broadcasters across Cameroon.
-          </p>
-        </div>
-
-        {/* Search Bar: Clean Light Outline */}
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search channels, programs, cities..."
-            className="w-full bg-[#10141E] border border-white/10 focus:border-white/30 rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none transition-all"
+      {/* Featured Banner Section */}
+      <div className="relative w-full rounded-3xl overflow-hidden mb-8 border border-white/10 shadow-2xl bg-black">
+        <div className="relative aspect-[21/9] sm:aspect-[24/8] md:aspect-[24/7] min-h-[200px] sm:min-h-[260px] w-full">
+          <Image
+            src={LIVE_TV_BANNER}
+            alt="SawaFlix Live TV Banner"
+            fill
+            className="object-cover object-center opacity-70 filter brightness-95"
+            priority
+            unoptimized
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white cursor-pointer"
-            >
-              Clear
-            </button>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+
+          {/* Banner Text Content */}
+          <div className="absolute inset-0 p-6 sm:p-10 flex flex-col justify-between z-10">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Broadcast
+              </span>
+              <span className="text-xs text-zinc-300 hidden sm:inline-block font-mono bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
+                15 National & Regional Channels
+              </span>
+            </div>
+
+            <div className="max-w-2xl">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-md">
+                Cameroon Live TV
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-200 mt-2 line-clamp-2 max-w-xl leading-relaxed drop-shadow">
+                Stream CRTV News, Canal 2 International, Equinoxe TV, My Media Prime, and all official Cameroonian broadcast stations with live interactive guides.
+              </p>
+
+              {/* Station Logos Preview Ticker */}
+              <div className="flex items-center gap-3 sm:gap-4 mt-4 pt-3 border-t border-white/15 overflow-x-auto no-scrollbar">
+                <div className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider shrink-0">
+                  Featured Stations:
+                </div>
+                {CAMEROON_TV_STATIONS.filter((s) => s.logoUrl).slice(0, 4).map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      setSelectedStation(s);
+                      window.scrollTo({ top: 350, behavior: 'smooth' });
+                    }}
+                    className="flex items-center gap-2 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 transition-all shrink-0 cursor-pointer group"
+                  >
+                    <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center bg-white/5 p-0.5">
+                      <Image
+                        src={s.logoUrl!}
+                        alt={s.name}
+                        width={20}
+                        height={20}
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-white group-hover:text-zinc-100">
+                      {s.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Theater Experience: Clean & Great View */}
+      {/* Main Theater Experience */}
       <div className="relative mb-6 rounded-3xl bg-[#090C12] border border-white/10 overflow-hidden shadow-2xl">
         <div
           ref={playerRef}
@@ -745,9 +785,22 @@ export default function LiveTVPage() {
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider shadow-md">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live Broadcast
+                Live
               </span>
-              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs">
+              
+              <div className="flex items-center gap-2.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs">
+                {selectedStation.logoUrl && (
+                  <div className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                    <Image
+                      src={selectedStation.logoUrl}
+                      alt={selectedStation.name}
+                      width={16}
+                      height={16}
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                )}
                 <span className="font-mono font-bold text-white">
                   Ch {String(selectedStation.channelNumber).padStart(2, '0')}
                 </span>
@@ -782,16 +835,29 @@ export default function LiveTVPage() {
             </div>
           </div>
 
-          {/* Center Brand Identity (Subtle, Clean) */}
+          {/* Center Brand Identity */}
           <div className="relative z-10 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
             <motion.div
               key={selectedStation.id}
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/25 flex items-center justify-center shadow-2xl mb-3"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/25 flex items-center justify-center shadow-2xl mb-3 p-2 overflow-hidden"
             >
-              <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-white stroke-[1.75]" />
+              {selectedStation.logoUrl ? (
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <Image
+                    src={selectedStation.logoUrl}
+                    alt={selectedStation.name}
+                    width={80}
+                    height={80}
+                    className="object-contain max-h-full max-w-full drop-shadow-md"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <Tv className="w-10 h-10 text-white stroke-[1.75]" />
+              )}
             </motion.div>
             <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-lg">
               {selectedStation.name}
@@ -840,7 +906,7 @@ export default function LiveTVPage() {
               />
             </div>
 
-            {/* Control Buttons: Light & Sleek */}
+            {/* Control Buttons */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
                 <button
@@ -904,7 +970,7 @@ export default function LiveTVPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-            Quick Channel Strip
+            Quick Channel Surfing
           </h3>
           <div className="flex items-center gap-1">
             <button
@@ -934,20 +1000,34 @@ export default function LiveTVPage() {
               <button
                 key={station.id}
                 onClick={() => setSelectedStation(station)}
-                className={`shrink-0 w-44 p-3 rounded-2xl text-left border transition-all cursor-pointer ${
+                className={`shrink-0 w-48 p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-white text-zinc-950 border-white shadow-xl scale-[1.02]'
                     : 'bg-[#0E121B] border-white/10 hover:border-white/25 hover:bg-[#121622] text-zinc-300 hover:text-white'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span
-                    className={`font-mono text-xs font-bold ${
-                      isSelected ? 'text-zinc-900' : 'text-zinc-400'
-                    }`}
-                  >
-                    Ch {String(station.channelNumber).padStart(2, '0')}
-                  </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    {station.logoUrl && (
+                      <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center p-0.5 bg-black/10">
+                        <Image
+                          src={station.logoUrl}
+                          alt={station.name}
+                          width={20}
+                          height={20}
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    )}
+                    <span
+                      className={`font-mono text-xs font-bold ${
+                        isSelected ? 'text-zinc-900' : 'text-zinc-400'
+                      }`}
+                    >
+                      Ch {String(station.channelNumber).padStart(2, '0')}
+                    </span>
+                  </div>
                   <span
                     className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full ${
                       isSelected
@@ -978,7 +1058,7 @@ export default function LiveTVPage() {
         </div>
       </div>
 
-      {/* Two-Column Section: Schedule & Station Overview */}
+      {/* Two-Column Section: Schedule & Channel Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         {/* Left Column: Schedule & Channel Details (5 cols on lg) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
@@ -1109,7 +1189,7 @@ export default function LiveTVPage() {
                   key={station.id}
                   onClick={() => {
                     setSelectedStation(station);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({ top: 350, behavior: 'smooth' });
                   }}
                   className={`group p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                     isSelected
@@ -1119,9 +1199,22 @@ export default function LiveTVPage() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-white px-2 py-0.5 rounded-md bg-white/10 border border-white/10">
-                        Ch {String(station.channelNumber).padStart(2, '0')}
-                      </span>
+                      {station.logoUrl ? (
+                        <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center p-0.5 bg-white/5 border border-white/10">
+                          <Image
+                            src={station.logoUrl}
+                            alt={station.name}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <span className="font-mono text-xs font-bold text-white px-2 py-0.5 rounded-md bg-white/10 border border-white/10">
+                          Ch {String(station.channelNumber).padStart(2, '0')}
+                        </span>
+                      )}
                       <h4 className="text-xs font-bold text-white group-hover:text-zinc-100 transition-colors">
                         {station.name}
                       </h4>
