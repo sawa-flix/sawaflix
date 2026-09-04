@@ -1,20 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   ArrowUp, 
   RotateCcw, 
-  Sparkles, 
-  ChevronRight, 
-  Film, 
-  Music, 
-  Flame, 
-  Tv, 
-  ExternalLink,
-  ShieldCheck,
-  Compass,
-  ArrowLeft
+  ArrowLeft,
+  Film,
+  Music,
+  Tv,
+  Sparkles
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -27,32 +22,39 @@ interface ChatMessage {
   content: string;
 }
 
-const FEATURED_PROMPTS = [
+const FEATURED_TOPICS = [
   {
-    category: 'Cinema & Culture',
-    icon: Film,
     title: 'Cameroonian Movies',
-    prompt: 'What are the top Cameroonian movies and series to watch on SawaFlix?',
+    description: 'Top films, classic series, and cinema recommendations',
+    prompt: 'What are the top Cameroonian movies and series to stream on SawaFlix?',
+    icon: Film,
   },
   {
-    category: 'Music & Sounds',
-    icon: Music,
-    title: 'Makossa & Bikutsi Legends',
+    title: 'Makossa & Bikutsi',
+    description: 'Legends, discographies, and Cameroonian musical heritage',
     prompt: 'Tell me about the history of Makossa and Bikutsi music, and which artists are featured on SawaFlix.',
+    icon: Music,
   },
   {
-    category: 'Short Reels',
-    icon: Flame,
-    title: 'How Reels Work',
+    title: 'Interactive Reels',
+    description: 'Vertical short-video feeds and engagement features',
     prompt: 'How does the SawaFlix interactive Reels feed work, and how can I interact with videos?',
+    icon: Tv,
   },
   {
-    category: 'Creators',
-    icon: Sparkles,
-    title: 'Creator Monetization',
+    title: 'Creator Studio',
+    description: 'Publishing, verification, and monetization for artists',
     prompt: 'How can African filmmakers and musicians upload, get verified, and monetize on SawaFlix?',
+    icon: Sparkles,
   },
 ];
+
+function stripEmojis(text: string): string {
+  return text.replace(
+    /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu,
+    ''
+  );
+}
 
 export default function SawaiPage() {
   const [input, setInput] = useState('');
@@ -62,7 +64,7 @@ export default function SawaiPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "👋 **Mbote & Welcome to Sawai!**\n\nI am your dedicated AI intelligence engine for **SawaFlix**—Cameroon's premier destination for cinema, music, reels, and cultural storytelling.\n\nWhether you want movie recommendations, insights into Sawa heritage & the Ngondo festival, details about Cameroonian music genres (Makossa, Bikutsi, Assiko, Afrobeats), or guidance on becoming a verified creator, ask me anything!",
+      content: "Hello and welcome to **Sawai**.\n\nI am your digital intelligence engine for **SawaFlix**—Cameroon's destination for cinema, music, reels, and cultural storytelling.\n\nAsk me for movie recommendations, insights into Sawa heritage & the Ngondo festival, details about Cameroonian music genres (Makossa, Bikutsi, Assiko), or guidance on publishing as a creator.",
     },
   ]);
 
@@ -138,12 +140,12 @@ export default function SawaiPage() {
           if (line.startsWith('0:')) {
             try {
               const textContent = JSON.parse(line.substring(2));
-              assistantText += textContent;
+              assistantText += stripEmojis(textContent);
             } catch {
-              assistantText += line.substring(2);
+              assistantText += stripEmojis(line.substring(2));
             }
           } else {
-            assistantText += line;
+            assistantText += stripEmojis(line);
           }
         }
 
@@ -155,7 +157,7 @@ export default function SawaiPage() {
       }
     } catch (err: any) {
       console.error('[Sawai Page] Error:', err);
-      setError('Could not reach Sawai service. Please verify your connection or try again shortly.');
+      setError('Could not reach Sawai service. Please check your connection or try again shortly.');
     } finally {
       setIsLoading(false);
     }
@@ -171,212 +173,189 @@ export default function SawaiPage() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: "✨ **Conversation reset.** I am **Sawai**, ready for your questions about SawaFlix movies, music, and culture.",
+        content: "Conversation cleared. I am **Sawai**, ready for your questions about SawaFlix.",
       },
     ]);
     setError(null);
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-white flex flex-col">
+    <div className="min-h-screen bg-[#07090E] text-white flex flex-col">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#0B0E14]/85 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
+      <header className="sticky top-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/10 flex items-center gap-1.5 text-xs font-medium"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/5 flex items-center gap-1.5 text-xs font-medium"
             title="Return to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back</span>
           </Link>
 
-          <div className="h-5 w-px bg-white/10 hidden sm:block" />
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#CE1126] via-[#3a4150] to-[#FCD116] p-[1.5px] shadow-md">
-              <div className="w-full h-full rounded-full bg-[#0B0E14] flex items-center justify-center p-1.5 overflow-hidden">
-                <Image
-                  src="/logos_and_pwas/android-chrome-192x192.png"
-                  alt="Sawai Logo"
-                  width={34}
-                  height={34}
-                  className="w-full h-full object-contain rounded-full"
-                  priority
-                />
-              </div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 overflow-hidden shrink-0">
+              <Image
+                src="/logos_and_pwas/android-chrome-192x192.png"
+                alt="Sawai Logo"
+                width={28}
+                height={28}
+                className="w-full h-full object-contain rounded-full"
+                priority
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-bold text-base tracking-tight">Sawai Intelligence</h1>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15">
-                  Gemini 2.5 Flash
+                <h1 className="text-white font-semibold text-sm tracking-tight">Sawai</h1>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-400">
+                  AI
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 hidden sm:block">
-                The official cultural & entertainment AI for SawaFlix
+              <p className="text-[11px] text-zinc-400 hidden sm:block">
+                SawaFlix Assistant
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleClear}
-            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Clear Chat</span>
-          </button>
-        </div>
+        <button
+          onClick={handleClear}
+          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Clear Chat</span>
+        </button>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
-        {/* Welcome Cards for Empty or Initial State */}
+      {/* Main Container */}
+      <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
+        {/* Starter Topic Cards */}
         {messages.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2"
-          >
-            {FEATURED_PROMPTS.map((item, idx) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-2">
+            {FEATURED_TOPICS.map((item, idx) => {
               const Icon = item.icon;
               return (
                 <button
                   key={idx}
                   onClick={() => sendMessage(item.prompt)}
-                  className="p-4 rounded-2xl bg-[#0F131C] border border-white/10 hover:border-white/25 hover:bg-[#141926] text-left transition-all group cursor-pointer shadow-lg active:scale-[0.98]"
+                  className="p-3.5 rounded-xl bg-[#0E121B] border border-white/5 hover:border-white/20 hover:bg-[#121622] text-left transition-all group cursor-pointer"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-white transition-colors">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-                      {item.category}
-                    </span>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Icon className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                    <h3 className="text-xs font-semibold text-white group-hover:text-zinc-100 transition-colors">
+                      {item.title}
+                    </h3>
                   </div>
-                  <h3 className="text-sm font-semibold text-white group-hover:text-zinc-100 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
-                    {item.prompt}
+                  <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                    {item.description}
                   </p>
                 </button>
               );
             })}
-          </motion.div>
+          </div>
         )}
 
         {/* Message Thread */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-4">
           {messages.map((m) => {
             const isUser = m.role === 'user';
+            const formattedContent = stripEmojis(m.content).replace(/:\*\s+/g, ':\n\n* ');
+
             return (
-              <motion.div
+              <div
                 key={m.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start items-start'}`}
+                className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start items-start'}`}
               >
                 {!isUser && (
-                  <div className="w-9 h-9 rounded-full bg-[#0B0E14] border border-white/15 flex items-center justify-center shrink-0 mt-0.5 p-1 shadow-sm overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 p-0.5 overflow-hidden">
                     <Image
                       src="/logos_and_pwas/favicon-32x32.png"
                       alt="Sawai"
-                      width={28}
-                      height={28}
+                      width={20}
+                      height={20}
                       className="w-full h-full object-contain rounded-full"
                     />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-5 py-4 leading-relaxed text-[14px] ${
+                  className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-[13.5px] leading-relaxed ${
                     isUser
-                      ? 'bg-zinc-100 text-zinc-950 font-medium rounded-tr-sm shadow-md'
-                      : 'bg-[#0e121a] text-zinc-200 border border-white/10 rounded-tl-sm shadow-lg'
+                      ? 'bg-zinc-200 text-zinc-950 font-medium rounded-tr-xs shadow-sm'
+                      : 'bg-[#0E121B] text-zinc-200 border border-white/5 rounded-tl-xs shadow-sm'
                   }`}
                 >
                   {isUser ? (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   ) : (
-                    <div className="prose prose-invert max-w-none text-[14px] leading-relaxed break-words space-y-3">
+                    <div className="prose prose-invert max-w-none text-[13.5px] leading-relaxed break-words space-y-2.5">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          h1: ({ children }) => <h1 className="text-lg font-bold text-white mt-4 mb-2 pb-1 border-b border-white/10">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-base font-bold text-white mt-3.5 mb-2">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-bold text-zinc-100 mt-3 mb-1.5">{children}</h3>,
-                          p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed text-zinc-200">{children}</p>,
+                          h1: ({ children }) => <h1 className="text-base font-bold text-white mt-3 mb-1.5 pb-1 border-b border-white/10">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-bold text-white mt-2.5 mb-1">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xs font-bold text-zinc-100 mt-2 mb-1">{children}</h3>,
+                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-zinc-300">{children}</p>,
                           strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                          ul: ({ children }) => <ul className="list-disc pl-5 space-y-1.5 mb-3 last:mb-0 text-zinc-300">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1.5 mb-3 last:mb-0 text-zinc-300">{children}</ol>,
-                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 text-zinc-300">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 text-zinc-300">{children}</ol>,
+                          li: ({ children }) => <li className="leading-snug">{children}</li>,
                           code: ({ children }) => (
-                            <code className="bg-white/10 text-amber-300 px-1.5 py-0.5 rounded text-[13px] font-mono">
+                            <code className="bg-white/10 text-zinc-200 px-1 py-0.2 rounded text-xs font-mono">
                               {children}
                             </code>
-                          ),
-                          blockquote: ({ children }) => (
-                            <blockquote className="border-l-2 border-white/20 pl-3.5 italic text-zinc-400 my-2">
-                              {children}
-                            </blockquote>
                           ),
                           a: ({ href, children }) => (
                             <a
                               href={href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors"
+                              className="text-zinc-100 hover:text-white underline underline-offset-2 transition-colors"
                             >
                               {children}
                             </a>
                           ),
                         }}
                       >
-                        {m.content}
+                        {formattedContent}
                       </ReactMarkdown>
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
 
           {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex gap-3.5 items-center text-zinc-400 text-xs py-2"
-            >
-              <div className="w-9 h-9 rounded-full bg-[#0B0E14] border border-white/15 flex items-center justify-center shrink-0 p-1 overflow-hidden">
+            <div className="flex gap-3 items-center text-zinc-400 text-xs py-2">
+              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                 <Image
                   src="/logos_and_pwas/favicon-32x32.png"
                   alt="Sawai"
-                  width={28}
-                  height={28}
-                  className="w-full h-full object-contain rounded-full animate-pulse"
+                  width={20}
+                  height={20}
+                  className="w-full h-full object-contain rounded-full"
                 />
               </div>
-              <div className="flex items-center gap-1.5 bg-[#0e121a] border border-white/10 rounded-xl px-4 py-2.5 shadow-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="text-xs text-zinc-400 ml-2">Sawai is generating a response...</span>
+              <div className="flex items-center gap-1.5 bg-[#0E121B] border border-white/5 rounded-xl px-3 py-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-            </motion.div>
+            </div>
           )}
 
           {error && (
-            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center justify-between">
-              <span>⚠️ {error}</span>
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center justify-between">
+              <span>{error}</span>
               <button
                 onClick={() => {
                   const lastUserMsg = messages.slice().reverse().find((m) => m.role === 'user');
                   if (lastUserMsg) sendMessage(lastUserMsg.content);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-white font-medium transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-500/30 text-white font-medium transition-colors cursor-pointer"
               >
                 Retry
               </button>
@@ -387,12 +366,12 @@ export default function SawaiPage() {
         </div>
       </main>
 
-      {/* Floating Input Bar at Bottom */}
-      <footer className="sticky bottom-0 z-40 bg-[#0B0E14]/90 backdrop-blur-2xl border-t border-white/10 p-4">
-        <div className="max-w-4xl mx-auto">
+      {/* Input Bar */}
+      <footer className="sticky bottom-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md border-t border-white/10 p-3 sm:p-4">
+        <div className="max-w-3xl mx-auto">
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-2.5 bg-[#0e121a] border border-white/15 rounded-2xl p-2 focus-within:border-white/40 focus-within:ring-1 focus-within:ring-white/20 transition-all shadow-xl"
+            className="flex items-center gap-2 bg-[#0E121B] border border-white/10 focus-within:border-white/30 rounded-2xl px-3 py-1.5 transition-all shadow-lg"
           >
             <input
               ref={inputRef}
@@ -401,20 +380,17 @@ export default function SawaiPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Sawai anything about movies, music, reels, culture..."
               disabled={isLoading}
-              className="flex-1 bg-transparent text-white placeholder:text-zinc-500 text-sm px-3 py-2 focus:outline-none"
+              className="flex-1 bg-transparent text-white placeholder:text-zinc-500 text-xs sm:text-sm px-2 py-1.5 focus:outline-none"
             />
             <button
               type="submit"
               disabled={isLoading || !(input || '').trim()}
-              className="w-10 h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shadow-md transition-all cursor-pointer shrink-0 active:scale-95 font-semibold"
+              className="w-8 h-8 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 font-semibold"
               aria-label="Send message"
             >
-              <ArrowUp className="w-5 h-5 text-zinc-950 stroke-[2.5]" />
+              <ArrowUp className="w-4 h-4 stroke-[2.5]" />
             </button>
           </form>
-          <p className="text-center text-[11px] text-zinc-500 mt-2">
-            Sawai is powered by Gemini 2.5 Flash and SawaFlix Cultural Intelligence.
-          </p>
         </div>
       </footer>
     </div>

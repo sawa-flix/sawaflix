@@ -6,10 +6,7 @@ import {
   X, 
   ArrowUp, 
   RotateCcw, 
-  Minimize2, 
-  Maximize2,
-  ChevronRight,
-  ExternalLink 
+  Maximize2
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,17 +19,23 @@ interface ChatMessage {
   content: string;
 }
 
-const QUICK_SUGGESTIONS = [
-  { label: '🎬 What is SawaFlix?', prompt: 'What is SawaFlix and what can I stream here?' },
-  { label: '🎵 Music Streaming', prompt: 'Tell me about SawaFlix music and how to listen to Makossa or Bikutsi.' },
-  { label: '📱 How do Reels work?', prompt: 'How do SawaFlix short reels work?' },
-  { label: '🌟 Become a Creator', prompt: 'How can I become a creator and upload videos or music?' },
-  { label: '🔔 Push Notifications', prompt: 'How do I enable push notifications to receive updates?' },
+const STARTER_SUGGESTIONS = [
+  'What is SawaFlix?',
+  'Cameroonian Music',
+  'How Reels Work',
+  'Creator Studio'
 ];
+
+// Helper to remove any emojis from text
+function stripEmojis(text: string): string {
+  return text.replace(
+    /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu,
+    ''
+  );
+}
 
 export default function SawaBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export default function SawaBot() {
     {
       id: 'welcome-message',
       role: 'assistant',
-      content: "👋 **Mbote & Welcome to SawaFlix!** I'm **Sawai**, your guide to Cameroon's movies, music, reels, and vibrant cultural traditions.\n\nHow can I help you today? Ask me about streaming, uploading, artists, or app features!",
+      content: "Hello, I am **Sawai**, your assistant for SawaFlix.\n\nAsk me about movies, Cameroonian music, reels, or creator publishing.",
     },
   ]);
 
@@ -55,29 +58,17 @@ export default function SawaBot() {
     if (isOpen) {
       scrollToBottom();
       if (inputRef.current) {
-        setTimeout(() => inputRef.current?.focus(), 150);
+        setTimeout(() => inputRef.current?.focus(), 100);
       }
     }
   }, [messages, isOpen]);
-
-  const handleOpen = () => {
-    setIsOpen(true);
-    setHasOpenedOnce(true);
-  };
-
-  const handleSuggestionClick = (promptText: string) => {
-    setInput(promptText);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
 
   const handleClearChat = () => {
     setMessages([
       {
         id: 'welcome-message',
         role: 'assistant',
-        content: "✨ Chat cleared! I'm **Sawai**, ready for your questions about SawaFlix movies, music, and culture.",
+        content: "Chat cleared. I am **Sawai**, ready for your questions about SawaFlix.",
       },
     ]);
     setError(null);
@@ -127,7 +118,6 @@ export default function SawaBot() {
       let assistantText = '';
       const assistantId = `assistant-${Date.now()}`;
 
-      // Insert placeholder for assistant stream
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: 'assistant', content: '' },
@@ -138,20 +128,19 @@ export default function SawaBot() {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        
-        // Handle both direct text chunks and legacy protocol lines
         const lines = chunk.split('\n');
+
         for (const line of lines) {
           if (!line) continue;
           if (line.startsWith('0:')) {
             try {
               const textContent = JSON.parse(line.substring(2));
-              assistantText += textContent;
+              assistantText += stripEmojis(textContent);
             } catch {
-              assistantText += line.substring(2);
+              assistantText += stripEmojis(line.substring(2));
             }
           } else {
-            assistantText += line;
+            assistantText += stripEmojis(line);
           }
         }
 
@@ -163,7 +152,7 @@ export default function SawaBot() {
       }
     } catch (err: any) {
       console.error('[Sawai] Send error:', err);
-      setError('Could not reach Sawai server. Please check your network and try again.');
+      setError('Could not reach Sawai server. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -176,91 +165,57 @@ export default function SawaBot() {
 
   return (
     <>
-      {/* Floating Bottom-Right Launcher Button */}
+      {/* Floating Bottom-Right Launcher */}
       <div className="fixed bottom-6 right-6 z-[9999]">
-        <motion.button
-          onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.94 }}
-          className="relative group flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#CE1126] via-[#2a2f3a] to-[#FCD116] p-[2px] shadow-2xl cursor-pointer focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-300"
-          aria-label="Open SawaFlix AI Assistant"
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0D111A] hover:bg-[#131722] text-white border border-white/15 shadow-2xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20 active:scale-95"
+          aria-label={isOpen ? "Close Sawai" : "Open Sawai Assistant"}
         >
-          <div className="w-full h-full rounded-full bg-[#0B0E14] flex items-center justify-center relative overflow-hidden group-hover:bg-[#121721] transition-colors p-2">
-            {isOpen ? (
-              <X className="w-6 h-6 text-white transition-transform duration-200" />
-            ) : (
-              <div className="flex items-center justify-center relative w-full h-full">
-                <Image
-                  src="/logos_and_pwas/android-chrome-192x192.png"
-                  alt="SawaFlix Logo"
-                  width={38}
-                  height={38}
-                  className="w-full h-full object-contain rounded-full drop-shadow-md group-hover:scale-105 transition-transform"
-                  priority
-                />
-                <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FCD116] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FCD116]"></span>
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Tooltip hint on hover (before opened) */}
-          {!isOpen && !hasOpenedOnce && (
-            <motion.div
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1 }}
-              className="absolute right-16 top-2.5 whitespace-nowrap bg-[#161b24] text-zinc-100 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 shadow-xl pointer-events-none flex items-center gap-2 backdrop-blur-md"
-            >
-              <div className="w-4 h-4 relative shrink-0">
-                <Image
-                  src="/logos_and_pwas/favicon-32x32.png"
-                  alt="SawaFlix"
-                  width={16}
-                  height={16}
-                  className="w-full h-full object-contain rounded-full"
-                />
-              </div>
-              <span>Ask Sawai</span>
-            </motion.div>
+          {isOpen ? (
+            <X className="w-5 h-5 text-zinc-300" />
+          ) : (
+            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+              <Image
+                src="/logos_and_pwas/android-chrome-192x192.png"
+                alt="Sawai"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain rounded-full"
+                priority
+              />
+            </div>
           )}
-        </motion.button>
+        </button>
       </div>
 
-      {/* Chat Window Drawer / Modal */}
+      {/* Chat Window Drawer: Super Clean & Uncluttered */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.96 }}
-            transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[420px] h-[590px] max-h-[calc(100vh-8rem)] rounded-2xl bg-[#0c1017]/95 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="fixed bottom-20 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-6.5rem)] rounded-2xl bg-[#090C12] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
-            <div className="px-4 py-3.5 bg-gradient-to-r from-[#0B0E14] via-[#151a23] to-[#0B0E14] border-b border-white/10 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#CE1126] via-[#3a4150] to-[#FCD116] p-[1.5px] shrink-0 shadow-md">
-                  <div className="w-full h-full rounded-full bg-[#0B0E14] flex items-center justify-center p-1.5 overflow-hidden">
-                    <Image
-                      src="/logos_and_pwas/android-chrome-192x192.png"
-                      alt="SawaFlix"
-                      width={32}
-                      height={32}
-                      className="w-full h-full object-contain rounded-full"
-                    />
-                  </div>
+            {/* Header: Minimal & Focused */}
+            <div className="px-4 py-3 bg-[#0D111A] border-b border-white/5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+                  <Image
+                    src="/logos_and_pwas/android-chrome-192x192.png"
+                    alt="Sawai"
+                    width={24}
+                    height={24}
+                    className="w-full h-full object-contain rounded-full"
+                  />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-white font-bold text-sm tracking-tight">Sawai</h3>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/15">
-                      AI 2.5
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400">SawaFlix Culture & Streaming Guide</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-white font-semibold text-sm tracking-tight">Sawai</h3>
+                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-400">
+                    AI
+                  </span>
                 </div>
               </div>
 
@@ -268,141 +223,143 @@ export default function SawaBot() {
                 <Link
                   href="/dashboard/sawai"
                   onClick={() => setIsOpen(false)}
-                  title="Open full page Sawai"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Expand to Full Page"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  <Maximize2 className="w-4 h-4" />
+                  <Maximize2 className="w-3.5 h-3.5" />
                 </Link>
                 <button
                   onClick={handleClearChat}
                   title="Clear conversation"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  title="Close chat"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Close"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  <Minimize2 className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Messages Scroll Area */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm scrollbar-thin scrollbar-thumb-zinc-700">
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
               {messages.map((m) => {
                 const isUser = m.role === 'user';
+                const formattedContent = stripEmojis(m.content).replace(/:\*\s+/g, ':\n\n* ');
+
                 return (
-                  <motion.div
-                    key={m.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex gap-2.5 ${isUser ? 'justify-end' : 'justify-start items-start'}`}
-                  >
-                    {!isUser && (
-                      <div className="w-7 h-7 rounded-full bg-[#0B0E14] border border-white/15 flex items-center justify-center shrink-0 mt-0.5 p-1 shadow-sm overflow-hidden">
-                        <Image
-                          src="/logos_and_pwas/favicon-32x32.png"
-                          alt="SawaFlix"
-                          width={20}
-                          height={20}
-                          className="w-full h-full object-contain rounded-full"
-                        />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed text-[13px] ${
-                        isUser
-                          ? 'bg-zinc-100 text-zinc-950 font-medium rounded-tr-sm shadow-md'
-                          : 'bg-[#151922] text-zinc-200 border border-white/10 rounded-tl-sm shadow-md'
-                      }`}
-                    >
-                      {isUser ? (
-                        <div className="whitespace-pre-wrap break-words">
-                          {m.content}
-                        </div>
-                      ) : (
-                        <div className="markdown-chat-content prose prose-invert max-w-none text-[13px] leading-relaxed break-words space-y-2.5">
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              h1: ({ children }) => <h1 className="text-base font-bold text-white mt-3 mb-1.5 pb-1 border-b border-white/10">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-sm font-bold text-white mt-2.5 mb-1.5">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-xs font-bold text-zinc-100 mt-2 mb-1">{children}</h3>,
-                              p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-zinc-200">{children}</p>,
-                              strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                              ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 last:mb-0 text-zinc-300">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 last:mb-0 text-zinc-300">{children}</ol>,
-                              li: ({ children }) => <li className="leading-snug">{children}</li>,
-                              code: ({ children }) => (
-                                <code className="bg-white/10 text-amber-300 px-1.5 py-0.5 rounded text-[12px] font-mono">
-                                  {children}
-                                </code>
-                              ),
-                              blockquote: ({ children }) => (
-                                <blockquote className="border-l-2 border-white/20 pl-3 italic text-zinc-400 my-1.5">
-                                  {children}
-                                </blockquote>
-                              ),
-                              a: ({ href, children }) => (
-                                <a
-                                  href={href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors"
-                                >
-                                  {children}
-                                </a>
-                              ),
-                            }}
-                          >
-                            {/* Preprocess inline asterisks like ':* ' into newline bullets so LLM text renders with distinct points */}
-                            {m.content.replace(/:\*\s+/g, ':\n\n* ')}
-                          </ReactMarkdown>
+                  <div key={m.id} className="space-y-2">
+                    <div className={`flex gap-2 ${isUser ? 'justify-end' : 'justify-start items-start'}`}>
+                      {!isUser && (
+                        <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 p-0.5 overflow-hidden">
+                          <Image
+                            src="/logos_and_pwas/favicon-32x32.png"
+                            alt="Sawai"
+                            width={14}
+                            height={14}
+                            className="w-full h-full object-contain rounded-full"
+                          />
                         </div>
                       )}
+                      
+                      <div
+                        className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[12.5px] leading-relaxed ${
+                          isUser
+                            ? 'bg-zinc-200 text-zinc-950 font-medium rounded-tr-xs shadow-sm'
+                            : 'bg-[#11141D] text-zinc-200 border border-white/5 rounded-tl-xs shadow-sm'
+                        }`}
+                      >
+                        {isUser ? (
+                          <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                        ) : (
+                          <div className="prose prose-invert max-w-none text-[12.5px] leading-relaxed break-words space-y-2">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                h1: ({ children }) => <h1 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-[13px] font-semibold text-white mt-2 mb-1">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-xs font-semibold text-zinc-100 mt-1.5 mb-0.5">{children}</h3>,
+                                p: ({ children }) => <p className="mb-2 last:mb-0 text-zinc-300 leading-relaxed">{children}</p>,
+                                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                                ul: ({ children }) => <ul className="list-disc pl-3.5 space-y-1 mb-2 text-zinc-300">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal pl-3.5 space-y-1 mb-2 text-zinc-300">{children}</ol>,
+                                li: ({ children }) => <li className="leading-snug">{children}</li>,
+                                code: ({ children }) => (
+                                  <code className="bg-white/10 text-zinc-200 px-1 py-0.2 rounded text-[11px] font-mono">
+                                    {children}
+                                  </code>
+                                ),
+                                a: ({ href, children }) => (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-zinc-100 hover:text-white underline underline-offset-2 transition-colors"
+                                  >
+                                    {children}
+                                  </a>
+                                ),
+                              }}
+                            >
+                              {formattedContent}
+                            </ReactMarkdown>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </motion.div>
+
+                    {/* Clean Inline Starter Pills (Only visible when conversation is fresh) */}
+                    {!isUser && messages.length === 1 && (
+                      <div className="pl-7 pt-1 flex flex-wrap gap-1.5">
+                        {STARTER_SUGGESTIONS.map((suggestion, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => sendMessage(suggestion)}
+                            className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/5 transition-colors cursor-pointer"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
 
               {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-2.5 items-center text-zinc-400 text-xs py-1"
-                >
-                  <div className="w-7 h-7 rounded-full bg-[#0B0E14] border border-white/15 flex items-center justify-center shrink-0 p-1 overflow-hidden">
+                <div className="flex gap-2 items-center text-zinc-400 text-xs py-1">
+                  <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                     <Image
                       src="/logos_and_pwas/favicon-32x32.png"
-                      alt="SawaFlix"
-                      width={20}
-                      height={20}
-                      className="w-full h-full object-contain rounded-full animate-pulse"
+                      alt="Sawai"
+                      width={14}
+                      height={14}
+                      className="w-full h-full object-contain rounded-full"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 bg-[#151922] border border-white/10 rounded-xl px-3.5 py-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    <span className="text-[11px] text-zinc-400 ml-1.5">Sawai is thinking...</span>
+                  <div className="flex items-center gap-1.5 bg-[#11141D] border border-white/5 rounded-lg px-3 py-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {error && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex flex-col gap-2">
-                  <p>⚠️ {error}</p>
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] flex items-center justify-between">
+                  <span>{error}</span>
                   <button
                     onClick={() => {
                       const lastUserMsg = messages.slice().reverse().find((m) => m.role === 'user');
                       if (lastUserMsg) sendMessage(lastUserMsg.content);
                     }}
-                    className="self-start px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-500/30 font-medium text-xs text-white transition-colors cursor-pointer"
+                    className="px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 text-white font-medium transition-colors cursor-pointer"
                   >
-                    Retry Question
+                    Retry
                   </button>
                 </div>
               )}
@@ -410,46 +367,30 @@ export default function SawaBot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Suggestions Pills */}
-            {messages.length <= 2 && (
-              <div className="px-4 py-2 border-t border-white/5 bg-[#0B0E14]/40 flex gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-                {QUICK_SUGGESTIONS.map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSuggestionClick(item.prompt)}
-                    className="shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
-                  >
-                    <span>{item.label}</span>
-                    <ChevronRight className="w-3 h-3 text-zinc-500" />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Input Form with Light Border, Subtle Focus and Arrow-Up Button */}
+            {/* Input Bar: Ultra Simple & Clean */}
             <form
               onSubmit={handleSubmit}
-              className="p-3 bg-[#0B0E14] border-t border-white/10 flex items-center gap-2 shrink-0"
+              className="p-3 bg-[#0D111A] border-t border-white/5 shrink-0"
             >
-              <div className="relative flex-1">
+              <div className="flex items-center gap-2 bg-[#11141D] border border-white/10 focus-within:border-white/25 rounded-xl px-3 py-1.5 transition-all">
                 <input
                   ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about movies, music, reels, culture..."
+                  placeholder="Ask Sawai..."
                   disabled={isLoading}
-                  className="w-full bg-[#151922] text-white placeholder:text-zinc-500 text-xs sm:text-[13px] pl-3.5 pr-3 py-2.5 rounded-xl border border-white/15 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all"
+                  className="flex-1 bg-transparent text-white placeholder:text-zinc-500 text-xs focus:outline-none"
                 />
+                <button
+                  type="submit"
+                  disabled={isLoading || !(input || '').trim()}
+                  className="w-7 h-7 rounded-lg bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+                  aria-label="Send"
+                >
+                  <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                </button>
               </div>
-              <button
-                type="submit"
-                disabled={isLoading || !(input || '').trim()}
-                className="w-10 h-10 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shadow-lg transition-all cursor-pointer shrink-0 active:scale-95 font-semibold"
-                aria-label="Send message"
-              >
-                <ArrowUp className="w-5 h-5 text-zinc-950 stroke-[2.5]" />
-              </button>
             </form>
           </motion.div>
         )}

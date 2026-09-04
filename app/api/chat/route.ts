@@ -4,39 +4,39 @@ import { NextResponse } from 'next/server';
 
 export const maxDuration = 30;
 
-// Knowledge base for fallback responses when LLM cannot be reached
+// Knowledge base for fallback responses when LLM cannot be reached (100% emoji-free)
 const SAWAFLIX_KNOWLEDGE: { keywords: string[]; answer: string }[] = [
   {
     keywords: ['music', 'song', 'songs', 'listen', 'audio', 'makossa', 'bikutsi', 'afrobeats', 'sound'],
-    answer: "🎵 **SawaFlix Music** features an eclectic collection of Cameroonian and African sounds! You can explore Makossa, Bikutsi, Assiko, Hip-hop, and Gospel. Visit the **Music** page (/dashboard/musicpage) via the navigation bar to listen, play tracks using the persistent Bottom Player, and discover new artist releases."
+    answer: "**SawaFlix Music**\n\nExplore our catalog of Cameroonian and African sounds including Makossa, Bikutsi, Assiko, Hip-hop, and Gospel.\n\n- **Where to listen:** Open the Music section (`/dashboard/musicpage`) from your navigation bar.\n- **Audio Player:** Keep listening anywhere across the app with our persistent bottom player."
   },
   {
     keywords: ['reel', 'reels', 'tiktok', 'short', 'shorts', 'vertical', 'feed'],
-    answer: "📱 **SawaFlix Reels** is our interactive, vertical short-form video feed inspired by Cameroonian humor, street culture, dance challenges, and creative sketches. Head to the **Reels** tab (/dashboard/reels) in your navigation bar to scroll, like, share, and enjoy instant clips!"
+    answer: "**SawaFlix Reels**\n\nOur interactive vertical short-video feed features humor, dance, music teasers, and cultural highlights.\n\n- **How to watch:** Go to the Reels tab (`/dashboard/reels`) to scroll through continuous vertical clips.\n- **Interactivity:** Like, comment, share, and follow your favorite creators directly from each reel."
   },
   {
     keywords: ['creator', 'upload', 'monetize', 'post video', 'publish', 'how to become a creator'],
-    answer: "🌟 **Become a Creator on SawaFlix!** Anyone can apply to become a verified SawaFlix creator. Head to your profile or the Creator Dashboard to upload videos, track views, and share your storytelling with our growing global community."
+    answer: "**Creator Program**\n\nSawaFlix offers a dedicated platform for filmmakers, musicians, and storytellers.\n\n- **How to apply:** Visit your profile or Creator Dashboard to apply for verification.\n- **Publishing:** Upload videos and music with custom thumbnails, descriptions, and categories.\n- **Reach:** Connect with an engaged global audience passionate about African cinema and culture."
   },
   {
     keywords: ['offline', 'download', 'pwa', 'install', 'app'],
-    answer: "📲 **Install SawaFlix as a PWA!** SawaFlix works seamlessly as a progressive web app. Click 'Install App' in your browser or banner to install it on your Android, iOS, or desktop. It supports offline video caching, smooth background playback, and instant push notifications."
+    answer: "**Install SawaFlix PWA**\n\nSawaFlix is fully progressive and can be installed on your device without an app store download.\n\n- **Installation:** Tap 'Install App' from your browser banner or menu on Android, iOS, or desktop.\n- **Benefits:** Enjoy offline caching, fast load times, and instant notifications."
   },
   {
     keywords: ['notification', 'push', 'alert', 'subscribe', 'notifications'],
-    answer: "🔔 **Push Notifications:** Stay on top of brand new movies, viral reels, and exclusive tracks by clicking the notification bell icon or tapping 'Enable' on the prompt. You'll get instant alerts directly on your device even when the app is closed!"
+    answer: "**Push Notifications**\n\nStay informed about new film premieres, album drops, and cultural specials.\n\n- **How to enable:** Tap the notification bell icon or choose 'Enable' on the notification prompt.\n- **Device alerts:** Receive updates directly on your lock screen even when the app is closed."
   },
   {
     keywords: ['ngondo', 'culture', 'tradition', 'sawa', 'douala', 'wouri', 'heritage'],
-    answer: "🌊 **The Sawa Culture & Ngondo:** The Sawa peoples represent the coastal communities of Cameroon along the River Wouri and Gulf of Guinea. Ngondo is the sacred traditional water festival held every December in Douala, featuring canoe races, ancestral underwater communion, and vibrant celebrations."
+    answer: "**Sawa Culture and Ngondo Festival**\n\nThe Sawa peoples represent the coastal communities of Cameroon across the River Wouri and Gulf of Guinea.\n\n- **The Ngondo Festival:** Held every December in Douala, featuring traditional canoe races, cultural assemblies, and underwater ancestral rites.\n- **Cultural Content:** SawaFlix curates documentaries and historical media documenting traditions, languages, and culinary heritage."
   },
   {
     keywords: ['contact', 'support', 'help', 'email', 'issue', 'problem'],
-    answer: "🤝 **Need Support?** Our team is here to assist! Reach out through our contact page or email us at `admin@sawaflix.com`. You can also report any video playback or account issues directly from the app."
+    answer: "**Support and Inquiries**\n\nOur team is available to assist you.\n\n- **Email:** Contact us at `admin@sawaflix.com`.\n- **Issues:** Report playback errors or account concerns through the contact section."
   },
   {
     keywords: ['what is sawaflix', 'about', 'who are you', 'tell me about', 'sawaflix'],
-    answer: "🎬 **SawaFlix** is Cameroon's premier digital streaming platform dedicated to celebrating Cameroonian culture, music, movies, short reels, and traditional heritage (like the historic Ngondo festival, Sawa heritage, Makossa, Bikutsi, and modern Afrobeats). You can watch full-length films, discover rising music stars, watch short-form reels, or register as a creator to publish your own content!"
+    answer: "**About SawaFlix**\n\nSawaFlix is Cameroon's streaming platform dedicated to celebrating Cameroonian and African cinema, music, short reels, and traditional cultural heritage.\n\n- **Movies and Series:** Classic and modern Cameroonian films.\n- **Music:** Curated Makossa, Bikutsi, and contemporary tracks.\n- **Reels:** Short-form interactive video entertainment.\n- **Creator Studio:** Publishing tools for artists and storytellers."
   }
 ];
 
@@ -47,25 +47,20 @@ function findFallbackAnswer(query: string): string {
       return item.answer;
     }
   }
-  return "🌟 **Welcome to Sawai!** I'm SawaFlix's AI companion for movies, music, reels, and Cameroonian cultural traditions. You can ask me about:\n- 🎬 **Movies & Series:** How to stream and find trending titles\n- 🎵 **Music & Artists:** Exploring Makossa, Bikutsi, and Afrobeats\n- 📱 **Reels:** Enjoying vertical short-form videos\n- 🚀 **Creator Hub:** Uploading and sharing your content\n- 🔔 **Notifications & PWA:** Installing the app and staying updated";
+  return "**Welcome to Sawai**\n\nI am your digital assistant for SawaFlix. Ask me about:\n\n- **Movies and Series:** Streaming recommendations and catalog navigation\n- **Music and Artists:** Discovering Makossa, Bikutsi, and Afrobeats\n- **Reels:** Browsing short videos\n- **Creator Hub:** Uploading and monetization\n- **App Features:** Installing the PWA and notifications";
 }
 
 const SYSTEM_PROMPT = `
-You are Sawai, the friendly, witty, knowledgeable, and culturally proud AI assistant for SawaFlix (sawaflix.com).
-SawaFlix is the premier African & Cameroonian streaming platform bringing together:
-1. Cameroonian Cinema & Films (from classics to modern blockbusters).
-2. Sawa Heritage & Culture (Ngondo water festival, Douala traditions, Wouri river, folklore, and local cuisine like Achu, Ndolé, Eru, and Koki).
-3. Music Streaming (Makossa, Bikutsi, Assiko, Afrobeats, Gospel, Hip-Hop with legends like Manu Dibango, Eboa Lotin, Charlotte Dipanda, Petit Pays, and new wave artists).
-4. Short-form Reels (TikTok-style dynamic feed featuring comedy, dance, and cultural highlights).
-5. Creator Studio (a platform for African filmmakers, musicians, and storytellers to publish and monetize).
+You are Sawai, the official AI assistant for SawaFlix (sawaflix.com).
+SawaFlix is Cameroon's premier streaming platform for cinema, music, short-form reels, and cultural storytelling.
 
-Formatting & Structure Rules (STRICT):
-- ALWAYS structure your answer with clear, distinct paragraphs separated by double line breaks.
-- Use bold section headers (e.g. "### 🌍 Bridging the Content Gap" or "### 🎬 SawaFlix Movies") to divide topics.
-- When listing items, features, or steps, ALWAYS use markdown bullet points starting on a new line with "- **Title:** Description". Never concatenate bullet points into a single dense wall of text.
-- Never write run-on sentences or clump multiple points together without blank lines.
-- Sprinkle light, authentic Cameroonian expressions warmly when appropriate (e.g. "Mbote", "Welcome to the family", "No wahala!").
-- Guide users on how to navigate the app: Home, Movies, Music (/dashboard/musicpage), Reels (/dashboard/reels), and Creator Studio.
+Strict Behavioral Guidelines:
+- Clean, concise, professional, and helpful tone.
+- CRITICAL: DO NOT use emojis anywhere under any circumstances. Never output emoji symbols, pictograms, or smiles. Keep responses 100% emoji-free.
+- Use clear, distinct paragraphs separated by blank lines.
+- Format lists with markdown bullet points on new lines: "- **Heading:** Details".
+- Avoid long unbroken walls of text. Be direct and easy to read.
+- Guide users accurately to sections: Home, Movies, Music (/dashboard/musicpage), Reels (/dashboard/reels), and Creator Studio.
 `;
 
 export async function POST(req: Request) {
@@ -85,10 +80,9 @@ export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
     if (!apiKey) {
-      console.warn("[SawaBot] GEMINI_API_KEY not found in environment, using SawaFlix knowledge fallback.");
+      console.warn("[Sawai] GEMINI_API_KEY not found in environment, using SawaFlix knowledge fallback.");
       const fallbackText = findFallbackAnswer(latestUserMessage);
       
-      // Stream fallback response formatted for Vercel AI SDK
       const stream = new ReadableStream({
         start(controller) {
           controller.enqueue(new TextEncoder().encode(`0:${JSON.stringify(fallbackText)}\n`));
