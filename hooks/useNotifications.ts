@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Notification, NotificationType } from '@/types/notification';
+import type { Notification, NotificationType } from '@/types/notification';
 import { getStories } from '@/lib/sanity/queries';
 import { urlFor } from '@/lib/sanity/client';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -10,6 +21,33 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newNotification, setNewNotification] = useState<Notification | null>(null);
+
+  // Subscription state: true only if user subscribed in browser or via local opt-in
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const local = localStorage.getItem('sawaflix_subscribed_notifications');
+    const perm = 'Notification' in window ? Notification.permission : 'default';
+    return local === 'true' || perm === 'granted';
+  });
+
+  // Keep subscription status synchronized
+  useEffect(() => {
+    const updateSubStatus = () => {
+      if (typeof window === 'undefined') return;
+      const local = localStorage.getItem('sawaflix_subscribed_notifications');
+      const perm = 'Notification' in window ? Notification.permission : 'default';
+      const sub = local === 'true' || perm === 'granted';
+      setIsSubscribed(sub);
+    };
+
+    updateSubStatus();
+    window.addEventListener('sawaflix_subscription_changed', updateSubStatus);
+    window.addEventListener('storage', updateSubStatus);
+    return () => {
+      window.removeEventListener('sawaflix_subscription_changed', updateSubStatus);
+      window.removeEventListener('storage', updateSubStatus);
+    };
+  }, []);
 
   // Use a stable ref for supabase client to prevent re-renders triggering new subscriptions
   const supabaseRef = useRef(createClient());
@@ -37,6 +75,19 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
+
+      // Users should ONLY see notifications if they subscribed to notifications
+      if (typeof window !== 'undefined') {
+        const local = localStorage.getItem('sawaflix_subscribed_notifications');
+        const perm = 'Notification' in window ? Notification.permission : 'default';
+        if (local !== 'true' && perm !== 'granted') {
+          setNotifications([]);
+          setUnreadCount(0);
+          setLoading(false);
+          return;
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
 
@@ -64,6 +115,12 @@ export function useNotifications() {
           sanityNotifs = recentStories
             .filter((story: any) => {
               const slug = story.slug?.current || story._id;
+              // Check if user has dismissed or clicked this story — take it down!
+              const isDismissed = typeof window !== 'undefined' && (
+                localStorage.getItem(`dismissed_sanity_story_${story._id}`) === 'true' ||
+                localStorage.getItem(`read_sanity_story_${story._id}`) === 'true'
+              );
+              if (isDismissed) return false;
               // Avoid duplicates if already recorded in Supabase notifications
               return !supabaseNotifs.some((sn) => sn.contentId === slug || sn.contentId === story._id);
             })
@@ -86,9 +143,6 @@ export function useNotifications() {
                 }
               }
 
-              const isLocallyRead = typeof window !== 'undefined' 
-                && localStorage.getItem(`read_sanity_story_${story._id}`) === 'true';
-
               return {
                 id: `sanity-story-${story._id}`,
                 userId: user?.id || 'guest',
@@ -102,7 +156,7 @@ export function useNotifications() {
                 contentType: 'story',
                 category: story.category?.title || 'Story',
                 thumbnail: thumbUrl,
-                read: isLocallyRead,
+                read: false,
                 createdAt: story.publishedAt ? new Date(story.publishedAt).getTime() : Date.now(),
               };
             });
@@ -127,7 +181,6 @@ export function useNotifications() {
   }, [supabase]);
 
   const fetchUnreadCount = useCallback(async () => {
-    // Rely on merged notifications state to keep badge perfectly accurate
     fetchNotifications();
   }, [fetchNotifications]);
 
@@ -136,6 +189,7 @@ export function useNotifications() {
       if (id.startsWith('sanity-story-')) {
         const storyId = id.replace('sanity-story-', '');
         if (typeof window !== 'undefined') {
+          localStorage.setItem(`dismissed_sanity_story_${storyId}`, 'true');
           localStorage.setItem(`read_sanity_story_${storyId}`, 'true');
         }
       } else {
@@ -186,11 +240,67 @@ export function useNotifications() {
     }
   };
 
+  const subscribe = async (): Promise<boolean> => {
+    try {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          try {
+            if ('serviceWorker' in navigator) {
+              const readyReg = await navigator.serviceWorker.ready;
+              const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+              if (vapidKey && readyReg.pushManager) {
+                const sub = await readyReg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: urlBase64ToUint8Array(vapidKey)
+                });
+                const { data: { session } } = await supabase.auth.getSession();
+                await fetch('/api/notifications/subscribe', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ subscription: sub, userId: session?.user?.id || 'anonymous' })
+                });
+              }
+            }
+          } catch (pushErr) {
+            console.warn('[useNotifications] Push registration notice:', pushErr);
+          }
+          localStorage.setItem('sawaflix_subscribed_notifications', 'true');
+          setIsSubscribed(true);
+          window.dispatchEvent(new Event('sawaflix_subscription_changed'));
+          await fetchNotifications();
+          return true;
+        }
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sawaflix_subscribed_notifications', 'true');
+        setIsSubscribed(true);
+        window.dispatchEvent(new Event('sawaflix_subscription_changed'));
+        await fetchNotifications();
+      }
+      return true;
+    } catch (e) {
+      console.error('[useNotifications] Subscribe error:', e);
+      return false;
+    }
+  };
+
+  const unsubscribe = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sawaflix_subscribed_notifications');
+    }
+    setIsSubscribed(false);
+    setNotifications([]);
+    setUnreadCount(0);
+    window.dispatchEvent(new Event('sawaflix_subscription_changed'));
+  };
+
   const deleteNotification = async (id: string) => {
     try {
       if (id.startsWith('sanity-story-')) {
         const storyId = id.replace('sanity-story-', '');
         if (typeof window !== 'undefined') {
+          localStorage.setItem(`dismissed_sanity_story_${storyId}`, 'true');
           localStorage.setItem(`read_sanity_story_${storyId}`, 'true');
         }
       } else {
@@ -199,7 +309,9 @@ export function useNotifications() {
           .update({ is_read: true })
           .eq('id', id);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.warn('[useNotifications] Supabase update notice:', deleteError.message);
+        }
       }
 
       const deletedNotification = notifications.find(n => n.id === id);
@@ -312,6 +424,9 @@ export function useNotifications() {
     loading,
     error,
     newNotification,
+    isSubscribed,
+    subscribe,
+    unsubscribe,
     setNewNotification,
     refresh: fetchNotifications,
     markAsRead,

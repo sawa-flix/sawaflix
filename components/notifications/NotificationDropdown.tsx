@@ -7,7 +7,10 @@ export const NotificationDropdown: React.FC = () => {
   const { 
     notifications, 
     unreadCount, 
-    markRead, 
+    isSubscribed,
+    subscribe,
+    unsubscribe,
+    deleteNotification,
     markAllRead,
     handleNotificationClick
   } = useNotifications();
@@ -21,7 +24,7 @@ export const NotificationDropdown: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell size={20} className="group-hover:text-white transition-colors" />
-        {unreadCount > 0 && (
+        {isSubscribed && unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-[#E50914] text-white font-black rounded-full flex items-center justify-center text-[9px] shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-in zoom-in duration-300">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
@@ -60,6 +63,12 @@ export const NotificationDropdown: React.FC = () => {
             }
             setIsOpen(false);
           }}
+          onDismissItem={(id) => {
+            deleteNotification(id);
+          }}
+          isSubscribed={isSubscribed}
+          onSubscribe={subscribe}
+          onUnsubscribe={unsubscribe}
           accentColor="red"
           viewAllHref="/dashboard/notification"
         />

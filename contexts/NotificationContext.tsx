@@ -10,8 +10,13 @@ interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
+  isSubscribed: boolean;
+  subscribe: () => Promise<boolean>;
+  unsubscribe: () => Promise<void>;
   markRead: (id: string) => void;
+  markAsRead: (id: string) => void;
   markAllRead: () => void;
+  markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   refresh: () => void;
   handleNotificationClick: (notification: Notification) => void;
@@ -26,6 +31,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     loading,
     newNotification,
     setNewNotification,
+    isSubscribed,
+    subscribe,
+    unsubscribe,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -35,7 +43,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const handleNotificationClick = (notification: Notification) => {
-    // 1. Immediately mark as read and decrement badge count
+    // 1. Immediately take down from the dropdown list and mark as read
+    deleteNotification(notification.id);
     markAsRead(notification.id);
 
     const contentId = notification.contentId;
@@ -102,8 +111,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         notifications,
         unreadCount,
         loading,
+        isSubscribed,
+        subscribe,
+        unsubscribe,
         markRead: markAsRead,
+        markAsRead,
         markAllRead: markAllAsRead,
+        markAllAsRead,
         deleteNotification,
         refresh,
         handleNotificationClick,

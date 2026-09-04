@@ -40,7 +40,13 @@ interface ReelCardProps {
 export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
   const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
-  const isNative = video.origin === 'sawaflix' || (Boolean(video.videoUrl) && !video.videoUrl.includes('youtube.com') && !video.videoUrl.includes('youtu.be'));
+  const isNative =
+    video.origin === 'sawaflix' ||
+    (Boolean(video.videoUrl) && !video.videoUrl.includes('youtube.com') && !video.videoUrl.includes('youtu.be')) ||
+    (Boolean(video.embedUrl) && !video.embedUrl.includes('youtube.com') && !video.embedUrl.includes('youtu.be')) ||
+    (Boolean(video.id) && video.id.length !== 11);
+
+  const nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `http://localhost:3001/api/admin/upload/stream/${video.id}` : '');
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
@@ -172,7 +178,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         {isNative ? (
           <video
             ref={nativeVideoRef}
-            src={video.videoUrl}
+            src={nativeSrc}
             playsInline
             muted={isMuted}
             preload="auto"

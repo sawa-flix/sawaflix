@@ -214,6 +214,8 @@ export async function getCultureFeedAction(page: number = 1, limit: number = 20)
         channelId: ar.creator_id || 'sawaflix_admin',
         media_url: ar.media_url || ar.video_url,
         video_url: ar.media_url || ar.video_url,
+        videoUrl: ar.media_url || ar.video_url,
+        embedUrl: ar.media_url || ar.video_url,
         origin: 'sawaflix',
         duration: ar.duration || 38,
         statistics: {

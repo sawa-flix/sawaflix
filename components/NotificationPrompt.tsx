@@ -140,6 +140,8 @@ export default function NotificationPrompt({ userId }: { userId?: string }) {
 
       if (permission === 'granted') {
         console.log('✅ Notification permission granted.');
+        localStorage.setItem('sawaflix_subscribed_notifications', 'true');
+        window.dispatchEvent(new Event('sawaflix_subscription_changed'));
         await subscribeToPush();
       }
     } catch (error) {

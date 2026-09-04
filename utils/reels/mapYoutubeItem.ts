@@ -59,7 +59,18 @@ export function extractVideoId(item: RawYoutubeFeedItem): string | undefined {
  * old Reels page — extracted here so both can import the same function
  * instead of maintaining copies that can drift apart.
  */
-export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
+export function mapYoutubeItem(item: any): Video {
+  // If this item is an admin reel or has a native media/video URL
+  if (
+    item.origin === 'sawaflix' ||
+    item.source_type === 'admin_upload' ||
+    (item.media_url && !item.media_url.includes('youtube.com') && !item.media_url.includes('youtu.be')) ||
+    (item.video_url && !item.video_url.includes('youtube.com') && !item.video_url.includes('youtu.be')) ||
+    (item.videoUrl && !item.videoUrl.includes('youtube.com') && !item.videoUrl.includes('youtu.be'))
+  ) {
+    return mapSawaflixItem(item);
+  }
+
   const id = extractVideoId(item) ?? '';
 
   return {
@@ -69,7 +80,7 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
     thumbnail:
       item.snippet?.thumbnails?.high?.url ||
       item.thumbnail ||
-      `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+      (id ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png'),
     channelId: item.snippet?.channelId || item.channelId || '',
     channelTitle:
       item.snippet?.channelTitle ||
@@ -81,12 +92,13 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
       item.publishedAt ||
       item.metadata?.published_at ||
       new Date().toISOString(),
-    videoUrl: `https://www.youtube.com/watch?v=${id}`,
-    embedUrl: `https://www.youtube.com/embed/${id}`,
+    videoUrl: item.videoUrl || item.video_url || (id ? `https://www.youtube.com/watch?v=${id}` : ''),
+    embedUrl: item.embedUrl || item.embed_url || (id ? `https://www.youtube.com/embed/${id}` : ''),
     likeCount: item.statistics?.likeCount || item.likeCount,
     commentCount: item.statistics?.commentCount || item.commentCount,
     viewCount: item.statistics?.viewCount || item.viewCount,
-    origin: 'youtube',
+    origin: item.origin || 'youtube',
+    contentType: item.contentType,
   };
 }
 
@@ -95,23 +107,23 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
  * to the unified Video shape used by the Reels feed and cards.
  */
 export function mapSawaflixItem(item: any): Video {
-  const id = String(item.id || item._id || '');
-  const mediaUrl = item.media_url || item.video_url || item.media_path || '';
-  const thumb = item.thumbnail_url || item.cover_url || item.thumbnail || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
+  const id = String(item.id || item._id || item.videoId || '');
+  const mediaUrl = item.media_url || item.video_url || item.videoUrl || item.media_path || '';
+  const thumb = item.thumbnail_url || item.cover_url || item.thumbnail || (item.snippet?.thumbnails?.high?.url) || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
 
   return {
     id,
-    title: item.title || 'SawaFlix Reel',
-    description: item.description || '',
+    title: item.title || item.snippet?.title || 'SawaFlix Reel',
+    description: item.description || item.snippet?.description || '',
     thumbnail: thumb,
-    channelId: item.creator_id || 'sawaflix_admin',
-    channelTitle: item.author_name || 'SawaFlix Creator',
-    publishedAt: item.created_at || item.createdAt || new Date().toISOString(),
+    channelId: item.creator_id || item.channelId || 'sawaflix_admin',
+    channelTitle: item.author_name || item.channelTitle || item.metadata?.channel_title || 'SawaFlix Creator',
+    publishedAt: item.created_at || item.createdAt || item.publishedAt || new Date().toISOString(),
     videoUrl: mediaUrl,
     embedUrl: mediaUrl,
-    likeCount: item.likes_count ? String(item.likes_count) : '328',
-    commentCount: item.comments_count ? String(item.comments_count) : '42',
-    viewCount: item.views_count ? String(item.views_count) : '1.4K',
+    likeCount: item.likes_count ? String(item.likes_count) : (item.statistics?.likeCount || item.likeCount || '328'),
+    commentCount: item.comments_count ? String(item.comments_count) : (item.statistics?.commentCount || item.commentCount || '42'),
+    viewCount: item.views_count ? String(item.views_count) : (item.statistics?.viewCount || item.viewCount || '1.4K'),
     origin: 'sawaflix',
     contentType: 'reel',
   };

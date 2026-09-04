@@ -86,8 +86,18 @@ const Header = ({
   const adminNotificationContext = useAdminNotifications();
   const userNotificationContext = useNotifications();
   
-  const { notifications, unreadCount, markRead, markAllRead, handleNotificationClick } = hideSearch 
-    ? { ...adminNotificationContext, handleNotificationClick: () => {} } 
+  const { 
+    notifications, 
+    unreadCount, 
+    markRead, 
+    markAllRead, 
+    deleteNotification,
+    handleNotificationClick,
+    isSubscribed,
+    subscribe,
+    unsubscribe
+  } = hideSearch 
+    ? { ...adminNotificationContext, handleNotificationClick: () => {}, isSubscribed: true, subscribe: async () => true, unsubscribe: async () => {}, deleteNotification: () => {} } 
     : userNotificationContext;
 
   const router = useRouter();
@@ -290,7 +300,7 @@ const Header = ({
               aria-label="Notifications"
             >
               <Bell size={18} className="group-hover:scale-110 transition-transform" />
-              {unreadCount > 0 && (
+              {isSubscribed && unreadCount > 0 && (
                 <span className="absolute top-1 right-1 min-w-[14.5px] h-[14.5px] px-0.5 bg-[#E50914] text-white font-black rounded-full flex items-center justify-center text-[8px] shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-in zoom-in duration-300 pointer-events-none">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
@@ -322,6 +332,12 @@ const Header = ({
                   }
                   setShowNotifications(false);
                 }}
+                onDismissItem={(id) => {
+                  deleteNotification(id);
+                }}
+                isSubscribed={isSubscribed}
+                onSubscribe={subscribe}
+                onUnsubscribe={unsubscribe}
                 accentColor={hideSearch ? "red" : "white"}
                 viewAllHref={hideSearch ? undefined : "/dashboard/notification"}
               />
