@@ -9,7 +9,7 @@ import {
   Film,
   Music,
   Tv,
-  Sparkles
+  Video
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -45,7 +45,7 @@ const FEATURED_TOPICS = [
     title: 'Creator Studio',
     description: 'Publishing, verification, and monetization for artists',
     prompt: 'How can African filmmakers and musicians upload, get verified, and monetize on SawaFlix?',
-    icon: Sparkles,
+    icon: Video,
   },
 ];
 
