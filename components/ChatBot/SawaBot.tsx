@@ -5,12 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   ArrowUp, 
-  RotateCcw,
-  Minimize2,
-  ChevronRight
+  RotateCcw, 
+  Minimize2, 
+  Maximize2,
+  ChevronRight,
+  ExternalLink 
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatMessage {
   id: string;
@@ -261,6 +265,14 @@ export default function SawaBot() {
               </div>
 
               <div className="flex items-center gap-1">
+                <Link
+                  href="/dashboard/sawai"
+                  onClick={() => setIsOpen(false)}
+                  title="Open full page Sawai"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </Link>
                 <button
                   onClick={handleClearChat}
                   title="Clear conversation"
@@ -312,18 +324,27 @@ export default function SawaBot() {
                           {m.content}
                         </div>
                       ) : (
-                        <div className="markdown-chat-content prose prose-invert max-w-none text-[13px] leading-relaxed break-words">
+                        <div className="markdown-chat-content prose prose-invert max-w-none text-[13px] leading-relaxed break-words space-y-2.5">
                           <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
                             components={{
-                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                              h1: ({ children }) => <h1 className="text-base font-bold text-white mt-3 mb-1.5 pb-1 border-b border-white/10">{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-sm font-bold text-white mt-2.5 mb-1.5">{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-xs font-bold text-zinc-100 mt-2 mb-1">{children}</h3>,
+                              p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-zinc-200">{children}</p>,
                               strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                              ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 last:mb-0">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 last:mb-0">{children}</ol>,
-                              li: ({ children }) => <li className="text-zinc-300 leading-snug">{children}</li>,
+                              ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 last:mb-0 text-zinc-300">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 last:mb-0 text-zinc-300">{children}</ol>,
+                              li: ({ children }) => <li className="leading-snug">{children}</li>,
                               code: ({ children }) => (
                                 <code className="bg-white/10 text-amber-300 px-1.5 py-0.5 rounded text-[12px] font-mono">
                                   {children}
                                 </code>
+                              ),
+                              blockquote: ({ children }) => (
+                                <blockquote className="border-l-2 border-white/20 pl-3 italic text-zinc-400 my-1.5">
+                                  {children}
+                                </blockquote>
                               ),
                               a: ({ href, children }) => (
                                 <a
@@ -337,7 +358,8 @@ export default function SawaBot() {
                               ),
                             }}
                           >
-                            {m.content}
+                            {/* Preprocess inline asterisks like ':* ' into newline bullets so LLM text renders with distinct points */}
+                            {m.content.replace(/:\*\s+/g, ':\n\n* ')}
                           </ReactMarkdown>
                         </div>
                       )}
