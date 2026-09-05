@@ -7,12 +7,6 @@ export const maxDuration = 30;
 // High-density knowledge bank for accurate retrieval and zero-token waste
 const KNOWLEDGE_TOPICS: { keywords: string[]; title: string; answer: string; contextSummary: string }[] = [
   {
-    keywords: ['steal', 'reupload', 're-upload', 'youtube', 'tiktok', 'copyright', 'embed', 'rights', 'views', 'credit'],
-    title: 'Content Discovery & Direct Embedding Policy',
-    answer: "**Content Discovery and Embedding Policy**\n\nSawaFlix does not re-upload or steal content from creators.\n\n- **Direct Embeds:** All videos are embedded directly from the creator's official YouTube or TikTok channels.\n- **Creator Credit:** When users watch, like, or comment on SawaFlix, views and engagement metrics count directly on the creator's official channel.\n- **Purpose:** SawaFlix operates as a curated discovery engine to give African filmmakers and storytellers visibility without disconnecting them from their primary monetization platforms.",
-    contextSummary: "SawaFlix embeds videos directly from creators' official YouTube/TikTok channels. Views, likes, and watch time count directly for the creator. No re-uploading or content theft occurs."
-  },
-  {
     keywords: ['seed', 'seed inc', 'parent', 'incubator', 'zigex', 'wakajob', 'ecosystem', 'innovatewithseed'],
     title: 'SEED Inc. Parent Incubator and Ecosystem',
     answer: "**SEED Inc. and the Innovation Ecosystem**\n\nSawaFlix was founded under **SEED Inc.** (Skill Enhancement and Empowerment Through Digitalization - `innovatewithseed.com`).\n\nSEED Inc. trains African software engineers and incubates transformative technology across core sectors:\n\n- **SawaFlix:** Cultural preservation and digital entertainment.\n- **Zigex:** Modern education and EdTech solutions.\n- **WakaJob:** Employment, talent, and workforce ecosystem.\n- **Other Tracks:** Artificial intelligence, fintech, IoT, and agritech.",
@@ -76,7 +70,7 @@ function findFallbackAnswer(query: string): string {
       return item.answer;
     }
   }
-  return "**Welcome to Sawai**\n\nI am your digital intelligence engine for SawaFlix. You can ask me about:\n\n- **Culture & Heritage:** Our mission to preserve Cameroonian storytelling.\n- **Content Policy:** How our YouTube/TikTok embedding supports creators.\n- **SEED Inc. Ecosystem:** Our parent incubator and sister platforms (Zigex, WakaJob).\n- **Creator Program:** How to verify and feature your channel.\n- **Careers:** How to join our engineering and creative team.\n- **Entertainment:** Movies, music, live TV, and vertical reels.";
+  return "**Welcome to Sawai**\n\nI am your digital intelligence engine for SawaFlix. You can ask me about:\n\n- **Culture & Heritage:** Our mission to preserve Cameroonian storytelling.\n- **SEED Inc. Ecosystem:** Our parent incubator and sister platforms (Zigex, WakaJob).\n- **Creator Program:** How to verify and feature your channel.\n- **Careers:** How to join our engineering and creative team.\n- **Entertainment:** Movies, music, live TV, and vertical reels.";
 }
 
 // Ultra-dense, token-optimized system prompt (Zero emojis, high information density)
@@ -91,11 +85,8 @@ Core Identity & Knowledge:
    - Built and maintained by Cameroonian engineers and AI researchers trained by SEED Inc.
    - Careers: Apply via careers@innovatewithseed.com or innovatewithseed.com/careers. Open tracks: Frontend, Backend, AI/RecSys, and Creator Relations.
 
-2. Content Discovery Engine & Zero-Theft Policy:
-   - SawaFlix does NOT re-upload or steal content from YouTube or TikTok.
-   - All videos are embedded directly from official creator channels.
-   - Views, watch time, and engagement credit go directly to the creator's official account.
-   - Creators can apply to be indexed via the Creator Portal (sawaflix.com/creator/verify) or creators@sawaflix.com.
+2. Creator Program & Verification:
+   - Creators can apply to feature their content via the Creator Portal (sawaflix.com/creator/verify) or creators@sawaflix.com.
 
 3. Cultural Mission & Heritage:
    - Counters cultural erosion caused by foreign recommendation algorithms.
