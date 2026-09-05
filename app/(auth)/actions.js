@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
 export async function signInWithPassword(formData) {
+  let targetPath = '/dashboard';
   try {
     const email = formData.get('email');
     const password = formData.get('password');
@@ -13,62 +14,78 @@ export async function signInWithPassword(formData) {
       return { error: 'Email and password are required' };
     }
 
-    const supabase = await createClient();
+    const isDev = process.env.NODE_ENV === 'development';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
+    const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.toString().trim(),
-      password: password.toString(),
+    console.log(`🟡 Logging in via backend: ${email} at ${cleanBackendUrl}`);
+
+    const res = await fetch(`${cleanBackendUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.toString().trim(),
+        password: password.toString()
+      }),
     });
 
-    if (error) {
-      console.error('🔴 Sign in error:', error.message);
-
-      // User-friendly error messages
-      let userMessage = error.message;
-      if (error.message.includes('Invalid login credentials')) {
-        userMessage = 'Invalid email or password. Please try again.';
-      } else if (error.message.includes('Email not confirmed')) {
-        userMessage = 'Please confirm your email address before logging in.';
-      } else if (error.message.includes('rate limit') || error.message.includes('too many requests')) {
-        userMessage = 'Too many attempts. Please try again in a few minutes.';
-      } else if (error.message.includes('User not found')) {
-        userMessage = 'No account found with this email address.';
-      }
-
-      return { error: userMessage };
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      console.error('🔴 Backend returned non-JSON response. Status:', res.status);
+      return { error: 'Could not reach the authentication service. Please try again later.' };
     }
 
-    if (!data.user) {
-      return { error: 'Authentication failed. Please try again.' };
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error('🔴 Backend login error:', result);
+      return { error: result.error || result.message || 'Invalid email or password. Please try again.' };
     }
 
-    console.log('🟢 Login successful for user:', data.user.email);
+    const { session, role, isAuthorize } = result;
 
-    // Revalidate the dashboard path
+    if (!session?.access_token || !session?.refresh_token) {
+      return { error: 'Authentication failed. No session returned.' };
+    }
+
+    const supabase = await createClient();
+
+    // Set the session in Supabase client
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+
+    if (sessionError) {
+      console.error('🔴 Supabase setSession error:', sessionError.message);
+      return { error: 'Failed to establish session. Please try again.' };
+    }
+
+    console.log('🟢 Login successful, role:', role, 'isAuthorize:', isAuthorize);
+
+    // Revalidate relevant paths
     revalidatePath('/dashboard');
+    if (role === 'admin') revalidatePath('/admin');
 
-    // Return success - let the client handle the redirect
+    // Determine redirect path
+    let redirectTo = role === 'admin' ? '/admin' : '/dashboard';
+
+    // If not authorized, redirect to waiting list
+    if (isAuthorize === false) {
+      redirectTo = '/waiting-list';
+    }
+
     return {
       success: true,
       message: 'Login successful',
-      user: data.user,
-      access_token: data.session?.access_token,
-      refresh_token: data.session?.refresh_token,
-      redirectTo: '/dashboard'
+      role: role,
+      isAuthorize: isAuthorize,
+      redirectTo: redirectTo
     };
 
   } catch (error) {
     console.error('🔴 Unexpected sign in error:', error);
-
-    // Handle NEXT_REDIRECT errors gracefully
-    if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-      return {
-        success: true,
-        message: 'Login successful (redirecting)',
-        redirectTo: '/dashboard'
-      };
-    }
-
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -147,47 +164,48 @@ export async function resetPassword(formData) {
       return { error: 'Email is required' };
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.toString().trim())) {
       return { error: 'Please enter a valid email address.' };
     }
 
-    const supabase = await createClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // Smart environment routing: Use localhost:5000 in dev, fallback to Render in prod
+    const isDev = process.env.NODE_ENV === 'development';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
+    const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
-    console.log('🟡 Sending password reset email to:', email);
-    console.log('🟡 Site URL:', origin);
+    console.log(`🟡 Sending password reset via backend to: ${email} at ${cleanBackendUrl}`);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.toString().trim(), {
-      redirectTo: `${origin}/auth/callback`,
+    const res = await fetch(`${cleanBackendUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.toString().trim() }),
     });
 
-    if (error) {
-      console.error("🔴 Password reset error:", error.message);
-
-      // User-friendly error messages
-      let userMessage = error.message;
-      if (error.message.includes('rate limit')) {
-        userMessage = 'Too many attempts. Please try again in a few minutes.';
-      } else if (error.message.includes('not found')) {
-        userMessage = 'No account found with this email address.';
-      } else if (error.message.includes('email')) {
-        userMessage = 'Please enter a valid email address.';
-      }
-
-      return { error: userMessage };
+    // Guard: Backend might return an HTML error page (e.g., 404 if not deployed, or 502)
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      console.error('🔴 Backend returned non-JSON response. Status:', res.status);
+      return { error: 'Could not reach the email service. Please ensure the backend is running and updated.' };
     }
 
-    console.log('✅ Password reset email sent successfully');
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('🔴 Backend forgot-password error:', data);
+      return { error: data.error || 'Failed to send reset email. Please try again.' };
+    }
+
+    console.log('✅ Password reset email sent via backend');
     return {
       success: true,
-      message: 'Check your email for the password reset link. It may take a minute to arrive.'
+      message: 'Check your email for the Sawaflix password reset link. It may take a minute to arrive.',
     };
 
   } catch (error) {
     console.error('🔴 Unexpected reset password error:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
+    return { error: 'An unexpected connection error occurred. Please try again.' };
   }
 }
 
@@ -256,7 +274,7 @@ export async function updatePasswordDirectly(formData) {
     return {
       success: true,
       message: 'Password updated successfully! You can now log in with your new password.',
-      redirectTo: '/login?message=password_updated_success'
+      redirectTo: '/dashboard?message=password_updated_success'
     };
 
   } catch (error) {
@@ -323,13 +341,12 @@ export async function handleSignOut() {
 
   if (error) {
     console.error('🔴 Sign out error:', error.message);
-    return redirect('/login?error=signout_failed');
+    return redirect('/dashboard?error=signout_failed');
   }
 
   // Revalidate all paths
   revalidatePath('/');
   revalidatePath('/dashboard');
-  revalidatePath('/login');
 
   console.log('✅ User signed out successfully');
   return redirect('/');
@@ -364,11 +381,21 @@ export async function checkAuth() {
       console.error('🔴 Check auth error:', error.message);
       return { authenticated: false, error: error.message };
     }
+    let role = 'client';
+    if (session?.user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      role = userData?.role || 'client';
+    }
 
     return {
       authenticated: !!session,
       session,
-      user: session?.user
+      user: session?.user,
+      role: role
     };
 
   } catch (error) {

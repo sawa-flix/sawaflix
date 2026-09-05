@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { BACKEND_URL } from '@/lib/apiConfig';
+import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
 import PendingState from '@/components/Dashboard/PendingState';
-import { Loader2 } from 'lucide-react';
+import BrandLoader from '@/components/BrandLoader';
+import { createClient } from '@/utils/supabase/client';
 
 export default function CreatorPendingPage() {
     const [profile, setProfile] = useState(null);
@@ -12,9 +15,12 @@ export default function CreatorPendingPage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const visitorId = localStorage.getItem('sawaflix_visitor_id');
-                const res = await fetch('/api/creator/profile', {
-                    headers: visitorId ? { 'x-visitor-id': visitorId } : {}
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+
+                const res = await fetch(`${BACKEND_URL}/api/creator/profile`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 if (!res.ok) throw new Error('Failed to fetch profile');
                 const data = await res.json();
@@ -32,30 +38,36 @@ export default function CreatorPendingPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#0B0E14]">
-                <Loader2 className="w-10 h-10 text-red-600 animate-spin" />
-            </div>
+            <DashboardWrapper>
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <BrandLoader label="Loading profile" className="min-h-0" />
+                </div>
+            </DashboardWrapper>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-2xl text-center max-w-md mx-auto my-12">
-                <h3 className="text-red-500 font-black text-xl mb-2">Connection Issue</h3>
-                <p className="text-gray-400 mb-6 font-medium">{error}</p>
-                <button 
-                    onClick={() => window.location.reload()}
-                    className="px-8 py-2.5 bg-red-600 text-white rounded-full font-bold text-sm hover:bg-red-700 transition-all"
-                >
-                    Retry Connection
-                </button>
-            </div>
+            <DashboardWrapper>
+                <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-2xl text-center max-w-md mx-auto my-12">
+                    <h3 className="text-red-500 font-black text-xl mb-2">Connection Issue</h3>
+                    <p className="text-gray-400 mb-6 font-medium">{error}</p>
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="px-8 py-2.5 bg-red-600 text-white rounded-full font-bold text-sm hover:bg-red-700 transition-all"
+                    >
+                        Retry Connection
+                    </button>
+                </div>
+            </DashboardWrapper>
         );
     }
 
     return (
-        <main className="min-h-screen bg-[#0B0E14]">
-            <PendingState userProfile={profile} />
-        </main>
+        <DashboardWrapper>
+            <div className="min-h-[80vh]">
+                <PendingState userProfile={profile} />
+            </div>
+        </DashboardWrapper>
     );
 }

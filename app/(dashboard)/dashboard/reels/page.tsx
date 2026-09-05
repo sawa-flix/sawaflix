@@ -1,40 +1,61 @@
-// app/reels/page.tsx
-import { createClient } from '../../../../utils/supabase/server';
-import ReelsFeed from '../../../../components/reelsFeed';
+import { getCultureFeedAction } from '@/app/actions/youtube';
+import type { Video } from '@/types/youtube';
+import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
+import { ReelsFeed } from '@/components/reels/ReelsFeed';
 
-export default async function ReelsPage() {
-  const supabase = await createClient();
-  
+interface ReelsPageProps {
+  searchParams?: { id?: string };
+}
+
+/**
+ * Server Component: fetches the first page of the same YouTube culture feed
+ * SawaFlix.jsx's default dashboard feed uses (getCultureFeedAction), so the
+ * first reel renders with no client-side round trip. Pagination beyond page
+ * 1 is owned by useReels inside ReelsFeed.
+ */
+export default async function ReelsPage({ searchParams }: ReelsPageProps) {
+  const { id: initialVideoId } = searchParams ?? {};
+
+  let videos: Video[] = [];
+  let hasMore = false;
+
   try {
-    // Fetch videos with only necessary columns and proper ordering
-    // Added 'created_at' to the select - make sure this column exists in your movies table
-    const { data: videos, error } = await supabase
-      .from('movies')
-      .select('id,title,description,release_date,producer_id,producer_name,is_featured,featured_actors,video_url,file_path,file_size,mime_type,uploaded_by,created_at')
-      .order('created_at', { ascending: false })
-      .limit(50); // Add limit for better performance
-
-    if (error) {
-      throw new Error(`Error loading videos: ${error.message}`);
-    }
-
-    // Transform the data to include producer info
-    const transformedVideos = videos?.map(video => ({
-      ...video,
-      producers: video.producer_name ? { name: video.producer_name } : null
-    })) || [];
-
-    return <ReelsFeed videos={transformedVideos} />;
-
+    const response = await getCultureFeedAction(1, 20);
+    const feedList: RawYoutubeFeedItem[] = response?.feed || [];
+    videos = feedList.filter((item) => !!extractVideoId(item)).map(mapYoutubeItem);
+    hasMore = !!response?.pagination?.next_page;
   } catch (error) {
-    console.error('Error fetching videos:', error);
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <p className="text-red-500">Error loading videos: {(error as Error).message}</p>
-          <p className="text-gray-400 mt-2">Please check your database schema</p>
-        </div>
-      </div>
-    );
+    console.error('[ReelsPage] Failed to fetch initial feed:', error);
   }
+
+  return (
+    // On phones this is genuinely fullscreen (h-dvh): DashboardWrapper gives
+    // Reels zero header offset and zero padding below md, since Header
+    // itself renders transparent there (floating back/search/mute over the
+    // video, no reserved bar). dvh (not vh) accounts for mobile browser
+    // chrome so this doesn't over/under-shoot the real visible viewport.
+    //
+    // At md+ it's sized to the dashboard's own content area instead: the
+    // shared <main> is h-[calc(100vh-4rem)] (header), and DashboardWrapper
+    // gives this route pb-4 instead of every other page's pb-40 (that 10rem
+    // is trailing scroll space for flowing content — a fixed-height video
+    // panel doesn't need it). 2rem top + 1rem bottom padding remains, so
+    // 100vh - 7rem is what's actually available there.
+    <div className="h-dvh md:h-[calc(100vh-7rem)] min-h-[500px] w-full">
+      {/* Keyed on the target id: navigating here again with a different
+          ?id= (e.g. clicking another reel in the right sidebar while
+          already on this page) is a same-route search-param change, which
+          React does NOT remount for by default — it would just hand new
+          props to the existing ReelsFeed instance, whose handoff-consuming
+          seed state (a useState lazy initializer) only ever runs once per
+          mount. Keying forces a clean remount per target reel, so the
+          handoff and initial-video seeding actually re-run each time. */}
+      <ReelsFeed
+        key={initialVideoId ?? 'feed'}
+        initialVideos={videos}
+        initialHasMore={hasMore}
+        initialVideoId={initialVideoId}
+      />
+    </div>
+  );
 }

@@ -1,17 +1,29 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signUpWithPassword } from '@/app/(auth)/actions';
+import Link from "next/link";
+import Image from "next/image";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signUpWithPassword } from "@/app/(auth)/actions";
+import { createClient } from "@/utils/supabase/client";
+import BrandLoader from "@/components/BrandLoader";
 
 // import { Suspense } from 'react';
-const AuthButton = ({ children, isLoading, variant = 'primary', className = '', ...props }) => {
-  const baseStyles = "w-full flex items-center justify-center font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:transform-none disabled:cursor-not-allowed shadow-lg";
+const AuthButton = ({
+  children,
+  isLoading,
+  variant = "primary",
+  className = "",
+  ...props
+}) => {
+  const baseStyles =
+    "w-full flex items-center justify-center font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:transform-none disabled:cursor-not-allowed shadow-lg";
 
   const variants = {
-    primary: "bg-red-700 hover:bg-red-600 disabled:bg-red-900 text-white hover:shadow-red-500/70 hover:scale-[1.02]",
+    primary:
+      "bg-[#CE1126] hover:bg-red-700 disabled:bg-red-800 text-white hover:shadow-red-500/30 hover:scale-[1.02]",
+    google:
+      "bg-gray-900 border border-gray-700 text-white hover:bg-gray-800 hover:shadow-red-500/30",
   };
 
   return (
@@ -21,9 +33,25 @@ const AuthButton = ({ children, isLoading, variant = 'primary', className = '', 
       {...props}
     >
       {isLoading ? (
-        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <svg
+          className="animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
         </svg>
       ) : (
         children
@@ -36,13 +64,47 @@ function SignUpContent() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get('role');
+  const role = searchParams.get("role");
+
+  const handleGoogleSignUp = async () => {
+    setError(null);
+    setSuccessMessage(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const supabase = createClient();
+      // Always use the exact origin the user is currently on to prevent PKCE cookie domain mismatches.
+      const redirectBase = window.location.origin;
+
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${redirectBase}/auth/callback`,
+          scopes:
+            "openid email profile https://www.googleapis.com/auth/youtube.force-ssl",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (oauthError) {
+        setError("Unable to continue with Google right now. Please try again.");
+        setIsGoogleLoading(false);
+      }
+    } catch (err) {
+      setError("Unable to continue with Google right now. Please try again.");
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -53,25 +115,25 @@ function SignUpContent() {
 
     const formElement = e.currentTarget;
     const formData = new FormData(formElement);
-    const password = formData.get('password');
-    const confirmPassword = formData.get('confirmPassword');
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
 
     if (password && password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError("Password must be at least 6 characters long.");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       setLoading(false);
       return;
     }
 
-    const category = role === 'creator' ? 'creator' : 'client';
-    formData.set('category', category);
+    const category = role === "creator" ? "creator" : "client";
+    formData.set("category", category);
 
-    formData.delete('confirmPassword');
+    formData.delete("confirmPassword");
 
     try {
       const result = await signUpWithPassword(formData);
@@ -82,21 +144,33 @@ function SignUpContent() {
       } else if (result?.success) {
         if (result.requiresEmailConfirmation) {
           setRequiresConfirmation(true);
-          setSuccessMessage(result.message || 'Please check your email to confirm your account.');
+          setSuccessMessage(
+            result.message ||
+              "Please check your email to confirm your account.",
+          );
         } else {
-          setSuccessMessage('Sign up successful! Redirecting...');
+          setSuccessMessage("Sign up successful! Redirecting...");
           setTimeout(() => {
-            if (category === 'creator') {
-              router.push('/creator/verify');
+            if (category === "creator") {
+              router.push("/creator/verify");
             } else {
-              router.push('/dashboard');
+              router.push("/dashboard");
             }
           }, 1500);
         }
       }
     } catch (err) {
-      console.error('Sign up error:', err);
-      setError('Sign up failed. Please try again.');
+      // Next.js redirect() throws a NEXT_REDIRECT error internally — re-throw it so the
+      // browser follows the redirect instead of showing a false "Sign up failed" error.
+      if (
+        err instanceof Error &&
+        (err.message === "NEXT_REDIRECT" ||
+          err.message?.includes("NEXT_REDIRECT"))
+      ) {
+        throw err;
+      }
+      console.error("Sign up error:", err);
+      setError("Sign up failed. Please try again.");
       setLoading(false);
     }
   };
@@ -117,33 +191,60 @@ function SignUpContent() {
       <div className="relative z-20 flex items-center justify-center h-screen px-4 py-4">
         <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl shadow-red-500/50">
           <div className="relative z-10 bg-black/40 backdrop-blur-md rounded-3xl p-6 sm:p-8 w-full border border-gray-800">
-
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-4">
-              {role === 'creator' ? 'Creator Sign Up' : 'Sign Up'}
+              Sign Up
             </h1>
 
             {/* Status Messages */}
             <div className="space-y-4 mb-4">
               {successMessage && (
-                <div className={`p-4 rounded-xl border flex flex-col items-center gap-2 text-center animate-fadeIn ${requiresConfirmation
-                  ? 'bg-blue-900/40 border-blue-700 text-blue-200'
-                  : 'bg-green-900/40 border-green-700 text-green-200'
-                  }`}>
+                <div
+                  className={`p-4 rounded-xl border flex flex-col items-center gap-2 text-center animate-fadeIn ${
+                    requiresConfirmation
+                      ? "bg-blue-900/40 border-blue-700 text-blue-200"
+                      : "bg-green-900/40 border-green-700 text-green-200"
+                  }`}
+                >
                   <div className="flex items-center gap-2">
                     {requiresConfirmation ? (
-                      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <svg
+                        className="w-6 h-6 text-blue-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
                       </svg>
                     ) : (
-                      <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-6 h-6 text-green-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     )}
-                    <p className="font-bold">{requiresConfirmation ? 'Check Your Email' : 'Success!'}</p>
+                    <p className="font-bold">
+                      {requiresConfirmation ? "Check Your Email" : "Success!"}
+                    </p>
                   </div>
                   <p className="text-sm opacity-90">{successMessage}</p>
                   {requiresConfirmation && (
-                    <p className="text-xs mt-2 text-blue-300 italic">This message cannot be dismissed until you confirm your email.</p>
+                    <p className="text-xs mt-2 text-blue-300 italic">
+                      This message cannot be dismissed until you confirm your
+                      email.
+                    </p>
                   )}
                 </div>
               )}
@@ -166,7 +267,7 @@ function SignUpContent() {
                     placeholder="Username"
                     autoComplete="username"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
                   {/* Email Input */}
@@ -177,7 +278,7 @@ function SignUpContent() {
                     placeholder="Email address"
                     autoComplete="email"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
                   {/* Password Input */}
@@ -190,7 +291,7 @@ function SignUpContent() {
                       placeholder="Password"
                       autoComplete="new-password"
                       className="w-full pl-5 pr-12 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                      disabled={loading}
+                      disabled={loading || isGoogleLoading}
                     />
                     <button
                       type="button"
@@ -199,13 +300,38 @@ function SignUpContent() {
                       tabIndex="-1"
                     >
                       {showPassword ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                          />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
                         </svg>
                       )}
                     </button>
@@ -221,22 +347,49 @@ function SignUpContent() {
                       placeholder="Confirm Password"
                       autoComplete="new-password"
                       className="w-full pl-5 pr-12 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                      disabled={loading}
+                      disabled={loading || isGoogleLoading}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition-colors"
                       tabIndex="-1"
                     >
                       {showConfirmPassword ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                          />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
                         </svg>
                       )}
                     </button>
@@ -249,35 +402,60 @@ function SignUpContent() {
                     placeholder="Phone number (optional)"
                     autoComplete="tel"
                     className="w-full px-5 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all duration-300 shadow-inner shadow-gray-950"
-                    disabled={loading}
+                    disabled={loading || isGoogleLoading}
                   />
 
-                  <AuthButton type="submit" isLoading={loading}>
-                    {role === 'creator' ? 'Create Creator Account' : 'Create Account'}
+                  <AuthButton
+                    type="submit"
+                    isLoading={loading || isGoogleLoading}
+                  >
+                    Create Account
                   </AuthButton>
                 </form>
 
+                <div className="my-4 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-gray-700" />
+                  <span className="text-xs uppercase tracking-wider text-gray-500">
+                    or
+                  </span>
+                  <div className="h-px flex-1 bg-gray-700" />
+                </div>
+
+                <AuthButton
+                  type="button"
+                  variant="google"
+                  isLoading={isGoogleLoading}
+                  onClick={handleGoogleSignUp}
+                  disabled={loading || isGoogleLoading}
+                >
+                  Continue with Google
+                </AuthButton>
+
                 <div className="text-gray-400 text-center mt-6 text-sm sm:text-base space-y-2">
                   <p>
-                    {role === 'creator' ? (
-                      <>Are you a viewer? <Link href="/sign-up" className="text-red-500 hover:underline">Sign up as Client</Link></>
-                    ) : (
-                      <>Want to become a creator? <Link href="/sign-up?role=creator" className="text-red-500 hover:underline">Creator</Link></>
-                    )}
-                  </p>
-                  <p>
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-red-500 hover:underline font-medium">Sign In</Link>
+                    Already have an account?{" "}
+                    <Link
+                      href="/dashboard"
+                      className="text-red-500 hover:underline font-medium"
+                    >
+                      Sign In
+                    </Link>
                   </p>
                 </div>
               </>
             )}
 
             <div className="mt-8 text-xs text-gray-600 text-center leading-relaxed">
-              This page is protected by Google reCAPTCHA to ensure you're not a bot.{' '}
+              This page is protected by Google reCAPTCHA to ensure you're not a
+              bot.{" "}
               <button
                 className="text-blue-400 hover:text-blue-300 transition-colors hover:underline"
-                onClick={() => window.open('https://www.google.com/recaptcha/about/', '_blank')}
+                onClick={() =>
+                  window.open(
+                    "https://www.google.com/recaptcha/about/",
+                    "_blank",
+                  )
+                }
               >
                 Learn more
               </button>
@@ -287,13 +465,36 @@ function SignUpContent() {
       </div>
 
       <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        .font-inter { font-family: 'Inter', sans-serif; }
-        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-        @keyframes rotate-gradient { to { --angle: 360deg; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-spin-border-gradient { animation: rotate-gradient 8s linear infinite; }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
+        .font-inter {
+          font-family: "Inter", sans-serif;
+        }
+        @property --angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes rotate-gradient {
+          to {
+            --angle: 360deg;
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-spin-border-gradient {
+          animation: rotate-gradient 8s linear infinite;
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
         input:-webkit-autofill {
           -webkit-box-shadow: 0 0 0 1000px #111827 inset !important;
           -webkit-text-fill-color: white !important;
@@ -305,7 +506,11 @@ function SignUpContent() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center text-white">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-full items-center justify-center bg-black"><BrandLoader /></div>
+      }
+    >
       <SignUpContent />
     </Suspense>
   );

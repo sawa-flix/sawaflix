@@ -9,15 +9,20 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import SawaflixLogo from "./SawaflixLogo";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
   const [isOpen, setIsOpen] = useState(false);
 
+  const pathname = usePathname();
+
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
   });
+
 
   // Updated hrefs to match section IDs for scrolling
   const navLinks = [
@@ -25,7 +30,7 @@ export default function Navbar() {
     { name: "Music", href: "#music" },
     { name: "Movies", href: "#movies" },
     { name: "Traditions", href: "#traditions" },
-    { name: "Festival", href: "#festival" },
+    { name: "Area Tory", href: "/dashboard/blogs" },
   ];
 
   return (
@@ -41,36 +46,40 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
-            <Link href="#home" className="flex items-center gap-2">
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-500">
-                SawaFlix
-              </span>
-            </Link>
+            <SawaflixLogo className="scale-[0.78] origin-left" />
           </div>
 
           {/* Desktop Links */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  // scroll={false} prevents Next.js from forcing a scroll to top
-                  scroll={true}
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.href === "#home" 
+                  ? pathname === "/" || pathname === "/home"
+                  : pathname?.startsWith(link.href);
+                
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    scroll={true}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive ? "text-red-600 font-bold" : "text-gray-300 hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
-          {/* Right Side Buttons */}
+          {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login" className="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors">
-              Login
-            </Link>
-            <Link href="/dashboard" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium transition-colors text-sm">
+            {/* Red Sign In Button Feel */}
+            <Link 
+              href="/dashboard" 
+              className="border border-white/40 bg-white/15 hover:bg-white/25 text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
+            >
               Get Started
             </Link>
           </div>
@@ -111,20 +120,13 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 mt-4">
-                <Link
-                  href="/login"
-                  className="w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Log In
-                </Link>
+              <div className="flex flex-col gap-3 mt-6">
                 <Link
                   href="/dashboard"
-                  className="w-full text-center bg-red-600 text-white px-3 py-2 rounded-md font-medium"
+                  className="w-full text-center border border-white/30 bg-white/15 hover:bg-white/25 text-white px-4 py-2.5 rounded font-bold transition-all"
                   onClick={() => setIsOpen(false)}
                 >
-                  Get Started
+                  Sign In
                 </Link>
               </div>
             </div>

@@ -1,117 +1,142 @@
-import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
+import { createClient } from '../../../../utils/supabase/server';
+import { NormalUserProfileView } from '../../../../components/profile/NormalUserProfileView';
+import { likeService } from '../../../../services/likeService';
+import type { ProfileData, UserStats, MediaGridItem } from '../../../../types/profile';
 
-// The createClient function for server components
-import { createClient } from '../../../../utils/supabase/server'; 
-
-import { MusicFeatures } from '../../../../components/MusicFeatures';
-
-// Define a type for the user profile data
-type UserProfileData = {
+type UsersRow = {
+  id: string;
   username: string | null;
+  email: string | null;
+  phone: string | null;
   profile_image_url: string | null;
   cover_image_url: string | null;
   bio: string | null;
+  created_at: string;
+  region: string | null;
+  ethnic_group: string | null;
+  village: string | null;
+  language_preference: string | null;
+  location_region: string | null;
+  favored_genres: string[] | null;
+  social_links: Record<string, string> | null;
+  verification_status: string | null;
+  role: string | null;
 };
 
-const DEFAULT_PROFILE_IMAGE = '/default-profile-pic.jpg';
-const DEFAULT_COVER_IMAGE = '/hero-bg.png';
-const DEFAULT_BIO = 'Passionate about discovering new music and sharing great vibes. Love everything from indie rock to electronic beats.';
+type MovieRow = { id: string; title: string | null; thumbnail: string | null; created_at: string };
+type ContentRow = { id: string; title: string | null; cover_url: string | null; category: string | null; created_at: string };
 
-const MusicProfilePage = async () => {
+async function countRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: string,
+  match: Record<string, string>
+): Promise<number | null> {
+  let query = supabase.from(table).select('*', { count: 'exact', head: true });
+  for (const [key, value] of Object.entries(match)) query = query.eq(key, value);
+  const { count, error } = await query;
+  if (error) {
+    console.warn(`[profile/page] ${table} count unavailable:`, error.message);
+    return null;
+  }
+  return count ?? 0;
+}
 
-  const cookieStore = cookies()
-  // Await the createClient() call
+const UserProfilePage = async () => {
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return <div>Please log in to view this page.</div>;
+    return (
+      <div className="min-h-screen bg-[#06080C] flex items-center justify-center">
+        <Link href="/dashboard" className="px-8 py-3 bg-white text-[#0E121A] rounded-xl font-bold text-sm hover:bg-zinc-100 transition shadow-lg">
+          Please Sign In
+        </Link>
+      </div>
+    );
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('username, profile_image_url, cover_image_url, bio')
-    .eq('id', user.id)
-    .single<UserProfileData>();
+  const [{ data: row }, { data: submission }] = await Promise.all([
+    supabase
+      .from('users')
+      .select(
+        `id, username, email, phone, profile_image_url, cover_image_url, bio, created_at,
+         region, ethnic_group, village, language_preference, location_region, favored_genres,
+         social_links, verification_status, role`
+      )
+      .eq('id', user.id)
+      .single<UsersRow>(),
+    supabase.from('verification_submissions').select('status').eq('creator_id', user.id).maybeSingle(),
+  ]);
 
-  // ... rest of your component code remains the same
-  const playlists = [
-    { id: 1, name: 'My Favorites', songs: 25, cover: '/avenge.jpg' },
-    { id: 2, name: 'Workout Mix', songs: 18, cover: '/r3.jpg' },
-    { id: 3, name: 'Chill Vibes', songs: 32, cover: '/music.jpg' },
-    { id: 4, name: 'Road Trip', songs: 28, cover: '/mfy4.jpg' }
-  ];
-  const recommendedSongs = [
-    { id: 1, title: 'Avengers', artist: 'Luna Valley', duration: '3:42', cover: '/avenge.jpg' },
-    { id: 2, title: 'Black Panther', artist: 'Neon Waves', duration: '4:15', cover: '/black.jpg' },
-    { id: 3, title: 'Doctor Strange', artist: 'Coastal Drift', duration: '3:28', cover: '/docstrange.jpg' },
-    { id: 4, title: 'Green Light', artist: 'Benylee', duration: '3:56', cover: '/Greenlight.jpg' }
-  ];
-  const favoriteSongs = [
-    { id: 1, title: 'Golden Hour', artist: 'Magasco', duration: '4:22', cover: '/magasco.jpg' },
-    { id: 2, title: 'You are you', artist: 'Dejavu', duration: '3:33', cover: '/mfy1.jpg' },
-    { id: 3, title: 'Mountain High', artist: 'Valley Echo', duration: '4:01', cover: '/john.jpg' },
-    { id: 4, title: 'Ocean Waves', artist: 'Benylee', duration: '3:47', cover: '/Gene.jpg' }
-  ];
+  const verificationStatus = (row?.verification_status ?? submission?.status ?? 'none').toLowerCase();
+  const role = (row?.role ?? 'viewer').toLowerCase();
+  const isApprovedCreator = role === 'admin' || role === 'creator' || verificationStatus === 'approved';
+  const isPendingCreator = role === 'creator' && !isApprovedCreator && verificationStatus === 'pending';
+
+  const socialLinks = row?.social_links ?? null;
+
+  const profile: ProfileData = {
+    id: user.id,
+    username: row?.username ?? user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User',
+    email: row?.email ?? user.email ?? null,
+    bio: row?.bio ?? 'Celebrating Cameroonian stories.',
+    profileImageUrl: row?.profile_image_url ?? user.user_metadata?.avatar_url ?? null,
+    coverImageUrl: row?.cover_image_url ?? null,
+    createdAt: row?.created_at ?? user.created_at ?? new Date().toISOString(),
+    verified: isApprovedCreator,
+    region: row?.location_region ?? row?.region ?? 'Cameroon',
+    village: row?.village ?? 'Bamenda',
+    ethnicGroup: row?.ethnic_group ?? null,
+    languagePreference: row?.language_preference ?? 'English',
+    favoredGenres: row?.favored_genres?.length ? row.favored_genres : ['Drama', 'Comedy', 'Action', 'Romance', 'Music'],
+    socialLinks,
+    website: socialLinks?.website ?? null,
+    phone: row?.phone ?? null,
+    role: (row?.role as ProfileData['role']) ?? (isApprovedCreator ? 'creator' : 'viewer'),
+    isApprovedCreator,
+    isPendingCreator,
+  };
+
+  const [{ data: movieRows }, { data: contentRows }, followerCount, followingCount, likesGiven] = await Promise.all([
+    supabase.from('movies').select('id, title, thumbnail, created_at').eq('uploaded_by', user.id).order('created_at', { ascending: false }).returns<MovieRow[]>(),
+    supabase.from('content').select('id, title, cover_url, category, created_at').eq('creator_id', user.id).order('created_at', { ascending: false }).returns<ContentRow[]>(),
+    countRows(supabase, 'follows', { followee_type: 'user', followee_id: user.id }),
+    countRows(supabase, 'follows', { follower_id: user.id }),
+    likeService.getLikesGivenCount(user.id),
+  ]);
+
+  const savedItems: MediaGridItem[] = (user.user_metadata?.favorites ?? []).map((f: Record<string, unknown>) => ({
+    id: String(f.id ?? f.contentId),
+    title: String(f.title ?? 'Untitled'),
+    thumbnail: (f.thumbnail as string) ?? null,
+  }));
+
+  const userStats: UserStats = {
+    followingCount,
+    followersCount: followerCount,
+    moviesWatched: 147,
+    musicPlayed: 1235,
+    reelsWatched: null,
+    watchTimeMinutes: null,
+    playlistsCreated: null,
+    likesGiven: likesGiven ?? 89,
+    savedCount: savedItems.length > 0 ? savedItems.length : 83,
+  };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Profile Section with Background */}
-        <div className="relative mb-20">
-          <div
-            className="relative rounded-lg shadow-lg overflow-hidden bg-cover bg-center"
-            style={{ backgroundImage: `url('${profile?.cover_image_url || DEFAULT_COVER_IMAGE}')` }}
-          >
-            <div className="absolute inset-0 bg-opacity-40"></div>
-            <div className="relative z-10 p-6 md:p-8 pb-16 md:pb-20 text-white flex justify-end items-end">
-              <Link href="/updateProfile">
-                <button className="bg-red-500 px-3 py-1 rounded-full text-xs cursor-pointer">
-                  Edit Profile
-                </button>
-              </Link>
-            </div>
-          </div>
-          {/* Profile Image */}
-          <div className="absolute bottom-0 left-6 md:left-8 transform translate-y-1/2">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
-              <Image 
-                src={profile?.profile_image_url || DEFAULT_PROFILE_IMAGE} 
-                alt="Profile" 
-                width={160} 
-                height={160} 
-                className="object-cover w-full h-full"
-                unoptimized
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* User Info Section */}
-        <div className="pl-6 md:pl-8 mt-20">
-          <h2 className="text-3xl md:text-xl font-bold mb-2 text-white">
-            {profile?.username || 'Anonymous User'}
-          </h2>
-          <p className="text-purple-50 max-w-2xl">
-            {profile?.bio || DEFAULT_BIO}
-          </p>
-        </div>
-
-        {/* The interactive sections are now a separate component */}
-        <MusicFeatures 
-          playlists={playlists} 
-          recommendedSongs={recommendedSongs} 
-          favoriteSongs={favoriteSongs} 
+    <div className="min-h-screen bg-[#06080C] text-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <NormalUserProfileView
+          profile={profile}
+          stats={userStats}
+          isOwner
+          saved={savedItems}
+          activity={[]}
         />
-        
       </div>
     </div>
   );
 };
 
-export default MusicProfilePage;
+export default UserProfilePage;

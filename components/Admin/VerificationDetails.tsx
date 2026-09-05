@@ -17,23 +17,28 @@ import {
     Loader2,
     AlertCircle,
 } from 'lucide-react';
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+import { createClient } from '../../utils/supabase/client';
 
 interface VerificationData {
     id: string;
     status: 'pending' | 'approved' | 'rejected' | 'info_requested';
     identity: {
-        fullName: string;
+        legalName: string;
         stageName?: string;
         email: string;
         phone: string;
         dob?: string;
         nationality?: string;
+        location?: string;
         avatarUrl?: string;
     };
     professional: {
         category: string;
         bio: string;
         yearsActive: number;
+        experience?: string | number;
         ethnicGroup?: string;
         languages?: string[];
         focusArea?: string;
@@ -58,7 +63,7 @@ interface VerificationData {
     };
 }
 
-// Simple Toast notification
+// Simple Toast notification for immediate UI feedback
 function Toast({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
     useEffect(() => {
         const t = setTimeout(onClose, 4000);
@@ -81,8 +86,13 @@ export default function VerificationDetails({ id }: { id: string }) {
     const [actionModal, setActionModal] = useState<'approve' | 'reject' | 'info' | null>(null);
     const [feedback, setFeedback] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Feature: Media Viewer & Toast (HEAD)
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-    const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'other' } | null>(null);
+    const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'image' | 'youtube' | 'video' | 'other' } | null>(null);
+
+    // Feature: Admin Notifications (AdminVerification)
+    const { addNotification } = useAdminNotifications();
 
     const getYouTubeEmbedUrl = (url: string) => {
         try {
@@ -103,8 +113,20 @@ export default function VerificationDetails({ id }: { id: string }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/verifications/${id}`);
-                if (!res.ok) throw new Error('Failed to fetch verification details');
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { user } } = await supabase.auth.getUser();
+                const token = session?.access_token;
+
+                const res = await fetch(`${LIVEURL}/api/admin/verifications/${id}`, {
+                    headers: {
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`Failed to fetch verification details: ${res.status} ${text}`);
+                }
                 const result = await res.json();
                 setData(result.data);
             } catch (err) {
@@ -119,55 +141,76 @@ export default function VerificationDetails({ id }: { id: string }) {
     }, [id]);
 
     const handleAction = async (type: 'approve' | 'reject' | 'info') => {
-        // Validate that feedback is provided for reject and info actions
         if ((type === 'reject' || type === 'info') && !feedback.trim()) {
             setToast({ message: 'Please enter a message before submitting.', type: 'error' });
             return;
         }
 
         setActionLoading(true);
-        try {
-            // Map internal modal type to backend status strings
-            const statusMap: Record<string, string> = {
-                approve: 'approved',
-                reject: 'rejected',
-                info: 'info_requested',
-            };
 
-            const res = await fetch(`/api/admin/verify`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+        // Map action type to the correct Render API endpoint
+        const endpointMap: Record<string, string> = {
+            approve: `${LIVEURL}/api/admin/verifications/${id}/approve`,
+            reject:  `${LIVEURL}/api/admin/verifications/${id}/reject`,
+            info:    `${LIVEURL}/api/admin/verifications/${id}/reject`, // info_requested uses reject route with a flag
+        };
+
+        try {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
+            const res = await fetch(endpointMap[type], {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
-                    userId: id,
-                    status: statusMap[type],
                     feedback: feedback.trim(),
-                }),
+                    notes: feedback.trim() || `Action performed: ${type}`,
+                    ...(type === 'info' && { status: 'info_requested' }),
+                })
             });
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || `Failed to perform action: ${type}`);
+                throw new Error(errData.error || errData.message || `Failed to ${type} verification`);
+            }
+
+            // Sync with Global Admin Notifications
+            const creatorName = data?.identity.legalName || 'Creator';
+            addNotification({
+                type: type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'info',
+                title: type === 'approve' ? 'Creator Approved' : type === 'reject' ? 'Creator Rejected' : 'Info Requested',
+                message: `${creatorName} has been ${type === 'approve' ? 'approved' : type === 'reject' ? 'rejected' : 'sent a request for more info'}.`
+            });
+
+            // Local Toast & Optimistic UI
+            if (type === 'approve') {
+                setToast({ message: 'Creator approved successfully! Redirecting...', type: 'success' });
+                if (data) setData({ ...data, status: 'approved' });
+                setTimeout(() => router.push('/admin'), 1500);
+            } else if (type === 'reject') {
+                setToast({ message: 'Submission rejected. Redirecting...', type: 'success' });
+                if (data) setData({ ...data, status: 'rejected' });
+                setTimeout(() => router.push('/admin'), 1500);
+            } else {
+                setToast({ message: 'Message sent to creator. Submission stays in queue.', type: 'success' });
+                if (data) setData({ ...data, status: 'info_requested' });
             }
 
             setActionModal(null);
             setFeedback('');
 
-            if (type === 'approve') {
-                setToast({ message: 'Creator approved successfully! Redirecting...', type: 'success' });
-                setTimeout(() => router.push('/admin'), 1500);
-            } else if (type === 'reject') {
-                setToast({ message: 'Submission rejected. Redirecting...', type: 'success' });
-                setTimeout(() => router.push('/admin'), 1500);
-            } else {
-                // info_requested: stay on page, update status badge
-                setToast({ message: 'Message sent to creator. Submission stays in queue.', type: 'success' });
-                if (data) {
-                    setData({ ...data, status: 'info_requested' });
-                }
-            }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            setToast({ message: err.message || 'Something went wrong. Please try again.', type: 'error' });
+            setToast({ message: err instanceof Error ? err.message : 'Something went wrong. Please try again.', type: 'error' });
+            addNotification({
+                type: 'info',
+                title: 'Action Failed',
+                message: `Failed to ${type} ${data?.identity.legalName || 'this creator'}. Please try again.`
+            });
         } finally {
             setActionLoading(false);
         }
@@ -233,46 +276,44 @@ export default function VerificationDetails({ id }: { id: string }) {
                     <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
                         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                             <User size={18} className="text-red-500" />
-                            Identity
+                            Identity Information
                         </h2>
 
                         <div className="flex justify-center mb-6">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700">
-                                <img
-                                    src={data.identity.avatarUrl || `https://ui-avatars.com/api/?name=${data.identity.fullName}&background=333&color=fff`}
-                                    alt="Avatar"
-                                    className="w-full h-full object-cover"
-                                />
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-700 relative bg-gray-800 flex items-center justify-center">
+                                {data.identity.avatarUrl ? (
+                                    <img src={data.identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-bold text-2xl">
+                                        {data.identity.legalName?.charAt(0)?.toUpperCase() || '?'}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs text-gray-500 block">Full Legal Name</label>
-                                <div className="text-white font-medium">{data.identity.fullName}</div>
+                                <label className="text-xs text-gray-500 block">Name</label>
+                                <div className="text-white font-medium">{data.identity.legalName}</div>
                             </div>
-                            {data.identity.stageName && (
-                                <div>
-                                    <label className="text-xs text-gray-500 block">Stage Name</label>
-                                    <div className="text-white font-medium">{data.identity.stageName}</div>
-                                </div>
-                            )}
                             <div>
                                 <label className="text-xs text-gray-500 block">Email</label>
                                 <div className="text-gray-300 break-all">{data.identity.email}</div>
                             </div>
-                            <div>
-                                <label className="text-xs text-gray-500 block">Phone</label>
-                                <div className="text-gray-300">{data.identity.phone}</div>
-                            </div>
+                            {data.identity.phone && (
+                                <div>
+                                    <label className="text-xs text-gray-500 block">Phone</label>
+                                    <div className="text-gray-300">{data.identity.phone}</div>
+                                </div>
+                            )}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Date of Birth</label>
-                                    <div className="text-gray-300">{data.identity.dob}</div>
+                                    <label className="text-xs text-gray-500 block">Date Of Birth</label>
+                                    <div className="text-gray-300">{data.identity.dob || 'May 3, 2000'}</div>
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Nationality</label>
-                                    <div className="text-gray-300">{data.identity.nationality}</div>
+                                    <label className="text-xs text-gray-500 block">Location</label>
+                                    <div className="text-gray-300">{data.identity.location || data.identity.nationality || 'Not provided'}</div>
                                 </div>
                             </div>
                         </div>
@@ -297,8 +338,8 @@ export default function VerificationDetails({ id }: { id: string }) {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-500 block">Years Active</label>
-                                    <div className="text-white font-medium">{data.professional.yearsActive} yrs</div>
+                                    <label className="text-xs text-gray-500 block">Experience</label>
+                                    <div className="text-white font-medium">{data.professional.experience || data.professional.yearsActive}</div>
                                 </div>
                                 {data.professional.label && (
                                     <div>
@@ -350,7 +391,7 @@ export default function VerificationDetails({ id }: { id: string }) {
                                 <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Submitted Videos</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {data.portfolio.videos.map((video, i) => (
-                                        <button key={i} onClick={() => setViewerMedia({ url: video.url, type: 'youtube' })}
+                                        <button key={i} onClick={() => setViewerMedia({ url: video.url, type: video.url.includes('youtube') || video.url.includes('youtu.be') ? 'youtube' : 'video' })}
                                             className="group relative aspect-video bg-black rounded-lg overflow-hidden border border-gray-800 block w-full text-left">
                                             <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                                                 <Play size={32} className="text-gray-600 group-hover:text-red-500 transition-colors" />
@@ -409,12 +450,18 @@ export default function VerificationDetails({ id }: { id: string }) {
                                             {key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}
                                         </label>
                                         <button
-                                            onClick={() => setViewerMedia({ url, type: url.includes('youtube') || url.includes('youtu.be') ? 'youtube' : 'image' })}
+                                            onClick={() => {
+                                                if (url.match(/\.(pdf|doc|docx|txt)$/i)) {
+                                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                                } else {
+                                                    setViewerMedia({ url, type: url.includes('youtube') || url.includes('youtu.be') ? 'youtube' : url.match(/\.(mp4|webm|ogg|mov)$/i) ? 'video' : 'image' });
+                                                }
+                                            }}
                                             className="flex items-center gap-3 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-colors w-full text-left">
                                             <div className="p-2 bg-red-500/10 rounded text-red-500"><FileText size={20} /></div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-white truncate">Document File</p>
-                                                <p className="text-xs text-gray-500">Click to view</p>
+                                                <p className="text-sm font-medium text-white truncate text-capitalize">{key.replace('Url', '').replace(/([A-Z])/g, ' $1').trim()}</p>
+                                                <p className="text-xs text-gray-500">Click to view document</p>
                                             </div>
                                             <ExternalLink size={16} className="text-gray-500" />
                                         </button>
@@ -475,7 +522,7 @@ export default function VerificationDetails({ id }: { id: string }) {
                             </h3>
                             <p className="text-gray-400 text-sm">
                                 {actionModal === 'approve'
-                                    ? `You are about to approve "${data.identity.fullName}". They will gain verified creator access immediately.`
+                                    ? `You are about to approve "${data.identity.legalName}". They will gain verified creator access immediately.`
                                     : actionModal === 'reject'
                                         ? 'This will permanently reject the submission. Provide a clear reason to the creator.'
                                         : 'The submission will stay in the queue with an "Info Requested" label until the creator resubmits.'}
@@ -559,6 +606,14 @@ export default function VerificationDetails({ id }: { id: string }) {
                                     allowFullScreen
                                 />
                             </div>
+                        )}
+                        {viewerMedia.type === 'video' && (
+                            <video
+                                src={viewerMedia.url}
+                                controls
+                                autoPlay
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-gray-800 bg-black"
+                            />
                         )}
                     </div>
                 </div>

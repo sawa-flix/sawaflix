@@ -3,7 +3,8 @@
 :root {
   --background: #0B0E14;
   --foreground: #F8FAFC;
-  --primary: #E50914; /* Netflix-like Red / Design Accent */
+  --primary: #E50914;
+  /* Netflix-like Red / Design Accent */
   --secondary: #1E293B;
   --accent: #E50914;
   --card-bg: #151C25;
@@ -34,6 +35,17 @@ body {
   background: #475569;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
 /* Utilities */
 .text-gradient {
   background-clip: text;
@@ -52,6 +64,30 @@ body {
   display: none;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+/* Custom NProgress styling for TopLoader to place it right under the nav */
+#nprogress .bar {
+  top: 64px !important;
+  height: 3px !important;
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.8) !important;
 }

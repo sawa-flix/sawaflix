@@ -40,7 +40,7 @@ const FeaturedCard = ({ featured }) => (
 
         {/* CTA Button */}
         <Link href={featured.link}>
-          <button className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full transition-all shadow-xl shadow-red-600/50 group-hover:scale-105 w-fit">
+          <button className="flex items-center gap-2.5 px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-red-600/50 group-hover:scale-105 w-fit uppercase text-xs tracking-widest">
             <Play className="w-4 h-4 fill-white" />
             Watch Now
           </button>
@@ -56,7 +56,7 @@ export default function FeaturedSection() {
     description: 'Explore the hottest trending content from around the world',
     views: '2.3M',
     likes: '156K',
-    link: '/dashboard/musicPage'
+    link: '/dashboard/musicpage'
   };
 
   return (

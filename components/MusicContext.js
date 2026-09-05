@@ -1,5 +1,12 @@
-'use client';
-import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+"use client";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 
 const MusicContext = createContext();
 
@@ -16,6 +23,7 @@ export const MusicProvider = ({ children }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
+  const [isVideoMode, setIsVideoMode] = useState(false);
 
   // Reference to the ReactPlayer instance (set by BottomPlayer)
   const playerRef = useRef(null);
@@ -24,7 +32,7 @@ export const MusicProvider = ({ children }) => {
     if (newPlaylist.length > 0) {
       setPlaylist(newPlaylist);
       // Using loose comparison for ID in case of string/number mismatch
-      const index = newPlaylist.findIndex(t => t.id == track.id);
+      const index = newPlaylist.findIndex((t) => t.id == track.id);
       setCurrentIndex(index !== -1 ? index : 0);
     }
     setCurrentTrack(track);
@@ -32,11 +40,11 @@ export const MusicProvider = ({ children }) => {
   }, []);
 
   const togglePlay = useCallback(() => {
-    setIsPlaying(prev => !prev);
+    setIsPlaying((prev) => !prev);
   }, []);
 
   const toggleMute = useCallback(() => {
-    setMuted(prev => !prev);
+    setMuted((prev) => !prev);
   }, []);
 
   const playNext = useCallback(() => {
@@ -58,9 +66,14 @@ export const MusicProvider = ({ children }) => {
   // Seeks to a specific time (in seconds)
   const seekTo = useCallback((amount) => {
     if (playerRef.current) {
-      playerRef.current.seekTo(amount, 'seconds');
+      playerRef.current.seekTo(amount, "seconds");
       setCurrentTime(amount);
     }
+  }, []);
+
+  const closePlayer = useCallback(() => {
+    setCurrentTrack(null);
+    setIsPlaying(false);
   }, []);
 
   const value = {
@@ -80,12 +93,15 @@ export const MusicProvider = ({ children }) => {
     playTrack,
     togglePlay,
     playNext,
-    playPrev
+    playPrev,
+    isVideoMode,
+    setIsVideoMode,
+    closePlayer,
+    currentIndex,
+    setIsPlaying,
   };
 
   return (
-    <MusicContext.Provider value={value}>
-      {children}
-    </MusicContext.Provider>
+    <MusicContext.Provider value={value}>{children}</MusicContext.Provider>
   );
 };

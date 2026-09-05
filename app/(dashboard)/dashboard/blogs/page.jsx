@@ -1,211 +1,68 @@
 "use client";
-import { useState } from "react";
-import Image from "next/image";
-import { Heart, MessageCircle, Eye, X } from "lucide-react";
 
-export default function BlogsPage() {
-  const blogs = [
-    {
-      id: 1,
-      type: "movie",
-      title: "Humans",
-      author: "daisy la belle",
-      thumbnail: "/movie.jpg",
-      profilePic: "/wed-image 1.jpg",
-      preview:
-        "This is the preview of the blog text, only first few lines shown...",
-      fullText:
-        "This is the full blog text for Wednesday. You can write and expand the whole story here. Add as much detail as needed about the blog...",
-      likes: 120,
-      comments: 34,
-      views: 540,
-      date: "Aug 25, 2025",
-    },
-    {
-      id: 2,
-      type: "music",
-      title: "Let me go",
-      author: "Tiliazelle",
-      thumbnail: "/music.jpg",
-      profilePic: "/pic1.jpeg",
-      preview:
-        "This is the preview of the blog text, only first few lines shown...",
-      fullText:
-        "This is the full blog text for 'Let me go'. Here you can display the entire article or review written by the user...",
-      likes: 95,
-      comments: 20,
-      views: 320,
-      date: "Aug 24, 2025",
-    },
-    {
-      id: 3,
-      type: "movie",
-      title: "Black Panther",
-      author: "favour the great",
-      thumbnail: "/black.jpg",
-      profilePic: "/music2.jpg",
-      preview:
-        "This is the preview of the blog text, only first few lines shown...",
-      fullText:
-        "This is the full blog text for Black Panther. Write about the storyline, actors, themes, or music here...",
-      likes: 90,
-      comments: 10,
-      views: 550,
-      date: "Aug 30, 2025",
-    },
-  ];
+import AreaToryHero from "@/components/AreaTory/AreaToryHero";
+import StoryGrid from "@/components/AreaTory/StoryGrid";
+import { Bell, MessageSquare, Send, Plus } from "lucide-react";
 
-  // State for favorite icons
-  const [favorites, setFavorites] = useState({});
-  // State for modal popup
-  const [selectedBlog, setSelectedBlog] = useState(null);
-
-  const toggleFavorite = (id) => {
-    setFavorites((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
+export default function AreaToryDashboardPage() {
   return (
-    <main className="min-h-screen bg-[#0a0f29] text-white px-6 py-12">
-      {/* Header */}
-      <div className="mb-8 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold">Blogs</h1>
-        <p className="text-gray-400">Share your thoughts on movies & music</p>
-        <div className="h-[1px] bg-gray-700 mt-2" />
+    <div className="space-y-12 pb-20">
+      {/* Integrated Area Tory Hero - Scaled for Dashboard */}
+      <div className="rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+        <AreaToryHero />
       </div>
 
-      {/* Blog List */}
-      <div className="space-y-6 max-w-3xl mx-auto">
-        {blogs.map((blog) => (
-          <div
-            key={blog.id}
-            className="bg-[#101936] rounded-2xl p-6 shadow-md"
-          >
-            {/* Top Row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Image
-                  src={blog.thumbnail}
-                  alt={blog.title}
-                  width={60}
-                  height={60}
-                  className="rounded-lg object-cover"
-                />
-                <div>
-                  <h2 className="text-lg font-semibold">{blog.title}</h2>
-                  <p className="text-gray-400 text-sm">by {blog.author}</p>
-                </div>
-              </div>
-              <Image
-                src={blog.profilePic}
-                alt={blog.author}
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
-            </div>
-
-            {/* Preview */}
-            <p className="mt-4 text-gray-300">{blog.preview}</p>
-
-            {/* Meta Info */}
-            <div className="flex items-center gap-6 text-sm text-gray-400 mt-4">
-              {/* Like Toggle */}
-              <button
-                onClick={() => toggleFavorite(blog.id)}
-                className="flex items-center gap-1"
-              >
-                <Heart
-                  size={18}
-                  className={
-                    favorites[blog.id] ? "text-red-500 fill-red-500" : ""
-                  }
-                />
-                {blog.likes}
-              </button>
-
-              <span className="flex items-center gap-1">
-                <MessageCircle size={16} /> {blog.comments}
-              </span>
-              <span className="flex items-center gap-1">
-                <Eye size={16} /> {blog.views}
-              </span>
-              <span>{blog.date}</span>
-            </div>
-
-            {/* View All Button */}
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => setSelectedBlog(blog)}
-                className="px-4 py-2 rounded-full cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm transition"
-              >
-                View All
-              </button>
-            </div>
+      {/* Live Updates Section - Dashboard Themed */}
+      {/* <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+             <div className="w-14 h-14 bg-red-600/10 rounded-2xl flex items-center justify-center border border-red-600/20">
+                <Bell className="w-6 h-6 text-red-600" />
+             </div>
+             <div>
+                <h4 className="text-white font-bold text-lg tracking-tight">Live updates</h4>
+                <p className="text-gray-500 text-xs font-medium">Community announcements and real-time news.</p>
+             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Write Blog Button */}
-      <div className="flex justify-center mt-10">
-        <button className="px-6 py-3 rounded-full bg-red-600 cursor-pointer hover:bg-red-500 text-white font-medium transition">
-          + Write Blog
-        </button>
-      </div>
+          <div className="flex-1 w-full max-w-xl">
+             <div className="bg-black/40 border border-white/5 p-4 rounded-xl flex items-center gap-4">
+                <div className="flex-shrink-0 w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                <p className="text-gray-300 text-xs font-medium">
+                  <span className="text-white font-bold">New update:</span> The "Area Tory" community hub is now officially live in the dashboard!
+                </p>
+             </div>
+          </div>
 
-      {/* Modal Popup */}
-      {selectedBlog && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-[#101936] max-w-lg w-full p-6 rounded-2xl relative shadow-lg">
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedBlog(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X size={20} />
-            </button>
-
-            {/* Blog details */}
-            <div className="flex items-center gap-4 mb-4">
-              <Image
-                src={selectedBlog.thumbnail}
-                alt={selectedBlog.title}
-                width={60}
-                height={60}
-                className="rounded-lg object-cover"
-              />
-              <div>
-                <h2 className="text-xl font-bold">{selectedBlog.title}</h2>
-                <p className="text-sm text-gray-400">by {selectedBlog.author}</p>
-              </div>
-            </div>
-
-            <p className="text-gray-300">{selectedBlog.fullText}</p>
-
-            {/* Stats inside modal */}
-            <div className="flex items-center gap-6 text-sm text-gray-400 mt-4">
-              <span className="flex items-center gap-1">
-                <Heart
-                  size={16}
-                  className={
-                    favorites[selectedBlog.id] ? "text-red-500 fill-red-500" : ""
-                  }
-                />
-                {selectedBlog.likes}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle size={16} /> {selectedBlog.comments}
-              </span>
-              <span className="flex items-center gap-1">
-                <Eye size={16} /> {selectedBlog.views}
-              </span>
-              <span>{selectedBlog.date}</span>
-            </div>
+          <div className="flex items-center gap-3">
+             <button className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all duration-300 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer">
+                <Plus className="w-4 h-4" />
+                Write story
+             </button>
           </div>
         </div>
-      )}
-    </main>
+      </section> */}
+
+      {/* Integrated Story Grid */}
+      <div className="rounded-3xl overflow-hidden">
+        <StoryGrid />
+      </div>
+
+      {/* Creator Engagement Section */}
+      {/* <section className="relative rounded-3xl overflow-hidden py-12 px-8 text-center bg-gradient-to-br from-red-900/10 to-black border border-white/5 group">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 blur-[100px] rounded-full transition-opacity group-hover:opacity-100 opacity-60" />
+         <div className="relative z-10 max-w-xl mx-auto">
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-4 tracking-tighter">
+               Become a <span className="text-red-600">storyteller.</span>
+            </h2>
+            <p className="text-gray-400 text-sm font-medium mb-6">
+               Have a cultural insight or a cinematic story to share? Join our growing community of African creators.
+            </p>
+            <button className="px-8 py-3 bg-white text-black rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white hover:shadow-2xl hover:shadow-red-600/20 hover:-translate-y-1 cursor-pointer">
+               Apply to creator program
+            </button>
+         </div>
+      </section> */}
+    </div>
   );
 }

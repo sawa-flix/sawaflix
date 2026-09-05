@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BACKEND_URL } from '@/lib/apiConfig';
 
 export default function CameroonReelsPage() {
   const [videos, setVideos] = useState([]);
 
   useEffect(() => {
     async function loadVideos() {
-      const res = await fetch("/api/youtube/cameroon");
+      const res = await fetch(`${BACKEND_URL}/api/videos/external?q=cameroon`);
       const data = await res.json();
 
       // Filter only valid video items

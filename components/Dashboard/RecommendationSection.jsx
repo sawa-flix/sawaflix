@@ -3,12 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import FavoriteButton from '../common/FavoriteButton';
 
 const RecommendationCard = ({ rec, index }) => (
   <div className="group relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-red-500/10">
     {/* Image Placeholder */}
     <div className={`h-40 bg-gradient-to-br ${rec.gradient} relative overflow-hidden`}>
       <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white transition-opacity duration-300" />
+      <FavoriteButton 
+        content={rec} 
+        className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity" 
+      />
     </div>
 
     {/* Content */}
@@ -26,7 +31,7 @@ const RecommendationCard = ({ rec, index }) => (
       <p className="text-gray-400 text-xs line-clamp-2">{rec.description}</p>
 
       <Link href={rec.link}>
-        <button className="w-full py-2 bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2 uppercase tracking-wider">
+        <button className="w-full py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-600/20 font-black text-[10px] rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-[0.2em]">
           Explore
           <ArrowRight className="w-3 h-3" />
         </button>
@@ -44,7 +49,7 @@ export default function RecommendationSection() {
         title: 'Afrobeats Collection',
         description: 'Latest hits from African artists',
         type: 'Music',
-        link: '/dashboard/musicPage',
+        link: '/dashboard/musicpage',
         gradient: 'from-purple-600 to-pink-600'
       },
       {
@@ -65,7 +70,7 @@ export default function RecommendationSection() {
         title: 'Cultural Vibes',
         description: 'Celebrating traditions',
         type: 'Music',
-        link: '/dashboard/musicPage',
+        link: '/dashboard/musicpage',
         gradient: 'from-green-600 to-emerald-600'
       },
     ];

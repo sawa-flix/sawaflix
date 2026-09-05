@@ -12,23 +12,29 @@ import {
     Loader2,
     CheckSquare
 } from 'lucide-react';
+import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
+
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+import { createClient } from '../../utils/supabase/client';
 
 interface VerificationItem {
-  id: string;
-  full_name: string;
-  category: string;
-  status: "pending" | "approved" | "rejected" | "info_requested";
-  submitted_at: string;
-  avatar_url?: string;
+    id: string;
+    slug: string;
+    legal_name: string;
+    stage_name: string;
+    category: string;
+    status: "pending" | "approved" | "rejected" | "info_requested";
+    submitted_at: string;
+    avatar_url?: string;
 }
 
 const CATEGORIES = [
-  "All",
-  "Traditional Storyteller",
-  "Food & Lifestyle",
-  "Actor/Filmmaker",
-  "Comedian",
-  "Music Artist",
+    "All",
+    "Traditional Storyteller",
+    "Food & Lifestyle",
+    "Actor/Filmmaker",
+    "Comedian",
+    "Music Artist",
 ];
 
 export default function VerificationQueue() {
@@ -39,33 +45,59 @@ export default function VerificationQueue() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [bulkLoading, setBulkLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                // Attempt to fetch real data
-                const res = await fetch('/api/admin/verifications');
-                if (res.ok) {
-                    const data = await res.json();
-                    setItems(data.data || []);
-                } else {
-                    // If endpoint doesn't exist or errors, we treat it as empty for now
-                    setItems([]);
-                }
-            } catch (error) {
-                console.error("Failed to fetch verifications:", error);
-                setItems([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { addNotification } = useAdminNotifications();
 
+    const fetchData = async (isBackground = false) => {
+        if (!isBackground) setLoading(true);
+        try {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+            
+            const res = await fetch(`${LIVEURL}/api/admin/verifications`, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const fetchedItems = data.data || [];
+
+                // If it's a background fetch and we have more items now, notify!
+                if (isBackground && fetchedItems.length > items.length) {
+                    const diff = fetchedItems.length - items.length;
+                    addNotification({
+                        type: 'new_submission',
+                        title: 'New Verification Requests',
+                        message: `${diff} new creator${diff > 1 ? 's have' : ' has'} applied for verification.`
+                    });
+                }
+
+                setItems(fetchedItems);
+            }
+        } catch (error) {
+            console.error("Failed to fetch verifications:", error);
+        } finally {
+            if (!isBackground) setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
-    }, []);
+
+        // Auto-poll for new submissions every 30 seconds
+        const pollInterval = setInterval(() => {
+            fetchData(true);
+        }, 30000);
+
+        return () => clearInterval(pollInterval);
+    }, [items.length]); // Re-run effect only if items length changes to keep closure fresh
 
     const filteredItems = items.filter(item => {
         const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
-        const matchesSearch = item.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+        const nameToSearch = item.stage_name || item.legal_name || '';
+        const matchesSearch = nameToSearch.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -93,20 +125,34 @@ export default function VerificationQueue() {
     const handleBulkApprove = async () => {
         if (selectedIds.size === 0) return;
         if (!confirm(`Are you sure you want to approve ${selectedIds.size} creators?`)) return;
-        
+
         setBulkLoading(true);
         try {
-            const promises = Array.from(selectedIds).map(id => 
-                fetch(`/api/admin/verify`, {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+            const token = session?.access_token;
+            
+            const promises = Array.from(selectedIds).map(id =>
+                fetch(`${LIVEURL}/api/admin/verify`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
                     body: JSON.stringify({ target_creator_id: id, status: 'approved', notes: 'Bulk Approved by Admin' }),
                 })
             );
             await Promise.all(promises);
+
+            addNotification({
+                type: 'approved',
+                title: 'Bulk Approval Complete',
+                message: `Successfully approved ${selectedIds.size} creator accounts.`
+            });
+
             setSelectedIds(new Set());
-            // Need to reload window or re-fetch in real app
-            window.location.reload();
+            fetchData(); // Refresh data without reload
         } catch (error) {
             console.error("Bulk approve failed", error);
             alert("Some approvals failed. Please check the queue.");
@@ -140,7 +186,7 @@ export default function VerificationQueue() {
                 <div>
                     <h1 className="text-2xl font-bold text-white">Verification Queue</h1>
                     <p className="text-gray-400 text-sm mt-1">Review pending creator applications</p>
-                    
+
                     {selectedIds.size > 0 && (
                         <div className="mt-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
                             <span className="text-sm font-medium text-white bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
@@ -185,8 +231,8 @@ export default function VerificationQueue() {
                         key={cat}
                         onClick={() => setFilterCategory(cat)}
                         className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${filterCategory === cat
-                                ? 'bg-red-600 text-white shadow-lg shadow-red-900/20'
-                                : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'
+                            ? 'bg-red-600 text-white shadow-lg shadow-red-900/20'
+                            : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800 hover:cursor-pointer'
                             }`}
                     >
                         {cat === 'All' ? 'All Requests' : cat}
@@ -213,12 +259,12 @@ export default function VerificationQueue() {
                             <thead>
                                 <tr className="bg-gray-800/50 border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
                                     <th className="px-6 py-4 w-12">
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             checked={allSelected}
                                             onChange={toggleSelectAll}
                                             disabled={pendingFilteredItems.length === 0}
-                                            className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" 
+                                            className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
                                     </th>
                                     <th className="px-6 py-4 font-medium">Creator</th>
@@ -241,7 +287,7 @@ export default function VerificationQueue() {
                                         </tr>
                                     ))
                                 )}
-                                
+
                                 {!loading && filteredItems.length > 0 && filteredItems.map((item) => {
                                     const isPending = item.status === 'pending';
                                     const isSelected = selectedIds.has(item.id);
@@ -249,11 +295,11 @@ export default function VerificationQueue() {
                                         <tr key={item.id} className={`group transition-colors ${isSelected ? 'bg-red-500/5' : 'hover:bg-gray-800/50'}`}>
                                             <td className="px-6 py-4" onClick={(e) => { e.stopPropagation(); toggleSelect(item.id, isPending); }}>
                                                 {isPending ? (
-                                                    <input 
-                                                        type="checkbox" 
+                                                    <input
+                                                        type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => toggleSelect(item.id, isPending)}
-                                                        className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer" 
+                                                        className="rounded border-gray-600 bg-gray-700 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900 w-4 h-4 cursor-pointer"
                                                     />
                                                 ) : (
                                                     <span className="w-4 h-4 block" />
@@ -262,11 +308,10 @@ export default function VerificationQueue() {
                                             <td className="px-6 py-4 cursor-pointer" onClick={() => toggleSelect(item.id, isPending)}>
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-gray-800 overflow-hidden relative border border-gray-700">
-                                                        <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${item.full_name}`} alt={item.full_name} className="w-full h-full object-cover" />
+                                                        <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${item.stage_name || item.legal_name}`} alt={item.stage_name || item.legal_name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium text-white">{item.full_name}</div>
-                                                        <div className="text-xs text-gray-500">ID: #{item.id.substring(0, 8)}</div>
+                                                        <div className="font-medium text-white">{item.stage_name !== "TBD" ? item.stage_name : item.legal_name}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -291,7 +336,7 @@ export default function VerificationQueue() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={`/admin/verifications/${item.id}`}
+                                                    href={`/admin/verifications/${item.slug || item.id}`}
                                                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-900/20"
                                                 >
                                                     <Eye size={16} />
@@ -305,7 +350,7 @@ export default function VerificationQueue() {
                                 {!loading && filteredItems.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                            No creators found matching "{searchTerm}" or "{filterCategory}".
+                                            No creators found matching &quot;{searchTerm}&quot; or &quot;{filterCategory}&quot;.
                                         </td>
                                     </tr>
                                 )}
@@ -319,8 +364,8 @@ export default function VerificationQueue() {
                     <div className="bg-gray-800/30 px-6 py-4 border-t border-gray-800 flex justify-between items-center text-sm text-gray-400 mt-auto">
                         <span>Showing {filteredItems.length} entries</span>
                         <div className="flex gap-2">
-                            <button disabled className="px-3 py-1 rounded bg-gray-800 text-gray-600 cursor-not-allowed">Previous</button>
-                            <button className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-white transition-colors">Next</button>
+                            <button disabled className="px-3 py-1 rounded bg-gray-800 text-gray-600 cursor-not-allowed hover:cursor-pointer">Previous</button>
+                            <button className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-white transition-colors hover:cursor-pointer">Next</button>
                         </div>
                     </div>
                 )}

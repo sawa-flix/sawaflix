@@ -1,15 +1,21 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Clock, CheckCircle, XCircle, Users, Activity } from "lucide-react";
+import { BACKEND_URL as LIVEURL } from '../../lib/apiConfig';
+import { createClient } from '../../utils/supabase/client';
 
 interface StatsData {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  approvalRate: string;
-  avgTimeHours: string;
-  rejectionsByCategory: Record<string, number>;
+  userStats: { total: number };
+  queueStats: { pending: number };
+  creatorStats: { total: number };
+  analytics: {
+    totalSubmissions: number;
+    approved: number;
+    rejected: number;
+    approvalRate: number;
+    avgTimeHours: number;
+    rejectionsByCategory: Record<string, number>;
+  };
 }
 
 export default function VerificationAnalytics() {
@@ -19,7 +25,16 @@ export default function VerificationAnalytics() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/admin/stats");
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser(); // Add this line to avoid Next.js warnings
+        const token = session?.access_token;
+
+        const res = await fetch(`${LIVEURL}/api/admin/stats`, {
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
         if (res.ok) {
           const result = await res.json();
           if (result.success) {
@@ -54,7 +69,7 @@ export default function VerificationAnalytics() {
   const cards = [
     {
       title: "Pending Reviews",
-      value: stats.pending.toString(),
+      value: (stats.queueStats?.pending || 0).toString(),
       subtext: "Applications waiting for review",
       icon: <Clock size={24} className="text-yellow-500" />,
       bg: "bg-yellow-500/10",
@@ -62,7 +77,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Approval Rate",
-      value: `${stats.approvalRate}%`,
+      value: `${stats.analytics?.approvalRate || 0}%`,
       subtext: "Of processed applications",
       icon: <CheckCircle size={24} className="text-green-500" />,
       bg: "bg-green-500/10",
@@ -70,7 +85,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Total Processed",
-      value: (stats.approved + stats.rejected).toString(),
+      value: ((stats.analytics?.approved || 0) + (stats.analytics?.rejected || 0)).toString(),
       subtext: "Total verifications resolved",
       icon: <Users size={24} className="text-blue-500" />,
       bg: "bg-blue-500/10",
@@ -78,7 +93,7 @@ export default function VerificationAnalytics() {
     },
     {
       title: "Avg. Turnaround",
-      value: `${stats.avgTimeHours}h`,
+      value: `${stats.analytics?.avgTimeHours || 0}h`,
       subtext: "Average time to resolution",
       icon: <Activity size={24} className="text-purple-500" />,
       bg: "bg-purple-500/10",

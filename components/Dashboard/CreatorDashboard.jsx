@@ -20,17 +20,21 @@ import {
 } from 'lucide-react';
 
 const StatCard = ({ label, value, trend, icon: Icon, color }) => (
-    <div className="bg-[#141820] border border-white/5 p-5 rounded-2xl hover:border-red-600/20 transition-all group shadow-xl">
-        <div className="flex flex-col gap-1 mb-4">
-            <span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">{label}</span>
-            <span className="text-3xl font-black text-white tracking-tight">{value}</span>
-        </div>
-        <div className="flex items-center justify-between">
-            <div className={`flex items-center gap-1 text-[10px] font-bold ${trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                <span className="mb-0.5">{trend.startsWith('+') ? '↑' : '↓'}</span>
-                {trend} This week
+    <div className="relative group overflow-hidden">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/50 to-purple-600/50 rounded-3xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
+        <div className="relative bg-[#141820] border border-white/5 p-6 rounded-3xl transition-all group shadow-xl backdrop-blur-sm">
+            <div className="flex flex-col gap-1 mb-4">
+                <span className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">{label}</span>
+                <span className="text-4xl font-black text-white tracking-tight leading-none">{value}</span>
             </div>
-            {/* Minimal line chart preview could go here */}
+            <div className="flex items-center justify-between mt-2">
+                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                    trend.startsWith('+') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                }`}>
+                    <span>{trend.startsWith('+') ? '↑' : '↓'}</span>
+                    {trend}
+                </div>
+            </div>
         </div>
     </div>
 );
@@ -45,34 +49,38 @@ const ContentItem = ({ title, status, views, date, image }) => {
     const config = statusConfig[status] || statusConfig['Draft'];
 
     return (
-        <div className="flex items-center justify-between p-4 bg-[#141820]/50 border border-white/5 rounded-2xl hover:bg-[#141820] transition-all group">
-            <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between p-5 bg-[#141820]/40 border border-white/5 rounded-3xl hover:bg-[#141820] hover:border-white/10 transition-all group">
+            <div className="flex items-center gap-6">
                 <div 
-                    className="w-24 h-16 rounded-xl overflow-hidden bg-gray-800 border border-white/5 relative bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500"
+                    className="w-28 h-16 rounded-2xl overflow-hidden bg-gray-800 border border-white/5 relative bg-cover bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500 shadow-xl"
                     style={{ backgroundImage: `url(${image || '/vid.jpg'})` }}
                 >
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Play className="w-6 h-6 text-white fill-current" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="bg-red-600 p-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                            <Play className="w-5 h-5 text-white fill-current" />
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <h4 className="text-white font-black text-sm mb-1 tracking-tight">{title}</h4>
-                    <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full ${config.bg} ${config.color} text-[9px] font-black uppercase tracking-widest`}>
-                        <config.icon className="w-3 h-3" />
-                        {status}
+                <div className="space-y-1.5">
+                    <h4 className="text-white font-black text-base tracking-tight leading-none group-hover:text-red-500 transition-colors">{title}</h4>
+                    <div className="flex items-center gap-3">
+                        <div className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full ${config.bg} ${config.color} text-[8px] font-black uppercase tracking-[0.2em]`}>
+                            <config.icon className="w-3 h-3" />
+                            {status}
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div className="flex items-center gap-12">
-                <div className="text-right">
-                    <div className="flex items-center justify-end gap-1.5 text-white font-bold text-sm">
-                        <Eye className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-16">
+                <div className="text-right space-y-1">
+                    <div className="flex items-center justify-end gap-2 text-white font-black text-lg">
+                        <Eye className="w-4 h-4 text-red-500" />
                         {views}
                     </div>
-                    <p className="text-gray-500 text-[9px] font-bold uppercase tracking-widest mt-0.5">{date}</p>
+                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest">{date}</p>
                 </div>
-                <button className="p-2 text-gray-600 hover:text-white transition-colors">
+                <button className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-xl transition-all">
                     <MoreHorizontal className="w-5 h-5" />
                 </button>
             </div>

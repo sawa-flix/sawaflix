@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react";
+import SawaflixLogo from "./SawaflixLogo";
 
 export default function Footer() {
     return (
@@ -11,11 +12,7 @@ export default function Footer() {
 
                     {/* Brand Column */}
                     <div className="col-span-1 md:col-span-1">
-                        <Link href="/" className="flex items-center gap-2 mb-4">
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-500">
-                                SawaFlix
-                            </span>
-                        </Link>
+                        <SawaflixLogo className="mb-4" />
                         <p className="text-sm leading-relaxed mb-4">
                             Your premium destination for Sawa cultural heritage. preserving our stories for future generations.
                         </p>
@@ -34,8 +31,8 @@ export default function Footer() {
                             <li><Link href="/dashboard/movie" className="hover:text-white transition-colors">Movies</Link></li>
                             <li><Link href="/dashboard/music" className="hover:text-white transition-colors">Music</Link></li>
                             <li><Link href="/dashboard" className="hover:text-white transition-colors">Traditions</Link></li>
-                            <li><Link href="/dashboard/youtubeVids" className="hover:text-white transition-colors">Events</Link></li>
-                            <li><Link href="/dashboard/sawaSmart" className="hover:text-white transition-colors">SawaSmart AI</Link></li>
+                            <li><Link href="/dashboard/youtubevids" className="hover:text-white transition-colors">Events</Link></li>
+                            <li><Link href="/dashboard/sawasmart" className="hover:text-white transition-colors">SawaSmart AI</Link></li>
                         </ul>
                     </div>
 
