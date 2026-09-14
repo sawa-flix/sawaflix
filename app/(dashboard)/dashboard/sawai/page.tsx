@@ -180,9 +180,17 @@ export default function SawaiPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-white flex flex-col">
+    <div className="relative min-h-screen bg-[#07090E] text-white flex flex-col overflow-x-hidden">
+      {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
+        style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+      />
+      {/* Ambient Modern Gradient Vignette for perfect text contrast & readability */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#0B0E14]/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between relative">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
@@ -196,7 +204,7 @@ export default function SawaiPage() {
           <div className="h-4 w-px bg-white/10 hidden sm:block" />
 
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 overflow-hidden shrink-0">
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/15 flex items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-sm">
               <Image
                 src="/logos_and_pwas/android-chrome-192x192.png"
                 alt="Sawai Logo"
@@ -209,7 +217,7 @@ export default function SawaiPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-white font-semibold text-sm tracking-tight">Sawai</h1>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-400">
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-300 border border-white/10">
                   AI
                 </span>
               </div>
@@ -230,7 +238,7 @@ export default function SawaiPage() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
+      <main className="relative z-10 flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 pb-28 sm:pb-36 flex flex-col gap-6">
         {/* Starter Topic Cards */}
         {messages.length <= 1 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-2">
@@ -240,15 +248,17 @@ export default function SawaiPage() {
                 <button
                   key={idx}
                   onClick={() => sendMessage(item.prompt)}
-                  className="p-3.5 rounded-xl bg-[#0E121B] border border-white/5 hover:border-white/20 hover:bg-[#121622] text-left transition-all group cursor-pointer"
+                  className="p-4 rounded-2xl bg-[#0B0F19]/80 backdrop-blur-md border border-white/10 hover:border-white/25 hover:bg-[#101626]/90 text-left transition-all group cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
                 >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Icon className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
+                      <Icon className="w-3.5 h-3.5 text-zinc-300 group-hover:text-white transition-colors" />
+                    </div>
                     <h3 className="text-xs font-semibold text-white group-hover:text-zinc-100 transition-colors">
                       {item.title}
                     </h3>
                   </div>
-                  <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed pl-9">
                     {item.description}
                   </p>
                 </button>
@@ -281,10 +291,10 @@ export default function SawaiPage() {
                 )}
 
                 <div
-                  className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-[13.5px] leading-relaxed ${
+                  className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4.5 py-3.5 text-[13.5px] leading-relaxed ${
                     isUser
-                      ? 'bg-zinc-200 text-zinc-950 font-medium rounded-tr-xs shadow-sm'
-                      : 'bg-[#0E121B] text-zinc-200 border border-white/5 rounded-tl-xs shadow-sm'
+                      ? 'bg-white text-zinc-950 font-medium rounded-tr-xs shadow-md'
+                      : 'bg-[#0B0F19]/85 backdrop-blur-md text-zinc-100 border border-white/10 rounded-tl-xs shadow-xl'
                   }`}
                 >
                   {isUser ? (
@@ -366,12 +376,12 @@ export default function SawaiPage() {
         </div>
       </main>
 
-      {/* Input Bar */}
-      <footer className="sticky bottom-0 z-40 bg-[#0B0E14]/90 backdrop-blur-md border-t border-white/10 p-3 sm:p-4">
+      {/* Fixed Chat Input Bar */}
+      <footer className="fixed bottom-0 inset-x-0 lg:left-72 z-50 bg-[#0B0E14]/90 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4">
         <div className="max-w-3xl mx-auto">
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-2 bg-[#0E121B] border border-white/10 focus-within:border-white/30 rounded-2xl px-3 py-1.5 transition-all shadow-lg"
+            className="flex items-center gap-2 bg-[#0B0F19]/90 backdrop-blur-md border border-white/15 focus-within:border-white/35 rounded-2xl px-3 py-1.5 transition-all shadow-2xl"
           >
             <input
               ref={inputRef}

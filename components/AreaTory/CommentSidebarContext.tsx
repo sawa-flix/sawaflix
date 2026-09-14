@@ -1,12 +1,14 @@
-// CommentSidebarContext.tsx – provides a context to open/close YouTube/Reels-style right comment sidebar
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+// CommentSidebarContext.tsx – provides a context to open/close Reels-style comment sidebar/bottom sheet
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, SlidersHorizontal, MessageCircle } from 'lucide-react';
 import StoryCommentsSection from './StoryCommentsSection';
 
 type CommentSidebarContextType = {
+  isOpen: boolean;
+  storyId: string | null;
   open: (storyId: string, storyTitle: string, initialComments: number) => void;
   close: () => void;
+  toggle: (storyId: string, storyTitle: string, initialComments: number) => void;
   updateStats?: (storyId: string, updates: Partial<{ likesCount: number; viewsCount: number; commentsCount: number }>) => void;
 };
 
@@ -34,13 +36,27 @@ export const CommentSidebarProvider = ({
     setOpenStoryTitle(title);
     setOpenInitialComments(initialComments);
   };
-  const close = () => setOpenStoryId(null);
+
+  const close = () => {
+    setOpenStoryId(null);
+  };
+
+  const toggle = (id: string, title: string, initialComments: number) => {
+    if (openStoryId === id) {
+      close();
+    } else {
+      open(id, title, initialComments);
+    }
+  };
 
   return (
     <CommentSidebarContext.Provider
       value={{
+        isOpen: Boolean(openStoryId),
+        storyId: openStoryId,
         open,
         close,
+        toggle,
         updateStats: onUpdateStats,
       }}
     >
@@ -48,7 +64,7 @@ export const CommentSidebarProvider = ({
       <AnimatePresence>
         {openStoryId && (
           <CommentSidebar
-            key="comment-sidebar"
+            key={`comment-sidebar-${openStoryId}`}
             storyId={openStoryId}
             storyTitle={openStoryTitle}
             initialComments={openInitialComments}
@@ -61,7 +77,7 @@ export const CommentSidebarProvider = ({
   );
 };
 
-// YouTube-style Right Side Panel with backdrop & animation
+// Reels-style comments panel: bottom sheet on mobile, docked side panel on desktop
 type CommentSidebarProps = {
   storyId: string;
   storyTitle: string;
@@ -71,34 +87,32 @@ type CommentSidebarProps = {
 };
 
 const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStatsUpdate }: CommentSidebarProps) => {
-  const [liveCount, setLiveCount] = useState(initialComments);
   const [isDesktop, setIsDesktop] = useState(true);
 
-  React.useEffect(() => {
-    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 768);
+  useEffect(() => {
+    const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
     checkIsDesktop();
     window.addEventListener('resize', checkIsDesktop);
     return () => window.removeEventListener('resize', checkIsDesktop);
   }, []);
 
-  const handleCommentCountChange = (newCount: number) => {
-    setLiveCount(newCount);
-    onStatsUpdate?.(storyId, { commentsCount: newCount });
-  };
-
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
-      {/* Subtle translucent backdrop so users can clearly read and view the blog while viewing comments */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        onClick={onClose}
-        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto"
-      />
+    <>
+      {/* Mobile only: backdrop allowing tap-to-dismiss without blocking desktop reading */}
+      {!isDesktop && (
+        <motion.div
+          role="presentation"
+          aria-hidden="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+        />
+      )}
 
-      {/* YouTube Shorts / Reels style panel: bottom sheet on mobile, right drawer on desktop */}
+      {/* Reels comments panel: bottom sheet on mobile, right panel on desktop */}
       <motion.aside
         role="dialog"
         aria-label="Story Comments"
@@ -108,53 +122,36 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isDesktop
-            ? 'fixed inset-y-0 right-0 w-[400px] bg-[#0F1117] border-l border-white/10 shadow-2xl flex flex-col pointer-events-auto z-[10000]'
-            : 'fixed inset-x-0 bottom-0 h-[75vh] max-h-[85vh] bg-[#0F1117] border-t border-white/10 rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto z-[10000]'
+            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] sm:w-[400px] flex-col border-l border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
+            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
         }
       >
+        {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+          style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+
         {/* Mobile Swipe Handle */}
         {!isDesktop && (
-          <div className="pt-3 pb-1 flex justify-center w-full shrink-0">
+          <div className="relative z-10 pt-3 pb-1 flex justify-center w-full shrink-0 bg-[#0F1117]/80 backdrop-blur-md">
             <div className="h-1.5 w-12 rounded-full bg-white/20" />
           </div>
         )}
 
-        {/* Header - YouTube style */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 bg-[#0F1117]/95 backdrop-blur-md sticky top-0 z-10 shrink-0">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-black tracking-tight text-white flex items-center gap-2">
-              <span>Comments</span>
-              <span className="text-xs font-mono font-bold text-zinc-400">
-                {liveCount.toLocaleString()}
-              </span>
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Close comments panel"
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable Comments Stream */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10">
-          <StoryCommentsSection
-            storyId={storyId}
-            storyTitle={storyTitle}
-            isSidebarMode={true}
-            onCommentCountChange={handleCommentCountChange}
-          />
-        </div>
+        <StoryCommentsSection
+          storyId={storyId}
+          storyTitle={storyTitle}
+          isSidebarMode={true}
+          isDesktop={isDesktop}
+          onClose={onClose}
+          onCommentCountChange={(newCount) => onStatsUpdate?.(storyId, { commentsCount: newCount })}
+        />
       </motion.aside>
-    </div>
+    </>
   );
 };
 
 export default CommentSidebar;
+

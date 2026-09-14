@@ -45,11 +45,18 @@ export function ReelComments({ isOpen, isDesktop, comments, loading, error, onCl
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isDesktop
-            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] flex-col border-l border-white/10 bg-[#0F1117]'
-            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0F1117]'
+            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] flex-col border-l border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
+            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
         }
       >
-        <div className="flex items-center justify-between border-b border-white/10 p-4">
+        {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+          style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+
+        <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#0F1117]/80 backdrop-blur-md p-4">
           <h2 className="text-sm font-black uppercase tracking-widest text-white">
             {comments.length} Comments
           </h2>
@@ -63,7 +70,7 @@ export function ReelComments({ isOpen, isDesktop, comments, loading, error, onCl
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="relative z-10 flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="animate-spin text-white/40" size={24} />
@@ -97,7 +104,7 @@ export function ReelComments({ isOpen, isDesktop, comments, loading, error, onCl
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-white/10 p-4">
+        <form onSubmit={handleSubmit} className="relative z-10 flex items-center gap-2 border-t border-white/10 bg-[#0F1117]/90 backdrop-blur-md p-4">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}

@@ -10,6 +10,7 @@ import { useFavorites } from '@/contexts/FavoriteContext';
 import { likeService } from '@/services/likeService';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
+import { useSawaiStore } from '@/store/sawaiStore';
 
 interface ReelActionsProps {
   video: Video;
@@ -39,6 +40,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
+  const { toggleSawai } = useSawaiStore();
 
   const saved = isFavorite(video.id);
 
@@ -202,6 +204,28 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
           <MessageCircle size={24} />
         </span>
         <span className="text-xs font-bold drop-shadow">{formatCount(commentsCount)}</span>
+      </button>
+
+      {/* Sawai AI Assistant */}
+      <button
+        type="button"
+        onClick={toggleSawai}
+        aria-label="Ask Sawai"
+        className="group flex flex-col items-center gap-1 text-white cursor-pointer"
+        title="Ask Sawai AI"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md transition-all group-hover:scale-105 active:scale-90 border border-white/15">
+          <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
+            <Image
+              src="/logos_and_pwas/android-chrome-192x192.png"
+              alt="Sawai"
+              width={28}
+              height={28}
+              className="w-full h-full object-contain rounded-full"
+            />
+          </div>
+        </span>
+        <span className="text-[10px] font-bold drop-shadow tracking-tight uppercase text-zinc-300">Sawai</span>
       </button>
 
       <div className="relative">

@@ -12,6 +12,7 @@ import {
   ChevronUp,
   ShieldCheck,
   User as UserIcon,
+  X,
 } from 'lucide-react';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
@@ -52,6 +53,8 @@ interface StoryCommentsSectionProps {
   storyId: string;
   storyTitle: string;
   isSidebarMode?: boolean;
+  isDesktop?: boolean;
+  onClose?: () => void;
   onCommentCountChange?: (count: number) => void;
 }
 
@@ -84,6 +87,8 @@ export default function StoryCommentsSection({
   storyId,
   storyTitle,
   isSidebarMode = false,
+  isDesktop = true,
+  onClose,
   onCommentCountChange,
 }: StoryCommentsSectionProps) {
   const { user, isAuthenticated } = useAuthSession();
@@ -103,7 +108,7 @@ export default function StoryCommentsSection({
   // Accordion state for replies visibility
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
 
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const textareaRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const draftStorageKey = `sawa_draft_comment_${storyId}`;
 
   // Restore draft if any saved from guest attempt
@@ -307,98 +312,392 @@ export default function StoryCommentsSection({
     0
   );
 
+  // Reels-style sidebar / bottom-sheet mode
+  if (isSidebarMode) {
+    return (
+      <div className="flex flex-col h-full w-full bg-[#0F1117] overflow-hidden select-text relative">
+        {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+          style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+
+        {/* Reels-style Header */}
+        <div className="relative z-10 flex items-center justify-between border-b border-white/10 p-4 shrink-0 bg-[#0F1117]/80 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-white">
+              {totalDiscussionsCount} {totalDiscussionsCount === 1 ? 'Comment' : 'Comments'}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Subtle Sort Filter */}
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5">
+              <button
+                type="button"
+                onClick={() => setSortBy('top')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                  sortBy === 'top' ? 'bg-white text-black font-extrabold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Top
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortBy('newest')}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                  sortBy === 'newest' ? 'bg-white text-black font-extrabold' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Newest
+              </button>
+            </div>
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close comments"
+                className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Scrollable Comments List */}
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10">
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-white/40" size={24} />
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <div className="text-2xl mb-2">🇨🇲</div>
+              <p className="text-sm text-white/80 font-bold mb-1">No comments yet</p>
+              <p className="text-xs text-white/40 mb-4">Be the first to share your perspective on this story!</p>
+              <button
+                type="button"
+                onClick={() => textareaRef.current?.focus()}
+                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black font-bold text-xs text-white transition-all cursor-pointer"
+              >
+                Add a comment
+              </button>
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {comments.map((comment) => (
+                <li key={comment.id} className="flex gap-3 text-left">
+                  {/* User Avatar */}
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-white/10 border border-white/10">
+                    {comment.userAvatar ? (
+                      <Image
+                        src={comment.userAvatar}
+                        alt={comment.userName}
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-bold text-xs text-white/80 bg-gradient-to-tr from-zinc-700 to-zinc-800">
+                        {comment.userName?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    {/* Header: Name + Badge + Time */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-white/80">{comment.userName}</span>
+                      {comment.userRole && !['member', 'viewer', 'user'].includes(comment.userRole.toLowerCase()) && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white/10 border border-white/20 text-[8px] font-black uppercase text-zinc-300">
+                          <ShieldCheck className="w-2.5 h-2.5 text-zinc-400" />
+                          {comment.userRole}
+                        </span>
+                      )}
+                      {comment.isPinned && (
+                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/30 text-[8px] font-black uppercase text-amber-400">
+                          Pinned
+                        </span>
+                      )}
+                      <span className="text-[10px] text-white/40">{formatTimeAgo(comment.createdAt)}</span>
+                    </div>
+
+                    {/* Text */}
+                    <p className="mt-0.5 text-sm text-white/90 break-words leading-relaxed">{comment.content}</p>
+
+                    {/* Actions: Like, Reply, Toggle Replies */}
+                    <div className="mt-1.5 flex items-center gap-4 text-xs">
+                      {/* Like */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCommentLike(comment.id, false)}
+                        className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+                          comment.isLikedByMe ? 'text-red-400 font-bold' : 'text-zinc-400 hover:text-white'
+                        }`}
+                        aria-label={comment.isLikedByMe ? 'Unlike comment' : 'Like comment'}
+                      >
+                        <Image
+                          src="/logos_and_pwas/like.png"
+                          alt="Like"
+                          width={14}
+                          height={14}
+                          className={`w-3.5 h-3.5 object-contain transition-transform ${
+                            comment.isLikedByMe ? 'scale-110 drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]' : 'opacity-70 hover:opacity-100'
+                          }`}
+                        />
+                        <span className="font-mono text-[10px]">{comment.likesCount > 0 ? comment.likesCount : 'Like'}</span>
+                      </button>
+
+                      {/* Reply */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReplyingToId(replyingToId === comment.id ? null : comment.id);
+                          setReplyText('');
+                        }}
+                        className="text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        Reply
+                      </button>
+
+                      {/* Replies Toggle */}
+                      {comment.repliesCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedReplies((prev) => ({
+                              ...prev,
+                              [comment.id]: !prev[comment.id],
+                            }))
+                          }
+                          className="flex items-center gap-1 text-zinc-400 hover:text-white text-[11px] font-medium transition-colors cursor-pointer ml-auto"
+                        >
+                          {expandedReplies[comment.id] ? (
+                            <>
+                              <ChevronUp size={13} />
+                              <span>Hide {comment.repliesCount} {comment.repliesCount === 1 ? 'reply' : 'replies'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown size={13} />
+                              <span>View {comment.repliesCount} {comment.repliesCount === 1 ? 'reply' : 'replies'}</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Inline Reply Composer */}
+                    <AnimatePresence>
+                      {replyingToId === comment.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-2.5 pt-2 border-t border-white/5"
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder={`Reply to @${comment.userName}...`}
+                              className="flex-1 rounded-full bg-white/5 px-3 py-1.5 text-xs text-white placeholder-white/30 outline-none focus:bg-white/10 border border-transparent focus:border-white/10"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReplyingToId(null);
+                                setReplyText('');
+                              }}
+                              className="text-[10px] text-zinc-400 hover:text-white px-1.5 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handlePostReply(comment.id)}
+                              disabled={replySubmitting || !replyText.trim()}
+                              className="px-3 py-1 rounded-full bg-white text-black text-xs font-bold hover:bg-white/90 disabled:opacity-30 flex items-center gap-1 cursor-pointer"
+                            >
+                              {replySubmitting ? <Loader2 size={12} className="animate-spin" /> : <span>Reply</span>}
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Nested Replies List */}
+                    <AnimatePresence>
+                      {expandedReplies[comment.id] && comment.replies?.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-3 pl-3 border-l border-white/10 space-y-3"
+                        >
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="flex gap-2.5">
+                              <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-zinc-800 border border-white/10">
+                                {reply.userAvatar ? (
+                                  <Image
+                                    src={reply.userAvatar}
+                                    alt={reply.userName}
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center font-bold text-[10px] text-zinc-300">
+                                    {reply.userName?.[0]?.toUpperCase() || 'U'}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-[11px] font-bold text-white/80">{reply.userName}</span>
+                                  <span className="text-[9px] text-white/40">{formatTimeAgo(reply.createdAt)}</span>
+                                </div>
+                                <p className="mt-0.5 text-xs text-white/90 break-words leading-relaxed">{reply.content}</p>
+                                <div className="mt-1 flex items-center gap-3 text-[10px]">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleCommentLike(reply.id, true, comment.id)}
+                                    className={`flex items-center gap-1 transition-colors cursor-pointer ${
+                                      reply.isLikedByMe ? 'text-red-400 font-bold' : 'text-zinc-400 hover:text-white'
+                                    }`}
+                                  >
+                                    <Image
+                                      src="/logos_and_pwas/like.png"
+                                      alt="Like"
+                                      width={12}
+                                      height={12}
+                                      className={`w-3 h-3 object-contain ${reply.isLikedByMe ? 'scale-110' : 'opacity-70'}`}
+                                    />
+                                    <span className="font-mono">{reply.likesCount > 0 ? reply.likesCount : 'Like'}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Pinned Bottom Composer - exactly matching ReelComments */}
+        <div className="relative z-10 border-t border-white/10 p-4 bg-[#0F1117]/90 backdrop-blur-md shrink-0">
+          {/* Cultural Quick Reactions */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-2">
+            {CULTURAL_REACTIONS.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => handleAppendReaction(item.text)}
+                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-[11px] text-zinc-300 hover:text-white transition-all shrink-0 cursor-pointer active:scale-95"
+              >
+                <span>{item.emoji}</span>
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSubmitComment} className="flex items-center gap-2">
+            <input
+              ref={textareaRef as any}
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={isAuthenticated ? "Add a comment..." : "Sign in to comment..."}
+              aria-label="Add a comment"
+              className="flex-1 rounded-full bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:bg-white/10 border border-transparent focus:border-white/10 transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={!newComment.trim() || submitting}
+              aria-label="Send comment"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white text-[#0B0E14] transition-colors hover:bg-white/85 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
+            >
+              {submitting ? (
+                <Loader2 size={16} className="animate-spin text-black" />
+              ) : (
+                <Send size={16} className="text-black" />
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section
       id="story-comments"
-      className={
-        isSidebarMode
-          ? 'w-full scale-[0.9] origin-top pb-6'
-          : 'mt-16 pt-12 border-t border-white/10 scroll-mt-20 scale-[0.9] origin-top'
-      }
+      className="mt-16 pt-12 pb-8 px-6 sm:px-8 border border-white/10 rounded-3xl bg-[#0F1117] relative overflow-hidden scroll-mt-20"
     >
-      {/* Header & Controls - in sidebar mode, compact header with sort tabs */}
-      {!isSidebarMode ? (
+      {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+        style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+
+      <div className="relative z-10">
+        {/* Header & Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2.5">
-                Discussions
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono font-bold">
-                  {totalDiscussionsCount}
-                </span>
-              </h3>
-              <p className="text-xs text-zinc-400 font-medium">
-                Share your perspective and connect with fellow readers.
-              </p>
-            </div>
+          <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+            <MessageSquare className="w-5 h-5" />
           </div>
-
-          {/* Sorting Pills */}
-          <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl w-fit">
-            <button
-              type="button"
-              onClick={() => setSortBy('top')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                sortBy === 'top'
-                  ? 'bg-white text-black shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Top Discussions
-            </button>
-            <button
-              type="button"
-              onClick={() => setSortBy('newest')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                sortBy === 'newest'
-                  ? 'bg-white text-black shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Latest First
-            </button>
+          <div>
+            <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2.5">
+              Discussions
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono font-bold">
+                {totalDiscussionsCount}
+              </span>
+            </h3>
+            <p className="text-xs text-zinc-400 font-medium">
+              Share your perspective and connect with fellow readers.
+            </p>
           </div>
         </div>
-      ) : (
-        /* Sidebar sort filter row */
-        <div className="flex items-center justify-between gap-2 mb-4 pb-2 border-b border-white/5">
-          <span className="text-xs text-zinc-400 font-medium truncate max-w-[200px]">
-            {storyTitle}
-          </span>
-          <div className="flex items-center gap-1 p-0.5 bg-white/5 border border-white/10 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setSortBy('top')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                sortBy === 'top'
-                  ? 'bg-white text-black font-extrabold'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Top
-            </button>
-            <button
-              type="button"
-              onClick={() => setSortBy('newest')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                sortBy === 'newest'
-                  ? 'bg-white text-black font-extrabold'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Newest
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* In inline mode, render Quick Vibe chips and Composer at the top */}
-      {!isSidebarMode && (
-        <>
-          {/* Cultural Quick-Reaction Chips */}
+        {/* Sorting Pills */}
+        <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl w-fit">
+          <button
+            type="button"
+            onClick={() => setSortBy('top')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              sortBy === 'top'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Top Discussions
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy('newest')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              sortBy === 'newest'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Latest First
+          </button>
+        </div>
+      </div>
+
+      {/* Cultural Quick-Reaction Chips */}
           <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 shrink-0">
               Quick vibe:
@@ -434,7 +733,7 @@ export default function StoryCommentsSection({
 
               <div className="flex-1">
                 <textarea
-                  ref={textareaRef}
+                  ref={textareaRef as any}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder={
@@ -485,8 +784,6 @@ export default function StoryCommentsSection({
               </div>
             </div>
           </div>
-        </>
-      )}
 
       {/* Loading Skeletons */}
       {loading && (
@@ -773,74 +1070,7 @@ export default function StoryCommentsSection({
           ))}
         </div>
       )}
-
-      {/* In Sidebar Mode, render fixed bottom composer like YouTube / Reels */}
-      {isSidebarMode && (
-        <div className="sticky bottom-0 z-30 -mx-5 -mb-6 mt-6 p-3 sm:p-4 bg-[#0F1117]/95 backdrop-blur-xl border-t border-white/10 shadow-2xl">
-          {/* Quick Reaction Pills right above composer */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-2">
-            {CULTURAL_REACTIONS.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => handleAppendReaction(item.text)}
-                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-[11px] text-zinc-300 hover:text-white transition-all shrink-0 cursor-pointer active:scale-95"
-              >
-                <span>{item.emoji}</span>
-                <span className="text-[10px] font-medium">{item.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmitComment();
-            }}
-            className="flex items-center gap-2"
-          >
-            <div className="relative w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-              {user?.user_metadata?.avatar_url || user?.user_metadata?.picture ? (
-                <Image
-                  src={user.user_metadata.avatar_url || user.user_metadata.picture}
-                  alt="Your Avatar"
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <UserIcon className="w-4 h-4 text-zinc-400" />
-              )}
-            </div>
-
-            <input
-              ref={textareaRef as any}
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={
-                isAuthenticated
-                  ? 'Add a comment…'
-                  : 'Sign in to comment…'
-              }
-              maxLength={1500}
-              className="flex-1 bg-white/5 border border-white/10 focus:border-white/30 rounded-full px-4 py-2 text-xs text-white placeholder-zinc-500 outline-none transition-all"
-            />
-
-            <button
-              type="submit"
-              disabled={submitting || !newComment.trim()}
-              aria-label="Send comment"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black transition-transform hover:bg-white/90 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-95 shadow-md"
-            >
-              {submitting ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-              ) : (
-                <Send className="w-3.5 h-3.5 text-black" />
-              )}
-            </button>
-          </form>
-        </div>
-      )}
+      </div>
     </section>
   );
 }

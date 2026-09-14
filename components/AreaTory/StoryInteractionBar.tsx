@@ -71,10 +71,10 @@ export default function StoryInteractionBar({
     }
   };
 
-  // Open comment sidebar via context
-  const { open } = useCommentSidebar();
+  // Open/toggle comment sidebar via context
+  const { toggle, isOpen } = useCommentSidebar();
   const handleOpenComments = () => {
-    open(storyId, storyTitle, initialComments);
+    toggle(storyId, storyTitle, initialComments);
   };
 
   const handleShare = async () => {
@@ -134,17 +134,21 @@ export default function StoryInteractionBar({
         </span>
       </motion.button>
 
-      {/* Jump to Comments Button (Opens YouTube/Reels-style right sidebar) */}
+      {/* Jump to Comments Button (Opens Reels-style comments panel) */}
       <motion.button
         type="button"
         whileTap={{ scale: 0.92 }}
         onClick={handleOpenComments}
-        className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer shadow-sm"
-        aria-label="View comments"
-        title="Open comments sidebar"
+        className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-sm ${
+          isOpen
+            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]'
+            : 'border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20'
+        }`}
+        aria-label={isOpen ? 'Close comments panel' : 'View comments'}
+        title={isOpen ? 'Close comments panel' : 'Open comments panel'}
       >
-        <MessageCircle className="w-4 h-4 text-gray-400 group-hover:text-white" />
-        <span className="text-xs font-bold font-mono tracking-tight text-white/90">
+        <MessageCircle className={`w-4 h-4 ${isOpen ? 'text-black' : 'text-gray-400 group-hover:text-white'}`} />
+        <span className={`text-xs font-bold font-mono tracking-tight ${isOpen ? 'text-black font-extrabold' : 'text-white/90'}`}>
           {initialComments.toLocaleString()}
         </span>
       </motion.button>

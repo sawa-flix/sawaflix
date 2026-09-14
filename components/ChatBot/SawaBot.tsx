@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useSawaiStore } from '@/store/sawaiStore';
 
 interface ChatMessage {
   id: string;
@@ -35,7 +36,7 @@ function stripEmojis(text: string): string {
 }
 
 export default function SawaBot() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, closeSawai, toggleSawai } = useSawaiStore();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,30 +166,6 @@ export default function SawaBot() {
 
   return (
     <>
-      {/* Floating Bottom-Right Launcher */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-[#0D111A] hover:bg-[#131722] text-white border border-white/15 shadow-2xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20 active:scale-95"
-          aria-label={isOpen ? "Close Sawai" : "Open Sawai Assistant"}
-        >
-          {isOpen ? (
-            <X className="w-5 h-5 text-zinc-300" />
-          ) : (
-            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
-              <Image
-                src="/logos_and_pwas/android-chrome-192x192.png"
-                alt="Sawai"
-                width={32}
-                height={32}
-                className="w-full h-full object-contain rounded-full"
-                priority
-              />
-            </div>
-          )}
-        </button>
-      </div>
-
       {/* Chat Window Drawer: Super Clean & Uncluttered */}
       <AnimatePresence>
         {isOpen && (
@@ -197,56 +174,63 @@ export default function SawaBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="fixed bottom-20 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-6.5rem)] rounded-2xl bg-[#090C12] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl bg-[#090C12] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header: Minimal & Focused */}
-            <div className="px-4 py-3 bg-[#0D111A] border-b border-white/5 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
-                  <Image
-                    src="/logos_and_pwas/android-chrome-192x192.png"
-                    alt="Sawai"
-                    width={24}
-                    height={24}
-                    className="w-full h-full object-contain rounded-full"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-white font-semibold text-sm tracking-tight">Sawai</h3>
-                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-400">
-                    AI
-                  </span>
-                </div>
-              </div>
+          {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-25 mix-blend-screen"
+            style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#090C12]/90 via-[#090C12]/75 to-[#090C12]/95 pointer-events-none" />
 
-              <div className="flex items-center gap-1">
-                <Link
-                  href="/dashboard/sawai"
-                  onClick={() => setIsOpen(false)}
-                  title="Expand to Full Page"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </Link>
-                <button
-                  onClick={handleClearChat}
-                  title="Clear conversation"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  title="Close"
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+          {/* Header: Minimal & Focused */}
+          <div className="relative z-10 px-4 py-3 bg-[#0D111A]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 shrink-0 overflow-hidden shadow-sm">
+                <Image
+                  src="/logos_and_pwas/android-chrome-192x192.png"
+                  alt="Sawai"
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-contain rounded-full"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-semibold text-sm tracking-tight">Sawai</h3>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-300 border border-white/10">
+                  AI
+                </span>
               </div>
             </div>
 
-            {/* Messages Scroll Area */}
-            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
+            <div className="flex items-center gap-1">
+              <Link
+                href="/dashboard/sawai"
+                onClick={closeSawai}
+                title="Expand to Full Page"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </Link>
+              <button
+                onClick={handleClearChat}
+                title="Clear conversation"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={closeSawai}
+                title="Close"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Scroll Area */}
+          <div className="relative z-10 flex-1 p-3.5 overflow-y-auto space-y-3 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
               {messages.map((m) => {
                 const isUser = m.role === 'user';
                 const formattedContent = stripEmojis(m.content).replace(/:\*\s+/g, ':\n\n* ');
@@ -370,7 +354,7 @@ export default function SawaBot() {
             {/* Input Bar: Ultra Simple & Clean */}
             <form
               onSubmit={handleSubmit}
-              className="p-3 bg-[#0D111A] border-t border-white/5 shrink-0"
+              className="relative z-10 p-3 bg-[#0D111A]/90 backdrop-blur-md border-t border-white/10 shrink-0"
             >
               <div className="flex items-center gap-2 bg-[#11141D] border border-white/10 focus-within:border-white/25 rounded-xl px-3 py-1.5 transition-all">
                 <input

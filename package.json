@@ -80,5 +80,18 @@
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "tree-sitter@0.21.1": true,
+    "tree-sitter@0.22.4": true,
+    "core-js-pure@3.49.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@7.8.0": true,
+    "tree-sitter-json@0.24.8": true,
+    "unrs-resolver@1.12.2": true,
+    "@prisma/engines@7.8.0": true,
+    "@tree-sitter-grammars/tree-sitter-yaml@0.7.1": true,
+    "@scarf/scarf": false
   }
 }

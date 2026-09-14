@@ -46,6 +46,7 @@ import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
 import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
+import { useSawaiStore } from '@/store/sawaiStore';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -81,6 +82,7 @@ const Header = ({
   const [searchResults, setSearchResults] = useState<{videos: any[], stories: any[], movies: any[]}>({ videos: [], stories: [], movies: [] });
   const [isSearching, setIsSearching] = useState(false);
   const { isMuted, toggleMute } = useReelsMuteStore();
+  const { toggleSawai } = useSawaiStore();
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
@@ -349,6 +351,25 @@ const Header = ({
               />
             )}
           </div>
+
+          {/* Sawai AI Assistant */}
+          <button
+            type="button"
+            onClick={toggleSawai}
+            className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer flex items-center justify-center"
+            aria-label="Open Sawai Assistant"
+            title="Sawai AI"
+          >
+            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-white/20 group-hover:border-white/50 transition-all group-hover:scale-105 shadow-sm">
+              <Image
+                src="/logos_and_pwas/android-chrome-192x192.png"
+                alt="Sawai"
+                width={24}
+                height={24}
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
+          </button>
 
           {isAuthenticated ? (
             <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer" aria-label="Settings">
