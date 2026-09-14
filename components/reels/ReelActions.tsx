@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Download } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { likeYouTubeVideoAction } from '@/app/actions/youtube';
 import { formatCount } from '@/utils/formatCount';
@@ -114,6 +114,38 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
     setIsMoreOpen(false);
   };
 
+  const handleDownload = () => {
+    setIsMoreOpen(false);
+
+    // Only allow downloading SawaFlix (Cloudinary) videos
+    if (video.origin !== 'sawaflix' || !video.videoUrl?.includes('res.cloudinary.com')) {
+      alert('Downloading is currently only supported for native SawaFlix videos.');
+      return;
+    }
+
+    let downloadUrl = video.videoUrl;
+    
+    // Inject Cloudinary watermark and attachment transformations
+    // This adds "@SawaFlix" text watermark at the bottom right and forces download
+    if (downloadUrl.includes('/upload/')) {
+      const parts = downloadUrl.split('/upload/');
+      // Cloudinary text overlay: l_text:font_size_weight:text
+      const watermark = 'l_text:Arial_40_bold:@SawaFlix,g_south_east,y_40,x_40,co_white,o_80';
+      const attachment = `fl_attachment:SawaFlix_${video.id}`;
+      downloadUrl = `${parts[0]}/upload/${watermark}/${attachment}/${parts[1]}`;
+    }
+
+    // Create a hidden anchor element to trigger the download
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    // Set a fallback download attribute, though Cloudinary's fl_attachment handles this server-side
+    a.download = `SawaFlix_${video.id}.mp4`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <div className="pointer-events-auto absolute bottom-10 right-3 z-20 flex flex-col items-center gap-5">
       <button
@@ -204,6 +236,17 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
                 <Bookmark size={18} className={saved ? 'fill-white' : ''} />
                 {saved ? 'Saved' : 'Save'}
               </button>
+              {(video.origin === 'sawaflix' || video.videoUrl?.includes('res.cloudinary.com')) && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleDownload}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  <Download size={18} />
+                  Download
+                </button>
+              )}
             </div>
           </>
         )}

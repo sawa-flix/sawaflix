@@ -195,7 +195,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
             muted={isMuted}
             preload="auto"
             crossOrigin="anonymous"
-            className="w-full h-full object-cover bg-black"
+            className="w-full h-full object-contain bg-black"
             onLoadedData={() => setIsPlayerReady(true)}
             onCanPlay={() => setIsPlayerReady(true)}
             onEnded={handleNativeEnded}
