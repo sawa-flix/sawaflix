@@ -12,11 +12,14 @@ import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useSawaiStore } from '@/store/sawaiStore';
 
+import { videoInteractivityService } from '@/services/videoInteractivityService';
+
 interface ReelActionsProps {
   video: Video;
   commentsCount: number;
   realLikeCount?: string | number;
   realIsLiked?: boolean;
+  interactors?: { id: string; name: string; avatar: string }[];
   onShowComments: () => void;
 }
 
@@ -27,11 +30,9 @@ function parseCount(value: string | number | undefined): number {
 }
 
 /**
- * Right-side action rail: like, comment, and a "More" menu (share, save).
- * Like/comment/share/save all call the existing server actions and
- * favorites context — nothing here reimplements backend logic.
+ * Right-side action rail: like, comment, and a "More" menu (share, save, download).
  */
-export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, onShowComments }: ReelActionsProps) {
+export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, interactors, onShowComments }: ReelActionsProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(() => parseCount(video.likeCount));
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -43,10 +44,9 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
   const { toggleSawai } = useSawaiStore();
 
   const saved = isFavorite(video.id);
+  const isNative = video.origin === 'sawaflix' || (Boolean(video.id) && video.id.length !== 11);
 
-  // Hydrate liked+likeCount from the server once, the first time real values
-  // arrive — locked out permanently once the user taps like (see handleLike),
-  // so a late/slow stats response can never undo their optimistic tap.
+  // Hydrate liked+likeCount from the server once
   const hydratedRef = useRef(false);
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -67,24 +67,37 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
 
     hydratedRef.current = true;
     const nextLiked = !liked;
-    // Optimistic update — rolled back if the server action throws.
+    // Optimistic update
     setLiked(nextLiked);
-    setLikeCount((prev) => prev + (nextLiked ? 1 : -1));
+    setLikeCount((prev) => Math.max(0, prev + (nextLiked ? 1 : -1)));
 
     startTransition(async () => {
-      try {
-        await likeYouTubeVideoAction(video.id, video.origin ?? 'youtube');
-      } catch (err) {
-        console.error('[ReelActions] Like failed:', err);
-        setLiked(!nextLiked);
-        setLikeCount((prev) => prev + (nextLiked ? -1 : 1));
-        return;
+      if (isNative) {
+        try {
+          const res = await videoInteractivityService.toggleLike(video.id);
+          if (typeof res.liked === 'boolean') setLiked(res.liked);
+          if (typeof res.likesCount === 'number') setLikeCount(res.likesCount);
+        } catch (err) {
+          console.error('[ReelActions] SawaFlix Like failed:', err);
+          setLiked(!nextLiked);
+          setLikeCount((prev) => Math.max(0, prev + (nextLiked ? -1 : 1)));
+          return;
+        }
+      } else {
+        try {
+          await likeYouTubeVideoAction(video.id, video.origin ?? 'youtube');
+        } catch (err) {
+          console.error('[ReelActions] Like failed:', err);
+          setLiked(!nextLiked);
+          setLikeCount((prev) => Math.max(0, prev + (nextLiked ? -1 : 1)));
+          return;
+        }
       }
-      // Additive: persist locally too so profile "likes given" stats can
-      // count it. The external backend call above is unchanged either way.
+
+      // Local additive persistence for user stats
       try {
-        if (nextLiked) await likeService.like('youtube_video', video.id);
-        else await likeService.unlike('youtube_video', video.id);
+        if (nextLiked) await likeService.like(isNative ? 'video' : 'youtube_video', video.id);
+        else await likeService.unlike(isNative ? 'video' : 'youtube_video', video.id);
       } catch (err) {
         console.warn('[ReelActions] local like persistence failed:', err);
       }
@@ -93,15 +106,18 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
 
   const handleShare = async () => {
     setIsMoreOpen(false);
-    const url = video.videoUrl;
+    const url = typeof window !== 'undefined' ? window.location.href : video.videoUrl;
     try {
+      if (isNative) {
+        videoInteractivityService.logShare(video.id, navigator.share ? 'native_share' : 'copy_link').catch(() => {});
+      }
+
       if (navigator.share) {
         await navigator.share({ title: video.title, url });
       } else {
         await navigator.clipboard.writeText(url);
       }
     } catch (err) {
-      // User cancelling the native share sheet also rejects — not an error.
       if ((err as Error)?.name !== 'AbortError') {
         console.error('[ReelActions] Share failed:', err);
       }
@@ -120,8 +136,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
   const handleDownload = async () => {
     setIsMoreOpen(false);
 
-    // Only allow downloading SawaFlix (Cloudinary) videos
-    if (video.origin !== 'sawaflix' || !video.videoUrl?.includes('res.cloudinary.com')) {
+    if (!isNative) {
       alert('Downloading is currently only supported for native SawaFlix videos.');
       return;
     }
@@ -130,26 +145,16 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
     setIsDownloading(true);
 
     try {
-      // Use only fl_attachment (no text overlays) — text overlays require a paid
-      // Cloudinary plan and cause HTTP 423 on free accounts.
-      let downloadUrl = video.videoUrl;
-      if (downloadUrl.includes('/upload/')) {
-        const parts = downloadUrl.split('/upload/');
-        downloadUrl = `${parts[0]}/upload/fl_attachment:SawaFlix_${video.id}/${parts[1]}`;
-      }
+      videoInteractivityService.logDownload(video.id, 'direct_file').catch(() => {});
+      const streamUrl = videoInteractivityService.getDownloadUrl(video.id);
 
-      // Fetch the video as a blob so the browser prompts a real file save
-      const res = await fetch(downloadUrl);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = objectUrl;
+      a.href = streamUrl;
+      a.target = '_blank';
       a.download = `SawaFlix_${(video.title || video.id).replace(/[^a-z0-9]/gi, '_').slice(0, 50)}.mp4`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(objectUrl);
     } catch (err) {
       console.error('[Download] Failed:', err);
       alert('Download failed. Please try again later.');
@@ -157,6 +162,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
       setIsDownloading(false);
     }
   };
+
 
   return (
     <div className="pointer-events-auto absolute bottom-10 right-3 z-20 flex flex-col items-center gap-5">
@@ -186,6 +192,21 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
           />
         </span>
         <span className="text-xs font-bold drop-shadow font-mono tracking-tight">{formatCount(likeCount)}</span>
+        {interactors && interactors.length > 0 && (
+          <div className="flex -space-x-1.5 overflow-hidden mt-0.5" title={`Interacted by ${interactors.map((i) => i.name).join(', ')}`}>
+            {interactors.slice(0, 3).map((interactor) => (
+              <div key={interactor.id} className="relative w-4 h-4 rounded-full overflow-hidden border border-black/80 bg-zinc-700 shadow-sm">
+                {interactor.avatar ? (
+                  <Image src={interactor.avatar} alt={interactor.name} fill className="object-cover" unoptimized />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[7px] font-black text-white">
+                    {interactor.name?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </button>
 
       <button

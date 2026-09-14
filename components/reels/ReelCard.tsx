@@ -16,6 +16,7 @@ import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
+import { videoInteractivityService } from '@/services/videoInteractivityService';
 
 interface ReelCardProps {
   video: Video;
@@ -50,12 +51,12 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
 
   const nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `http://localhost:3001/api/admin/upload/stream/${video.id}` : '');
 
-  const { isAuthenticated } = useAuthSession();
+  const { user, isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [, startTransition] = useTransition();
-  const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment } =
+  const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment, toggleCommentLike } =
     useComments(isActive ? video.id : null);
   const { stats } = useVideoStats(isActive ? video.id : null);
 
@@ -148,24 +149,34 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     });
   };
 
-  const handleSendComment = (text: string) => {
+  const handleSendComment = (text: string, parentId?: string) => {
     if (!isAuthenticated) {
       openAuthModal('to comment on reels');
       return;
     }
+    const authorName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'You';
+    const authorAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
     addComment({
       id: `local-${Date.now()}`,
-      author: 'You',
-      authorProfileImage: '',
+      author: authorName,
+      authorProfileImage: authorAvatar,
       text,
       likeCount: 0,
       publishedAt: new Date().toISOString(),
+      parentId,
     });
-    import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
-      commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
-        console.error('[ReelCard] Comment post failed:', err)
-      )
-    );
+
+    if (isNative) {
+      videoInteractivityService.postComment(video.id, text, parentId).catch((err) =>
+        console.error('[ReelCard] Video comment post failed:', err)
+      );
+    } else {
+      import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
+        commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
+          console.error('[ReelCard] Comment post failed:', err)
+        )
+      );
+    }
   };
 
   return (
@@ -235,6 +246,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         commentsCount={comments.length}
         realLikeCount={stats?.likeCount}
         realIsLiked={stats?.isLiked}
+        interactors={stats?.interactors}
         onShowComments={() => setIsOpen(true)}
       />
 
@@ -246,6 +258,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         error={commentsError}
         onClose={() => setIsOpen(false)}
         onSend={handleSendComment}
+        onLikeComment={toggleCommentLike}
       />
     </div>
   );
