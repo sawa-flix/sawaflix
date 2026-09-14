@@ -10,13 +10,18 @@ interface UseVideoStatsResult {
     refetch: () => Promise<void>;
 }
 
+// YouTube video IDs are exactly 11 chars; Sawaflix IDs are UUIDs — skip the
+// YouTube external API for native Sawaflix content to eliminate 404 spam.
+const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
+
 export function useVideoStats(videoId: string | null): UseVideoStatsResult {
     const [stats, setStats] = useState<VideoDetails | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchStats = useCallback(async () => {
-        if (!videoId) return;
+        // Only fetch stats for YouTube videos — Sawaflix UUIDs are not on YT endpoints
+        if (!videoId || !isYouTubeId(videoId)) return;
 
         setLoading(true);
         setError(null);

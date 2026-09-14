@@ -193,12 +193,12 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
             src={nativeSrc}
             playsInline
             muted={isMuted}
-            preload="auto"
-            crossOrigin="anonymous"
+            preload="metadata"
             className="w-full h-full object-contain bg-black"
             onLoadedData={() => setIsPlayerReady(true)}
             onCanPlay={() => setIsPlayerReady(true)}
             onEnded={handleNativeEnded}
+            onError={(e) => console.warn('[ReelCard] Video load error:', (e.target as HTMLVideoElement).error?.message)}
           />
         ) : (
           <YouTubePlayer

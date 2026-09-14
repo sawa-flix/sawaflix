@@ -13,6 +13,10 @@ interface UseCommentsResult {
     addComment: (comment: Comment) => void; // ✅ Optimistic add
 }
 
+// YouTube video IDs are exactly 11 chars; Sawaflix IDs are UUIDs — skip the
+// YouTube comments API for native Sawaflix content to eliminate 404 spam.
+const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
+
 export function useComments(videoId: string | null): UseCommentsResult {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
@@ -21,7 +25,8 @@ export function useComments(videoId: string | null): UseCommentsResult {
     const [hasFetched, setHasFetched] = useState(false);
 
     const fetchComments = useCallback(async () => {
-        if (!videoId) return;
+        // Only fetch comments for YouTube videos — Sawaflix UUIDs are not on YT endpoints
+        if (!videoId || !isYouTubeId(videoId)) return;
 
         setLoading(true);
         setError(null);

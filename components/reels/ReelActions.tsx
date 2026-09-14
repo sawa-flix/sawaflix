@@ -34,6 +34,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(() => parseCount(video.likeCount));
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [, startTransition] = useTransition();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated } = useAuthSession();
@@ -114,7 +115,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
     setIsMoreOpen(false);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsMoreOpen(false);
 
     // Only allow downloading SawaFlix (Cloudinary) videos
@@ -123,27 +124,36 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
       return;
     }
 
-    let downloadUrl = video.videoUrl;
-    
-    // Inject Cloudinary watermark and attachment transformations
-    // This adds "@SawaFlix" text watermark at the bottom right and forces download
-    if (downloadUrl.includes('/upload/')) {
-      const parts = downloadUrl.split('/upload/');
-      // Cloudinary text overlay: l_text:font_size_weight:text
-      const watermark = 'l_text:Arial_40_bold:@SawaFlix,g_south_east,y_40,x_40,co_white,o_80';
-      const attachment = `fl_attachment:SawaFlix_${video.id}`;
-      downloadUrl = `${parts[0]}/upload/${watermark}/${attachment}/${parts[1]}`;
-    }
+    if (isDownloading) return;
+    setIsDownloading(true);
 
-    // Create a hidden anchor element to trigger the download
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    // Set a fallback download attribute, though Cloudinary's fl_attachment handles this server-side
-    a.download = `SawaFlix_${video.id}.mp4`;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      // Use only fl_attachment (no text overlays) — text overlays require a paid
+      // Cloudinary plan and cause HTTP 423 on free accounts.
+      let downloadUrl = video.videoUrl;
+      if (downloadUrl.includes('/upload/')) {
+        const parts = downloadUrl.split('/upload/');
+        downloadUrl = `${parts[0]}/upload/fl_attachment:SawaFlix_${video.id}/${parts[1]}`;
+      }
+
+      // Fetch the video as a blob so the browser prompts a real file save
+      const res = await fetch(downloadUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `SawaFlix_${(video.title || video.id).replace(/[^a-z0-9]/gi, '_').slice(0, 50)}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error('[Download] Failed:', err);
+      alert('Download failed. Please try again later.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -241,10 +251,11 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
                   type="button"
                   role="menuitem"
                   onClick={handleDownload}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                  disabled={isDownloading}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download size={18} />
-                  Download
+                  <Download size={18} className={isDownloading ? 'animate-bounce' : ''} />
+                  {isDownloading ? 'Downloading…' : 'Download'}
                 </button>
               )}
             </div>

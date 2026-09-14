@@ -139,38 +139,47 @@ export async function getUnifiedFeedAction() {
     }
 }
 
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.ADMIN_BACKEND_URL || 'http://localhost:3001';
+// Admin backend is only available when NEXT_PUBLIC_ADMIN_API_URL is explicitly set.
+// No localhost fallback — it's never running locally and causes ECONNREFUSED spam.
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.ADMIN_BACKEND_URL || '';
 
 export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
     const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
     let youtubeFeed: any[] = [];
     let paginationData: any = { current_page: page, next_page: page + 1 };
 
-    // 1. Fetch YouTube culture feed
+    // 1. Fetch YouTube culture feed from the Render backend
     try {
-        const response = await fetchWithTimeout(url, {}, 5000, 1);
+        const response = await fetchWithTimeout(url, {}, 8000, 1);
         const resJson = await handleResponse(response);
         youtubeFeed = resJson?.feed || [];
         if (resJson?.pagination) {
             paginationData = resJson.pagination;
         }
     } catch (error: any) {
-        console.warn('[getCultureFeedAction] YouTube backend feed warning:', error.message);
+        // 429 / quota / backend offline — silently degrade, Supabase will fill the feed
+        if (error.status !== 429 && error.status !== 500 &&
+            !error.message?.includes('Too Many Requests') &&
+            !error.message?.includes('quota') &&
+            error.code !== 'BACKEND_UNREACHABLE') {
+            console.warn('[getCultureFeedAction] Backend feed warning:', error.message);
+        }
     }
 
-    // 2. Fetch Admin uploaded reels from Sawaflix-Admin-Backend and/or Supabase
+    // 2. Fetch Sawaflix uploaded reels — only if admin backend URL is configured
     let adminReels: any[] = [];
-    try {
-        // Try public admin endpoint first
-        const adminRes = await fetchWithTimeout(`${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`, {}, 3000, 0);
-        if (adminRes.ok) {
-            const adminData = await adminRes.json();
-            if (adminData?.data && Array.isArray(adminData.data)) {
-                adminReels = adminData.data;
+    if (ADMIN_API_URL) {
+        try {
+            const adminRes = await fetchWithTimeout(`${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`, {}, 3000, 0);
+            if (adminRes.ok) {
+                const adminData = await adminRes.json();
+                if (adminData?.data && Array.isArray(adminData.data)) {
+                    adminReels = adminData.data;
+                }
             }
+        } catch {
+            // Admin backend not available — silently skip
         }
-    } catch (adminErr: any) {
-        // Silently fall back to Supabase direct query
     }
 
     // Fallback: If admin backend endpoint didn't return reels, query Supabase directly
@@ -283,9 +292,12 @@ export async function searchVideosAction(
         });
         return handleResponse(response);
     } catch (error: any) {
-        console.error('searchVideosAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
-            // Return mock videos so the UI doesn't crash
+        // Gracefully handle quota exhaustion and rate limiting — never crash the dashboard
+        if (error.code === 'BACKEND_UNREACHABLE' ||
+            error.status === 429 ||
+            error.status === 500 ||
+            error.message?.includes('Too Many Requests') ||
+            error.message?.includes('quota')) {
             return { items: MOCK_VIDEOS, nextPageToken: null };
         }
         throw error;
