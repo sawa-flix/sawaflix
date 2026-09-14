@@ -45,16 +45,16 @@ export function ReelComments({ isOpen, isDesktop, comments, loading, error, onCl
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isDesktop
-            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] flex-col border-l border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
-            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0F1117] shadow-2xl overflow-hidden'
+            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] flex-col border-l border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
+            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
         }
       >
         {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
           style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
 
         <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#0F1117]/80 backdrop-blur-md p-4">
           <h2 className="text-sm font-black uppercase tracking-widest text-white">

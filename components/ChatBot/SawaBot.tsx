@@ -174,14 +174,14 @@ export default function SawaBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="fixed bottom-6 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl bg-[#090C12] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl bg-[#07090E] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
           >
           {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-25 mix-blend-screen"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
             style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#090C12]/90 via-[#090C12]/75 to-[#090C12]/95 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
 
           {/* Header: Minimal & Focused */}
           <div className="relative z-10 px-4 py-3 bg-[#0D111A]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between shrink-0">

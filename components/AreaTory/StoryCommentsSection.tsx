@@ -315,13 +315,13 @@ export default function StoryCommentsSection({
   // Reels-style sidebar / bottom-sheet mode
   if (isSidebarMode) {
     return (
-      <div className="flex flex-col h-full w-full bg-[#0F1117] overflow-hidden select-text relative">
+      <div className="flex flex-col h-full w-full bg-[#07090E] overflow-hidden select-text relative">
         {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
           style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
 
         {/* Reels-style Header */}
         <div className="relative z-10 flex items-center justify-between border-b border-white/10 p-4 shrink-0 bg-[#0F1117]/80 backdrop-blur-md">
@@ -641,14 +641,14 @@ export default function StoryCommentsSection({
   return (
     <section
       id="story-comments"
-      className="mt-16 pt-12 pb-8 px-6 sm:px-8 border border-white/10 rounded-3xl bg-[#0F1117] relative overflow-hidden scroll-mt-20"
+      className="mt-16 pt-12 pb-8 px-6 sm:px-8 border border-white/10 rounded-3xl bg-[#07090E] relative overflow-hidden scroll-mt-20"
     >
       {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 mix-blend-screen"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
         style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0F1117]/90 via-[#0F1117]/80 to-[#0B0E14]/95 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
 
       <div className="relative z-10">
         {/* Header & Controls */}

@@ -123,6 +123,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="preload" href="/logos_and_pwas/sawai.svg" as="image" type="image/svg+xml" fetchPriority="high" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logos_and_pwas/apple-touch-icon.png" />
         <meta name="theme-color" content="#FFFFFF" />
