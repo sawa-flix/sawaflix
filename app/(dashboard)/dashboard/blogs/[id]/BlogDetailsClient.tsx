@@ -173,11 +173,13 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
     viewsCount: number;
     commentsCount: number;
     isLiked: boolean;
+    interactors?: Array<{ id: string; name: string; avatar: string }>;
   }>({
     likesCount: 0,
     viewsCount: 0,
     commentsCount: 0,
     isLiked: false,
+    interactors: [],
   });
 
   useEffect(() => {
@@ -229,6 +231,7 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
                   viewsCount: res.viewsCount ?? data.views ?? 0,
                   commentsCount: res.commentsCount ?? 0,
                   isLiked: res.isLiked ?? false,
+                  interactors: res.interactors ?? [],
                 });
               }
             })
@@ -340,6 +343,7 @@ function BlogDetailsContent({
     viewsCount: number;
     commentsCount: number;
     isLiked: boolean;
+    interactors?: Array<{ id: string; name: string; avatar: string }>;
   };
   hasMounted: boolean;
   isPlayed: boolean;
@@ -409,6 +413,7 @@ function BlogDetailsContent({
               initialLikes={stats.likesCount || story.likes || 0}
               initialComments={stats.commentsCount || 0}
               initialIsLiked={stats.isLiked}
+              initialInteractors={stats.interactors}
             />
 
           </div>

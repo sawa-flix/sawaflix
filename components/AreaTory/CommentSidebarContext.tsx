@@ -1,5 +1,5 @@
-// CommentSidebarContext.tsx – provides a context to open/close Reels-style comment sidebar/bottom sheet
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import StoryCommentsSection from './StoryCommentsSection';
 
@@ -30,6 +30,11 @@ export const CommentSidebarProvider = ({
   const [openStoryId, setOpenStoryId] = useState<string | null>(null);
   const [openStoryTitle, setOpenStoryTitle] = useState<string>('');
   const [openInitialComments, setOpenInitialComments] = useState<number>(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const open = (id: string, title: string, initialComments: number) => {
     setOpenStoryId(id);
@@ -61,18 +66,21 @@ export const CommentSidebarProvider = ({
       }}
     >
       {children}
-      <AnimatePresence>
-        {openStoryId && (
-          <CommentSidebar
-            key={`comment-sidebar-${openStoryId}`}
-            storyId={openStoryId}
-            storyTitle={openStoryTitle}
-            initialComments={openInitialComments}
-            onClose={close}
-            onStatsUpdate={onUpdateStats}
-          />
-        )}
-      </AnimatePresence>
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {openStoryId && (
+            <CommentSidebar
+              key={`comment-sidebar-${openStoryId}`}
+              storyId={openStoryId}
+              storyTitle={openStoryTitle}
+              initialComments={openInitialComments}
+              onClose={close}
+              onStatsUpdate={onUpdateStats}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </CommentSidebarContext.Provider>
   );
 };
@@ -87,7 +95,12 @@ type CommentSidebarProps = {
 };
 
 const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStatsUpdate }: CommentSidebarProps) => {
-  const [isDesktop, setIsDesktop] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return false;
+  });
 
   useEffect(() => {
     const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
@@ -95,6 +108,13 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
     window.addEventListener('resize', checkIsDesktop);
     return () => window.removeEventListener('resize', checkIsDesktop);
   }, []);
+
+  // Explicit variants declaring both x and y so mobile never inherits translateX from desktop
+  const panelVariants = {
+    hidden: isDesktop ? { x: '100%', y: 0 } : { y: '100%', x: 0 },
+    visible: { x: 0, y: 0 },
+    exit: isDesktop ? { x: '100%', y: 0 } : { y: '100%', x: 0 },
+  };
 
   return (
     <>
@@ -108,7 +128,7 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
         />
       )}
 
@@ -116,14 +136,23 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
       <motion.aside
         role="dialog"
         aria-label="Story Comments"
-        initial={isDesktop ? { x: '100%' } : { y: '100%' }}
-        animate={isDesktop ? { x: 0 } : { y: 0 }}
-        exit={isDesktop ? { x: '100%' } : { y: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        variants={panelVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+        drag={!isDesktop ? 'y' : false}
+        dragConstraints={{ top: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={(_e, info) => {
+          if (!isDesktop && (info.offset.y > 100 || info.velocity.y > 450)) {
+            onClose();
+          }
+        }}
         className={
           isDesktop
-            ? 'fixed inset-y-0 right-0 z-50 flex w-[380px] sm:w-[400px] flex-col border-l border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
-            : 'fixed inset-x-0 bottom-0 z-50 flex h-[70vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
+            ? 'fixed inset-y-0 right-0 z-[9999] flex w-[380px] sm:w-[420px] flex-col border-l border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
+            : 'fixed inset-x-0 bottom-0 z-[9999] flex h-[78vh] max-h-[85vh] flex-col rounded-t-3xl border-t border-white/15 bg-[#07090E] shadow-[0_-12px_40px_rgba(0,0,0,0.85)] overflow-hidden'
         }
       >
         {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
@@ -133,10 +162,10 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
 
-        {/* Mobile Swipe Handle */}
+        {/* Mobile Swipe / Drag Handle */}
         {!isDesktop && (
-          <div className="relative z-10 pt-3 pb-1 flex justify-center w-full shrink-0 bg-[#0F1117]/80 backdrop-blur-md">
-            <div className="h-1.5 w-12 rounded-full bg-white/20" />
+          <div className="relative z-10 pt-3 pb-2 flex justify-center w-full shrink-0 bg-[#0F1117]/90 backdrop-blur-md cursor-grab active:cursor-grabbing border-b border-white/5">
+            <div className="h-1.5 w-12 rounded-full bg-white/30" />
           </div>
         )}
 
