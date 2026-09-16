@@ -1,5 +1,5 @@
 // hooks/useComments.ts
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
 import type { Comment } from '@/types/youtube';
 
@@ -13,6 +13,10 @@ interface UseCommentsResult {
     addComment: (comment: Comment) => void; // ✅ Optimistic add
 }
 
+// YouTube video IDs are exactly 11 chars; Sawaflix IDs are UUIDs — skip the
+// YouTube comments API for native Sawaflix content to eliminate 404 spam.
+const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
+
 export function useComments(videoId: string | null): UseCommentsResult {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
@@ -21,7 +25,8 @@ export function useComments(videoId: string | null): UseCommentsResult {
     const [hasFetched, setHasFetched] = useState(false);
 
     const fetchComments = useCallback(async () => {
-        if (!videoId) return;
+        // Only fetch comments for YouTube videos — Sawaflix UUIDs are not on YT endpoints
+        if (!videoId || !isYouTubeId(videoId)) return;
 
         setLoading(true);
         setError(null);
@@ -37,6 +42,14 @@ export function useComments(videoId: string | null): UseCommentsResult {
         } finally {
             setLoading(false);
         }
+    }, [videoId]);
+
+    // Eager fetch as soon as a videoId is provided (e.g. the reel becomes
+    // active) — the drawer-open handler below still fetches as a fallback if
+    // this effect hasn't resolved yet.
+    useEffect(() => {
+        if (videoId) fetchComments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [videoId]);
 
     // Fetch when drawer opens

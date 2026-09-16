@@ -109,7 +109,7 @@ function UpdatePasswordContent() {
 
       setTimeout(async () => {
         await supabase.auth.signOut();
-        router.push('/login?message=password_updated_success');
+        router.push('/dashboard?message=password_updated_success');
       }, 2000);
 
     } catch (err) {
@@ -172,7 +172,7 @@ function UpdatePasswordContent() {
               <p className="text-red-400 text-sm font-medium">{error}</p>
               {(error.includes('expired') || error.includes('invalid') || error.includes('new password reset')) && (
                 <button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/dashboard')}
                   className="mt-2 text-red-300 hover:text-white underline text-xs font-medium transition-colors"
                 >
                   Request a new reset link
@@ -264,7 +264,7 @@ function UpdatePasswordContent() {
         {/* Back to login */}
         <div className="text-center pt-2 border-t border-gray-800">
           <button
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/dashboard')}
             className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium transition-colors"
           >
             <ArrowLeft size={14} />

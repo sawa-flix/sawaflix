@@ -17,6 +17,9 @@ const normalizeUrl = (url) => {
     const id = url.split('youtu.be/')[1].split('?')[0];
     return `https://www.youtube.com/watch?v=${id}`;
   }
+  if (url.includes('/api/admin/upload/stream/') && !/\.(mp3|mp4|wav|m4a)$/i.test(url)) {
+    return `${url}.mp3`;
+  }
   return url;
 };
 

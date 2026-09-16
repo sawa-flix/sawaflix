@@ -80,26 +80,64 @@ serwist.addEventListeners();
 // --- Web Push Notification Listeners ---
 
 self.addEventListener('push', function (event: PushEvent) {
-  if (event.data) {
-    const data = event.data.json();
+  if (!event.data) return;
 
-    const options = {
-      body: data.body,
-      icon: '/icons/icon-192x192.png', // Using the PWA logo as requested
-      data: { url: data.url },
+  try {
+    const data = event.data.json();
+    const notifId = data.id || `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    const options: NotificationOptions = {
+      body: data.body || data.message || 'New update on SawaFlix',
+      icon: data.icon || '/logos_and_pwas/android-chrome-192x192.png',
+      badge: '/logos_and_pwas/favicon-32x32.png',
+      image: data.image || data.thumbnail || undefined,
+      data: { 
+        url: data.url || '/dashboard',
+        id: notifId,
+        timestamp: Date.now()
+      },
       vibrate: [200, 100, 200],
+      // UNIQUE tag ensures independent notification display (no browser batching/blocking)
+      tag: `sawaflix-${notifId}`,
+      renotify: true,
+      requireInteraction: false,
     };
 
-    event.waitUntil(self.registration.showNotification(data.title, options));
+    // Update app badge if supported
+    if ('setAppBadge' in navigator) {
+      (navigator as any).setAppBadge().catch(() => {});
+    }
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'SawaFlix', options)
+    );
+  } catch (e) {
+    console.error('[SW] Error handling push event:', e);
   }
 });
 
 self.addEventListener('notificationclick', function (event: NotificationEvent) {
   event.notification.close();
-  
-  if (event.notification.data && event.notification.data.url) {
-    event.waitUntil(
-      self.clients.openWindow(event.notification.data.url)
-    );
+
+  // Clear app badge on click
+  if ('clearAppBadge' in navigator) {
+    (navigator as any).clearAppBadge().catch(() => {});
   }
+  
+  const targetUrl = event.notification.data?.url || '/dashboard';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client && 'url' in client && client.url.includes(self.location.origin)) {
+          if ('navigate' in client) {
+            (client as any).navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

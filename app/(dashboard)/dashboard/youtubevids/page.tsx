@@ -8,6 +8,7 @@ import {
   Send, X, Check, Loader2, ThumbsUp, ThumbsDown,
   Share2, ArrowLeft, Menu, Play
 } from 'lucide-react';
+import BrandLoader from '@/components/BrandLoader';
 import { youtubeApi } from '@/services/youtubeApi';
 import { useVideos } from '@/hooks/useVideos';
 import { useVideoStats } from '@/hooks/useVideoStats';
@@ -532,7 +533,7 @@ function CameroonReelsContent() {
 
 export default function CameroonReelsPage() {
   return (
-    <Suspense fallback={<div className="h-screen w-full bg-black flex items-center justify-center"><Loader2 className="animate-spin text-red-600" size={40} /></div>}>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-black"><BrandLoader /></div>}>
       <CameroonReelsContent />
     </Suspense>
   );

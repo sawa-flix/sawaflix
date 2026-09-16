@@ -43,10 +43,15 @@ const nextConfig = {
         /^react$/,
         (resource) => {
           const ctx = resource.context || '';
+          // Must use path.sep, not a hard-coded '/' — on Windows resource.context
+          // is backslash-separated, so the forward-slash check here silently
+          // never matched, the shim redirect never fired, and Sanity's real
+          // (unpatched) React import went through, breaking the entire
+          // production build with "'useEffectEvent' is not exported from 'react'".
           const isSanity =
-            ctx.includes('/node_modules/sanity') ||
-            ctx.includes('/node_modules/next-sanity') ||
-            ctx.includes('/node_modules/@sanity');
+            ctx.includes(`${path.sep}node_modules${path.sep}sanity`) ||
+            ctx.includes(`${path.sep}node_modules${path.sep}next-sanity`) ||
+            ctx.includes(`${path.sep}node_modules${path.sep}@sanity`);
           if (isSanity) {
             resource.request = path.resolve(__dirname, './lib/react-with-shim.cjs');
           }

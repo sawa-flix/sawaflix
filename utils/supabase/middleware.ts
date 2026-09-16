@@ -83,13 +83,13 @@ export async function updateSession(request: NextRequest) {
     console.error('Middleware getUser error:', error.message);
 
     // If the refresh token is stale/invalid, the cookie is corrupted.
-    // Clear it and redirect to login — otherwise the user gets stuck in an infinite loop.
+    // Clear it and redirect to the dashboard — otherwise the user gets stuck in an infinite loop.
     if (
       error.message.includes('refresh_token_not_found') ||
       error.message.includes('Invalid Refresh Token') ||
       error.message.includes('does not exist')
     ) {
-      const loginUrl = new URL('/login', request.url);
+      const loginUrl = new URL('/dashboard', request.url);
       const response = NextResponse.redirect(loginUrl);
       // Delete the stale auth cookie so the next visit is clean
       const authCookieName = `sb-${supabaseUrl.replace('https://', '').split('.')[0]}-auth-token`;
@@ -103,20 +103,18 @@ export async function updateSession(request: NextRequest) {
   // pathname is already extracted above
 
   const publicRoutes = [
-    "/login",
     "/sign-up",
     "/sign-in",
     "/verify-otp",
     "/auth/callback",
     "/update-password",
     "/forgot-password",
-    "/dashboard/blogs",
-    "/artistpage",
+    "/dashboard/reels",
     "/home",
     "/waiting-list"
   ];
   const publicExactRoutes = ["/dashboard"];
-  const authRoutes = ["/login", "/sign-up", "/sign-in", "/auth/callback"];
+  const authRoutes = ["/sign-up", "/sign-in", "/auth/callback"];
   
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || publicExactRoutes.includes(pathname);
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
@@ -135,9 +133,10 @@ export async function updateSession(request: NextRequest) {
   // 1. Not logged in
   if (!user) {
     if (isPublicRoute || pathname === '/' || pathname === '/favicon.ico') return supabaseResponse;
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = new URL("/dashboard", request.url);
+    redirectUrl.searchParams.set("loginRequired", "true");
     redirectUrl.searchParams.set("redirectedFrom", pathname);
-    if (isDev) console.log(`No user, redirecting to login from ${pathname}.`);
+    if (isDev) console.log(`No user, redirecting to dashboard from ${pathname}.`);
     return redirectWithCookies(redirectUrl);
   }
 

@@ -47,10 +47,14 @@ const NotificationPage = () => {
               unoptimized
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-              <span className="text-white/20 font-black text-4xl italic tracking-tighter">
-                {notification.actorName?.charAt(0) || 'S'}
-              </span>
+            <div className="w-full h-full bg-gradient-to-br from-[#1A1E29] to-[#0D1017] flex items-center justify-center p-3">
+              <Image
+                src="/logos_and_pwas/android-chrome-192x192.png"
+                alt="SawaFlix"
+                width={80}
+                height={80}
+                className="object-contain drop-shadow-lg opacity-80 group-hover:opacity-100 transition-opacity"
+              />
             </div>
           )}
           <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all flex items-center justify-center">

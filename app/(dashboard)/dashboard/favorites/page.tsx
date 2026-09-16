@@ -9,7 +9,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const getItemLink = (item: any) => {
-  if (item.type === 'reel') return `/dashboard/reels?videoId=${item.contentId}`;
   if (item.type === 'music') return `/dashboard/musicpage?id=${item.contentId}`;
   return `/video/${item.contentId}`; // Default for movies
 };
@@ -114,7 +113,7 @@ const EmptyState = () => (
     </div>
     <h3 className="text-2xl font-semibold text-white mb-2 tracking-tight">Your collection is empty</h3>
     <p className="text-white/50 max-w-sm mb-10 text-base leading-relaxed">
-      Discover the best of African cinema, music, and reels. Save your favorites to build a personalized library.
+      Discover the best of African cinema and music. Save your favorites to build a personalized library.
     </p>
     <Link href="/dashboard">
       <button className="px-8 py-3.5 bg-white text-black font-semibold text-sm rounded-full hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
@@ -137,7 +136,6 @@ const FavoritesPage = () => {
     { id: 'all', label: 'All' },
     { id: 'movie', label: 'Movies' },
     { id: 'music', label: 'Music' },
-    { id: 'reel', label: 'Reels' },
   ];
 
   if (loading) {
@@ -158,7 +156,7 @@ const FavoritesPage = () => {
             )}
           </h1>
           <p className="text-white/50 text-base max-w-2xl">
-            Your personal collection of saved movies, music, and reels.
+            Your personal collection of saved movies and music.
           </p>
         </div>
 

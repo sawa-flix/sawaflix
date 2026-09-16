@@ -66,15 +66,17 @@ export async function startVideoPreload(limit = 20): Promise<void> {
                     continue;
                 }
 
-                const chunks: Uint8Array[] = [];
+                const chunks: BlobPart[] = [];
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
 
                     if (value) {
-                        chunks.push(value);
-                        loaded += value.length;
+                        const array = value instanceof Uint8Array ? value : new Uint8Array(value);
+                        const buffer = array.buffer.slice(array.byteOffset, array.byteOffset + array.byteLength);
+                        chunks.push(buffer);
+                        loaded += array.length;
 
                         if (total) {
                             const percent = Math.floor((loaded / total) * 100);

@@ -47,7 +47,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex-shrink-0">
-            <SawaflixLogo />
+            <SawaflixLogo className="scale-[0.78] origin-left" />
           </div>
 
           {/* Desktop Links */}
@@ -79,10 +79,10 @@ export default function Navbar() {
             <ThemeToggle />
             {/* Red Sign In Button Feel */}
             <Link 
-              href="/login" 
-              className="bg-[#E50914] hover:bg-[#C11119] text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
+              href="/dashboard" 
+              className="border border-white/40 bg-white/15 hover:bg-white/25 text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
             >
-              Sign In
+              Get Started
             </Link>
           </div>
 
@@ -127,8 +127,8 @@ export default function Navbar() {
                   <ThemeToggle />
                 </div>
                 <Link
-                  href="/login"
-                  className="w-full text-center bg-[#E50914] text-white px-4 py-2.5 rounded font-bold transition-all"
+                  href="/dashboard"
+                  className="w-full text-center border border-white/30 bg-white/15 hover:bg-white/25 text-white px-4 py-2.5 rounded font-bold transition-all"
                   onClick={() => setIsOpen(false)}
                 >
                   Sign In

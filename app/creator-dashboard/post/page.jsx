@@ -4,7 +4,7 @@ import PostTypeSelector from "@/components/Dashboard/PostTypeSelector";
 
 export default async function PostSelectorPage() {
   const profile = await getUserProfile();
-  if (!profile) redirect("/login");
+  if (!profile) redirect("/dashboard");
 
   return <PostTypeSelector />;
 }

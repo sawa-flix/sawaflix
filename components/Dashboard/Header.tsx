@@ -1,14 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, User, Settings, ChevronDown, ArrowLeft, CheckCheck } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  Search, 
+  Bell, 
+  User, 
+  Settings, 
+  ChevronDown, 
+  ChevronRight, 
+  ArrowLeft, 
+  CheckCheck, 
+  Volume2, 
+  VolumeX, 
+  UserPlus, 
+  LogOut, 
+  Video, 
+  Film, 
+  Bookmark, 
+  Edit3, 
+  BookOpen, 
+  HelpCircle, 
+  ShieldCheck 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '../../utils/supabase/client'; 
-import { User as SupabaseUser } from '@supabase/supabase-js'; 
-import { handleSignOut } from '../../app/(auth)/actions'; 
+import { createClient } from '../../utils/supabase/client';
+import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
 import ThemeToggle from '../ThemeToggle';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
@@ -19,6 +40,14 @@ import { YouTubeApiService } from '../../services/youtubeApi';
 import { getStories } from '../../lib/sanity/queries';
 import { urlFor } from '../../lib/sanity/client';
 import { MOVIES_DATA } from '../Movie/constants';
+import { ReelsSearchBar } from '../reels/ReelsSearchBar';
+import { useAuthSession } from '../../hooks/useAuthSession';
+import { useAuthModal } from '../../contexts/AuthModalContext';
+import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
+import { useHomeSearchStore } from '@/store/homeSearchStore';
+import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import { useReelsMuteStore } from '@/store/reelsMuteStore';
+import { useSawaiStore } from '@/store/sawaiStore';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -28,51 +57,77 @@ type UserProfileData = {
   profile_image_url: string | null;
 };
 
-const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boolean; toggleSidebar: () => void; hideSearch?: boolean }) => {
+const Header = ({
+  sidebarOpen,
+  toggleSidebar,
+  hideSearch,
+  searchDisabled,
+  isReelsRoute,
+}: {
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  hideSearch?: boolean;
+  /** Suppresses the global search UI only — unlike hideSearch, doesn't switch notifications to admin context. Used on /dashboard/reels, which renders its own search (ReelsSearchBar) in this same slot instead. */
+  searchDisabled?: boolean;
+  /** Renders Reels' own search bar (via the shared store) in the slot the global search normally occupies. */
+  isReelsRoute?: boolean;
+}) => {
   const [searchValue, setSearchValue] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileSearchBar, setShowMobileSearchBar] = useState(false);
-  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
+  const { user: currentUser, isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<{videos: any[], stories: any[], movies: any[]}>({ videos: [], stories: [], movies: [] });
   const [isSearching, setIsSearching] = useState(false);
+  const { isMuted, toggleMute } = useReelsMuteStore();
+  const { toggleSawai } = useSawaiStore();
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
   const userNotificationContext = useNotifications();
   
-  const { notifications, unreadCount, markRead, markAllRead, handleNotificationClick } = hideSearch 
-    ? { ...adminNotificationContext, handleNotificationClick: () => {} } 
+  const { 
+    notifications, 
+    unreadCount, 
+    markRead, 
+    markAllRead, 
+    deleteNotification,
+    handleNotificationClick,
+    isSubscribed,
+    subscribe,
+    unsubscribe
+  } = hideSearch 
+    ? { ...adminNotificationContext, handleNotificationClick: () => {}, isSubscribed: true, subscribe: async () => true, unsubscribe: async () => {}, deleteNotification: () => {} } 
     : userNotificationContext;
 
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    if (!currentUser) {
+      setUserProfile(null);
+      return;
+    }
+
+    const fetchUserProfile = async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      setCurrentUser(user);
+      const { data: profileData, error } = await supabase
+        .from('users')
+        .select('username, email, profile_image_url')
+        .eq('id', currentUser.id)
+        .maybeSingle<UserProfileData>();
 
-      if (user) {
-        const { data: profileData, error } = await supabase
-          .from('users')
-          .select('username, email, profile_image_url')
-          .eq('id', user.id)
-          .single<UserProfileData>();
-
-        if (error) {
-          console.error('Error fetching user profile:', error.message);
-        } else if (profileData) {
-          setUserProfile(profileData);
-        }
+      if (error) {
+        console.error('Error fetching user profile:', error.message);
+      } else if (profileData) {
+        setUserProfile(profileData);
       }
     };
 
-    fetchUserData();
-  }, []);
+    fetchUserProfile();
+  }, [currentUser]);
 
   // Debounced Search Effect
   useEffect(() => {
@@ -120,6 +175,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
 
   // Keyboard shortcuts: Escape to close, ⌘K / Ctrl+K to open
   useEffect(() => {
+    if (searchDisabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSearchFocused) {
         setIsSearchFocused(false);
@@ -132,7 +188,7 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchFocused]);
+  }, [isSearchFocused, searchDisabled]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,66 +210,107 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
 
   return (
     <>
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[color:var(--background)]/40 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl">
-      <div className="flex items-center justify-between h-full pl-4 pr-4 sm:pr-6 lg:pr-8">
+    <header
+      className={
+        isReelsRoute
+          ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
+          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
+      }
+    >
+      {/* Phone-only compact bar for Reels (TikTok-style) */}
+      {isReelsRoute && (
+        <div className="flex md:hidden items-center h-full px-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Back"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+          >
+            <ArrowLeft size={16} />
+          </button>
+
+          <div className="flex flex-1 items-center justify-end">
+            <ReelsSearchBar floating />
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+            aria-pressed={!isMuted}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+          >
+            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          </button>
+        </div>
+      )}
+
+      <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
-            className="lg:hidden p-2 mr-2 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-[color:var(--background)]"
+            className="lg:hidden p-1.5 mr-1 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
-          <div className="flex items-center space-x-3 group">
-            <div className="hidden sm:block"></div>
-            <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="flex items-center space-x-2 group">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <SawaflixLogo />
             </Link>
           </div>
         </div>
 
-        {!hideSearch && (
-          <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+        {!hideSearch && !searchDisabled && (
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-lg mx-6 relative">
               <button
                 type="button"
                 onClick={() => setIsSearchFocused(true)}
-                className="w-full flex items-center justify-between pl-4 pr-4 py-2 bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl
-                           text-[color:var(--muted-foreground)] text-sm hover:border-[color:var(--foreground)]/30 hover:bg-[color:var(--surface-hover)]/60 transition-all duration-300 group"
+                className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl
+                           text-white/50 text-xs hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
               >
                 <div className="flex items-center">
-                  <Search className="text-[color:var(--muted-foreground)] mr-3 group-hover:text-[color:var(--foreground)] transition-colors" size={16} />
-                  <span>Search reels, videos, top stories...</span>
+                  <Search className="text-gray-500 mr-2.5 group-hover:text-white transition-colors" size={14} />
+                  <span>Search videos, top stories...</span>
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
-                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-[color:var(--muted-foreground)]/60 bg-[color:var(--surface)]/5 border border-[color:var(--border)] rounded">⌘</kbd>
-                  <kbd className="px-2 py-0.5 text-[10px] font-semibold text-[color:var(--muted-foreground)]/60 bg-[color:var(--surface)]/5 border border-[color:var(--border)] rounded">K</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
                 </div>
               </button>
             </div>
         )}
 
-        <div className="flex items-center space-x-2">
-          {!hideSearch && (
+        {isReelsRoute && <ReelsSearchBar />}
+
+        <div className="flex items-center space-x-1 sm:space-x-1.5">
+          {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
-              className="md:hidden p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
+              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
-              <Search size={18} />
+              <Search size={17} />
             </button>
           )}
 
           {/* Notifications Bell */}
           <div className="relative">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all relative group"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  openAuthModal('to view notifications');
+                  return;
+                }
+                setShowNotifications(!showNotifications);
+              }}
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer"
               aria-label="Notifications"
             >
-              <Bell size={20} className="group-hover:scale-110 transition-transform" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg shadow-red-600/20 animate-in zoom-in duration-300">
+              <Bell size={18} className="group-hover:scale-110 transition-transform" />
+              {isAuthenticated && isSubscribed && unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[14.5px] h-[14.5px] px-0.5 bg-[#E50914] text-white font-black rounded-full flex items-center justify-center text-[8px] shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-in zoom-in duration-300 pointer-events-none">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -244,70 +341,257 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                   }
                   setShowNotifications(false);
                 }}
+                onDismissItem={(id) => {
+                  deleteNotification(id);
+                }}
+                isSubscribed={isSubscribed}
+                onSubscribe={subscribe}
+                onUnsubscribe={unsubscribe}
                 accentColor={hideSearch ? "red" : "white"}
                 viewAllHref={hideSearch ? undefined : "/dashboard/notification"}
               />
             )}
           </div>
 
-          <ThemeToggle />
+          {/* Sawai AI Assistant */}
+          <button
+            type="button"
+            onClick={toggleSawai}
+            className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer flex items-center justify-center"
+            aria-label="Open Sawai Assistant"
+            title="Sawai AI"
+          >
+            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-white/20 group-hover:border-white/50 transition-all group-hover:scale-105 shadow-sm">
+              <Image
+                src="/logos_and_pwas/android-chrome-192x192.png"
+                alt="Sawai"
+                width={24}
+                height={24}
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
+          </button>
 
-          <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer">
-            <Settings size={18} />
-          </Link>
-
-
-          <div className="relative">
+          {isAuthenticated ? (
+            <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer" aria-label="Settings">
+              <Settings size={16} />
+            </Link>
+          ) : (
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center space-x-3 p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
-              aria-label="User profile menu"
+              onClick={() => openAuthModal('to access settings')}
+              className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              aria-label="Settings"
             >
-              {userProfile?.profile_image_url ? (
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[color:var(--border)] shadow-sm flex-shrink-0">
-                  <Image
-                    src={userProfile.profile_image_url}
-                    alt="User Avatar"
-                    fill
-                    className="object-cover aspect-square"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="w-8 h-8 bg-[color:var(--surface)] rounded-full flex items-center justify-center border border-[color:var(--border)] shadow-sm flex-shrink-0">
-                  <User size={14} className="text-[color:var(--muted-foreground)]" />
-                </div>
-              )}
-              <span className="hidden sm:block text-sm font-medium">
-                {userProfile?.username || currentUser?.email || 'Guest'}
-              </span>
-              <ChevronDown size={14} className={`hidden sm:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+              <Settings size={16} />
             </button>
+          )}
 
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-[color:var(--surface)] rounded-xl shadow-xl border border-[color:var(--border)] py-2 z-50">
-                <div className="px-4 py-2 border-b border-[color:var(--border)]">
-                  <p className="text-sm font-medium text-[color:var(--foreground)]">{userProfile?.username || 'Guest'}</p>
-                  <p className="text-xs text-[color:var(--muted-foreground)]">{currentUser?.email || 'N/A'}</p>
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
+                aria-label="User profile menu"
+              >
+                {userProfile?.profile_image_url ? (
+                  <div className="relative w-7 h-7 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0 group-hover:ring-white/60 transition-all">
+                    <Image
+                      src={userProfile.profile_image_url}
+                      alt="User Avatar"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-[11px] ring-2 ring-white/20 shadow-md flex-shrink-0">
+                    {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="hidden sm:flex flex-col text-left">
+                  <span className="text-[11.5px] font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[100px]">
+                    {userProfile?.username || currentUser?.email?.split('@')[0]}
+                  </span>
+                  <span className="text-[8px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
+                    Account
+                  </span>
                 </div>
-                <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                  Update Profile
-                </Link>
-                <a href="#" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                  Help & Support
-                </a>
-                <hr className="my-2 border-[color:var(--border)]" />
-                <form action={handleSignOut}>
-                  <button
-                    type="submit"
-                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+                <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showProfileMenu && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden"
                   >
-                    Sign Out
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
+                    {/* Top User Card Header */}
+                    <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
+                      {userProfile?.profile_image_url ? (
+                        <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0">
+                          <Image
+                            src={userProfile.profile_image_url}
+                            alt="Avatar"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
+                          {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white truncate leading-tight">
+                            {userProfile?.username || currentUser?.email?.split('@')[0]}
+                          </p>
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
+                        </div>
+                        <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
+                          {currentUser?.email || 'Logged in user'}
+                        </p>
+                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
+                          <span>Community Member</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="space-y-0.5 py-1">
+                      <Link 
+                        href="/dashboard/profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <User size={15} />
+                          </div>
+                          <span>My Profile</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/edit-profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <Edit3 size={15} />
+                          </div>
+                          <span>Edit Profile</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/favorites" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <Bookmark size={15} />
+                          </div>
+                          <span>Saved & Favorites</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/blogs" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <BookOpen size={15} />
+                          </div>
+                          <span>Stories & Dev.to Blogs</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/creator-dashboard" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <Video size={15} />
+                          </div>
+                          <span>Creator Studio</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <div className="my-1.5 border-t border-white/[0.06]" />
+
+                      <Link 
+                        href="/dashboard/settings" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <Settings size={15} />
+                          </div>
+                          <span>Settings</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+
+                      <Link 
+                        href="/dashboard/support" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                            <HelpCircle size={15} />
+                          </div>
+                          <span>Help & Support</span>
+                        </div>
+                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+                    </div>
+
+                    {/* Sign Out Button */}
+                    <div className="mt-1 pt-1.5 border-t border-white/[0.06]">
+                      <form action={handleSignOut}>
+                        <button
+                          type="submit"
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer"
+                        >
+                          <div className="p-1.5 rounded-lg bg-red-500/15 text-red-400">
+                            <LogOut size={15} />
+                          </div>
+                          <span className="font-bold text-red-400">Sign Out</span>
+                        </button>
+                      </form>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthModal('to create your account')}
+              aria-label="Sign up"
+              className="flex items-center justify-center rounded-xl bg-[#CE1126] text-white shadow-sm transition-all duration-200 hover:bg-red-700 cursor-pointer sm:bg-white sm:text-[#CE1126] sm:hover:bg-gray-100 sm:border sm:border-[#CE1126]/20 sm:px-4 sm:py-2.5 sm:shadow-md"
+            >
+              <UserPlus size={18} className="sm:mr-2" />
+              <span className="hidden sm:inline text-sm font-bold">Sign Up</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
@@ -453,28 +737,43 @@ const Header = ({ sidebarOpen, toggleSidebar, hideSearch }: { sidebarOpen: boole
                       {/* Videos Section */}
                       {searchResults.videos.length > 0 && (
                         <div className="mb-1">
-                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-[color:var(--muted-foreground)]">Videos & Reels</div>
+                          <div className="px-4 py-2 text-[10px] font-bold tracking-[0.15em] uppercase text-white/25">Videos</div>
                           {searchResults.videos.map((video: any, idx: number) => {
-                            const vId = typeof video.id === 'object' ? video.id.videoId : video.id;
-                            const thumb = video.snippet?.thumbnails?.default?.url || video.thumbnail;
-                            const title = video.snippet?.title || video.title;
-                            const channel = video.snippet?.channelTitle || video.channelTitle;
+                            // Same canonical mapper Reels itself uses — not a
+                            // second ad-hoc field-extraction implementation.
+                            const mapped = mapYoutubeItem(video);
                             return (
                               <button
-                                key={vId || idx}
+                                key={mapped.id || idx}
                                 onClick={() => {
                                   setIsSearchFocused(false);
+                                  // Doesn't play this video directly — shows
+                                  // the whole search's results in the home
+                                  // page's own Reels row (DashboardLanding),
+                                  // the same card style/location reels
+                                  // normally appear in. Picking a card from
+                                  // there is what actually opens it into the
+                                  // real Reels page.
+                                  useHomeSearchStore.setState({
+                                    query: searchValue,
+                                    results: searchResults.videos.map((v: any) => mapYoutubeItem(v)),
+                                  });
                                   setSearchValue('');
-                                  router.push(`/dashboard?q=${encodeURIComponent(title)}`);
+                                  // Same handoff the right sidebar uses: hand the
+                                  // already-fetched video straight to Reels so it
+                                  // opens playing, instead of just filtering the
+                                  // dashboard's own feed by title text.
+                                  stashReelForHandoff(mapped);
+                                  router.push(`/dashboard/reels?id=${encodeURIComponent(mapped.id)}`);
                                 }}
                                 className="flex items-center gap-3 w-full px-4 py-2 hover:bg-[color:var(--surface)]/10 transition-colors text-left group"
                               >
-                                <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-[color:var(--surface)]/10">
-                                  <Image src={thumb || '/images/bg1.jpg'} alt="Thumbnail" fill className="object-cover" unoptimized />
+                                <div className="w-14 h-9 sm:w-16 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+                                  <Image src={mapped.thumbnail} alt="Thumbnail" fill className="object-cover" unoptimized />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-[13px] font-semibold text-[color:var(--foreground)]/85 line-clamp-1 group-hover:text-[color:var(--foreground)] transition-colors">{title}</h4>
-                                  <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5">{channel}</p>
+                                  <h4 className="text-[13px] font-semibold text-white/80 line-clamp-1 group-hover:text-white transition-colors">{mapped.title}</h4>
+                                  <p className="text-[11px] text-white/30 truncate mt-0.5">{mapped.channelTitle}</p>
                                 </div>
                                 <ArrowLeft size={12} className="text-[color:var(--muted-foreground)]/50 group-hover:text-[color:var(--foreground)]/60 transition-colors rotate-180 flex-shrink-0" />
                               </button>

@@ -47,18 +47,19 @@ export const playbackService = {
         throw new Error(errorData.error || `Failed to fetch playback source (Status: ${res.status})`);
       }
 
-      const data = await res.json();
+      const responseData = await res.json();
+      const payload = responseData.data || responseData;
       
       return {
-        playbackUrl: data.playbackUrl,
+        playbackUrl: payload.video_url || payload.playbackUrl,
         restriction: {
-          mustPay: data.restriction?.mustPay ?? false,
-          limitSeconds: data.restriction?.limitSeconds ?? 0,
-          tier: data.restriction?.tier ?? 'free',
-          reason: data.restriction?.reason
+          mustPay: payload.restriction?.mustPay ?? false,
+          limitSeconds: payload.restriction?.limitSeconds ?? 0,
+          tier: payload.restriction?.tier ?? 'free',
+          reason: payload.restriction?.reason
         },
         assetId,
-        expiresAt: data.expiresAt || (Date.now() + 2 * 60 * 60 * 1000)
+        expiresAt: payload.expiresAt || (Date.now() + 2 * 60 * 60 * 1000)
       };
     } catch (err) {
       if (fallbackUrl) {

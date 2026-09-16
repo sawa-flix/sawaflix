@@ -4,11 +4,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Heart, MessageCircle, Share2, Eye, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Heart, MessageCircle, MessageSquare, Share2, Eye, Clock, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
 import { sanityFetch, urlFor } from "@/lib/sanity/client";
+import StoryInteractionBar from "@/components/AreaTory/StoryInteractionBar";
+import { CommentSidebarProvider, useCommentSidebar } from "@/components/AreaTory/CommentSidebarContext";
+
 
 interface StoryDetail {
   _id: string;
@@ -124,6 +127,38 @@ const fallbackStory: StoryDetail = {
   author: { _id: "a1", name: "Sawaflix Heritage Team", avatar: null, role: "Editorial", bio: "" },
 };
 
+const getYouTubeID = (url: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+const getYouTubeThumbnail = (url: string) => {
+  const id = getYouTubeID(url);
+  if (!id) return "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070";
+  return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
+};
+
+const getYouTubeEmbedUrl = (url: string) => {
+  const id = getYouTubeID(url);
+  return id ? `https://www.youtube.com/embed/${id}` : url;
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const getImageUrl = (image: any, fallback: string) => {
+  if (image?.asset) return urlFor(image).width(1600).height(900).fit('crop').url();
+  return fallback;
+};
+
 export default function BlogDetailsClient({ slug }: { slug: string }) {
   const router = useRouter();
 
@@ -133,24 +168,19 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
   const [hasMounted, setHasMounted] = useState(false);
   const [isPlayed, setIsPlayed] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
-
-  const getYouTubeID = (url: string) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  const getYouTubeThumbnail = (url: string) => {
-    const id = getYouTubeID(url);
-    if (!id) return "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070";
-    return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-  };
-
-  const getYouTubeEmbedUrl = (url: string) => {
-    const id = getYouTubeID(url);
-    return id ? `https://www.youtube.com/embed/${id}` : url;
-  };
+  const [stats, setStats] = useState<{
+    likesCount: number;
+    viewsCount: number;
+    commentsCount: number;
+    isLiked: boolean;
+    interactors?: Array<{ id: string; name: string; avatar: string }>;
+  }>({
+    likesCount: 0,
+    viewsCount: 0,
+    commentsCount: 0,
+    isLiked: false,
+    interactors: [],
+  });
 
   useEffect(() => {
     setHasMounted(true);
@@ -179,6 +209,44 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
         if (data) {
           setStory(data);
+          const storyKey = data._id || slug;
+
+          // Asynchronously register deduplicated view in Neon DB
+          fetch(`/api/stories/${encodeURIComponent(storyKey)}/view`, { method: 'POST' })
+            .then((r) => r.json())
+            .then((res) => {
+              if (typeof res?.viewsCount === 'number') {
+                setStats((prev) => ({ ...prev, viewsCount: res.viewsCount }));
+              }
+            })
+            .catch(() => {});
+
+          // Fetch consolidated stats from Neon DB
+          fetch(`/api/stories/${encodeURIComponent(storyKey)}/stats`)
+            .then((r) => r.json())
+            .then((res) => {
+              if (res && !res.error) {
+                setStats({
+                  likesCount: res.likesCount ?? data.likes ?? 0,
+                  viewsCount: res.viewsCount ?? data.views ?? 0,
+                  commentsCount: res.commentsCount ?? 0,
+                  isLiked: res.isLiked ?? false,
+                  interactors: res.interactors ?? [],
+                });
+              }
+            })
+            .catch(() => {});
+
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`read_sanity_story_${data._id}`, 'true');
+            if (data.slug?.current) {
+              localStorage.setItem(`read_sanity_story_${data.slug.current}`, 'true');
+            }
+            if (slug) {
+              localStorage.setItem(`read_sanity_story_${slug}`, 'true');
+            }
+          }
+
           if (data.category?._id) {
             const RELATED_QUERY = `*[_type == "story" && category._ref == $catId && _id != $currentId] | order(publishedAt desc)[0...3] {
               _id, title, slug, mainImage,
@@ -203,20 +271,6 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
     fetchStory();
   }, [slug]);
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const getImageUrl = (image: any, fallback: string) => {
-    if (image?.asset) return urlFor(image).width(1600).height(900).fit('crop').url();
-    return fallback;
-  };
 
   if (loading) {
     return (
@@ -244,7 +298,64 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white">
+    <CommentSidebarProvider
+      onUpdateStats={(storyId, updates) => {
+        setStats((prev) => ({
+          ...prev,
+          ...(updates.commentsCount !== undefined ? { commentsCount: updates.commentsCount } : {}),
+          ...(updates.likesCount !== undefined ? { likesCount: updates.likesCount } : {}),
+        }));
+      }}
+    >
+      <BlogDetailsContent
+        slug={slug}
+        story={story}
+        relatedStories={relatedStories}
+        stats={stats}
+        hasMounted={hasMounted}
+        isPlayed={isPlayed}
+        setIsPlayed={setIsPlayed}
+        isVideoLoading={isVideoLoading}
+        setIsVideoLoading={setIsVideoLoading}
+        router={router}
+      />
+    </CommentSidebarProvider>
+  );
+}
+
+function BlogDetailsContent({
+  slug,
+  story,
+  relatedStories,
+  stats,
+  hasMounted,
+  isPlayed,
+  setIsPlayed,
+  isVideoLoading,
+  setIsVideoLoading,
+  router,
+}: {
+  slug: string;
+  story: StoryDetail;
+  relatedStories: RelatedStory[];
+  stats: {
+    likesCount: number;
+    viewsCount: number;
+    commentsCount: number;
+    isLiked: boolean;
+    interactors?: Array<{ id: string; name: string; avatar: string }>;
+  };
+  hasMounted: boolean;
+  isPlayed: boolean;
+  setIsPlayed: (val: boolean) => void;
+  isVideoLoading: boolean;
+  setIsVideoLoading: (val: boolean) => void;
+  router: any;
+}) {
+  const { isOpen, toggle } = useCommentSidebar();
+
+  return (
+    <div className={`min-h-screen bg-[#0B0E14] text-white transition-all duration-300 ${isOpen ? 'lg:pr-[380px] xl:pr-[400px]' : ''}`}>
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 mb-6 text-gray-500 hover:text-white transition-all group cursor-pointer"
@@ -260,7 +371,7 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
               className="px-2 py-0.5 text-white text-[8px] font-black rounded-md uppercase tracking-[0.2em]"
               style={{ backgroundColor: story.category?.color || "#E50914" }}
             >
-              {story.category?.title || "Uncategorized"}
+              {story.category?.title || "Culture"}
             </span>
             <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
               <Clock className="w-3 h-3" />
@@ -296,21 +407,15 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-5">
-              <button className="flex items-center gap-1.5 group cursor-pointer">
-                <Heart className="w-4 h-4 text-gray-500 group-hover:text-red-500 transition-colors" />
-                <span className="text-xs font-bold text-gray-500 group-hover:text-white transition-colors">
-                  {(story.likes || 0).toLocaleString()}
-                </span>
-              </button>
-              <button className="flex items-center gap-1.5 group cursor-pointer">
-                <MessageCircle className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
-                <span className="text-xs font-bold text-gray-500 group-hover:text-white transition-colors">0</span>
-              </button>
-              <button className="flex items-center gap-1.5 group cursor-pointer">
-                <Share2 className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
-              </button>
-            </div>
+            <StoryInteractionBar
+              storyId={story._id || slug}
+              storyTitle={story.title}
+              initialLikes={stats.likesCount || story.likes || 0}
+              initialComments={stats.commentsCount || 0}
+              initialIsLiked={stats.isLiked}
+              initialInteractors={stats.interactors}
+            />
+
           </div>
         </div>
 
@@ -420,7 +525,42 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
           <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
             <Eye className="w-3.5 h-3.5" />
-            {(story.views || 0).toLocaleString()} Views
+            {(stats.viewsCount || story.views || 0).toLocaleString()} Views
+          </div>
+        </div>
+
+        {/* Discussions Trigger Card at the bottom of the story */}
+        <div className="mt-16 pt-8 border-t border-white/10">
+          <div className="bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  Discussions
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono font-bold">
+                    {stats.commentsCount}
+                  </span>
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  Join the conversation and read what fellow readers are saying.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
+              className={`px-5 py-2.5 rounded-full font-bold text-xs transition-all cursor-pointer shadow-md flex items-center gap-2 active:scale-95 shrink-0 ${
+                isOpen
+                  ? 'bg-white/15 text-white border border-white/30 hover:bg-white/20'
+                  : 'bg-white text-black hover:bg-white/90'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{isOpen ? 'Close Comments Panel' : 'Open Comments Panel'}</span>
+            </button>
           </div>
         </div>
 
@@ -454,6 +594,27 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
           </div>
         )}
       </article>
+
+      {/* Floating Quick-Toggle Comments Button when closed */}
+      {!isOpen && (
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2.5 px-4 py-3 rounded-full shadow-2xl bg-[#0F1117]/95 text-white border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-transparent transition-all cursor-pointer group"
+          aria-label="Open comments panel"
+          title="Open comments"
+        >
+          <MessageCircle className="w-4 h-4 text-white group-hover:text-black transition-colors" />
+          <span className="text-xs font-black uppercase tracking-wider font-mono">
+            {stats.commentsCount}
+          </span>
+        </motion.button>
+      )}
     </div>
   );
 }

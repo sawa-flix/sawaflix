@@ -18,7 +18,7 @@ export default async function CreatorVerifyPage() {
     const status = profile?.verificationStatus || 'none';
 
     if (!profile) {
-        redirect("/login");
+        redirect("/dashboard");
     }
 
     if (status === "pending") {

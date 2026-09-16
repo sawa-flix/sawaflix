@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { BACKEND_URL } from '@/lib/apiConfig';
 import { getVideoDetailsAction } from '@/app/actions/youtube';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
+
 
   if (!id) {
     return NextResponse.json({ error: 'Missing video ID' }, { status: 400 });
@@ -65,8 +66,8 @@ export async function GET(
           description: video.description,
           thumbnail: video.cover_url || video.thumbnail,
           videoUrl: video.media_url,
-          channelTitle: video.creator_name || 'SawaFlix Creator',
-          channelId: video.creator_id,
+          channelTitle: video.creator_name || 'SawaFlix',
+          channelId: video.creator_id || 'sawaflix',
           type: video.category || video.content_type || 'video',
           origin: 'sawaflix',
           publishedAt: video.created_at

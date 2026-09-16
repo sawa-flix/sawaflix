@@ -10,6 +10,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.63",
+    "@ai-sdk/react": "^4.0.95",
     "@lottiefiles/dotlottie-react": "^0.15.2",
     "@portabletext/react": "^6.0.3",
     "@prisma/adapter-neon": "^7.8.0",
@@ -26,6 +28,7 @@
     "@upstash/qstash": "^2.11.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
+    "ai": "^7.0.92",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
@@ -46,8 +49,10 @@
     "react-i18next": "^17.0.8",
     "react-icons": "^5.5.0",
     "react-is": "^19.2.4",
+    "react-markdown": "^10.1.0",
     "react-player": "^2.16.1",
     "recharts": "^3.8.0",
+    "remark-gfm": "^4.0.1",
     "sanity": "^5.22.0",
     "serwist": "^9.5.11",
     "styled-components": "^6.4.1",
@@ -55,7 +60,8 @@
     "swagger-ui-react": "^5.32.0",
     "uuid": "^11.1.0",
     "web-push": "^3.6.7",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -74,5 +80,18 @@
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "tree-sitter@0.21.1": true,
+    "tree-sitter@0.22.4": true,
+    "core-js-pure@3.49.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@7.8.0": true,
+    "tree-sitter-json@0.24.8": true,
+    "unrs-resolver@1.12.2": true,
+    "@prisma/engines@7.8.0": true,
+    "@tree-sitter-grammars/tree-sitter-yaml@0.7.1": true,
+    "@scarf/scarf": false
   }
 }

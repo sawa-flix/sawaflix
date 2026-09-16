@@ -4,8 +4,10 @@ import { AdminNotificationProvider } from '../contexts/AdminNotificationContext'
 import { NotificationProvider } from '../contexts/NotificationContext';
 import NextTopLoader from 'nextjs-toploader';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
+import PWASplashScreen from '@/components/PWASplashScreen';
 import NotificationPrompt from '@/components/NotificationPrompt';
-import ThemeProvider from '../components/ThemeProvider';
+import GoogleAuthProvider from '@/components/providers/GoogleAuthProvider';
+import SawaBot from '@/components/ChatBot/SawaBot';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
@@ -81,21 +83,34 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: [
+      { url: '/logos_and_pwas/favicon.ico' },
+      { url: '/logos_and_pwas/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logos_and_pwas/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/logos_and_pwas/favicon.ico',
+    apple: [
+      { url: '/logos_and_pwas/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+    ],
   },
   category: 'entertainment',
-  manifest: '/manifest.json?v=2',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Sawaflix',
+    title: 'sawaFlix',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#CE1126',
+  themeColor: '#FFFFFF',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -111,6 +126,14 @@ export default function RootLayout({
         }} />
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="preload" href="/logos_and_pwas/sawai.svg" as="image" type="image/svg+xml" fetchPriority="high" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logos_and_pwas/apple-touch-icon.png" />
+        <meta name="theme-color" content="#FFFFFF" />
+        <meta name="background-color" content="#FFFFFF" />
+        <meta name="msapplication-navbutton-color" content="#FFFFFF" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <script dangerouslySetInnerHTML={{
           __html: `
             window.deferredPrompt = null;
@@ -122,16 +145,18 @@ export default function RootLayout({
         }} />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider>
-          <style dangerouslySetInnerHTML={{__html: `
-            #nprogress .bar {
-              background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
-            }
-            #nprogress .peg {
-              box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
-            }
-          `}} />
-          <NextTopLoader color="transparent" showSpinner={false} />
+        <PWASplashScreen />
+        <style dangerouslySetInnerHTML={{__html: `
+          #nprogress .bar {
+            background: linear-gradient(90deg, #009639, #CE1126, #FCD116) !important;
+          }
+          #nprogress .peg {
+            box-shadow: 0 0 10px #FCD116, 0 0 5px #FCD116 !important;
+          }
+        `}} />
+
+        <NextTopLoader color="transparent" showSpinner={false} />
+        <GoogleAuthProvider>
           <AdminNotificationProvider>
             <NotificationProvider>
               {children}
@@ -139,7 +164,8 @@ export default function RootLayout({
           </AdminNotificationProvider>
           <PWAInstallPrompt />
           <NotificationPrompt />
-        </ThemeProvider>
+          <SawaBot />
+        </GoogleAuthProvider>
       </body>
     </html>
   )

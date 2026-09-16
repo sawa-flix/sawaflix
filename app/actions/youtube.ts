@@ -116,7 +116,11 @@ async function handleResponse(response: Response) {
             const errorData = await response.json();
             errorMessage = errorData.error || errorMessage;
         } catch {}
-        throw new Error(errorMessage);
+        // Attach the status so callers can tell a rate limit (429) apart from
+        // any other failure without parsing the message string.
+        const err = new Error(errorMessage) as Error & { status?: number };
+        err.status = response.status;
+        throw err;
     }
     return response.json();
 }
@@ -135,18 +139,130 @@ export async function getUnifiedFeedAction() {
     }
 }
 
+// Admin backend is only available when NEXT_PUBLIC_ADMIN_API_URL is explicitly set.
+// No localhost fallback — it's never running locally and causes ECONNREFUSED spam.
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.ADMIN_BACKEND_URL || '';
+
 export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
     const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
+    let youtubeFeed: any[] = [];
+    let paginationData: any = { current_page: page, next_page: page + 1 };
+
+    // 1. Fetch YouTube culture feed from the Render backend
     try {
-        const response = await fetchWithTimeout(url);
-        return handleResponse(response);
-    } catch (error: any) {
-        console.error('getCultureFeedAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE' || error.message.includes('fetch failed')) {
-            return { success: true, feed: [], pagination: { current_page: page, next_page: null } };
+        const response = await fetchWithTimeout(url, {}, 8000, 1);
+        const resJson = await handleResponse(response);
+        youtubeFeed = resJson?.feed || [];
+        if (resJson?.pagination) {
+            paginationData = resJson.pagination;
         }
-        throw error;
+    } catch (error: any) {
+        // 429 / quota / backend offline — silently degrade, Supabase will fill the feed
+        if (error.status !== 429 && error.status !== 500 &&
+            !error.message?.includes('Too Many Requests') &&
+            !error.message?.includes('quota') &&
+            error.code !== 'BACKEND_UNREACHABLE') {
+            console.warn('[getCultureFeedAction] Backend feed warning:', error.message);
+        }
     }
+
+    // 2. Fetch Sawaflix uploaded reels — only if admin backend URL is configured
+    let adminReels: any[] = [];
+    if (ADMIN_API_URL) {
+        try {
+            const adminRes = await fetchWithTimeout(`${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`, {}, 3000, 0);
+            if (adminRes.ok) {
+                const adminData = await adminRes.json();
+                if (adminData?.data && Array.isArray(adminData.data)) {
+                    adminReels = adminData.data;
+                }
+            }
+        } catch {
+            // Admin backend not available — silently skip
+        }
+    }
+
+    // Fallback: If admin backend endpoint didn't return reels, query Supabase directly
+    if (adminReels.length === 0) {
+        try {
+            const supabase = await createClient();
+            const { data: contents } = await supabase
+                .from('contents')
+                .select('*')
+                .eq('visibility', 'public')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (contents && contents.length > 0) {
+                adminReels = contents.map((c: any) => ({
+                    id: c.id,
+                    title: c.title,
+                    description: c.description,
+                    media_url: c.media_url || c.media_path,
+                    video_url: c.media_url || c.media_path,
+                    thumbnail_url: c.cover_url || c.thumbnail_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+                    author_name: 'SawaFlix',
+                    duration: c.duration || 38,
+                    origin: 'sawaflix',
+                    is_reel: true
+                }));
+            }
+        } catch (sbErr: any) {
+            console.warn('[getCultureFeedAction] Supabase contents fallback warning:', sbErr.message);
+        }
+    }
+
+    // Transform admin reels to feed items matching YouTube raw feed shape
+    const formattedAdminFeed = adminReels.map((ar: any) => ({
+        id: ar.id,
+        videoId: ar.id,
+        title: ar.title || 'SawaFlix Reel',
+        description: ar.description || '',
+        thumbnail: ar.thumbnail_url || ar.cover_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+        channelTitle: 'SawaFlix',
+        channelId: 'sawaflix',
+        channelAvatar: '/logos_and_pwas/android-chrome-192x192.png',
+        media_url: ar.media_url || ar.video_url,
+        video_url: ar.media_url || ar.video_url,
+        videoUrl: ar.media_url || ar.video_url,
+        embedUrl: ar.media_url || ar.video_url,
+        origin: 'sawaflix',
+        duration: ar.duration || 38,
+        statistics: {
+            viewCount: '1.4K',
+            likeCount: '328',
+            commentCount: '42'
+        }
+    }));
+
+    // 3. Blend / Interleave Admin Reels with YouTube culture videos!
+    let mergedFeed: any[] = [];
+    if (formattedAdminFeed.length > 0 && youtubeFeed.length > 0) {
+        let adminIdx = 0;
+        let ytIdx = 0;
+        // Prioritize admin reel at index 0, then 2 YouTube videos, then 1 admin reel, etc.
+        while (adminIdx < formattedAdminFeed.length || ytIdx < youtubeFeed.length) {
+            if (adminIdx < formattedAdminFeed.length) {
+                mergedFeed.push(formattedAdminFeed[adminIdx++]);
+            }
+            if (ytIdx < youtubeFeed.length) {
+                mergedFeed.push(youtubeFeed[ytIdx++]);
+            }
+            if (ytIdx < youtubeFeed.length) {
+                mergedFeed.push(youtubeFeed[ytIdx++]);
+            }
+        }
+    } else if (formattedAdminFeed.length > 0) {
+        mergedFeed = formattedAdminFeed;
+    } else {
+        mergedFeed = youtubeFeed.length > 0 ? youtubeFeed : MOCK_VIDEOS;
+    }
+
+    return {
+        success: true,
+        feed: mergedFeed,
+        pagination: paginationData
+    };
 }
 
 export async function searchVideosAction(
@@ -176,9 +292,12 @@ export async function searchVideosAction(
         });
         return handleResponse(response);
     } catch (error: any) {
-        console.error('searchVideosAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
-            // Return mock videos so the UI doesn't crash
+        // Gracefully handle quota exhaustion and rate limiting — never crash the dashboard
+        if (error.code === 'BACKEND_UNREACHABLE' ||
+            error.status === 429 ||
+            error.status === 500 ||
+            error.message?.includes('Too Many Requests') ||
+            error.message?.includes('quota')) {
             return { items: MOCK_VIDEOS, nextPageToken: null };
         }
         throw error;
@@ -190,10 +309,13 @@ export async function getVideoDetailsAction(videoId: string): Promise<VideoDetai
         throw new Error('Video ID cannot be empty');
     }
 
+    const token = await getAuthToken();
     const url = `${API_BASE_URL}/api/videos/external/youtube/${encodeURIComponent(videoId)}`;
-    
+
     try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+        });
         return handleResponse(response);
     } catch (error: any) {
         console.error('getVideoDetailsAction error:', error);

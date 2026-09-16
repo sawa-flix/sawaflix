@@ -4,7 +4,7 @@ import { getUserProfile } from "@/lib/getUserProfile";
 
 export default async function UploadPage() {
   const profile = await getUserProfile();
-  if (!profile) redirect("/login");
+  if (!profile) redirect("/dashboard");
 
   // Auto-redirect to their specific niche if approved
   const category = profile.category?.toLowerCase();

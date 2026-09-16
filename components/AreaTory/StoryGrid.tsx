@@ -1,304 +1,307 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { ArrowUpRight, Calendar, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { getStories, getCategories } from "@/lib/sanity/queries";
-import { urlFor } from "@/lib/sanity/client";
+import React, { useEffect, useState, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
+import StoryHorizontalRow from './StoryHorizontalRow';
+import { StoryItem } from './StoryCard';
+import { getStories, getCategories } from '@/lib/sanity/queries';
 
-interface SanityStory {
+interface CategoryItem {
   _id: string;
   title: string;
   slug: { current: string };
-  excerpt: string;
-  mainImage: any;
-  publishedAt: string;
-  readTime: string;
-  featured: boolean;
-  likes: number;
-  views: number;
-  category: {
-    _id: string;
-    title: string;
-    slug: { current: string };
-    color: string;
-  };
-  author: {
-    _id: string;
-    name: string;
-    avatar: any;
-    role: string;
-  };
+  color?: string;
 }
 
-interface SanityCategory {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  color: string;
-}
-
-// Fallback static stories for when Sanity is unavailable
-const fallbackStories = [
-  {
-    _id: "fallback-1",
-    title: "The Sacred Ngondo Festival: Spirits of the Wouri",
-    slug: { current: "ngondo-festival" },
-    category: { _id: "c1", title: "Culture", slug: { current: "culture" }, color: "#E50914" },
-    author: { _id: "a1", name: "Sawaflix Heritage Team", avatar: null, role: "Editorial" },
-    publishedAt: "2024-12-12T10:00:00Z",
-    mainImage: null,
-    excerpt: "Exploring the sacred communication with water spirits (Miengu) on the banks of the Wouri River.",
-    readTime: "6 min read",
-    featured: true,
-    likes: 1200,
-    views: 8900,
-  },
-  {
-    _id: "fallback-2",
-    title: "Sawaflix Originals: New Creators Program Launch",
-    slug: { current: "creators-program" },
-    category: { _id: "c2", title: "Announcement", slug: { current: "announcement" }, color: "#3B82F6" },
-    author: { _id: "a1", name: "Sawaflix Heritage Team", avatar: null, role: "Editorial" },
-    publishedAt: "2025-01-05T10:00:00Z",
-    mainImage: null,
-    excerpt: "We're investing in local talent to bring more authentic African stories to your screen.",
-    readTime: "4 min read",
-    featured: false,
-    likes: 890,
-    views: 5600,
-  },
+// Fixed category pill presets matching user screenshot
+const PRESET_PILLS = [
+  { id: 'for-you', label: 'For You', slug: 'for-you' },
+  { id: 'cinema', label: 'Cinema', slug: 'cinema' },
+  { id: 'music', label: 'Music', slug: 'music' },
+  { id: 'culture', label: 'Culture', slug: 'culture' },
+  { id: 'heritage', label: 'Heritage', slug: 'heritage' },
+  { id: 'tourism', label: 'Tourism', slug: 'tourism' },
+  { id: 'announcement', label: 'Announcement', slug: 'announcement' },
 ];
 
 export default function StoryGrid() {
-  const [stories, setStories] = useState<SanityStory[]>([]);
-  const [categories, setCategories] = useState<SanityCategory[]>([]);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [stories, setStories] = useState<StoryItem[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('for-you');
   const [loading, setLoading] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [statsMap, setStatsMap] = useState<
+    Record<string, { likesCount: number; viewsCount: number; commentsCount: number }>
+  >({});
 
+  // Fetch stories & categories
   useEffect(() => {
     let isMounted = true;
-    console.log("[StoryGrid] Mounting and fetching data...");
 
-    async function fetchData() {
+    async function loadData() {
       try {
         setLoading(true);
-        
-        // Fetch stories and categories with a timeout fallback
-        const storiesPromise = getStories();
-        const categoriesPromise = getCategories();
-        
-        const [storiesData, categoriesData] = await Promise.all([
-          storiesPromise,
-          categoriesPromise,
-        ]);
 
-        console.log(`[StoryGrid] Fetched ${storiesData?.length || 0} stories and ${categoriesData?.length || 0} categories.`);
+        // Try direct sanityFetch first, or fallback to internal API route
+        let storiesData: StoryItem[] | null = null;
+        let categoriesData: CategoryItem[] | null = null;
+
+        try {
+          const [s, c] = await Promise.all([getStories(), getCategories()]);
+          storiesData = s;
+          categoriesData = c;
+        } catch (sanityErr) {
+          console.warn('[StoryGrid] Direct sanity query failed, trying API route:', sanityErr);
+          const res = await fetch('/api/stories').then((r) => r.json()).catch(() => null);
+          if (res?.stories) {
+            storiesData = res.stories;
+            categoriesData = res.categories;
+          }
+        }
 
         if (isMounted) {
           if (storiesData && storiesData.length > 0) {
             setStories(storiesData);
-          } else {
-            console.warn("[StoryGrid] No stories found in Sanity, using fallbacks.");
-            setStories(fallbackStories);
+
+            // Fetch live stats from Neon DB
+            const storyIds = storiesData.map((s) => s._id);
+            fetch('/api/stories/batch-stats', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ storyIds }),
+            })
+              .then((r) => r.json())
+              .then((data) => {
+                if (isMounted && data?.stats) {
+                  setStatsMap(data.stats);
+                }
+              })
+              .catch(() => {});
           }
-          
-          if (categoriesData) {
+
+          if (categoriesData && categoriesData.length > 0) {
             setCategories(categoriesData);
           }
         }
-      } catch (error) {
-        console.error("[StoryGrid] Error during fetch:", error);
-        if (isMounted) setStories(fallbackStories);
+      } catch (err) {
+        console.error('[StoryGrid] Fetch error:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
     }
 
-    fetchData();
-    return () => { isMounted = false; };
+    loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Filter stories by active category
-  const filteredStories =
-    activeCategory === "all"
-      ? stories
-      : stories.filter(
-          (s) => s.category?.slug?.current === activeCategory
-        );
+  // Merge categories from Sanity with any extra categories present in stories
+  const allCategoryPills = useMemo(() => {
+    const list = [{ id: 'for-you', label: 'For You', slug: 'for-you' }];
+    const seen = new Set(['for-you']);
 
-  const displayedStories = filteredStories.slice(0, visibleCount);
-
-  // Format date
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+    // Add preset pills first if matching categories exist
+    PRESET_PILLS.forEach((p) => {
+      if (!seen.has(p.slug)) {
+        seen.add(p.slug);
+        list.push({ id: p.id, label: p.label, slug: p.slug });
+      }
     });
-  };
 
-  // Get image URL or fallback
-  const getImageUrl = (image: any, fallbackIndex: number) => {
-    if (image?.asset) {
-      return urlFor(image).width(800).height(500).fit('crop').url();
+    // Add any dynamic categories from Sanity
+    categories.forEach((cat) => {
+      const slug = cat.slug?.current || cat.title.toLowerCase();
+      if (!seen.has(slug)) {
+        seen.add(slug);
+        list.push({ id: cat._id, label: cat.title, slug });
+      }
+    });
+
+    return list;
+  }, [categories]);
+
+  // Group stories by category
+  const categorizedStories = useMemo(() => {
+    const map: Record<string, { title: string; stories: StoryItem[] }> = {
+      cinema: { title: 'Cinema & Movies', stories: [] },
+      music: { title: 'Music & Sounds', stories: [] },
+      culture: { title: 'Culture & Traditions', stories: [] },
+      heritage: { title: 'Heritage & History', stories: [] },
+      tourism: { title: 'Tourism & Travel', stories: [] },
+      announcement: { title: 'Announcements & Community', stories: [] },
+    };
+
+    stories.forEach((story) => {
+      const catSlug = story.category?.slug?.current?.toLowerCase();
+      if (catSlug && map[catSlug]) {
+        map[catSlug].stories.push(story);
+      } else if (catSlug) {
+        if (!map[catSlug]) {
+          map[catSlug] = {
+            title: story.category?.title || catSlug.charAt(0).toUpperCase() + catSlug.slice(1),
+            stories: [],
+          };
+        }
+        map[catSlug].stories.push(story);
+      }
+    });
+
+    return map;
+  }, [stories]);
+
+  // Handle pill click
+  const handlePillClick = (slug: string) => {
+    setActiveCategory(slug);
+    if (slug === 'for-you') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const target = document.getElementById(`section-${slug}`);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-    const fallbacks = [
-      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2070&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1514525253361-bee8718a74a2?q=80&w=1964&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1526218626217-dc65a29bb444?q=80&w=1974&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop",
-    ];
-    return fallbacks[fallbackIndex % fallbacks.length];
   };
 
   return (
-    <section className="py-24 bg-[#0B0E14] relative overflow-hidden">
-      {/* Abstract Background Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-600/5 blur-[120px] rounded-full" />
-
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative z-30">
-          <div>
-            <h2 className="text-xl md:text-2xl font-black text-white mb-2 tracking-tighter">
-              Latest stories
-            </h2>
-            <p className="text-gray-500 text-sm font-medium max-w-lg">
-              Stay updated with cultural insights, community news, and cinematic releases.
-            </p>
-          </div>
-          <div className="flex gap-3 flex-wrap">
+    <div className="space-y-10 pb-20">
+      {/* Top Category Filter Pills — Single horizontal row, sleek dark style */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 px-0.5 select-none">
+        {allCategoryPills.map((pill) => {
+          const isActive = activeCategory === pill.slug;
+          return (
             <button
-              onClick={() => { setActiveCategory("all"); setVisibleCount(6); }}
-              className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
-                activeCategory === "all"
-                  ? "border-white text-white bg-white/10"
-                  : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
+              key={pill.id}
+              onClick={() => handlePillClick(pill.slug)}
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                isActive
+                  ? 'bg-white text-black shadow-md shadow-white/10 font-bold'
+                  : 'bg-[#161822] text-zinc-400 border border-white/5 hover:border-white/20 hover:text-white hover:bg-[#1c1f2c]'
               }`}
             >
-              All
+              {pill.label}
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat._id}
-                onClick={() => { 
-                  if (cat.slug?.current) {
-                    setActiveCategory(cat.slug.current); 
-                    setVisibleCount(6); 
-                  }
-                }}
-                className={`px-4 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-300 cursor-pointer tracking-widest ${
-                  activeCategory === (cat.slug?.current || "")
-                    ? "border-white text-white bg-white/10"
-                    : "border-white/10 text-gray-400 hover:border-white/40 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {cat.title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
-            <span className="ml-3 text-gray-400 text-sm font-medium">Loading stories...</span>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredStories.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-sm">No stories found in this category yet.</p>
-          </div>
-        )}
-
-        {/* Story Grid */}
-        {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedStories.map((story, index) => (
-              <div
-                key={story._id}
-                className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all"
-              >
-                {/* Image Container */}
-                <div className="relative h-48 overflow-hidden">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${getImageUrl(story.mainImage, index)})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-50" />
-
-                  {/* Category Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span
-                      className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md tracking-widest backdrop-blur-md"
-                      style={{ backgroundColor: (story.category?.color || "#E50914") + "E6" }}
-                    >
-                      {story.category?.title || "Uncategorized"}
-                    </span>
-                  </div>
-
-                  {/* Featured badge */}
-                  {story.featured && (
-                    <div className="absolute top-3 right-3">
-                      <span className="px-2 py-0.5 bg-yellow-500/90 text-black text-[9px] font-bold rounded-md tracking-widest">
-                        Featured
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-center gap-3 text-gray-500 text-[9px] font-bold tracking-widest mb-3">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-2.5 h-2.5" />
-                      {formatDate(story.publishedAt)}
-                    </div>
-                    <div className="w-1 h-1 rounded-full bg-gray-700" />
-                    <span>{story.readTime || "5 min read"}</span>
-                  </div>
-
-                  <h3 className="text-base font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug">
-                    {story.title}
-                  </h3>
-
-                  <p className="text-gray-400 text-[11px] font-medium line-clamp-2 mb-4 leading-relaxed opacity-80">
-                    {story.excerpt}
-                  </p>
-
-                  <Link
-                    href={`/dashboard/blogs/${story.slug?.current || story._id}`}
-                    className="flex items-center gap-2 text-white font-bold text-[10px] tracking-widest group/link cursor-pointer hover:text-red-500 transition-colors"
-                  >
-                    Read story
-                    <ArrowUpRight className="w-3 h-3 transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Load More Button */}
-        {!loading && filteredStories.length > visibleCount && (
-          <div className="flex justify-center mt-12">
-            <button
-              onClick={() => setVisibleCount((prev) => prev + 6)}
-              className="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] tracking-widest hover:bg-white hover:text-black hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-            >
-              Load more stories
-            </button>
-          </div>
-        )}
+          );
+        })}
       </div>
-    </section>
+
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-24 space-y-3">
+          <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
+          <p className="text-zinc-500 text-xs font-medium tracking-wide">
+            Loading stories from Area Tory...
+          </p>
+        </div>
+      )}
+
+      {/* No stories empty state */}
+      {!loading && stories.length === 0 && (
+        <div className="text-center py-20 bg-[#12141C] border border-white/5 rounded-2xl p-8">
+          <h3 className="text-white font-bold text-base mb-1">No stories available</h3>
+          <p className="text-zinc-500 text-xs">
+            Stories will appear here once published from the admin panel.
+          </p>
+        </div>
+      )}
+
+      {/* Stacked Categorized Sections */}
+      {!loading && stories.length > 0 && (
+        <div className="space-y-12">
+          {/* Section 1: Top Stories (Latest Stories from Admin) */}
+          <StoryHorizontalRow
+            id="section-top-stories"
+            title="Top Stories"
+            subtitle="Stay updated with what matters in our culture, community and country."
+            stories={stories.slice(0, 16)}
+            statsMap={statsMap}
+          />
+
+          {/* Section 2: Cinema */}
+          {categorizedStories.cinema?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-cinema"
+              title={categorizedStories.cinema.title}
+              subtitle="Behind the scenes, premieres, and the rise of Cameroonian cinema."
+              stories={categorizedStories.cinema.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Section 3: Music */}
+          {categorizedStories.music?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-music"
+              title={categorizedStories.music.title}
+              subtitle="Sounds, artists, and musical journeys from across Cameroon."
+              stories={categorizedStories.music.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Section 4: Culture */}
+          {categorizedStories.culture?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-culture"
+              title={categorizedStories.culture.title}
+              subtitle="Preserving identity, traditions, and sacred cultural celebrations."
+              stories={categorizedStories.culture.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Section 5: Heritage */}
+          {categorizedStories.heritage?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-heritage"
+              title={categorizedStories.heritage.title}
+              subtitle="Historical deep dives and generational wisdom."
+              stories={categorizedStories.heritage.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Section 6: Tourism */}
+          {categorizedStories.tourism?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-tourism"
+              title={categorizedStories.tourism.title}
+              subtitle="Discover breathtaking destinations and cultural landmarks."
+              stories={categorizedStories.tourism.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Section 7: Announcement */}
+          {categorizedStories.announcement?.stories.length > 0 && (
+            <StoryHorizontalRow
+              id="section-announcement"
+              title={categorizedStories.announcement.title}
+              subtitle="Official announcements, community updates, and creator programs."
+              stories={categorizedStories.announcement.stories}
+              statsMap={statsMap}
+            />
+          )}
+
+          {/* Additional dynamic categories if any */}
+          {Object.entries(categorizedStories).map(([slug, cat]) => {
+            if (
+              ['cinema', 'music', 'culture', 'heritage', 'tourism', 'announcement'].includes(slug) ||
+              cat.stories.length === 0
+            ) {
+              return null;
+            }
+            return (
+              <StoryHorizontalRow
+                key={slug}
+                id={`section-${slug}`}
+                title={cat.title}
+                stories={cat.stories}
+                statsMap={statsMap}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

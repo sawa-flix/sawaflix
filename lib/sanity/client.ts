@@ -17,10 +17,18 @@ export const sanityClient = createClient({
 });
 
 // Image URL builder
-const builder = createImageUrlBuilder(sanityClient);
-
 export function urlFor(source: any) {
-  return builder.image(source);
+  try {
+    const builder = typeof createImageUrlBuilder === 'function'
+      ? createImageUrlBuilder(sanityClient)
+      : (createImageUrlBuilder as any)?.default?.(sanityClient);
+    return builder.image(source);
+  } catch {
+    return {
+      width: () => ({ height: () => ({ fit: () => ({ url: () => '' }), url: () => '' }), url: () => '' }),
+      url: () => '',
+    } as any;
+  }
 }
 
 // Direct fetch helper (bypasses @sanity/client if it has issues)
@@ -36,7 +44,12 @@ export async function sanityFetch(query: string, params: Record<string, any> = {
 
     try {
       const encodedQuery = encodeURIComponent(query);
-      const url = `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodedQuery}`;
+      let url = `https://${PROJECT_ID}.api.sanity.io/v${API_VERSION}/data/query/${DATASET}?query=${encodedQuery}`;
+      if (params && typeof params === "object") {
+        for (const [key, val] of Object.entries(params)) {
+          url += `&$${key}=${encodeURIComponent(JSON.stringify(val))}`;
+        }
+      }
       
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);

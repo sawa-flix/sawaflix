@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     // Temporarily disabled per user request to "forget about middleware logic for now"
     /*
     if (!authenticated || role !== 'admin') {
-        redirect('/login?error=Unauthorized+access');
+        redirect('/dashboard?error=Unauthorized+access');
     }
     */
 
