@@ -1,6 +1,6 @@
-// hooks/useComments.ts
 import { useState, useCallback, useEffect } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
+import { videoInteractivityService } from '@/services/videoInteractivityService';
 import type { Comment } from '@/types/youtube';
 
 interface UseCommentsResult {
@@ -10,11 +10,10 @@ interface UseCommentsResult {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
     refetch: () => Promise<void>;
-    addComment: (comment: Comment) => void; // ✅ Optimistic add
+    addComment: (comment: Comment) => void;
+    toggleCommentLike: (commentId: string, isReply?: boolean, parentId?: string) => Promise<void>;
 }
 
-// YouTube video IDs are exactly 11 chars; Sawaflix IDs are UUIDs — skip the
-// YouTube comments API for native Sawaflix content to eliminate 404 spam.
 const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
 
 export function useComments(videoId: string | null): UseCommentsResult {
@@ -25,15 +24,42 @@ export function useComments(videoId: string | null): UseCommentsResult {
     const [hasFetched, setHasFetched] = useState(false);
 
     const fetchComments = useCallback(async () => {
-        // Only fetch comments for YouTube videos — Sawaflix UUIDs are not on YT endpoints
-        if (!videoId || !isYouTubeId(videoId)) return;
+        if (!videoId) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            const commentsList = await youtubeApi.getVideoComments(videoId);
-            setComments(commentsList);
+            if (isYouTubeId(videoId)) {
+                const commentsList = await youtubeApi.getVideoComments(videoId);
+                setComments(commentsList);
+            } else {
+                const data = await videoInteractivityService.getComments(videoId);
+                const mapped: Comment[] = (data.comments || []).map((c: any) => ({
+                    id: c.id,
+                    author: c.userName || 'Community Member',
+                    authorProfileImage: c.userAvatar || '',
+                    text: c.content,
+                    likeCount: c.likesCount || 0,
+                    publishedAt: c.createdAt,
+                    isLikedByMe: c.isLikedByMe,
+                    userRole: c.userRole,
+                    parentId: c.parentId,
+                    replies: (c.replies || []).map((r: any) => ({
+                        id: r.id,
+                        author: r.userName || 'Community Member',
+                        authorProfileImage: r.userAvatar || '',
+                        text: r.content,
+                        likeCount: r.likesCount || 0,
+                        publishedAt: r.createdAt,
+                        isLikedByMe: r.isLikedByMe,
+                        userRole: r.userRole,
+                        parentId: r.parentId,
+                    })),
+                    repliesCount: c.repliesCount || (c.replies ? c.replies.length : 0),
+                }));
+                setComments(mapped);
+            }
             setHasFetched(true);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch comments';
@@ -44,15 +70,10 @@ export function useComments(videoId: string | null): UseCommentsResult {
         }
     }, [videoId]);
 
-    // Eager fetch as soon as a videoId is provided (e.g. the reel becomes
-    // active) — the drawer-open handler below still fetches as a fallback if
-    // this effect hasn't resolved yet.
     useEffect(() => {
         if (videoId) fetchComments();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [videoId]);
+    }, [videoId, fetchComments]);
 
-    // Fetch when drawer opens
     const handleSetIsOpen = useCallback((open: boolean) => {
         setIsOpen(open);
         if (open && !hasFetched) {
@@ -60,16 +81,70 @@ export function useComments(videoId: string | null): UseCommentsResult {
         }
     }, [fetchComments, hasFetched]);
 
-    // Refetch function for manual refresh
     const refetch = useCallback(async () => {
-        setHasFetched(false); // Reset so it fetches again
+        setHasFetched(false);
         await fetchComments();
     }, [fetchComments]);
 
-    // Optimistic add — prepend the new comment to the top of the list immediately
     const addComment = useCallback((comment: Comment) => {
-        setComments(prev => [comment, ...prev]);
+        setComments(prev => {
+            if (comment.parentId) {
+                return prev.map(c => {
+                    if (c.id === comment.parentId) {
+                        const nextReplies = [...(c.replies || []), comment];
+                        return {
+                            ...c,
+                            replies: nextReplies,
+                            repliesCount: nextReplies.length,
+                        };
+                    }
+                    return c;
+                });
+            }
+            return [comment, ...prev];
+        });
     }, []);
+
+    const toggleCommentLike = useCallback(async (commentId: string, isReply = false, parentId?: string) => {
+        setComments(prev =>
+            prev.map(c => {
+                if (!isReply && c.id === commentId) {
+                    const nextLiked = !c.isLikedByMe;
+                    return {
+                        ...c,
+                        isLikedByMe: nextLiked,
+                        likeCount: Math.max(0, (c.likeCount || 0) + (nextLiked ? 1 : -1)),
+                    };
+                }
+                if (isReply && c.id === parentId) {
+                    return {
+                        ...c,
+                        replies: (c.replies || []).map(r => {
+                            if (r.id === commentId) {
+                                const nextLiked = !r.isLikedByMe;
+                                return {
+                                    ...r,
+                                    isLikedByMe: nextLiked,
+                                    likeCount: Math.max(0, (r.likeCount || 0) + (nextLiked ? 1 : -1)),
+                                };
+                            }
+                            return r;
+                        }),
+                    };
+                }
+                return c;
+            })
+        );
+
+        if (videoId && !isYouTubeId(videoId)) {
+            try {
+                await videoInteractivityService.toggleCommentLike(commentId);
+            } catch (err) {
+                console.error('[useComments] toggleCommentLike failed:', err);
+                fetchComments();
+            }
+        }
+    }, [videoId, fetchComments]);
 
     return {
         comments,
@@ -79,5 +154,6 @@ export function useComments(videoId: string | null): UseCommentsResult {
         setIsOpen: handleSetIsOpen,
         refetch,
         addComment,
+        toggleCommentLike,
     };
 }

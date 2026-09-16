@@ -93,3 +93,102 @@ model StoryStats {
   updatedAt     DateTime @updatedAt
 }
 
+// ==========================================
+// 6. VIDEO LIKES (Unique per User & Video)
+// ==========================================
+model VideoLike {
+  id        String   @id @default(cuid())
+  videoId   String   // Canonical Video / Content ID
+  userId    String   // Supabase Auth User UUID
+  origin    String   @default("sawaflix") // 'sawaflix' | 'youtube'
+  createdAt DateTime @default(now())
+
+  @@unique([videoId, userId])
+  @@index([videoId])
+  @@index([userId])
+}
+
+// ==========================================
+// 7. VIDEO COMMENTS (Threaded & Moderated)
+// ==========================================
+model VideoComment {
+  id         String             @id @default(cuid())
+  videoId    String             // Canonical Video / Content ID
+  userId     String             // Supabase Auth User UUID
+  userName   String
+  userAvatar String?
+  userRole   String             @default("viewer") // 'viewer' | 'creator' | 'admin' | 'verified'
+  content    String             @db.Text
+  parentId   String?            // Enables nested replies ("comment on comment")
+  isPinned   Boolean            @default(false)
+  isDeleted  Boolean            @default(false) // Soft-delete for admin moderation
+  likesCount Int                @default(0)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  parent     VideoComment?      @relation("VideoCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    VideoComment[]     @relation("VideoCommentReplies")
+  likes      VideoCommentLike[]
+
+  @@index([videoId])
+  @@index([parentId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ==========================================
+// 8. UPVOTES ON COMMENTS
+// ==========================================
+model VideoCommentLike {
+  id        String       @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime     @default(now())
+
+  comment   VideoComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+// ==========================================
+// 9. VIDEO SHARES
+// ==========================================
+model VideoShare {
+  id        String   @id @default(cuid())
+  videoId   String
+  userId    String?  // Optional: User might share while logged out
+  platform  String   @default("web_share") // 'whatsapp' | 'twitter' | 'copy_link' | 'native'
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+}
+
+// ==========================================
+// 10. VIDEO DOWNLOADS
+// ==========================================
+model VideoDownload {
+  id        String   @id @default(cuid())
+  videoId   String
+  userId    String?
+  mode      String   @default("direct_file") // 'direct_file' | 'offline_vault'
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+}
+
+// ==========================================
+// 11. INSTANT DENORMALIZED COUNTERS (O(1) Reads)
+// ==========================================
+model VideoStats {
+  videoId        String   @id
+  likesCount     Int      @default(0)
+  commentsCount  Int      @default(0)
+  sharesCount    Int      @default(0)
+  downloadsCount Int      @default(0)
+  viewsCount     Int      @default(0)
+  updatedAt      DateTime @updatedAt
+}
+
+

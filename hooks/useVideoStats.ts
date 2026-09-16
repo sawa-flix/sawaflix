@@ -1,6 +1,6 @@
-// hooks/useVideoStats.ts
 import { useState, useEffect, useCallback } from 'react';
 import { youtubeApi } from '@/services/youtubeApi';
+import { videoInteractivityService } from '@/services/videoInteractivityService';
 import type { VideoDetails } from '@/types/youtube';
 
 interface UseVideoStatsResult {
@@ -10,8 +10,6 @@ interface UseVideoStatsResult {
     refetch: () => Promise<void>;
 }
 
-// YouTube video IDs are exactly 11 chars; Sawaflix IDs are UUIDs — skip the
-// YouTube external API for native Sawaflix content to eliminate 404 spam.
 const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
 
 export function useVideoStats(videoId: string | null): UseVideoStatsResult {
@@ -20,15 +18,35 @@ export function useVideoStats(videoId: string | null): UseVideoStatsResult {
     const [error, setError] = useState<string | null>(null);
 
     const fetchStats = useCallback(async () => {
-        // Only fetch stats for YouTube videos — Sawaflix UUIDs are not on YT endpoints
-        if (!videoId || !isYouTubeId(videoId)) return;
+        if (!videoId) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            const details = await youtubeApi.getVideoDetails(videoId);
-            setStats(details);
+            if (isYouTubeId(videoId)) {
+                // YouTube external video details
+                const details = await youtubeApi.getVideoDetails(videoId);
+                setStats(details);
+            } else {
+                // Native SawaFlix / Admin-uploaded video details from Neon Postgres
+                const neonStats = await videoInteractivityService.getStats(videoId);
+                if (neonStats) {
+                    setStats({
+                        id: videoId,
+                        title: '',
+                        viewCount: String(neonStats.viewsCount ?? 0),
+                        likeCount: String(neonStats.likesCount ?? 0),
+                        commentCount: String(neonStats.commentsCount ?? 0),
+                        duration: '',
+                        publishedAt: '',
+                        isLiked: Boolean(neonStats.isLikedByUser),
+                        sharesCount: neonStats.sharesCount,
+                        downloadsCount: neonStats.downloadsCount,
+                        interactors: neonStats.interactors,
+                    });
+                }
+            }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch stats';
             setError(errorMessage);

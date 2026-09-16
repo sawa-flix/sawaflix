@@ -1,6 +1,6 @@
 import { createClient } from '../utils/supabase/client';
 
-export type LikeContentType = 'youtube_video' | 'movie' | 'music' | 'story';
+export type LikeContentType = 'youtube_video' | 'movie' | 'music' | 'story' | 'video';
 
 /**
  * Real, persisted likes — backs ProfileStats.likesReceived (and a "likes
