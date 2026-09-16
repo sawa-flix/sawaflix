@@ -40,7 +40,7 @@ export default function UserDropdown({ profile }) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group focus:outline-none"
+        className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] transition-all duration-200 cursor-pointer group focus:outline-none"
         aria-label="User menu"
       >
         <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 group-hover:ring-white/60 transition-all flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shadow-md shrink-0">
@@ -54,11 +54,11 @@ export default function UserDropdown({ profile }) {
               unoptimized
             />
           ) : (
-            <span className="text-xs font-bold text-white">{initials}</span>
+            <span className="text-xs font-bold text-[color:var(--foreground)]">{initials}</span>
           )}
         </div>
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[110px]">
+          <span className="text-xs font-semibold text-[color:var(--foreground)] group-hover:text-[color:var(--foreground)] transition-colors leading-none truncate max-w-[110px]">
             {displayName}
           </span>
           <span className="text-[9px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
@@ -69,7 +69,7 @@ export default function UserDropdown({ profile }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[color:var(--surface-elevated)]/98 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-xl border border-[color:var(--border)] p-2.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header Profile Card */}
           <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
             <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shrink-0">
@@ -88,10 +88,10 @@ export default function UserDropdown({ profile }) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-bold text-white truncate leading-tight">{displayName}</p>
+                <p className="text-sm font-bold text-[color:var(--foreground)] truncate leading-tight">{displayName}</p>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
               </div>
-              <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
+              <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5 font-medium">
                 {profile?.email || `@${profile?.username || 'creator'}`}
               </p>
               <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">

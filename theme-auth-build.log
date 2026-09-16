@@ -1,0 +1,144 @@
+
+> movie-music@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.25
+   - Environments: .env
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+ ✓ (serwist) Bundling the service worker script with the URL '/sw.js' and the scope '/'...
+ ⚠ Compiled with warnings in 84s
+
+/_next/static/chunks/72d7f31f-aef1a1df3b808cb5.js is 2.53 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+DATABASE_URL is not set in environment variables. Prisma will fail if used.
+DATABASE_URL is not set in environment variables. Prisma will fail if used.
+VAPID keys are not set in environment variables. Web push notifications will not work.
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+   Generating static pages (0/76) ...
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+[Sanity] Fetching query: *[_type == "story"]{ "slug": slug.current, _update... {}
+[Sanity] Successfully fetched from client.
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+Configured BACKEND_URL: https://sawaflix-backend.onrender.com
+DATABASE_URL is not set in environment variables. Prisma will fail if used.
+VAPID keys are not set in environment variables. Web push notifications will not work.
+react-i18next:: useTranslation: You will need to pass in an i18next instance by using initReactI18next { code: 'NO_I18NEXT_INSTANCE' }
+   Generating static pages (19/76) 
+   Generating static pages (38/76) 
+   Generating static pages (57/76) 
+ ✓ Generating static pages (76/76)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                         Size  First Load JS
+┌ ○ /                                            5.53 kB         171 kB
+├ ○ /_not-found                                  1.01 kB         106 kB
+├ ƒ /admin                                       6.45 kB         180 kB
+├ ƒ /admin/verifications/[id]                    7.74 kB         181 kB
+├ ƒ /api/chat                                      208 B         105 kB
+├ ƒ /api/creator/upload                            208 B         105 kB
+├ ƒ /api/feed/public                               208 B         105 kB
+├ ƒ /api/notifications                             208 B         105 kB
+├ ƒ /api/notifications/[id]                        208 B         105 kB
+├ ƒ /api/notifications/send-worker                 208 B         105 kB
+├ ƒ /api/notifications/subscribe                   208 B         105 kB
+├ ƒ /api/notifications/unread-count                208 B         105 kB
+├ ƒ /api/notifications/webhook                     208 B         105 kB
+├ ƒ /api/stories                                   208 B         105 kB
+├ ƒ /api/stories/[id]/comments                     208 B         105 kB
+├ ƒ /api/stories/[id]/comments/[commentId]/like    208 B         105 kB
+├ ƒ /api/stories/[id]/like                         208 B         105 kB
+├ ƒ /api/stories/[id]/stats                        208 B         105 kB
+├ ƒ /api/stories/[id]/view                         208 B         105 kB
+├ ƒ /api/stories/batch-stats                       208 B         105 kB
+├ ƒ /api/videos/[id]                               208 B         105 kB
+├ ƒ /api/webhooks/admin-video                      208 B         105 kB
+├ ƒ /api/webhooks/dev-to                           208 B         105 kB
+├ ƒ /api/webhooks/devto                            208 B         105 kB
+├ ƒ /api/webhooks/sanity                           208 B         105 kB
+├ ○ /areatory                                    4.15 kB         217 kB
+├ ○ /artistpage                                  2.68 kB         113 kB
+├ ƒ /auth/callback                                 208 B         105 kB
+├ ○ /backendTestForms/creatorManagestnt          2.54 kB         107 kB
+├ ○ /backendTestForms/creatorProfileFormTest     1.82 kB         107 kB
+├ ○ /backendTestForms/test-creator-contentCRUD   1.46 kB         106 kB
+├ ○ /backendTestForms/test-food-upload           1.48 kB         106 kB
+├ ○ /backendTestForms/test-stories-upload        1.68 kB         106 kB
+├ ○ /backendTestForms/test-upload                  208 B         105 kB
+├ ƒ /creator-dashboard                             138 B         217 kB
+├ ƒ /creator-dashboard/analytics                  121 kB         225 kB
+├ ƒ /creator-dashboard/comments                  4.22 kB         160 kB
+├ ƒ /creator-dashboard/content                   7.51 kB         229 kB
+├ ƒ /creator-dashboard/content/[id]/edit         4.72 kB         223 kB
+├ ƒ /creator-dashboard/earnings                    208 B         105 kB
+├ ƒ /creator-dashboard/post                        137 B         217 kB
+├ ƒ /creator-dashboard/post/food                 3.75 kB         219 kB
+├ ƒ /creator-dashboard/post/music                   5 kB         220 kB
+├ ƒ /creator-dashboard/post/story                4.56 kB         220 kB
+├ ƒ /creator-dashboard/post/transfer             3.48 kB         154 kB
+├ ƒ /creator-dashboard/post/upload               7.35 kB         223 kB
+├ ƒ /creator-dashboard/settings                    208 B         105 kB
+├ ƒ /creator-dashboard/upload                      497 B         109 kB
+├ ƒ /creator/[username]                            10 kB         240 kB
+├ ○ /creator/pending                             4.23 kB         305 kB
+├ ƒ /creator/verify                                13 kB         314 kB
+├ ○ /dashboard                                     858 B         295 kB
+├ ƒ /dashboard/artist/[id]                       4.39 kB         123 kB
+├ ○ /dashboard/artistpage                        2.68 kB         113 kB
+├ ○ /dashboard/artists                             178 B         114 kB
+├ ○ /dashboard/blogs                             1.31 kB         157 kB
+├ ƒ /dashboard/blogs/[id]                        18.6 kB         277 kB
+├ ○ /dashboard/contentreels                      3.31 kB         108 kB
+├ ○ /dashboard/downloads                         14.5 kB         119 kB
+├ ○ /dashboard/edit-profile                      3.61 kB         185 kB
+├ ○ /dashboard/favorites                          8.2 kB         232 kB
+├ ○ /dashboard/livetv                            9.57 kB         162 kB
+├ ○ /dashboard/movie                             25.5 kB         136 kB
+├ ○ /dashboard/music                              7.2 kB         115 kB
+├ ○ /dashboard/musicpage                           168 B         119 kB
+├ ○ /dashboard/notification                      4.18 kB         267 kB
+├ ƒ /dashboard/profile                              5 kB         230 kB
+├ ○ /dashboard/reel                               3.9 kB         109 kB
+├ ƒ /dashboard/reels                               17 kB         242 kB
+├ ○ /dashboard/sawai                             5.26 kB         163 kB
+├ ○ /dashboard/sawasmart                         1.25 kB        1.12 MB
+├ ○ /dashboard/settings                          7.31 kB         186 kB
+├ ○ /dashboard/support                             208 B         105 kB
+├ ○ /dashboard/uploadpage                         3.4 kB         257 kB
+├ ○ /dashboard/uploadvideo                        2.6 kB         173 kB
+├ ○ /dashboard/youtubevids                       8.86 kB         122 kB
+├ ○ /forgot-password                             6.17 kB         120 kB
+├ ○ /home                                        2.89 kB         108 kB
+├ ○ /landingpage                                 3.27 kB         130 kB
+├ ○ /offline                                       497 B         109 kB
+├ ○ /robots.txt                                    208 B         105 kB
+├ ○ /sign-in                                      2.7 kB         113 kB
+├ ○ /sign-up                                     7.65 kB         186 kB
+├ ○ /sitemap.xml                                   208 B         105 kB
+├ ○ /smart                                       1.22 kB        1.12 MB
+├ ƒ /studio/[[...index]]                         1.58 MB        1.79 MB
+├ ○ /update-password                             4.05 kB         174 kB
+├ ○ /verify-otp                                  7.01 kB         163 kB
+├ ƒ /video/[id]                                    763 B         295 kB
+├ ○ /waiting-list                                2.89 kB         178 kB
+└ ○ /youtube/cameroon                              782 B         106 kB
++ First Load JS shared by all                     105 kB
+  ├ chunks/2804-d066e146d8d7e6c9.js              47.5 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js          54.2 kB
+  └ other shared chunks (total)                     3 kB
+
+
+ƒ Middleware                                     88.3 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -332,7 +332,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   // (forced-paused via searchMode === 'searching' below) — it only swaps to
   // showing something else if a specific search result gets opened.
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#0B0E14]">
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[color:var(--background)]">
       <ReelHeader isMuted={isMuted} onToggleMute={toggleMute} />
 
       {isOpeningResult ? (
@@ -348,16 +348,16 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
         // from an already-populated dropdown row), so this is always the
         // normal feed's own error state — same one shown whether or not a
         // search happens to be open above it.
-        <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#0B0E14] px-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-            <Film size={24} className="text-white/40" />
+        <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[color:var(--background)] px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)]">
+            <Film size={24} className="text-[color:var(--muted-foreground)]" />
           </div>
-          <h2 className="text-lg font-bold text-white">{error}</h2>
+          <h2 className="text-lg font-bold text-[color:var(--foreground)]">{error}</h2>
           <button
             type="button"
             onClick={retry}
             disabled={loading}
-            className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-2 rounded-full bg-[color:var(--surface)] px-5 py-2.5 text-sm font-bold text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <RotateCcw size={16} />
             Retry
