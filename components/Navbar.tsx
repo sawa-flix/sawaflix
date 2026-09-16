@@ -11,7 +11,6 @@ import {
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import SawaflixLogo from "./SawaflixLogo";
-import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -76,7 +75,6 @@ export default function Navbar() {
 
           {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
             {/* Red Sign In Button Feel */}
             <Link 
               href="/dashboard" 
@@ -123,9 +121,6 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="flex flex-col gap-3 mt-6">
-                <div className="flex items-center justify-center">
-                  <ThemeToggle />
-                </div>
                 <Link
                   href="/dashboard"
                   className="w-full text-center border border-white/30 bg-white/15 hover:bg-white/25 text-white px-4 py-2.5 rounded font-bold transition-all"

@@ -4,17 +4,32 @@
 
 :root {
   --background: #0B0E14;
+  --background-secondary: #10151C;
+  --background-elevated: #171D29;
   --foreground: #F8FAFC;
+  --foreground-secondary: #E2E8F0;
+  --muted-foreground: #94A3B8;
+  --muted-foreground-strong: #A8B3C7;
   --surface: #151C25;
   --surface-hover: #1C2530;
+  --surface-elevated: #1B2330;
   --border: #334155;
-  --muted-foreground: #94A3B8;
+  --border-subtle: rgba(148, 163, 184, 0.18);
+  --input-bg: #0F172A;
+  --input-border: #334155;
+  --focus-ring: rgba(229, 9, 20, 0.45);
   --primary: #E50914;
   --primary-soft: rgba(229, 9, 20, 0.12);
-  /* Netflix-like Red / Design Accent */
+  --primary-strong: #CE1126;
   --secondary: #1E293B;
   --accent: #E50914;
   --card-bg: #151C25;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-fg: #34D399;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-fg: #FBBF24;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-fg: #F87171;
 }
 
 body {
@@ -95,8 +110,54 @@ html {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+
 [data-theme="light"] {
   color-scheme: light;
+  --background: #F5F7FA;
+  --background-secondary: #EEF2F6;
+  --background-elevated: #FFFFFF;
+  --foreground: #0F0F0F;
+  --foreground-secondary: #1F2937;
+  --muted-foreground: #606060;
+  --muted-foreground-strong: #4B5563;
+  --surface: #FFFFFF;
+  --surface-hover: #F2F2F2;
+  --surface-elevated: #FFFFFF;
+  --border: #E5E5E5;
+  --border-subtle: #F1F1F1;
+  --input-bg: #F9F9F9;
+  --input-border: #E5E5E5;
+  --focus-ring: rgba(206, 17, 38, 0.35);
+  --primary: #CE1126;
+  --primary-soft: rgba(206, 17, 38, 0.10);
+  --primary-strong: #B40D1D;
+  --secondary: #EFF3F7;
+  --accent: #CE1126;
+  --card-bg: #FFFFFF;
+  --success-bg: rgba(22, 163, 74, 0.10);
+  --success-fg: #166534;
+  --warning-bg: rgba(217, 119, 6, 0.10);
+  --warning-fg: #92400E;
+  --danger-bg: rgba(220, 38, 38, 0.10);
+  --danger-fg: #B91C1C;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(206, 17, 38, 0.18);
 }
 
 /* Custom NProgress styling for TopLoader to place it prominently at the top with Cameroon gradient */
