@@ -143,7 +143,7 @@ const DashboardWrapper = ({ children }) => {
       <NotificationProvider>
         <FavoriteProvider>
         <AuthModalProvider>
-        <div className="min-h-screen bg-[#0B0E14] relative overflow-hidden">
+        <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
@@ -178,7 +178,7 @@ const DashboardWrapper = ({ children }) => {
           <aside
             className={`
               fixed top-14 left-0 z-50 lg:z-30
-              w-72 h-[calc(100vh-3.5rem)] bg-[#0B0E14]/80 backdrop-blur-xl
+              w-72 h-[calc(100vh-3.5rem)] bg-[color:var(--surface)]/95 backdrop-blur-xl
               transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0
@@ -196,7 +196,7 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Right Sidebar — Fixed & Unified */}
           {hasRightSidebar && (
-            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[color:var(--surface)]/95 backdrop-blur-md border-l border-[color:var(--border)]">
                 <RightSidebar />
             </aside>
           )}

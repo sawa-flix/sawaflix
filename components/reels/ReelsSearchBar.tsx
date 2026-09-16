@@ -31,7 +31,7 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Search reels"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-hover)]"
       >
         <Search size={18} />
       </button>
@@ -40,8 +40,8 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
 
   return (
     <div className={floating ? 'relative flex w-full' : 'relative flex flex-1 mx-2 sm:mx-4 md:mx-8 md:max-w-xl'}>
-      <div className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-2 text-white/50 transition-colors focus-within:border-white/30 focus-within:bg-black/60">
-        <Search size={16} className="shrink-0 text-gray-500" />
+      <div className="flex w-full items-center gap-2 rounded-xl border border-[color:var(--input-border)] bg-[color:var(--input-bg)] px-4 py-2 text-[color:var(--muted-foreground)] transition-colors focus-within:border-[color:var(--primary)] focus-within:bg-[color:var(--surface)]">
+        <Search size={16} className="shrink-0 text-[color:var(--muted-foreground)]" />
         <input
           type="text"
           value={query}
@@ -50,7 +50,7 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
           aria-label="Search reels"
           autoComplete="off"
           autoFocus={floating}
-          className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
+          className="w-full bg-transparent text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] focus:outline-none"
         />
         {(query || floating) && (
           <button
@@ -68,7 +68,7 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
       </div>
 
       {showResults && (
-        <div className="absolute inset-x-0 top-full mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#12151C] shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+        <div className="absolute inset-x-0 top-full mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-elevated)] shadow-xl">
           {loading && results.length === 0 ? (
             // Skeleton rows shaped like the real results below, not a
             // spinner — consistent with every other "a reel is loading"

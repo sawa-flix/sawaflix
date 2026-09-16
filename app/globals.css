@@ -118,8 +118,8 @@ html {
 
 [data-theme="light"] {
   color-scheme: light;
-  --background: #F5F7FA;
-  --background-secondary: #EEF2F6;
+  --background: #FFFFFF;
+  --background-secondary: #F9F9F9;
   --background-elevated: #FFFFFF;
   --foreground: #0F0F0F;
   --foreground-secondary: #1F2937;

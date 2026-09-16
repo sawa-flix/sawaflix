@@ -338,15 +338,15 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   return (
     <div className="w-full pb-12" style={{ zoom: 0.9 }}>
       {/* Navigation Pills — sticky */}
-      <div className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-white/5 px-2 sm:px-6 lg:px-8">
+      <div className="sticky top-0 z-40 bg-[color:var(--surface)]/95 backdrop-blur-xl py-3 mb-6 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-[color:var(--border)] px-2 sm:px-6 lg:px-8">
         {PILL_TABS.slice(0, 1).map((tab, idx) => (
           <button
             key={`${tab.id}-${idx}`}
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
-                : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
+                ? 'bg-[color:var(--primary)] text-white shadow-[0_0_15px_rgba(206,17,38,0.18)]'
+                : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'
             }`}
           >
             {tab.label}
@@ -356,7 +356,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         {/* Reels navigates to its own page rather than filtering in-page content. */}
         <Link
           href="/dashboard/reels"
-          className="px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
+          className="px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]"
         >
           Reels
         </Link>
@@ -367,8 +367,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
-                : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
+                ? 'bg-[color:var(--primary)] text-white shadow-[0_0_15px_rgba(206,17,38,0.18)]'
+                : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'
             }`}
           >
             {tab.label}
@@ -382,7 +382,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         {heroItem && (
           <section 
             onClick={handleBannerClick}
-            className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-white/5 bg-black cursor-pointer"
+            className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-[color:var(--border)] bg-[color:var(--surface)] cursor-pointer"
           >
             <Image
               src={heroItem.image}
@@ -445,7 +445,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 <div className="w-6 h-6 relative">
                   <Image src="/logos_and_pwas/loaderLogo.png" alt="" fill sizes="24px" className="object-contain" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">
                   {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
                 </h2>
               </div>
@@ -480,7 +480,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     // server-fetched culture feed for a plain ?id= lookup
                     // to find on its own.
                     onClick={() => stashReelForHandoff(reel)}
-                    className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-white/5 hover:border-white/20 transition-colors"
+                    className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-colors"
                   >
                     <Image
                       src={reel.thumbnail || `https://i.ytimg.com/vi/${reel.id}/maxresdefault.jpg`}
@@ -507,10 +507,10 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 ))}
               </div>
 
-              <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
+              <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
                 <ChevronLeft size={20} />
               </button>
-              <button onClick={() => scrollRight(reelsPreviewScrollRef)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
+              <button onClick={() => scrollRight(reelsPreviewScrollRef)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
                 <ChevronRight size={20} />
               </button>
             </div>
@@ -603,7 +603,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 return (
                   <div
                     key={story._id}
-                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/25 hover:shadow-lg hover:shadow-black/30 transition-all duration-300 flex flex-col"
+                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl overflow-hidden hover:border-[color:var(--primary)] hover:shadow-lg transition-all duration-300 flex flex-col"
                   >
                     <div className="relative h-44 sm:h-52 overflow-hidden flex-shrink-0">
                       <div
@@ -631,16 +631,16 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     </div>
 
                     <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                      <h3 className="text-sm sm:text-base font-bold text-white mb-2 group-hover:text-white/90 transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-sm sm:text-base font-bold text-[color:var(--foreground)] mb-2 group-hover:text-[color:var(--primary)] transition-colors leading-snug line-clamp-2">
                         {story.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-medium tracking-wide mt-auto pt-2">
+                      <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-[10px] font-medium tracking-wide mt-auto pt-2">
                         <span>{dateText}</span>
                       </div>
 
                       {/* Stats Row */}
-                      <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-white/5 text-zinc-400">
+                      <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[color:var(--border)] text-[color:var(--muted-foreground)]">
                         <div className="flex items-center gap-3">
                           <span className="flex items-center gap-1.5 hover:text-white/80 transition-colors" title="Likes">
                             <Image

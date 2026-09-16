@@ -213,7 +213,7 @@ const Header = ({
       className={
         isReelsRoute
           ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
-          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[#0B0E14]/40 backdrop-blur-md border-b border-white/5 shadow-2xl'
+          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)]/90 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl'
       }
     >
       {/* Phone-only compact bar for Reels (TikTok-style) */}
@@ -248,7 +248,7 @@ const Header = ({
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
-            className="lg:hidden p-1.5 mr-1 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="lg:hidden p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-red-500"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -266,16 +266,16 @@ const Header = ({
               <button
                 type="button"
                 onClick={() => setIsSearchFocused(true)}
-                className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl
-                           text-white/50 text-xs hover:border-white/30 hover:bg-black/60 transition-all duration-300 group"
+                className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-[color:var(--input-bg)] border border-[color:var(--input-border)] rounded-xl
+                           text-[color:var(--muted-foreground)] text-xs hover:border-[color:var(--primary)] hover:bg-[color:var(--surface-hover)] transition-all duration-300 group"
               >
                 <div className="flex items-center">
-                  <Search className="text-gray-500 mr-2.5 group-hover:text-white transition-colors" size={14} />
+                  <Search className="text-[color:var(--muted-foreground)] mr-2.5 group-hover:text-[color:var(--foreground)] transition-colors" size={14} />
                   <span>Search videos, top stories...</span>
                 </div>
                 <div className="hidden lg:flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">⌘</kbd>
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-white/40 bg-white/5 border border-white/10 rounded">K</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-[color:var(--muted-foreground)] bg-[color:var(--surface)] border border-[color:var(--border)] rounded">⌘</kbd>
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-semibold text-[color:var(--muted-foreground)] bg-[color:var(--surface)] border border-[color:var(--border)] rounded">K</kbd>
                 </div>
               </button>
             </div>

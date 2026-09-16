@@ -50,7 +50,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 10, transition: { duration: 0.2 } }}
       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-      className={`relative group flex items-center p-4 gap-4 transition-all cursor-pointer select-none ${!notification.read ? 'bg-white/[0.03]' : ''}`}
+      className={`relative group flex items-center p-4 gap-4 transition-all cursor-pointer select-none ${!notification.read ? 'bg-[color:var(--primary-soft)]' : ''}`}
       onClick={handleClick}
     >
       {/* Indicator for Unread */}
@@ -68,7 +68,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
               className="w-12 h-12 rounded-full object-cover ring-2 ring-white/10 shadow-xl group-hover:ring-[#CE1126]/50 transition-all duration-300"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1E2330] to-[#0E121A] p-2 flex items-center justify-center ring-2 ring-white/10 group-hover:ring-[#CE1126]/50 transition-all duration-300 shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-[color:var(--surface-hover)] p-2 flex items-center justify-center ring-2 ring-[color:var(--border)] group-hover:ring-[color:var(--primary)] transition-all duration-300 shadow-xl">
               <img 
                 src="/logos_and_pwas/android-chrome-192x192.png" 
                 alt="SawaFlix" 
@@ -76,7 +76,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
               />
             </div>
           )}
-          <div className="absolute -bottom-1 -right-1 p-1 bg-[#0B0E14] rounded-full ring-1 ring-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+          <div className="absolute -bottom-1 -right-1 p-1 bg-[color:var(--surface)] rounded-full ring-1 ring-[color:var(--border)] shadow-2xl group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
             {getIcon(notification.type)}
           </div>
         </div>
@@ -86,18 +86,18 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       <div className="flex-1 min-w-0 py-1">
         <div className="flex items-center justify-between gap-2 mb-0.5">
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] leading-tight text-white/90">
+            <p className="text-[13px] leading-tight text-[color:var(--foreground)]">
               {notification.actorName && (
-                <span className="font-black text-white mr-1.5 tracking-tight">{notification.actorName}</span>
+                <span className="font-black text-[color:var(--foreground)] mr-1.5 tracking-tight">{notification.actorName}</span>
               )}
-              <span className={`${notification.read ? 'text-gray-500 font-medium' : 'text-zinc-200 font-bold'}`}>
+              <span className={`${notification.read ? 'text-[color:var(--muted-foreground)] font-medium' : 'text-[color:var(--foreground-secondary)] font-bold'}`}>
                 {notification.title}
               </span>
             </p>
           </div>
         </div>
         
-        <p className={`text-[12px] line-clamp-1 leading-normal mb-1 ${notification.read ? 'text-gray-600 font-medium' : 'text-gray-400 font-medium'}`}>
+        <p className={`text-[12px] line-clamp-1 leading-normal mb-1 ${notification.read ? 'text-[color:var(--muted-foreground)] font-medium' : 'text-[color:var(--muted-foreground-strong)] font-medium'}`}>
           {notification.message}
         </p>
         

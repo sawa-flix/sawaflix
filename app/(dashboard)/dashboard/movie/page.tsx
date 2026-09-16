@@ -74,7 +74,7 @@ export default function MoviePage(): React.ReactElement {
               />
             ))}
             {filteredMovies.length === 0 && (
-              <div className="col-span-full py-20 text-center text-gray-500 font-bold">
+              <div className="col-span-full py-20 text-center text-[color:var(--muted-foreground)] font-bold">
                 No movies found for "{activeFilter}"
               </div>
             )}

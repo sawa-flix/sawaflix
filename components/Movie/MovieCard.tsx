@@ -19,7 +19,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   return (
     <div
       className={`relative w-full group/card cursor-pointer transition-all duration-300 ${
-        isActive ? 'scale-[1.02] ring-2 ring-white/50 rounded-xl' : ''
+        isActive ? 'scale-[1.02] ring-2 ring-[color:var(--primary)] rounded-xl' : ''
       }`}
       onClick={onClick}
       role="button"
@@ -32,7 +32,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       }}
     >
       {/* Movie Image Container */}
-      <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[#111] shadow-lg group-hover/card:shadow-2xl">
+      <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
         <Image
           src={movie.image}
           alt={movie.title}
@@ -65,16 +65,16 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
       {/* Movie Info Below Card */}
       <div className="px-1">
-        <h3 className="text-sm lg:text-base font-bold text-white tracking-tight truncate group-hover/card:text-gray-300 transition-colors mb-1">
+        <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
           {movie.title}
         </h3>
-        <div className="flex items-center justify-between text-xs font-semibold text-gray-400">
+        <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)]">
           <span>
             {movie.year} • {movie.genres?.[0] || 'N/A'}
           </span>
           <span className="flex items-center gap-1 text-[#FCD116]">
             <Star size={12} fill="currentColor" />
-            <span className="text-white">{movie.rating || '4.5'}</span>
+            <span className="text-[color:var(--foreground)]">{movie.rating || '4.5'}</span>
           </span>
         </div>
       </div>
