@@ -178,12 +178,12 @@ const DashboardWrapper = ({ children }) => {
           <aside
             className={`
               fixed top-14 left-0 z-50 lg:z-30
-              w-72 h-[calc(100vh-3.5rem)] bg-[color:var(--surface)] backdrop-blur-none
+              w-72 h-[calc(100vh-3.5rem)] bg-[color:var(--surface)]/95 backdrop-blur-xl
               transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0
               overflow-y-auto scrollbar-none
-              border-r border-[color:var(--border)] shadow-none
+              border-r border-[color:var(--border)] shadow-2xl shadow-[color:var(--border)]/40
             `}
           >
             <LeftSidebar

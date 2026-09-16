@@ -27,7 +27,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
         </span>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors"
           aria-label="Close sidebar"
         >
           ✕
@@ -57,7 +57,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
       </div>
 
       {/* Movie Title and Rating */}
-      <h2 className="text-lg lg:text-xl font-bold text-white mb-2 line-clamp-2">
+      <h2 className="text-lg lg:text-xl font-bold text-[color:var(--foreground)] mb-2 line-clamp-2">
         {movie.title}
       </h2>
       <div className="flex items-center gap-2 mb-4 text-sm">
@@ -65,17 +65,17 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
           <Star size={14} fill="currentColor" />
           <span className="font-bold">{movie.rating || 4.5}</span>
         </div>
-        <span className="text-gray-400">•</span>
-        <span className="text-gray-400">{movie.ageRating || '13+'}</span>
+        <span className="text-[color:var(--muted-foreground)]">•</span>
+        <span className="text-[color:var(--muted-foreground)]">{movie.ageRating || '13+'}</span>
       </div>
 
       {/* Description */}
-      <p className="text-xs lg:text-sm text-gray-300 mb-4 line-clamp-3">
+      <p className="text-xs lg:text-sm text-[color:var(--foreground-secondary)] mb-4 line-clamp-3">
         {movie.description}
       </p>
 
       {/* Movie Details Grid */}
-      <div className="space-y-3 mb-6 pb-6 border-b border-white/10">
+      <div className="space-y-3 mb-6 pb-6 border-b border-[color:var(--border)]">
         {movie.year && (
           <DetailRow icon={<Calendar size={16} />} label="Year" value={movie.year.toString()} />
         )}
@@ -101,7 +101,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
 
       {/* Related Movies Section */}
       <div>
-        <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-[color:var(--foreground)] mb-3 uppercase tracking-wider">
           Similar Movies
         </h3>
         <div className="space-y-2">
@@ -120,10 +120,10 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-gray-300 truncate group-hover:text-white">
+                <p className="text-xs font-semibold text-[color:var(--foreground-secondary)] truncate group-hover:text-[color:var(--foreground)]">
                   {m.title}
                 </p>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-[10px] text-[color:var(--muted-foreground)]">
                   {m.rating} ★ • {m.year}
                 </p>
               </div>
@@ -146,10 +146,10 @@ interface DetailRowProps {
 
 const DetailRow: React.FC<DetailRowProps> = ({ icon, label, value }) => (
   <div className="flex items-start gap-2">
-    <div className="text-gray-400 flex-shrink-0 mt-0.5">{icon}</div>
+    <div className="text-[color:var(--muted-foreground)] flex-shrink-0 mt-0.5">{icon}</div>
     <div className="min-w-0 flex-1">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="text-xs font-semibold text-white truncate">{value}</p>
+      <p className="text-xs text-[color:var(--muted-foreground)]">{label}</p>
+      <p className="text-xs font-semibold text-[color:var(--foreground)] truncate">{value}</p>
     </div>
 
     </div>
