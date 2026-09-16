@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ stats: {} });
     }
 
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ stats: {} });
+    }
+
     // Limit to max 100 IDs per batch
     const sanitizedIds = storyIds.slice(0, 100).map(String);
 

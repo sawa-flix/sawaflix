@@ -8,7 +8,7 @@ const globalForPrisma = global as unknown as {
 };
 
 const prismaClientSingleton = () => {
-  const connectionString = process.env.DATABASE_URL || "postgres://dummy:dummy@dummy:5432/dummy";
+  const connectionString = process.env.DATABASE_URL || "postgres://dummy:dummy@127.0.0.1:5432/dummy";
   if (!process.env.DATABASE_URL) {
     console.warn("DATABASE_URL is not set in environment variables. Prisma will fail if used.");
   }

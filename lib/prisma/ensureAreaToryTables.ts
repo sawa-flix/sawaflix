@@ -4,6 +4,7 @@ let tablesEnsured = false;
 
 export async function ensureAreaToryTables() {
   if (tablesEnsured) return;
+  if (!process.env.DATABASE_URL) return;
 
   try {
     // 1. StoryLike table
