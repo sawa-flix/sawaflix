@@ -31,7 +31,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
-import ThemeToggle from '../ThemeToggle';
 import { useAdminNotifications } from '../../contexts/AdminNotificationContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
