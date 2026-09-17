@@ -223,7 +223,7 @@ const Header = ({
             type="button"
             onClick={() => router.back()}
             aria-label="Back"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-hover)]"
           >
             <ArrowLeft size={16} />
           </button>
@@ -237,7 +237,7 @@ const Header = ({
             onClick={toggleMute}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
             aria-pressed={!isMuted}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-hover)]"
           >
             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>

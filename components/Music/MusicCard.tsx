@@ -24,7 +24,7 @@ export const MusicCard: React.FC<MusicCardProps> = ({ track, isPlaying, onClick 
       }}
     >
       {/* Card Image Container */}
-      <div className="relative w-full aspect-square mb-3 rounded-xl overflow-hidden bg-gray-800 shadow-md group-hover:shadow-xl transition-all duration-300">
+      <div className="relative w-full aspect-square mb-3 rounded-xl overflow-hidden bg-[color:var(--surface-elevated)] border border-[color:var(--border)] shadow-[0_1px_3px_rgba(15,15,15,0.08)] group-hover:shadow-[0_8px_18px_rgba(15,15,15,0.1)] transition-all duration-300">
         <img
           src={track.image}
           alt={track.title}
@@ -61,10 +61,10 @@ export const MusicCard: React.FC<MusicCardProps> = ({ track, isPlaying, onClick 
       </div>
 
       {/* Card Metadata */}
-      <h4 className="font-semibold text-sm sm:text-base text-gray-100 truncate group-hover:text-orange-400 transition-colors">
+      <h4 className="font-semibold text-sm sm:text-base text-[color:var(--foreground)] truncate group-hover:text-[color:var(--primary)] transition-colors">
         {track.title}
       </h4>
-      <p className="text-gray-400 text-xs sm:text-sm truncate mt-0.5">{track.artist}</p>
+      <p className="text-[color:var(--muted-foreground)] text-xs sm:text-sm truncate mt-0.5">{track.artist}</p>
     </div>
   );
 };
