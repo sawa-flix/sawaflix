@@ -131,8 +131,12 @@ export async function getUnifiedFeedAction() {
         const response = await fetchWithTimeout(url);
         return handleResponse(response);
     } catch (error: any) {
-        console.error('getUnifiedFeedAction error:', error);
-        if (error.code === 'BACKEND_UNREACHABLE') {
+        console.warn('getUnifiedFeedAction error:', error.message);
+        if (error.code === 'BACKEND_UNREACHABLE' || 
+            error.status === 429 || 
+            error.status === 500 ||
+            error.message?.includes('Too Many Requests') ||
+            error.message?.includes('quota')) {
             return { data: { sawaflix: [], youtube: MOCK_VIDEOS } };
         }
         throw error;

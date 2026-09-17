@@ -364,7 +364,7 @@ export function useNotifications() {
       if (!isMounted) return;
 
       const channel = supabase
-        .channel(`notifications-${user.id}`)
+        .channel(`notifications-${user.id}-${Date.now()}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },

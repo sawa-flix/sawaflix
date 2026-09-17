@@ -157,25 +157,15 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
       // Log the download event (fire-and-forget)
       videoInteractivityService.logDownload(video.id, 'direct_file').catch(() => {});
 
-      // Use the direct CDN URL stored on the video object.
-      // This is the Cloudflare URL that was saved when the video was uploaded.
-      const directUrl = video.videoUrl || video.embedUrl;
-      if (!directUrl) throw new Error('No video source URL available for download.');
-
-      // Fetch the video as a blob so the browser triggers a real download
-      // dialog instead of navigating to the video URL.
-      const response = await fetch(directUrl);
-      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      // Use the backend proxy to bypass CORS and force a download via Content-Disposition
+      const streamUrl = videoInteractivityService.getDownloadUrl(video.id);
 
       const a = document.createElement('a');
-      a.href = blobUrl;
+      a.href = streamUrl;
       a.download = `SawaFlix_${(video.title || video.id).replace(/[^a-z0-9]/gi, '_').slice(0, 50)}.mp4`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
     } catch (err) {
       console.error('[Download] Failed:', err);
       alert('Download failed. The video may not support direct downloads. Please try again later.');

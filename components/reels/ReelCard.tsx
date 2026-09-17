@@ -14,6 +14,7 @@ import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
 import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
+import { ReelProgressBar } from './ReelProgressBar';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { videoInteractivityService } from '@/services/videoInteractivityService';
@@ -258,6 +259,8 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       <AnimatePresence>
         {isScrubbing && <ReelScrubIndicator currentTime={scrubTime} duration={duration} />}
       </AnimatePresence>
+
+      <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />
 
       <ReelOverlay video={video} isFollowing={isFollowing} onToggleFollow={handleToggleFollow} />
 
