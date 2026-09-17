@@ -17,6 +17,7 @@ import { ReelScrubIndicator } from './ReelScrubIndicator';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { videoInteractivityService } from '@/services/videoInteractivityService';
+import { patchStatsCache } from '@/hooks/useVideoStats';
 
 interface ReelCardProps {
   video: Video;
@@ -50,7 +51,17 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     (Boolean(video.id) && video.id.length !== 11);
 
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
-  const nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `${adminUrl}/api/admin/upload/stream/${video.id}` : '');
+  let nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `${adminUrl}/api/admin/upload/stream/${video.id}` : '');
+  
+  // Fix for videos uploaded locally whose URLs were saved to the DB with localhost:10000 etc.
+  if (nativeSrc && (nativeSrc.includes('localhost:') || nativeSrc.includes('127.0.0.1:'))) {
+    try {
+      const parsed = new URL(nativeSrc);
+      nativeSrc = `${adminUrl}${parsed.pathname}${parsed.search}`;
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
 
   const { user, isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
@@ -157,7 +168,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     }
     const authorName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'You';
     const authorAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
-    addComment({
+    const optimisticComment = {
       id: `local-${Date.now()}`,
       author: authorName,
       authorProfileImage: authorAvatar,
@@ -165,13 +176,17 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       likeCount: 0,
       publishedAt: new Date().toISOString(),
       parentId,
-    });
+    };
+    addComment(optimisticComment);
 
     if (isNative) {
+      // Native SawaFlix/Cloudflare video — use our Neon interactivity service
       videoInteractivityService.postComment(video.id, text, parentId).catch((err) =>
         console.error('[ReelCard] Video comment post failed:', err)
       );
     } else {
+      // YouTube video — route through the YouTube action (parentId ignored on backend,
+      // which is fine since we store it in Neon's VideoComment with the YT videoId)
       import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
         commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
           console.error('[ReelCard] Comment post failed:', err)
@@ -205,12 +220,16 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
             src={nativeSrc}
             playsInline
             muted={isMuted}
-            preload={isActive ? "auto" : "metadata"}
+            preload={isActive ? 'auto' : 'metadata'}
+            crossOrigin="anonymous"
             className="w-full h-full object-contain bg-black"
             onLoadedData={() => setIsPlayerReady(true)}
             onCanPlay={() => setIsPlayerReady(true)}
             onEnded={handleNativeEnded}
-            onError={(e) => console.warn('[ReelCard] Video load error:', (e.target as HTMLVideoElement).error?.message)}
+            onError={(e) => {
+              const v = e.target as HTMLVideoElement;
+              console.warn('[ReelCard] Video load error:', v.error?.message, '| src:', v.currentSrc || nativeSrc);
+            }}
           />
         ) : (
           <YouTubePlayer

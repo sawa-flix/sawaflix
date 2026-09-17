@@ -16,8 +16,16 @@ interface UseCommentsResult {
 
 const isYouTubeId = (id: string) => /^[A-Za-z0-9_-]{11}$/.test(id);
 
+// ─── Module-level in-memory cache ───────────────────────────────────────────
+// Persists comments across reel navigation so users see their own comments
+// even after scrolling away and returning to the same reel.
+const commentsCache = new Map<string, Comment[]>();
+
 export function useComments(videoId: string | null): UseCommentsResult {
-    const [comments, setComments] = useState<Comment[]>([]);
+    // Hydrate from cache immediately so comments survive navigation
+    const [comments, setComments] = useState<Comment[]>(
+        () => (videoId ? commentsCache.get(videoId) ?? [] : [])
+    );
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
@@ -31,8 +39,44 @@ export function useComments(videoId: string | null): UseCommentsResult {
 
         try {
             if (isYouTubeId(videoId)) {
-                const commentsList = await youtubeApi.getVideoComments(videoId);
-                setComments(commentsList);
+                // For YouTube videos: fetch both YouTube comments AND our Neon
+                // community comments in parallel, then merge them.
+                const [ytResult, neonResult] = await Promise.allSettled([
+                    youtubeApi.getVideoComments(videoId),
+                    videoInteractivityService.getComments(videoId, 'top'),
+                ]);
+
+                const ytComments: Comment[] = ytResult.status === 'fulfilled' ? ytResult.value : [];
+                const neonComments: Comment[] = neonResult.status === 'fulfilled'
+                    ? (neonResult.value.comments || []).map((c: any) => ({
+                        id: c.id,
+                        author: c.userName || 'Community Member',
+                        authorProfileImage: c.userAvatar || '',
+                        text: c.content,
+                        likeCount: c.likesCount || 0,
+                        publishedAt: c.createdAt,
+                        isLikedByMe: c.isLikedByMe,
+                        userRole: c.userRole,
+                        parentId: c.parentId,
+                        replies: (c.replies || []).map((r: any) => ({
+                            id: r.id,
+                            author: r.userName || 'Community Member',
+                            authorProfileImage: r.userAvatar || '',
+                            text: r.content,
+                            likeCount: r.likesCount || 0,
+                            publishedAt: r.createdAt,
+                            isLikedByMe: r.isLikedByMe,
+                            userRole: r.userRole,
+                            parentId: r.parentId,
+                        })),
+                        repliesCount: c.repliesCount || (c.replies ? c.replies.length : 0),
+                      }))
+                    : [];
+
+                // Prepend Neon (community) comments before YouTube comments
+                const merged = [...neonComments, ...ytComments];
+                commentsCache.set(videoId, merged);
+                setComments(merged);
             } else {
                 const data = await videoInteractivityService.getComments(videoId);
                 const mapped: Comment[] = (data.comments || []).map((c: any) => ({
@@ -58,20 +102,31 @@ export function useComments(videoId: string | null): UseCommentsResult {
                     })),
                     repliesCount: c.repliesCount || (c.replies ? c.replies.length : 0),
                 }));
+                commentsCache.set(videoId, mapped);
                 setComments(mapped);
             }
             setHasFetched(true);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to fetch comments';
-            setError(errorMessage);
-            console.error('[useComments] Error:', errorMessage);
+            // Only surface the error state if we have nothing cached to show.
+            // Network failures (Render cold-start, offline) should degrade silently.
+            if (!commentsCache.has(videoId ?? '')) {
+                setError(errorMessage);
+            }
+            // Warn-level so it doesn't appear as a red "issue" in the browser overlay
+            console.warn('[useComments] fetch degraded (backend may be waking up):', errorMessage);
         } finally {
             setLoading(false);
         }
     }, [videoId]);
 
     useEffect(() => {
-        if (videoId) fetchComments();
+        if (!videoId) return;
+        // Show cached comments immediately, then refresh in background
+        if (commentsCache.has(videoId)) {
+            setComments(commentsCache.get(videoId)!);
+        }
+        fetchComments();
     }, [videoId, fetchComments]);
 
     const handleSetIsOpen = useCallback((open: boolean) => {

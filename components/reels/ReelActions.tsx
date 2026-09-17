@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Download } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Share2, Bookmark, Download, Check } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { likeYouTubeVideoAction } from '@/app/actions/youtube';
 import { formatCount } from '@/utils/formatCount';
 import { useFavorites } from '@/contexts/FavoriteContext';
-import { likeService } from '@/services/likeService';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useSawaiStore } from '@/store/sawaiStore';
 
 import { videoInteractivityService } from '@/services/videoInteractivityService';
+import { patchStatsCache } from '@/hooks/useVideoStats';
 
 interface ReelActionsProps {
   video: Video;
@@ -37,6 +37,7 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
   const [likeCount, setLikeCount] = useState(() => parseCount(video.likeCount));
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copyDone, setCopyDone] = useState(false);
   const [, startTransition] = useTransition();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isAuthenticated } = useAuthSession();
@@ -75,51 +76,60 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
       if (isNative) {
         try {
           const res = await videoInteractivityService.toggleLike(video.id);
-          if (typeof res.liked === 'boolean') setLiked(res.liked);
-          if (typeof res.likesCount === 'number') setLikeCount(res.likesCount);
+          const resolvedLiked = typeof res.liked === 'boolean' ? res.liked : nextLiked;
+          const resolvedCount = typeof res.likesCount === 'number' ? res.likesCount : likeCount;
+          setLiked(resolvedLiked);
+          setLikeCount(resolvedCount);
+          // Persist to cache so navigating away and back keeps the like state
+          patchStatsCache(video.id, { isLiked: resolvedLiked, likeCount: String(resolvedCount) });
         } catch (err) {
           console.error('[ReelActions] SawaFlix Like failed:', err);
           setLiked(!nextLiked);
           setLikeCount((prev) => Math.max(0, prev + (nextLiked ? -1 : 1)));
-          return;
         }
       } else {
         try {
           await likeYouTubeVideoAction(video.id, video.origin ?? 'youtube');
+          // Persist optimistic state to cache
+          patchStatsCache(video.id, { isLiked: nextLiked, likeCount: String(Math.max(0, likeCount + (nextLiked ? 1 : -1))) });
         } catch (err) {
           console.error('[ReelActions] Like failed:', err);
           setLiked(!nextLiked);
           setLikeCount((prev) => Math.max(0, prev + (nextLiked ? -1 : 1)));
-          return;
         }
-      }
-
-      // Local additive persistence for user stats
-      try {
-        if (nextLiked) await likeService.like(isNative ? 'video' : 'youtube_video', video.id);
-        else await likeService.unlike(isNative ? 'video' : 'youtube_video', video.id);
-      } catch (err) {
-        console.warn('[ReelActions] local like persistence failed:', err);
       }
     });
   };
 
+  /**
+   * Share with SawaFlix watermark branding.
+   * On mobile: uses the native OS share sheet with branded title + text.
+   * On desktop: copies a branded share message to clipboard and shows a
+   * brief "Copied!" confirmation on the button.
+   */
   const handleShare = async () => {
     setIsMoreOpen(false);
-    const url = typeof window !== 'undefined' ? window.location.href : video.videoUrl;
+    const pageUrl = typeof window !== 'undefined' ? window.location.href : `https://www.sawaflix.com/dashboard/reels?id=${video.id}`;
+    const shareTitle = `${video.title || 'Watch this on SawaFlix'} | SawaFlix`;
+    const shareText = `🎬 ${video.title || 'Check this out'}\n\nWatch it on SawaFlix — Africa's home for culture & entertainment 🇨🇲\n\n${pageUrl}\n\n#SawaFlix #CameroonCulture`;
+
     try {
       if (isNative) {
         videoInteractivityService.logShare(video.id, navigator.share ? 'native_share' : 'copy_link').catch(() => {});
       }
 
       if (navigator.share) {
-        await navigator.share({ title: video.title, url });
+        await navigator.share({ title: shareTitle, text: shareText, url: pageUrl });
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareText);
+        setCopyDone(true);
+        setTimeout(() => setCopyDone(false), 2000);
       }
     } catch (err) {
       if ((err as Error)?.name !== 'AbortError') {
-        console.error('[ReelActions] Share failed:', err);
+        console.warn('[ReelActions] Share failed:', err);
+        // Fallback: copy just the URL
+        try { await navigator.clipboard.writeText(pageUrl); } catch {}
       }
     }
   };
@@ -133,31 +143,42 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
     setIsMoreOpen(false);
   };
 
+  /**
+   * Download — only available for native SawaFlix / Cloudflare videos.
+   * Uses the video's direct CDN URL so it downloads from Cloudflare's
+   * edge and does NOT go through the Render backend stream endpoint.
+   */
   const handleDownload = async () => {
     setIsMoreOpen(false);
-
-    if (!isNative) {
-      alert('Downloading is currently only supported for native SawaFlix videos.');
-      return;
-    }
-
     if (isDownloading) return;
     setIsDownloading(true);
 
     try {
+      // Log the download event (fire-and-forget)
       videoInteractivityService.logDownload(video.id, 'direct_file').catch(() => {});
-      const streamUrl = videoInteractivityService.getDownloadUrl(video.id);
+
+      // Use the direct CDN URL stored on the video object.
+      // This is the Cloudflare URL that was saved when the video was uploaded.
+      const directUrl = video.videoUrl || video.embedUrl;
+      if (!directUrl) throw new Error('No video source URL available for download.');
+
+      // Fetch the video as a blob so the browser triggers a real download
+      // dialog instead of navigating to the video URL.
+      const response = await fetch(directUrl);
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
-      a.href = streamUrl;
-      a.target = '_blank';
+      a.href = blobUrl;
       a.download = `SawaFlix_${(video.title || video.id).replace(/[^a-z0-9]/gi, '_').slice(0, 50)}.mp4`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
     } catch (err) {
       console.error('[Download] Failed:', err);
-      alert('Download failed. Please try again later.');
+      alert('Download failed. The video may not support direct downloads. Please try again later.');
     } finally {
       setIsDownloading(false);
     }
@@ -278,8 +299,8 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
                 onClick={handleShare}
                 className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
-                <Share2 size={18} />
-                Share
+                {copyDone ? <Check size={18} className="text-green-400" /> : <Share2 size={18} />}
+                {copyDone ? 'Link Copied!' : 'Share'}
               </button>
               <button
                 type="button"
@@ -291,7 +312,8 @@ export function ReelActions({ video, commentsCount, realLikeCount, realIsLiked, 
                 <Bookmark size={18} className={saved ? 'fill-white' : ''} />
                 {saved ? 'Saved' : 'Save'}
               </button>
-              {(video.origin === 'sawaflix' || video.videoUrl?.includes('res.cloudinary.com')) && (
+              {/* Download — only shown for native SawaFlix / Cloudflare videos, never YouTube */}
+              {isNative && (
                 <button
                   type="button"
                   role="menuitem"
