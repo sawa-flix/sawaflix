@@ -165,15 +165,15 @@ export default function MusicPage(): React.ReactElement {
   // Render skeleton loader
   const renderSkeleton = (): React.ReactElement => (
     <div className="animate-pulse space-y-8">
-      <div className="h-64 bg-gray-800 rounded-2xl w-full"></div>
+      <div className="h-64 rounded-2xl w-full bg-[color:var(--surface)] border border-[color:var(--border)]"></div>
       <div>
-        <div className="h-8 bg-gray-800 rounded w-48 mb-4"></div>
+        <div className="h-8 rounded w-48 mb-4 bg-[color:var(--surface)] border border-[color:var(--border)]"></div>
         <div className="flex gap-4 overflow-hidden">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex-shrink-0 w-36 sm:w-48 space-y-3">
-              <div className="w-full aspect-square bg-gray-800 rounded-lg"></div>
-              <div className="h-4 bg-gray-800 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-800 rounded w-1/2"></div>
+              <div className="w-full aspect-square rounded-lg bg-[color:var(--surface)] border border-[color:var(--border)]"></div>
+              <div className="h-4 rounded w-3/4 bg-[color:var(--surface)] border border-[color:var(--border)]"></div>
+              <div className="h-3 rounded w-1/2 bg-[color:var(--surface)] border border-[color:var(--border)]"></div>
             </div>
           ))}
         </div>
@@ -189,7 +189,7 @@ export default function MusicPage(): React.ReactElement {
           <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold mb-1 truncate">
             Sawa Music
           </h1>
-          <p className="text-xs xs:text-sm sm:text-base text-gray-400 truncate">
+          <p className="text-xs xs:text-sm sm:text-base text-[color:var(--muted-foreground)] truncate">
             Listen or Watch Cameroonian hits
           </p>
         </div>
@@ -243,8 +243,8 @@ export default function MusicPage(): React.ReactElement {
             ))}
 
             {musicCategories.length === 0 && !isLoading && (
-              <div className="text-center py-12 text-gray-400">
-                <p className="text-lg font-semibold">No music categories available</p>
+              <div className="text-center py-12 text-[color:var(--muted-foreground)]">
+                <p className="text-lg font-semibold text-[color:var(--foreground)]">No music categories available</p>
               </div>
             )}
           </div>

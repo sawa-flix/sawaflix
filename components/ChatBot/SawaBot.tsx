@@ -174,19 +174,19 @@ export default function SawaBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="fixed bottom-6 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl bg-[#07090E] border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-6 right-4 sm:right-6 z-[9999] w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] max-h-[calc(100vh-4rem)] rounded-2xl bg-[color:var(--surface)] border border-[color:var(--border)] shadow-[0_16px_40px_rgba(15,15,15,0.12)] flex flex-col overflow-hidden"
           >
           {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
             style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--background)]/90 via-[color:var(--background)]/75 to-[color:var(--background)]/95 pointer-events-none" />
 
           {/* Header: Minimal & Focused */}
-          <div className="relative z-10 px-4 py-3 bg-[#0D111A]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between shrink-0">
+          <div className="relative z-10 px-4 py-3 bg-[color:var(--surface-elevated)]/90 border-b border-[color:var(--border)] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-0.5 shrink-0 overflow-hidden shadow-sm">
+              <div className="w-7 h-7 rounded-full bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center p-0.5 shrink-0 overflow-hidden shadow-sm">
                 <Image
                   src="/logos_and_pwas/android-chrome-192x192.png"
                   alt="Sawai"
@@ -196,8 +196,8 @@ export default function SawaBot() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <h3 className="text-white font-semibold text-sm tracking-tight">Sawai</h3>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-300 border border-white/10">
+                <h3 className="text-[color:var(--foreground)] font-semibold text-sm tracking-tight">Sawai</h3>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-[color:var(--surface)] text-[color:var(--muted-foreground)] border border-[color:var(--border)]">
                   AI
                 </span>
               </div>
@@ -208,21 +208,21 @@ export default function SawaBot() {
                 href="/dashboard/sawai"
                 onClick={closeSawai}
                 title="Expand to Full Page"
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
               </Link>
               <button
                 onClick={handleClearChat}
                 title="Clear conversation"
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={closeSawai}
                 title="Close"
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -253,8 +253,8 @@ export default function SawaBot() {
                       <div
                         className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[12.5px] leading-relaxed ${
                           isUser
-                            ? 'bg-zinc-200 text-zinc-950 font-medium rounded-tr-xs shadow-sm'
-                            : 'bg-[#11141D] text-zinc-200 border border-white/5 rounded-tl-xs shadow-sm'
+                            ? 'bg-[color:var(--foreground)] text-[color:var(--background)] font-medium rounded-tr-xs shadow-sm'
+                            : 'bg-[color:var(--surface)] text-[color:var(--foreground)] border border-[color:var(--border)] rounded-tl-xs shadow-sm'
                         }`}
                       >
                         {isUser ? (

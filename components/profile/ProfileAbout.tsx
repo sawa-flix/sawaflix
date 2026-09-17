@@ -22,29 +22,29 @@ export function ProfileAbout({ profile }: ProfileAboutProps) {
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="rounded-xl border border-white/5 bg-[#0E121A] p-5">
-        <h3 className="mb-3 text-sm font-bold text-white">Bio</h3>
-        <p className="text-sm leading-relaxed text-gray-400">{profile.bio || 'No bio added yet.'}</p>
+      <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+        <h3 className="mb-3 text-sm font-bold text-[color:var(--foreground)]">Bio</h3>
+        <p className="text-sm leading-relaxed text-[color:var(--muted-foreground)]">{profile.bio || 'No bio added yet.'}</p>
       </div>
 
-      <div className="rounded-xl border border-white/5 bg-[#0E121A] p-5">
-        <h3 className="mb-3 text-sm font-bold text-white">Favorite Genres</h3>
+      <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+        <h3 className="mb-3 text-sm font-bold text-[color:var(--foreground)]">Favorite Genres</h3>
         {profile.favoredGenres.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {profile.favoredGenres.map((genre) => (
-              <span key={genre} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-gray-300">
+              <span key={genre} className="rounded-full border border-[color:var(--border)] bg-[color:var(--surface-hover)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground-secondary)]">
                 {genre}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No favorite genres added yet.</p>
+          <p className="text-sm text-[color:var(--muted-foreground)]">No favorite genres added yet.</p>
         )}
       </div>
 
-      <div className="rounded-xl border border-white/5 bg-[#0E121A] p-5">
-        <h3 className="mb-3 text-sm font-bold text-white">Location</h3>
-        <div className="space-y-2 text-sm text-gray-400">
+      <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+        <h3 className="mb-3 text-sm font-bold text-[color:var(--foreground)]">Location</h3>
+        <div className="space-y-2 text-sm text-[color:var(--muted-foreground)]">
           <div className="flex items-center gap-2">
             <Globe2 size={14} className="text-white/30" />
             {/* SawaFlix is Cameroon-focused — a true platform-level fact, not a per-user fabrication. */}
@@ -65,8 +65,8 @@ export function ProfileAbout({ profile }: ProfileAboutProps) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/5 bg-[#0E121A] p-5">
-        <h3 className="mb-3 text-sm font-bold text-white">Links</h3>
+      <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5">
+        <h3 className="mb-3 text-sm font-bold text-[color:var(--foreground)]">Links</h3>
         {profile.website || socialEntries.length > 0 ? (
           <div className="space-y-2">
             {profile.website && (
@@ -74,7 +74,7 @@ export function ProfileAbout({ profile }: ProfileAboutProps) {
                 href={profile.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-[#E50914] hover:text-red-400"
+                className="flex items-center gap-2 text-sm text-[color:var(--primary)] hover:text-[color:var(--primary-strong)]"
               >
                 <Link2 size={14} />
                 {profile.website.replace(/^https?:\/\//, '')}
@@ -86,15 +86,15 @@ export function ProfileAbout({ profile }: ProfileAboutProps) {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-sm text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]"
               >
-                <Link2 size={14} className="text-white/30" />
+                <Link2 size={14} className="text-[color:var(--muted-foreground)]" />
                 {SOCIAL_LABELS[key] ?? key}
               </a>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No links added yet.</p>
+          <p className="text-sm text-[color:var(--muted-foreground)]">No links added yet.</p>
         )}
       </div>
     </div>

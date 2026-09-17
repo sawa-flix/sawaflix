@@ -62,20 +62,20 @@ export function ProfilePreferences({
   };
 
   return (
-    <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0E121A]/90 p-4 sm:p-5 md:p-6 backdrop-blur-xl shadow-xl">
+    <div className="rounded-xl sm:rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:p-5 md:p-6 backdrop-blur-xl shadow-xl">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 lg:divide-x lg:divide-white/10">
         
         {/* Section 1: Viewing Preferences & Favorite Genres (5 Cols) */}
         <div className="lg:col-span-5 space-y-2.5">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
-              <Sliders size={14} className="text-red-400" />
+            <div className="w-7 h-7 rounded-lg bg-[color:var(--surface-hover)] border border-[color:var(--border)] flex items-center justify-center text-[color:var(--foreground)]">
+              <Sliders size={14} className="text-[color:var(--primary)]" />
             </div>
-            <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight">Viewing Preferences</h3>
+            <h3 className="text-xs sm:text-sm font-bold text-[color:var(--foreground)] tracking-tight">Viewing Preferences</h3>
           </div>
 
           <div>
-            <p className="text-[11px] sm:text-xs text-zinc-400 font-medium mb-2">Favorite Genres</p>
+            <p className="text-[11px] sm:text-xs text-[color:var(--muted-foreground)] font-medium mb-2">Favorite Genres</p>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {ALL_GENRES.map((genre) => {
                 const isActive = selectedGenres.includes(genre);
@@ -86,8 +86,8 @@ export function ProfilePreferences({
                     onClick={() => toggleGenre(genre)}
                     className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all cursor-pointer ${
                       isActive
-                        ? 'border border-white/25 bg-white/15 text-white shadow-sm'
-                        : 'border border-white/5 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                        ? 'border border-[color:var(--border)] bg-[color:var(--surface-hover)] text-[color:var(--foreground)] shadow-sm'
+                        : 'border border-[color:var(--border)] bg-[color:var(--background)] text-[color:var(--muted-foreground)] hover:border-[color:var(--border)] hover:text-[color:var(--foreground)]'
                     }`}
                   >
                     {genre}
@@ -100,7 +100,7 @@ export function ProfilePreferences({
 
         {/* Section 2: Preferred Language (3.5 Cols) */}
         <div className="lg:col-span-3 lg:pl-6 space-y-2.5">
-          <p className="text-[11px] sm:text-xs text-zinc-400 font-medium pt-0.5 mb-2">Preferred Language</p>
+          <p className="text-[11px] sm:text-xs text-[color:var(--muted-foreground)] font-medium pt-0.5 mb-2">Preferred Language</p>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {LANGUAGES.map((lang) => {
               const isActive = selectedLanguage.toLowerCase() === lang.toLowerCase();
@@ -111,8 +111,8 @@ export function ProfilePreferences({
                   onClick={() => selectLanguage(lang)}
                   className={`px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all cursor-pointer ${
                     isActive
-                      ? 'border border-red-500/80 bg-red-500/15 text-red-400 font-semibold shadow-sm'
-                      : 'border border-white/5 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                      ? 'border border-[color:var(--primary)] bg-[color:var(--primary-soft)] text-[color:var(--primary)] font-semibold shadow-sm'
+                      : 'border border-[color:var(--border)] bg-[color:var(--background)] text-[color:var(--muted-foreground)] hover:border-[color:var(--border)] hover:text-[color:var(--foreground)]'
                   }`}
                 >
                   {lang}
@@ -126,10 +126,10 @@ export function ProfilePreferences({
         <div className="lg:col-span-4 lg:pl-6 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white">
-                <Bell size={14} className="text-zinc-200" />
+              <div className="w-7 h-7 rounded-lg bg-[color:var(--surface-hover)] border border-[color:var(--border)] flex items-center justify-center text-[color:var(--foreground)]">
+                <Bell size={14} className="text-[color:var(--foreground-secondary)]" />
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight">Notifications</h3>
+              <h3 className="text-xs sm:text-sm font-bold text-[color:var(--foreground)] tracking-tight">Notifications</h3>
             </div>
 
             {/* Toggle Switch */}
@@ -145,7 +145,7 @@ export function ProfilePreferences({
             </button>
           </div>
 
-          <p className="text-[11px] sm:text-xs text-zinc-400 leading-relaxed pr-2">
+          <p className="text-[11px] sm:text-xs text-[color:var(--muted-foreground)] leading-relaxed pr-2">
             Stay updated on new releases and recommendations
           </p>
         </div>

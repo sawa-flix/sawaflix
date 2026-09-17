@@ -98,11 +98,11 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
 
       {/* Cover Photo */}
       <div>
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400">Cover Photo</p>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">Cover Photo</p>
         <button
           type="button"
           onClick={() => coverInputRef.current?.click()}
-          className="relative h-36 sm:h-48 w-full overflow-hidden rounded-xl sm:rounded-2xl border border-white/10 bg-[#151C25] group cursor-pointer shadow-lg"
+          className="relative h-36 sm:h-48 w-full overflow-hidden rounded-xl sm:rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] group cursor-pointer shadow-lg"
         >
           {coverUrl ? (
             <Image src={coverUrl} alt="Cover" fill unoptimized className="object-cover" />
@@ -114,7 +114,7 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
           )}
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs">
             {uploading === 'cover_image' ? (
-              <Loader2 className="animate-spin text-white" size={22} />
+              <Loader2 className="animate-spin text-[color:var(--foreground)]" size={22} />
             ) : (
               <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-black/70 border border-white/20 text-white text-xs font-bold">
                 <Camera size={14} />
@@ -137,7 +137,7 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
         <button
           type="button"
           onClick={() => avatarInputRef.current?.click()}
-          className="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-full border-[3px] border-[#0E121A] ring-2 ring-white/10 bg-gradient-to-br from-[#1E2330] to-[#0E121A] group cursor-pointer shadow-xl flex items-center justify-center"
+          className="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-full border-[3px] border-[color:var(--border)] ring-2 ring-[color:var(--border)] bg-[color:var(--surface)] group cursor-pointer shadow-xl flex items-center justify-center"
         >
           {avatarUrl ? (
             <Image src={avatarUrl} alt="Avatar" fill unoptimized className="object-cover" />
@@ -168,8 +168,8 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
           onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'profile_image')}
         />
         <div>
-          <h4 className="text-xs sm:text-sm font-bold text-white">Profile Photo</h4>
-          <p className="text-[11px] text-zinc-400 mt-0.5">Tap photo to upload a new avatar. JPG, PNG or WebP.</p>
+          <h4 className="text-xs sm:text-sm font-bold text-[color:var(--foreground)]">Profile Photo</h4>
+          <p className="text-[11px] text-[color:var(--muted-foreground)] mt-0.5">Tap photo to upload a new avatar. JPG, PNG or WebP.</p>
         </div>
       </div>
 
@@ -246,7 +246,7 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
 
       {/* Social Links */}
       <div>
-        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">Social Links (Optional)</p>
+        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">Social Links (Optional)</p>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           {SOCIAL_FIELDS.map(({ key, label, placeholder }) => (
             <Field key={key} label={label}>
@@ -265,18 +265,18 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
       </div>
 
       {/* Form Action Buttons — Light / White Save Changes button */}
-      <div className="flex items-center justify-end gap-2.5 pt-5 border-t border-white/10">
+      <div className="flex items-center justify-end gap-2.5 pt-5 border-t border-[color:var(--border)]">
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-2 rounded-lg sm:rounded-xl border border-white/10 text-zinc-300 hover:text-white hover:bg-white/5 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+          className="px-5 py-2 rounded-lg sm:rounded-xl border border-[color:var(--border)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] font-bold text-xs sm:text-sm transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-zinc-100 text-[#0E121A] px-6 py-2 sm:px-7 sm:py-2.5 text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-60 cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg sm:rounded-xl bg-[color:var(--foreground)] hover:bg-[color:var(--background-secondary)] text-[color:var(--background)] px-6 py-2 sm:px-7 sm:py-2.5 text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-60 cursor-pointer"
         >
           {isSaving ? (
             <>
@@ -296,12 +296,12 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
 }
 
 const inputClass =
-  'w-full rounded-lg sm:rounded-xl border border-white/10 bg-[#11151C] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none focus:border-white/30 transition-colors';
+  'w-full rounded-lg sm:rounded-xl border border-[color:var(--border)] bg-[color:var(--input-bg)] px-3.5 py-2.5 text-xs sm:text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] outline-none focus:border-[color:var(--border)] transition-colors';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
+      <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">{label}</span>
       {children}
     </label>
   );

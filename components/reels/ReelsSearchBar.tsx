@@ -60,7 +60,7 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
               if (floating) setIsOpen(false);
             }}
             aria-label={floating ? 'Close search' : 'Clear search'}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[color:var(--muted-foreground)] transition-colors hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
           >
             <X size={13} />
           </button>
@@ -80,13 +80,13 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
             </div>
           ) : error && results.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
-              <SearchX size={20} className="text-white/30" />
-              <p className="text-sm text-white/50">{error}</p>
+              <SearchX size={20} className="text-[color:var(--muted-foreground)]" />
+              <p className="text-sm text-[color:var(--muted-foreground)]">{error}</p>
               <button
                 type="button"
                 onClick={retry}
                 disabled={loading}
-                className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded-full bg-[color:var(--surface-hover)] px-3 py-1.5 text-xs font-semibold text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--surface)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <RotateCcw size={12} />
                 Retry
@@ -94,7 +94,7 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
             </div>
           ) : (
             <>
-              <p className="px-4 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-white/40">Videos</p>
+              <p className="px-4 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-[color:var(--muted-foreground)]">Videos</p>
               <ul>
                 {results.map((video) => (
                   <li key={video.id}>
@@ -107,10 +107,10 @@ export function ReelsSearchBar({ floating = false }: ReelsSearchBarProps) {
                         <Image src={video.thumbnail} alt="" fill unoptimized className="object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="line-clamp-1 text-[13px] font-semibold text-white/80">{video.title}</p>
-                        <p className="mt-0.5 truncate text-[11px] text-white/30">{video.channelTitle}</p>
+                        <p className="line-clamp-1 text-[13px] font-semibold text-[color:var(--foreground-secondary)]">{video.title}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-[color:var(--muted-foreground)]">{video.channelTitle}</p>
                       </div>
-                      <ChevronRight size={14} className="shrink-0 text-white/20" />
+                      <ChevronRight size={14} className="shrink-0 text-[color:var(--muted-foreground)]" />
                     </button>
                   </li>
                 ))}

@@ -212,8 +212,8 @@ const Header = ({
     <header
       className={
         isReelsRoute
-          ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
-          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)]/90 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl'
+          ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)] md:bg-[color:var(--surface)] md:border-b md:border-[color:var(--border)] md:shadow-[0_1px_0_rgba(15,15,15,0.04)]'
+          : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)] border-b border-[color:var(--border)] shadow-[0_1px_0_rgba(15,15,15,0.04)]'
       }
     >
       {/* Phone-only compact bar for Reels (TikTok-style) */}
@@ -287,7 +287,7 @@ const Header = ({
           {!hideSearch && !searchDisabled && (
             <button
               onClick={() => setIsSearchFocused(true)}
-              className="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="md:hidden p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer"
               aria-label="Toggle search bar"
             >
               <Search size={17} />
@@ -304,7 +304,7 @@ const Header = ({
                 }
                 setShowNotifications(!showNotifications);
               }}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer"
+              className="p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all relative group cursor-pointer"
               aria-label="Notifications"
             >
               <Bell size={18} className="group-hover:scale-110 transition-transform" />
@@ -356,11 +356,11 @@ const Header = ({
           <button
             type="button"
             onClick={toggleSawai}
-            className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group cursor-pointer flex items-center justify-center"
+            className="p-1.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all relative group cursor-pointer flex items-center justify-center"
             aria-label="Open Sawai Assistant"
             title="Sawai AI"
           >
-            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-white/20 group-hover:border-white/50 transition-all group-hover:scale-105 shadow-sm">
+            <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-[color:var(--border)] bg-[color:var(--surface)] group-hover:border-[color:var(--primary)]/40 transition-all group-hover:scale-105 shadow-sm">
               <Image
                 src="/logos_and_pwas/android-chrome-192x192.png"
                 alt="Sawai"
@@ -372,13 +372,13 @@ const Header = ({
           </button>
 
           {isAuthenticated ? (
-            <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer" aria-label="Settings">
+            <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer" aria-label="Settings">
               <Settings size={16} />
             </Link>
           ) : (
             <button
               onClick={() => openAuthModal('to access settings')}
-              className="hidden sm:block p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="hidden sm:block p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer"
               aria-label="Settings"
             >
               <Settings size={16} />
@@ -389,7 +389,7 @@ const Header = ({
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-gray-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 transition-all duration-200 cursor-pointer group"
+                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-[color:var(--foreground)] hover:text-[color:var(--foreground)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] hover:border-[color:var(--border)] transition-all duration-200 cursor-pointer group"
                 aria-label="User profile menu"
               >
                 {userProfile?.profile_image_url ? (
@@ -408,14 +408,14 @@ const Header = ({
                   </div>
                 )}
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-[11.5px] font-semibold text-white group-hover:text-zinc-200 transition-colors leading-none truncate max-w-[100px]">
+                  <span className="text-[11.5px] font-semibold text-[color:var(--foreground)] transition-colors leading-none truncate max-w-[100px]">
                     {userProfile?.username || currentUser?.email?.split('@')[0]}
                   </span>
-                  <span className="text-[8px] text-zinc-400 font-medium tracking-wider uppercase mt-0.5">
+                  <span className="text-[8px] text-[color:var(--muted-foreground)] font-medium tracking-wider uppercase mt-0.5">
                     Account
                   </span>
                 </div>
-                <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown size={12} className={`text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
@@ -425,10 +425,10 @@ const Header = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#0C0F17]/95 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] border border-white/10 p-2.5 z-50 overflow-hidden"
+                    className="absolute right-0 mt-3 w-72 sm:w-80 bg-[color:var(--surface-elevated)]/98 rounded-2xl sm:rounded-3xl shadow-[0_14px_30px_rgba(15,15,15,0.08)] border border-[color:var(--border)] p-2.5 z-50 overflow-hidden"
                   >
                     {/* Top User Card Header */}
-                    <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
+                    <div className="p-3 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
                       {userProfile?.profile_image_url ? (
                         <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0">
                           <Image
@@ -440,21 +440,21 @@ const Header = ({
                           />
                         </div>
                       ) : (
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/20 shadow-md flex-shrink-0">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-[color:var(--border)] shadow-md flex-shrink-0">
                           {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-white truncate leading-tight">
+                          <p className="text-sm font-bold text-[color:var(--foreground)] truncate leading-tight">
                             {userProfile?.username || currentUser?.email?.split('@')[0]}
                           </p>
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
                         </div>
-                        <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
+                        <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5 font-medium">
                           {currentUser?.email || 'Logged in user'}
                         </p>
-                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
+                        <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-md text-[10px] font-bold text-[color:var(--foreground)] tracking-wider uppercase shadow-sm">
                           <span>Community Member</span>
                         </div>
                       </div>
@@ -465,106 +465,106 @@ const Header = ({
                       <Link 
                         href="/dashboard/profile" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <User size={15} />
                           </div>
                           <span>My Profile</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
                       <Link 
                         href="/dashboard/edit-profile" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <Edit3 size={15} />
                           </div>
                           <span>Edit Profile</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
                       <Link 
                         href="/dashboard/favorites" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <Bookmark size={15} />
                           </div>
                           <span>Saved & Favorites</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
                       <Link 
                         href="/dashboard/blogs" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <BookOpen size={15} />
                           </div>
                           <span>Stories & Dev.to Blogs</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
                       <Link 
                         href="/creator-dashboard" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <Video size={15} />
                           </div>
                           <span>Creator Studio</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
-                      <div className="my-1.5 border-t border-white/[0.06]" />
+                      <div className="my-1.5 border-t border-[color:var(--border)]" />
 
                       <Link 
                         href="/dashboard/settings" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <Settings size={15} />
                           </div>
                           <span>Settings</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
 
                       <Link 
                         href="/dashboard/support" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                             <HelpCircle size={15} />
                           </div>
                           <span>Help & Support</span>
                         </div>
-                        <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+                        <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
                       </Link>
                     </div>
 
                     {/* Sign Out Button */}
-                    <div className="mt-1 pt-1.5 border-t border-white/[0.06]">
+                    <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
                       <form action={handleSignOut}>
                         <button
                           type="submit"

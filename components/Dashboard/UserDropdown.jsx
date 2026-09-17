@@ -43,7 +43,7 @@ export default function UserDropdown({ profile }) {
         className="flex items-center gap-2.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] transition-all duration-200 cursor-pointer group focus:outline-none"
         aria-label="User menu"
       >
-        <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 group-hover:ring-white/60 transition-all flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shadow-md shrink-0">
+        <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[color:var(--border)] group-hover:ring-[color:var(--border)] transition-all flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shadow-md shrink-0">
           {profile?.profileImage ? (
             <Image
               src={profile.profileImage}
@@ -65,14 +65,14 @@ export default function UserDropdown({ profile }) {
             {profile?.category || 'Creator'}
           </span>
         </div>
-        <ChevronDown size={14} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[color:var(--surface-elevated)]/98 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-xl border border-[color:var(--border)] p-2.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[color:var(--surface-elevated)]/98 rounded-2xl sm:rounded-3xl shadow-[0_14px_30px_rgba(15,15,15,0.08)] border border-[color:var(--border)] p-2.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header Profile Card */}
-          <div className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shrink-0">
+          <div className="p-3 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-[color:var(--border)] shadow-md flex items-center justify-center bg-gradient-to-br from-zinc-700 to-zinc-900 shrink-0">
               {profile?.profileImage ? (
                 <Image
                   src={profile.profileImage}
@@ -94,7 +94,7 @@ export default function UserDropdown({ profile }) {
               <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5 font-medium">
                 {profile?.email || `@${profile?.username || 'creator'}`}
               </p>
-              <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-white/10 border border-white/20 rounded-md text-[10px] font-bold text-white tracking-wider uppercase shadow-sm">
+              <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-md text-[10px] font-bold text-[color:var(--foreground)] tracking-wider uppercase shadow-sm">
                 <span>{profile?.category || 'Creator'}</span>
               </div>
             </div>
@@ -118,63 +118,63 @@ export default function UserDropdown({ profile }) {
 
             <Link
               href="/creator-dashboard"
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                   <Video size={15} />
                 </div>
                 <span>Creator Dashboard</span>
               </div>
-              <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
             </Link>
 
             <Link
               href="/dashboard/blogs"
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                   <BookOpen size={15} />
                 </div>
                 <span>Stories & Blogs</span>
               </div>
-              <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
             </Link>
 
             <Link
               href="/creator-dashboard/settings"
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                   <Settings size={15} />
                 </div>
                 <span>Creator Settings</span>
               </div>
-              <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
             </Link>
 
             <Link
               href="/dashboard/support"
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
               onClick={() => setIsOpen(false)}
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
                   <HelpCircle size={15} />
                 </div>
                 <span>Help & Support</span>
               </div>
-              <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
             </Link>
           </div>
 
           {/* Sign Out Button */}
-          <div className="mt-1 pt-1.5 border-t border-white/[0.06]">
+          <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
             <form action={handleSignOut}>
               <button
                 type="submit"

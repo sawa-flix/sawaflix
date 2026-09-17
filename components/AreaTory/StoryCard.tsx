@@ -87,7 +87,7 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
   return (
     <Link
       href={`/dashboard/blogs/${slugTarget}`}
-      className="group relative flex-shrink-0 w-[270px] sm:w-[300px] md:w-[320px] bg-[#12141C] hover:bg-[#161924] border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-md hover:shadow-xl flex flex-col snap-start cursor-pointer select-none"
+      className="group relative flex-shrink-0 w-[270px] sm:w-[300px] md:w-[320px] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] hover:border-[color:var(--border)] rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-[0_1px_3px_rgba(15,15,15,0.06)] hover:shadow-[0_8px_18px_rgba(15,15,15,0.08)] flex flex-col snap-start cursor-pointer select-none"
     >
       {/* Thumbnail Area */}
       <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-zinc-900">
@@ -99,19 +99,19 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Subtle Dark Vignette at bottom of image */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12141C] via-transparent to-black/30 pointer-events-none" />
+        {/* Subtle Vignette at bottom of image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--background)]/85 via-transparent to-black/20 pointer-events-none" />
 
         {/* Top-Left: Story Pill Badge */}
         <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-zinc-300 rounded-md border border-white/10">
+          <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[color:var(--background)]/80 backdrop-blur-md text-[color:var(--foreground)] rounded-md border border-[color:var(--border)]">
             {story.category?.title || 'Story'}
           </span>
         </div>
 
         {/* Top-Right: Read Time Badge */}
         <div className="absolute top-3 right-3">
-          <span className="px-2 py-0.5 text-[10px] font-medium bg-black/60 backdrop-blur-md text-zinc-300 rounded-md border border-white/10">
+          <span className="px-2 py-0.5 text-[10px] font-medium bg-[color:var(--background)]/80 backdrop-blur-md text-[color:var(--foreground)] rounded-md border border-[color:var(--border)]">
             {story.readTime || '3 min'}
           </span>
         </div>
@@ -121,35 +121,35 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           {/* Title */}
-          <h3 className="text-sm sm:text-[15px] font-bold text-white leading-snug line-clamp-2 group-hover:text-red-500 transition-colors mb-2">
+          <h3 className="text-sm sm:text-[15px] font-bold text-[color:var(--foreground)] leading-snug line-clamp-2 group-hover:text-[color:var(--primary)] transition-colors mb-2">
             {story.title}
           </h3>
 
           {/* Published relative time */}
-          <p className="text-[11px] text-zinc-500 font-medium mb-3">
+          <p className="text-[11px] text-[color:var(--muted-foreground)] font-medium mb-3">
             {getDisplayDate(story.publishedAt)}
           </p>
         </div>
 
         {/* Bottom Reaction & Views Bar */}
-        <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-zinc-400 text-xs font-medium">
+        <div className="pt-2.5 border-t border-[color:var(--border)] flex items-center justify-between text-[color:var(--muted-foreground)] text-xs font-medium">
           {/* Reactions */}
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 hover:text-white transition-colors" title="Reactions">
+            <span className="flex items-center gap-1 hover:text-[color:var(--foreground)] transition-colors" title="Reactions">
               <span className="text-xs">🇨🇲</span>
-              <span className="font-mono text-[11px] text-zinc-300 font-semibold">{formatCount(likes)}</span>
+              <span className="font-mono text-[11px] text-[color:var(--foreground)] font-semibold">{formatCount(likes)}</span>
             </span>
 
-            <span className="flex items-center gap-1 hover:text-white transition-colors" title="Comments">
-              <MessageSquare className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="font-mono text-[11px] text-zinc-400 font-semibold">{formatCount(comments)}</span>
+            <span className="flex items-center gap-1 hover:text-[color:var(--foreground)] transition-colors" title="Comments">
+              <MessageSquare className="w-3.5 h-3.5 text-[color:var(--muted-foreground)]" />
+              <span className="font-mono text-[11px] text-[color:var(--muted-foreground)] font-semibold">{formatCount(comments)}</span>
             </span>
           </div>
 
           {/* Views */}
-          <div className="flex items-center gap-1 text-zinc-500" title="Views">
-            <Eye className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="font-mono text-[11px] font-semibold text-zinc-400">{formatCount(views)}</span>
+          <div className="flex items-center gap-1 text-[color:var(--muted-foreground)]" title="Views">
+            <Eye className="w-3.5 h-3.5 text-[color:var(--muted-foreground)]" />
+            <span className="font-mono text-[11px] font-semibold text-[color:var(--muted-foreground)]">{formatCount(views)}</span>
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ export function ProfileHero({
   const bioText = profile.bio || 'Celebrating Cameroonian stories.';
 
   return (
-    <section className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-white/10 bg-[#0E121A] shadow-2xl">
+    <section className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl border border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl">
       {/* Cover Background Banner */}
       <div className="relative h-32 sm:h-48 md:h-56 w-full overflow-hidden bg-gradient-to-r from-[#1A1F2C] via-[#0E121A] to-[#0A0D14]">
         {profile.coverImageUrl ? (
@@ -82,21 +82,21 @@ export function ProfileHero({
             </motion.div>
 
             <div className="space-y-0.5 pt-0.5 sm:pt-1">
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-[color:var(--foreground)]">
                 {profile.username}
               </h1>
 
-              <p className="text-[11px] sm:text-xs text-zinc-400 font-medium">
+              <p className="text-[11px] sm:text-xs text-[color:var(--muted-foreground)] font-medium">
                 Member since {formatJoinDate(profile.createdAt)}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-0.5 text-[11px] sm:text-xs text-zinc-400 pt-0.5">
-                <span className="flex items-center gap-1 text-zinc-300 font-medium">
-                  <MapPin size={11} className="text-[#CE1126]" />
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-0.5 text-[11px] sm:text-xs text-[color:var(--muted-foreground)] pt-0.5">
+                <span className="flex items-center gap-1 text-[color:var(--foreground-secondary)] font-medium">
+                  <MapPin size={11} className="text-[color:var(--primary)]" />
                   {location}
                 </span>
-                <span className="text-zinc-600 hidden sm:inline">•</span>
-                <span className="italic text-zinc-400">
+                <span className="text-[color:var(--border)] hidden sm:inline">•</span>
+                <span className="italic text-[color:var(--muted-foreground)]">
                   &ldquo;{bioText}&rdquo;
                 </span>
               </div>
@@ -130,7 +130,7 @@ export function ProfileHero({
                   <>
                     <Link
                       href="/creator-dashboard"
-                      className="flex items-center gap-1.5 rounded-lg sm:rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-3.5 py-2 text-xs font-bold text-white transition-colors"
+                      className="flex items-center gap-1.5 rounded-lg sm:rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] px-3.5 py-2 text-xs font-bold text-[color:var(--foreground)] transition-colors"
                     >
                       <LayoutDashboard size={13} />
                       <span>Studio</span>

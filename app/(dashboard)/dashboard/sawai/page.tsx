@@ -180,21 +180,21 @@ export default function SawaiPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#07090E] text-white flex flex-col overflow-x-hidden">
+    <div className="relative min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] flex flex-col overflow-x-hidden">
       {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
         style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
       />
       {/* Ambient Modern Gradient Vignette for perfect text contrast & readability */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-b from-[color:var(--background)]/90 via-[color:var(--background)]/75 to-[color:var(--background)]/95 pointer-events-none" />
 
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#0B0E14]/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between relative">
+      <header className="sticky top-0 z-40 bg-[color:var(--background)]/80 backdrop-blur-xl border-b border-[color:var(--border)] px-4 sm:px-8 py-3 flex items-center justify-between relative">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/5 flex items-center gap-1.5 text-xs font-medium"
+            className="p-2 rounded-xl bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors cursor-pointer border border-[color:var(--border)] flex items-center gap-1.5 text-xs font-medium"
             title="Return to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -216,12 +216,12 @@ export default function SawaiPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-white font-semibold text-sm tracking-tight">Sawai</h1>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/10 text-zinc-300 border border-white/10">
+                <h1 className="text-[color:var(--foreground)] font-semibold text-sm tracking-tight">Sawai</h1>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-[color:var(--surface)] text-[color:var(--muted-foreground)] border border-[color:var(--border)]">
                   AI
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 hidden sm:block">
+              <p className="text-[11px] text-[color:var(--muted-foreground)] hidden sm:block">
                 SawaFlix Assistant
               </p>
             </div>
@@ -230,7 +230,7 @@ export default function SawaiPage() {
 
         <button
           onClick={handleClear}
-          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] border border-[color:var(--border)] transition-colors text-xs font-medium flex items-center gap-1.5 cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Clear Chat</span>
@@ -248,13 +248,13 @@ export default function SawaiPage() {
                 <button
                   key={idx}
                   onClick={() => sendMessage(item.prompt)}
-                  className="p-4 rounded-2xl bg-[#0B0F19]/80 backdrop-blur-md border border-white/10 hover:border-white/25 hover:bg-[#101626]/90 text-left transition-all group cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
+                  className="p-4 rounded-2xl bg-[color:var(--surface)] backdrop-blur-md border border-[color:var(--border)] hover:border-[color:var(--border)] hover:bg-[color:var(--surface-hover)] text-left transition-all group cursor-pointer shadow-[0_1px_3px_rgba(15,15,15,0.06)] hover:shadow-[0_8px_18px_rgba(15,15,15,0.08)] hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <div className="flex items-center gap-2.5 mb-1.5">
-                    <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
-                      <Icon className="w-3.5 h-3.5 text-zinc-300 group-hover:text-white transition-colors" />
+                    <div className="w-7 h-7 rounded-lg bg-[color:var(--surface-hover)] border border-[color:var(--border)] flex items-center justify-center shrink-0 transition-colors">
+                      <Icon className="w-3.5 h-3.5 text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors" />
                     </div>
-                    <h3 className="text-xs font-semibold text-white group-hover:text-zinc-100 transition-colors">
+                    <h3 className="text-xs font-semibold text-[color:var(--foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
                       {item.title}
                     </h3>
                   </div>

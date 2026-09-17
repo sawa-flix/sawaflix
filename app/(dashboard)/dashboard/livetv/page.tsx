@@ -395,9 +395,9 @@ export default function LiveTVPage() {
   };
 
   return (
-    <div className="min-h-screen text-white pb-32">
+    <div className="min-h-screen text-[color:var(--foreground)] pb-32 bg-[color:var(--background)]">
       {/* ====== 1. HERO BANNER (Direct Inspiration from Music Page) ====== */}
-      <div className="relative w-full rounded-3xl overflow-hidden mb-8 border border-white/10 shadow-2xl bg-[#0B0E14]">
+      <div className="relative w-full rounded-3xl overflow-hidden mb-8 border border-[color:var(--border)] shadow-2xl bg-[color:var(--background-secondary)]">
         <div className="relative aspect-[21/9] sm:aspect-[24/8] md:aspect-[24/7] min-h-[200px] sm:min-h-[250px] w-full">
           <Image
             src={LIVE_TV_BANNER}
@@ -414,20 +414,20 @@ export default function LiveTVPage() {
           {/* Banner Content */}
           <div className="absolute inset-0 p-6 sm:p-10 flex flex-col justify-between z-10">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider shadow-md">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-xs font-bold uppercase tracking-wider shadow-md">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live Broadcast
               </span>
-              <span className="text-xs text-zinc-300 font-mono bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
+              <span className="text-xs text-[color:var(--foreground-secondary)] font-mono bg-[color:var(--background)]/70 backdrop-blur-md px-3 py-1 rounded-full border border-[color:var(--border)]">
                 15 Cameroonian Stations
               </span>
             </div>
 
             <div className="max-w-xl">
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-[color:var(--foreground)] tracking-tight drop-shadow-md">
                 Cameroon Live TV
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-300 mt-2 line-clamp-2 leading-relaxed drop-shadow">
+              <p className="text-xs sm:text-sm text-[color:var(--foreground-secondary)] mt-2 line-clamp-2 leading-relaxed drop-shadow">
                 Watch Cameroon’s premier television networks live in crystal-clear high definition. Select any channel below to start streaming immediately.
               </p>
             </div>
@@ -444,7 +444,7 @@ export default function LiveTVPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="mb-8 rounded-3xl bg-[#090C12] border border-white/15 overflow-hidden shadow-2xl"
+            className="mb-8 rounded-3xl bg-[color:var(--background)] border border-[color:var(--border)] overflow-hidden shadow-2xl"
           >
             <div
               ref={playerRef}
@@ -465,7 +465,7 @@ export default function LiveTVPage() {
               {/* Player Top Bar */}
               <div className="relative z-10 p-4 sm:p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-zinc-950 text-xs font-bold uppercase tracking-wider shadow">
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-xs font-bold uppercase tracking-wider shadow">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Now Streaming
                   </span>
@@ -483,18 +483,18 @@ export default function LiveTVPage() {
                         />
                       </div>
                     )}
-                    <span className="font-mono font-bold text-white">
+                    <span className="font-mono font-bold text-[color:var(--foreground)]">
                       Ch {String(selectedStation.channelNumber).padStart(2, '0')}
                     </span>
-                    <span className="text-zinc-400">•</span>
-                    <span className="font-semibold text-white">{selectedStation.name}</span>
+                    <span className="text-[color:var(--muted-foreground)]">•</span>
+                    <span className="font-semibold text-[color:var(--foreground)]">{selectedStation.name}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/15 text-xs text-zinc-200">
                     <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                    <span className="font-mono">{selectedStation.viewers.toLocaleString()}</span>
+                    <span className="font-mono text-[color:var(--foreground-secondary)]">{selectedStation.viewers.toLocaleString()}</span>
                   </div>
 
                   <button
@@ -523,10 +523,10 @@ export default function LiveTVPage() {
                     <Tv className="w-10 h-10 text-white stroke-[1.75]" />
                   )}
                 </div>
-                <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-md">
+                <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-[color:var(--foreground)] drop-shadow-md">
                   {selectedStation.name}
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-300 max-w-md mt-0.5 drop-shadow font-medium">
+                <p className="text-xs sm:text-sm text-[color:var(--foreground-secondary)] max-w-md mt-0.5 drop-shadow font-medium">
                   {selectedStation.slogan}
                 </p>
               </div>
@@ -536,21 +536,21 @@ export default function LiveTVPage() {
                 <div className="mb-3 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-0.5 text-xs">
-                      <span className="font-semibold text-zinc-300 uppercase tracking-wider">
+                      <span className="font-semibold text-[color:var(--foreground-secondary)] uppercase tracking-wider">
                         Live Show
                       </span>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-zinc-300 font-mono">
+                      <span className="text-[color:var(--muted-foreground)]">•</span>
+                      <span className="text-[color:var(--foreground-secondary)] font-mono">
                         {selectedStation.currentShow.startTime} - {selectedStation.currentShow.endTime}
                       </span>
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-white truncate max-w-xl">
+                    <h3 className="text-sm sm:text-base font-bold text-[color:var(--foreground)] truncate max-w-xl">
                       {selectedStation.currentShow.title}
                     </h3>
                   </div>
 
                   <div className="hidden sm:flex items-center gap-1 text-xs text-zinc-300">
-                    <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                    <MapPin className="w-3.5 h-3.5 text-[color:var(--muted-foreground)]" />
                     <span>{selectedStation.city}</span>
                   </div>
                 </div>
@@ -595,7 +595,7 @@ export default function LiveTVPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-zinc-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
+                    <span className="text-[11px] font-mono text-[color:var(--muted-foreground)] bg-[color:var(--surface)] px-2.5 py-1 rounded-full border border-[color:var(--border)]">
                       {selectedStation.frequency}
                     </span>
                     <button
@@ -614,7 +614,7 @@ export default function LiveTVPage() {
       </AnimatePresence>
 
       {/* ====== 3. STICKY CATEGORY TABS & SEARCH (Direct Inspiration from Music Page tabs-row) ====== */}
-      <div className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md py-3.5 mb-6 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-40 bg-[color:var(--background)]/95 backdrop-blur-md py-3.5 mb-6 border-b border-[color:var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 -mx-4 px-4 sm:mx-0 sm:px-0">
         {/* Horizontal Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           {CATEGORIES.map((cat) => (
@@ -623,8 +623,8 @@ export default function LiveTVPage() {
               onClick={() => setActiveTab(cat)}
               className={`shrink-0 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === cat
-                  ? 'bg-white text-zinc-950 shadow-md'
-                  : 'bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/5'
+                  ? 'bg-[color:var(--foreground)] text-[color:var(--background)] shadow-md'
+                  : 'bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'
               }`}
             >
               {cat}
@@ -640,12 +640,12 @@ export default function LiveTVPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search TV stations..."
-            className="w-full bg-[#121622] border border-white/10 focus:border-white/30 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none transition-all"
+            className="w-full bg-[color:var(--input-bg)] border border-[color:var(--border)] focus:border-[color:var(--primary)] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] focus:outline-none transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] cursor-pointer"
             >
               Clear
             </button>
@@ -657,21 +657,21 @@ export default function LiveTVPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-1 h-5 bg-white rounded-full" />
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+            <div className="w-1 h-5 bg-[color:var(--primary)] rounded-full" />
+            <h2 className="text-lg sm:text-xl font-extrabold text-[color:var(--foreground)] tracking-tight">
               All Television Stations ({filteredStations.length})
             </h2>
           </div>
-          <span className="text-xs text-zinc-400 hidden sm:inline-block">
+          <span className="text-xs text-[color:var(--muted-foreground)] hidden sm:inline-block">
             Click any channel to stream live
           </span>
         </div>
 
         {filteredStations.length === 0 ? (
-          <div className="py-20 text-center rounded-2xl bg-[#0E121B] border border-white/5">
-            <Tv className="w-10 h-10 text-zinc-500 mx-auto mb-2 stroke-[1.5]" />
-            <p className="text-sm font-semibold text-white">No TV stations found</p>
-            <p className="text-xs text-zinc-400 mt-1">
+          <div className="py-20 text-center rounded-2xl bg-[color:var(--surface)] border border-[color:var(--border)]">
+            <Tv className="w-10 h-10 text-[color:var(--muted-foreground)] mx-auto mb-2 stroke-[1.5]" />
+            <p className="text-sm font-semibold text-[color:var(--foreground)]">No TV stations found</p>
+            <p className="text-xs text-[color:var(--muted-foreground)] mt-1">
               Try switching categories or clearing your search query.
             </p>
           </div>
