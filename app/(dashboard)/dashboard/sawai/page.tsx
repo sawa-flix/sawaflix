@@ -293,8 +293,8 @@ export default function SawaiPage() {
                 <div
                   className={`max-w-[88%] sm:max-w-[80%] rounded-2xl px-4.5 py-3.5 text-[13.5px] leading-relaxed ${
                     isUser
-                      ? 'bg-white text-zinc-950 font-medium rounded-tr-xs shadow-md'
-                      : 'bg-[#0B0F19]/85 backdrop-blur-md text-zinc-100 border border-white/10 rounded-tl-xs shadow-xl'
+                      ? 'bg-[color:var(--foreground)] text-[color:var(--background)] font-medium rounded-tr-xs shadow-md'
+                      : 'bg-[color:var(--surface)] backdrop-blur-md text-[color:var(--foreground)] border border-[color:var(--border)] rounded-tl-xs shadow-[0_1px_3px_rgba(15,15,15,0.06)]'
                   }`}
                 >
                   {isUser ? (
@@ -304,16 +304,16 @@ export default function SawaiPage() {
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          h1: ({ children }) => <h1 className="text-base font-bold text-white mt-3 mb-1.5 pb-1 border-b border-white/10">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-sm font-bold text-white mt-2.5 mb-1">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-xs font-bold text-zinc-100 mt-2 mb-1">{children}</h3>,
-                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-zinc-300">{children}</p>,
-                          strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                          ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 text-zinc-300">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 text-zinc-300">{children}</ol>,
+                          h1: ({ children }) => <h1 className="text-base font-bold text-[color:var(--foreground)] mt-3 mb-1.5 pb-1 border-b border-[color:var(--border)]">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-bold text-[color:var(--foreground)] mt-2.5 mb-1">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xs font-bold text-[color:var(--foreground)] mt-2 mb-1">{children}</h3>,
+                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-[color:var(--muted-foreground)]">{children}</p>,
+                          strong: ({ children }) => <strong className="font-semibold text-[color:var(--foreground)]">{children}</strong>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 text-[color:var(--muted-foreground)]">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 text-[color:var(--muted-foreground)]">{children}</ol>,
                           li: ({ children }) => <li className="leading-snug">{children}</li>,
                           code: ({ children }) => (
-                            <code className="bg-white/10 text-zinc-200 px-1 py-0.2 rounded text-xs font-mono">
+                            <code className="bg-[color:var(--surface-hover)] text-[color:var(--foreground)] px-1 py-0.2 rounded text-xs font-mono">
                               {children}
                             </code>
                           ),
@@ -322,7 +322,7 @@ export default function SawaiPage() {
                               href={href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-zinc-100 hover:text-white underline underline-offset-2 transition-colors"
+                              className="text-[color:var(--foreground)] hover:text-[color:var(--primary)] underline underline-offset-2 transition-colors"
                             >
                               {children}
                             </a>
@@ -339,8 +339,8 @@ export default function SawaiPage() {
           })}
 
           {isLoading && (
-            <div className="flex gap-3 items-center text-zinc-400 text-xs py-2">
-              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
+            <div className="flex gap-3 items-center text-[color:var(--muted-foreground)] text-xs py-2">
+              <div className="w-7 h-7 rounded-full bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                 <Image
                   src="/logos_and_pwas/favicon-32x32.png"
                   alt="Sawai"
@@ -349,10 +349,10 @@ export default function SawaiPage() {
                   className="w-full h-full object-contain rounded-full"
                 />
               </div>
-              <div className="flex items-center gap-1.5 bg-[#0E121B] border border-white/5 rounded-xl px-3 py-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="flex items-center gap-1.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl px-3 py-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
@@ -377,11 +377,11 @@ export default function SawaiPage() {
       </main>
 
       {/* Fixed Chat Input Bar */}
-      <footer className="fixed bottom-0 inset-x-0 lg:left-72 z-50 bg-[#0B0E14]/90 backdrop-blur-xl border-t border-white/10 p-3 sm:p-4">
+      <footer className="fixed bottom-0 inset-x-0 lg:left-72 z-50 bg-[color:var(--background)]/90 backdrop-blur-xl border-t border-[color:var(--border)] p-3 sm:p-4">
         <div className="max-w-3xl mx-auto">
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-2 bg-[#0B0F19]/90 backdrop-blur-md border border-white/15 focus-within:border-white/35 rounded-2xl px-3 py-1.5 transition-all shadow-2xl"
+            className="flex items-center gap-2 bg-[color:var(--input-bg)] backdrop-blur-md border border-[color:var(--input-border)] focus-within:border-[color:var(--primary)] rounded-2xl px-3 py-1.5 transition-all shadow-[0_6px_20px_rgba(15,15,15,0.08)]"
           >
             <input
               ref={inputRef}
@@ -390,12 +390,12 @@ export default function SawaiPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Sawai anything about movies, music, reels, culture..."
               disabled={isLoading}
-              className="flex-1 bg-transparent text-white placeholder:text-zinc-500 text-xs sm:text-sm px-2 py-1.5 focus:outline-none"
+              className="flex-1 bg-transparent text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] text-xs sm:text-sm px-2 py-1.5 focus:outline-none"
             />
             <button
               type="submit"
               disabled={isLoading || !(input || '').trim()}
-              className="w-8 h-8 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 font-semibold"
+              className="w-8 h-8 rounded-xl bg-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] text-[color:var(--background)] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 font-semibold"
               aria-label="Send message"
             >
               <ArrowUp className="w-4 h-4 stroke-[2.5]" />

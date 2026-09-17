@@ -354,9 +354,9 @@ export default function SawaBot() {
             {/* Input Bar: Ultra Simple & Clean */}
             <form
               onSubmit={handleSubmit}
-              className="relative z-10 p-3 bg-[#0D111A]/90 backdrop-blur-md border-t border-white/10 shrink-0"
+              className="relative z-10 p-3 bg-[color:var(--background)]/95 backdrop-blur-md border-t border-[color:var(--border)] shrink-0"
             >
-              <div className="flex items-center gap-2 bg-[#11141D] border border-white/10 focus-within:border-white/25 rounded-xl px-3 py-1.5 transition-all">
+              <div className="flex items-center gap-2 bg-[color:var(--input-bg)] border border-[color:var(--input-border)] focus-within:border-[color:var(--primary)] rounded-xl px-3 py-1.5 transition-all">
                 <input
                   ref={inputRef}
                   type="text"
@@ -364,12 +364,12 @@ export default function SawaBot() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask Sawai..."
                   disabled={isLoading}
-                  className="flex-1 bg-transparent text-white placeholder:text-zinc-500 text-xs focus:outline-none"
+                  className="flex-1 bg-transparent text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] text-xs focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !(input || '').trim()}
-                  className="w-7 h-7 rounded-lg bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+                  className="w-7 h-7 rounded-lg bg-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] text-[color:var(--background)] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
                   aria-label="Send"
                 >
                   <ArrowUp className="w-4 h-4 stroke-[2.5]" />
