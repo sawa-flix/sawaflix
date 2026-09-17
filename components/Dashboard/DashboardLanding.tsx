@@ -88,7 +88,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   useEffect(() => {
     async function fetchAdminContent() {
       try {
-        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3001';
+        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
         const res = await fetch(`${adminUrl}/api/public/featured`, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();

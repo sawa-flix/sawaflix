@@ -82,7 +82,7 @@ export default function MusicPage(): React.ReactElement {
       try {
         let adminCategories: MusicCategory[] = [];
         try {
-          const adminUrl = process.env.NEXT_PUBLIC_ADMIN_BACKEND_URL || 'http://localhost:3001';
+          const adminUrl = process.env.NEXT_PUBLIC_ADMIN_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
           const adminRes = await fetch(`${adminUrl}/api/public/music`);
           if (adminRes.ok) {
             const adminData = await adminRes.json();

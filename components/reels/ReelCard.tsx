@@ -49,7 +49,8 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     (Boolean(video.embedUrl) && !video.embedUrl.includes('youtube.com') && !video.embedUrl.includes('youtu.be')) ||
     (Boolean(video.id) && video.id.length !== 11);
 
-  const nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `http://localhost:3001/api/admin/upload/stream/${video.id}` : '');
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
+  const nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `${adminUrl}/api/admin/upload/stream/${video.id}` : '');
 
   const { user, isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
@@ -204,7 +205,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
             src={nativeSrc}
             playsInline
             muted={isMuted}
-            preload="metadata"
+            preload={isActive ? "auto" : "metadata"}
             className="w-full h-full object-contain bg-black"
             onLoadedData={() => setIsPlayerReady(true)}
             onCanPlay={() => setIsPlayerReady(true)}
