@@ -48,8 +48,11 @@ const UserProfilePage = async () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#06080C] flex items-center justify-center">
-        <Link href="/dashboard" className="px-8 py-3 bg-white text-[#0E121A] rounded-xl font-bold text-sm hover:bg-zinc-100 transition shadow-lg">
+      <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] flex items-center justify-center">
+        <Link
+          href="/dashboard"
+          className="px-8 py-3 rounded-xl font-bold text-sm border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-lg transition hover:bg-[color:var(--surface-hover)]"
+        >
           Please Sign In
         </Link>
       </div>
@@ -125,7 +128,7 @@ const UserProfilePage = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#06080C] text-white">
+    <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <NormalUserProfileView
           profile={profile}

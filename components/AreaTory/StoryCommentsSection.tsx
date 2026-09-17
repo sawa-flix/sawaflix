@@ -315,30 +315,30 @@ export default function StoryCommentsSection({
   // Reels-style sidebar / bottom-sheet mode
   if (isSidebarMode) {
     return (
-      <div className="flex flex-col h-full w-full bg-[#07090E] overflow-hidden select-text relative">
+      <div className="flex flex-col h-full w-full bg-[color:var(--background)] overflow-hidden select-text relative">
         {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
           style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--background)]/90 via-[color:var(--background)]/70 to-[color:var(--background)]/95 pointer-events-none" />
 
         {/* Reels-style Header */}
-        <div className="relative z-10 flex items-center justify-between border-b border-white/10 p-4 shrink-0 bg-[#0F1117]/80 backdrop-blur-md">
+        <div className="relative z-10 flex items-center justify-between border-b border-[color:var(--border)] p-4 shrink-0 bg-[color:var(--surface)]/80 backdrop-blur-md">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-black uppercase tracking-widest text-white">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[color:var(--foreground)]">
               {totalDiscussionsCount} {totalDiscussionsCount === 1 ? 'Comment' : 'Comments'}
             </h2>
           </div>
 
           <div className="flex items-center gap-2">
             {/* Subtle Sort Filter */}
-            <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5">
+            <div className="flex items-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-lg p-0.5">
               <button
                 type="button"
                 onClick={() => setSortBy('top')}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                  sortBy === 'top' ? 'bg-white text-black font-extrabold' : 'text-zinc-400 hover:text-white'
+                  sortBy === 'top' ? 'bg-[color:var(--foreground)] text-[color:var(--background)] font-extrabold' : 'text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]'
                 }`}
               >
                 Top
@@ -347,7 +347,7 @@ export default function StoryCommentsSection({
                 type="button"
                 onClick={() => setSortBy('newest')}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                  sortBy === 'newest' ? 'bg-white text-black font-extrabold' : 'text-zinc-400 hover:text-white'
+                  sortBy === 'newest' ? 'bg-[color:var(--foreground)] text-[color:var(--background)] font-extrabold' : 'text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]'
                 }`}
               >
                 Newest
@@ -359,7 +359,7 @@ export default function StoryCommentsSection({
                 type="button"
                 onClick={onClose}
                 aria-label="Close comments"
-                className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                className="rounded-full p-1.5 text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -376,12 +376,12 @@ export default function StoryCommentsSection({
           ) : comments.length === 0 ? (
             <div className="text-center py-12 px-4">
               <div className="text-2xl mb-2">🇨🇲</div>
-              <p className="text-sm text-white/80 font-bold mb-1">No comments yet</p>
-              <p className="text-xs text-white/40 mb-4">Be the first to share your perspective on this story!</p>
+              <p className="text-sm text-[color:var(--foreground)] font-bold mb-1">No comments yet</p>
+              <p className="text-xs text-[color:var(--muted-foreground)] mb-4">Be the first to share your perspective on this story!</p>
               <button
                 type="button"
                 onClick={() => textareaRef.current?.focus()}
-                className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white hover:text-black font-bold text-xs text-white transition-all cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] font-bold text-xs text-[color:var(--foreground)] transition-all cursor-pointer"
               >
                 Add a comment
               </button>
@@ -594,7 +594,7 @@ export default function StoryCommentsSection({
         </div>
 
         {/* Pinned Bottom Composer - exactly matching ReelComments */}
-        <div className="relative z-10 border-t border-white/10 p-4 bg-[#0F1117]/90 backdrop-blur-md shrink-0">
+        <div className="relative z-10 border-t border-[color:var(--border)] p-4 bg-[color:var(--surface)]/90 backdrop-blur-md shrink-0">
           {/* Cultural Quick Reactions */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-2">
             {CULTURAL_REACTIONS.map((item) => (
@@ -602,7 +602,7 @@ export default function StoryCommentsSection({
                 key={item.label}
                 type="button"
                 onClick={() => handleAppendReaction(item.text)}
-                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-[11px] text-zinc-300 hover:text-white transition-all shrink-0 cursor-pointer active:scale-95"
+                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] text-[11px] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-all shrink-0 cursor-pointer active:scale-95"
               >
                 <span>{item.emoji}</span>
                 <span className="text-[10px] font-medium">{item.label}</span>
@@ -618,18 +618,18 @@ export default function StoryCommentsSection({
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={isAuthenticated ? "Add a comment..." : "Sign in to comment..."}
               aria-label="Add a comment"
-              className="flex-1 rounded-full bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:bg-white/10 border border-transparent focus:border-white/10 transition-colors"
+              className="flex-1 rounded-full bg-[color:var(--background)] px-4 py-2.5 text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] outline-none focus:bg-[color:var(--surface)] border border-[color:var(--border)] transition-colors"
             />
             <button
               type="submit"
               disabled={!newComment.trim() || submitting}
               aria-label="Send comment"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white text-[#0B0E14] transition-colors hover:bg-white/85 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--foreground)] text-[color:var(--background)] transition-colors hover:opacity-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
             >
               {submitting ? (
-                <Loader2 size={16} className="animate-spin text-black" />
+                <Loader2 size={16} className="animate-spin text-[color:var(--background)]" />
               ) : (
-                <Send size={16} className="text-black" />
+                <Send size={16} className="text-[color:var(--background)]" />
               )}
             </button>
           </form>

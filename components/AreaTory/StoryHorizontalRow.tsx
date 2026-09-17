@@ -56,11 +56,11 @@ export default function StoryHorizontalRow({
       {/* Header */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-[color:var(--foreground)] tracking-tight">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-zinc-400 text-xs sm:text-sm font-medium mt-0.5">
+            <p className="text-[color:var(--muted-foreground)] text-xs sm:text-sm font-medium mt-0.5">
               {subtitle}
             </p>
           )}
@@ -74,8 +74,8 @@ export default function StoryHorizontalRow({
             aria-label={`Scroll ${title} left`}
             className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
               canScrollLeft
-                ? 'border-white/15 bg-white/5 text-white hover:bg-white/15 hover:border-white/30 cursor-pointer active:scale-95'
-                : 'border-white/5 bg-transparent text-zinc-600 opacity-40 cursor-not-allowed'
+                ? 'border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] cursor-pointer active:scale-95'
+                : 'border-[color:var(--border)] bg-transparent text-[color:var(--muted-foreground)] opacity-40 cursor-not-allowed'
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -87,8 +87,8 @@ export default function StoryHorizontalRow({
             aria-label={`Scroll ${title} right`}
             className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
               canScrollRight
-                ? 'border-white/15 bg-white/5 text-white hover:bg-white/15 hover:border-white/30 cursor-pointer active:scale-95'
-                : 'border-white/5 bg-transparent text-zinc-600 opacity-40 cursor-not-allowed'
+                ? 'border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] cursor-pointer active:scale-95'
+                : 'border-[color:var(--border)] bg-transparent text-[color:var(--muted-foreground)] opacity-40 cursor-not-allowed'
             }`}
           >
             <ChevronRight className="w-4 h-4" />

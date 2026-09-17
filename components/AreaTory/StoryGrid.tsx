@@ -174,8 +174,8 @@ export default function StoryGrid() {
               onClick={() => handlePillClick(pill.slug)}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? 'bg-white text-black shadow-md shadow-white/10 font-bold'
-                  : 'bg-[#161822] text-zinc-400 border border-white/5 hover:border-white/20 hover:text-white hover:bg-[#1c1f2c]'
+                  ? 'bg-[color:var(--foreground)] text-[color:var(--background)] shadow-[0_1px_4px_rgba(15,15,15,0.08)] font-bold'
+                  : 'bg-[color:var(--surface)] text-[color:var(--muted-foreground)] border border-[color:var(--border)] hover:border-[color:var(--border)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]'
               }`}
             >
               {pill.label}
@@ -196,9 +196,9 @@ export default function StoryGrid() {
 
       {/* No stories empty state */}
       {!loading && stories.length === 0 && (
-        <div className="text-center py-20 bg-[#12141C] border border-white/5 rounded-2xl p-8">
-          <h3 className="text-white font-bold text-base mb-1">No stories available</h3>
-          <p className="text-zinc-500 text-xs">
+        <div className="text-center py-20 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8 shadow-sm">
+          <h3 className="text-[color:var(--foreground)] font-bold text-base mb-1">No stories available</h3>
+          <p className="text-[color:var(--muted-foreground)] text-xs">
             Stories will appear here once published from the admin panel.
           </p>
         </div>

@@ -212,8 +212,8 @@ const Header = ({
       <header
         className={
           isReelsRoute
-            ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
-            : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)]/90 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl'
+            ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)] md:bg-[color:var(--surface)] md:border-b md:border-[color:var(--border)] md:shadow-[0_1px_0_rgba(15,15,15,0.04)]'
+            : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)] border-b border-[color:var(--border)] shadow-[0_1px_0_rgba(15,15,15,0.04)]'
         }
       >
         {/* Phone-only compact bar for Reels (TikTok-style) */}
@@ -287,7 +287,7 @@ const Header = ({
             {!hideSearch && !searchDisabled && (
               <button
                 onClick={() => setIsSearchFocused(true)}
-                className="md:hidden p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
+                className="md:hidden p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer"
                 aria-label="Toggle search bar"
               >
                 <Search size={17} />
@@ -297,8 +297,14 @@ const Header = ({
             {/* Notifications Bell */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all relative group"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    openAuthModal('to view notifications');
+                    return;
+                  }
+                  setShowNotifications(!showNotifications);
+                }}
+                className="p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all relative group cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell size={18} className="group-hover:scale-110 transition-transform" />
@@ -346,60 +352,235 @@ const Header = ({
               )}
             </div>
 
-            <ThemeToggle />
+            {/* Sawai AI Assistant */}
+            <button
+              type="button"
+              onClick={toggleSawai}
+              className="p-1.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all relative group cursor-pointer flex items-center justify-center"
+              aria-label="Open Sawai Assistant"
+              title="Sawai AI"
+            >
+              <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center border border-[color:var(--border)] bg-[color:var(--surface)] group-hover:border-[color:var(--primary)]/40 transition-all group-hover:scale-105 shadow-sm">
+                <Image
+                  src="/logos_and_pwas/android-chrome-192x192.png"
+                  alt="Sawai"
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-contain rounded-full"
+                />
+              </div>
+            </button>
 
-            <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer">
-              <Settings size={18} />
-            </Link>
-
-
-            <div className="relative">
+            {isAuthenticated ? (
+              <Link href="/dashboard/settings" className="hidden sm:block p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer" aria-label="Settings">
+                <Settings size={16} />
+              </Link>
+            ) : (
               <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-3 p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
-                aria-label="User profile menu"
+                onClick={() => openAuthModal('to access settings')}
+                className="hidden sm:block p-2 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer"
+                aria-label="Settings"
               >
-                {userProfile?.profile_image_url ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[color:var(--border)] shadow-sm flex-shrink-0">
-                    <Image
-                      src={userProfile.profile_image_url}
-                      alt="User Avatar"
-                      fill
-                      className="object-cover aspect-square"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                <div className="w-8 h-8 bg-[color:var(--surface)] rounded-full flex items-center justify-center border border-[color:var(--border)] shadow-sm flex-shrink-0">
-                  <User size={14} className="text-[color:var(--muted-foreground)]" />
-                </div>
-                <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <Settings size={16} />
               </button>
+            )}
 
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-[color:var(--surface)] rounded-xl shadow-xl border border-[color:var(--border)] py-2 z-50">
-                  <div className="px-4 py-2 border-b border-[color:var(--border)]">
-                    <p className="text-sm font-medium text-[color:var(--foreground)]">{userProfile?.username || 'Guest'}</p>
-                    <p className="text-xs text-[color:var(--muted-foreground)]">{currentUser?.email || 'N/A'}</p>
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl text-[color:var(--foreground)] hover:text-[color:var(--foreground)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] border border-[color:var(--border)] hover:border-[color:var(--border)] transition-all duration-200 cursor-pointer group"
+                  aria-label="User profile menu"
+                >
+                  {userProfile?.profile_image_url ? (
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[color:var(--border)] shadow-sm flex-shrink-0">
+                      <Image
+                        src={userProfile.profile_image_url}
+                        alt="User Avatar"
+                        fill
+                        className="object-cover aspect-square"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-[11px] ring-2 ring-white/20 shadow-md flex-shrink-0">
+                      {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="text-[11.5px] font-semibold text-[color:var(--foreground)] transition-colors leading-none truncate max-w-[100px]">
+                      {userProfile?.username || currentUser?.email?.split('@')[0]}
+                    </span>
+                    <span className="text-[8px] text-[color:var(--muted-foreground)] font-medium tracking-wider uppercase mt-0.5">
+                      Account
+                    </span>
                   </div>
-                  <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                    Update Profile
-                  </Link>
-                  <a href="#" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                    Help & Support
-                  </a>
-                  <hr className="my-2 border-[color:var(--border)]" />
-                  <form action={handleSignOut}>
-                    <button
-                      type="submit"
-                      className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+                  <ChevronDown size={12} className={`text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-3 w-72 sm:w-80 bg-[color:var(--surface-elevated)]/98 rounded-2xl sm:rounded-3xl shadow-[0_14px_30px_rgba(15,15,15,0.08)] border border-[color:var(--border)] p-2.5 z-50 overflow-hidden"
                     >
-                      Sign Out
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
+                      {/* Top User Card Header */}
+                      <div className="p-3 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl sm:rounded-2xl mb-2 flex items-center gap-3">
+                        {userProfile?.profile_image_url ? (
+                          <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/30 shadow-md flex-shrink-0">
+                            <Image
+                              src={userProfile.profile_image_url}
+                              alt="Avatar"
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-white font-bold text-sm ring-2 ring-[color:var(--border)] shadow-md flex-shrink-0">
+                            {(userProfile?.username || currentUser?.email || 'U')[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-bold text-[color:var(--foreground)] truncate leading-tight">
+                              {userProfile?.username || currentUser?.email?.split('@')[0]}
+                            </p>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="Online" />
+                          </div>
+                          <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5 font-medium">
+                            {currentUser?.email || 'Logged in user'}
+                          </p>
+                          <div className="mt-1.5 inline-flex items-center px-2 py-0.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-md text-[10px] font-bold text-[color:var(--foreground)] tracking-wider uppercase shadow-sm">
+                            <span>Community Member</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Navigation Items */}
+                      <div className="space-y-0.5 py-1">
+                        <Link
+                          href="/dashboard/profile"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <User size={15} />
+                            </div>
+                            <span>My Profile</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/edit-profile"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <Edit3 size={15} />
+                            </div>
+                            <span>Edit Profile</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/favorites"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <Bookmark size={15} />
+                            </div>
+                            <span>Saved & Favorites</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/blogs"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <BookOpen size={15} />
+                            </div>
+                            <span>Stories & Dev.to Blogs</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <Link
+                          href="/creator-dashboard"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <Video size={15} />
+                            </div>
+                            <span>Creator Studio</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <div className="my-1.5 border-t border-[color:var(--border)]" />
+
+                        <Link
+                          href="/dashboard/settings"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <Settings size={15} />
+                            </div>
+                            <span>Settings</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/support"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                              <HelpCircle size={15} />
+                            </div>
+                            <span>Help & Support</span>
+                          </div>
+                          <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+                      </div>
+
+                      {/* Sign Out Button */}
+                      <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
+                        <form action={handleSignOut}>
+                          <button
+                            type="submit"
+                            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer"
+                          >
+                            <div className="p-1.5 rounded-lg bg-red-500/15 text-red-400">
+                              <LogOut size={15} />
+                            </div>
+                            <span className="font-bold text-red-400">Sign Out</span>
+                          </button>
+                        </form>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
           </div>
         </div>
       </header>
