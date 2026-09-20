@@ -38,10 +38,10 @@ export const MusicCategoryRow: React.FC<MusicCategoryRowProps> = ({
           const trackObj: Track = {
             id: video.id,
             title: video.title,
-            artist: video.channelTitle,
-            image: video.thumbnail,
+            artist: video.channelTitle || 'SawaFlix',
+            image: video.thumbnail || '/music4.jpg',
             src: video.videoUrl,
-            duration: '3:00',
+            duration: (video as any).duration || '3:30',
           };
 
           const isTrackPlaying = isPlaying && currentTrackId === trackObj.id;
@@ -58,9 +58,10 @@ export const MusicCategoryRow: React.FC<MusicCategoryRowProps> = ({
                   const playlist: Track[] = category.videos.map((v) => ({
                     id: v.id,
                     title: v.title,
-                    artist: v.channelTitle,
-                    image: v.thumbnail,
+                    artist: v.channelTitle || 'SawaFlix',
+                    image: v.thumbnail || '/music4.jpg',
                     src: v.videoUrl,
+                    duration: (v as any).duration || '3:30',
                   }));
                   onTrackClick(trackObj, playlist);
                 }

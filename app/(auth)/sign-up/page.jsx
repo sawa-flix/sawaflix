@@ -6,6 +6,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUpWithPassword } from "@/app/(auth)/actions";
 import { createClient } from "@/utils/supabase/client";
+import BrandLoader from "@/components/BrandLoader";
 
 // import { Suspense } from 'react';
 const AuthButton = ({
@@ -20,7 +21,7 @@ const AuthButton = ({
 
   const variants = {
     primary:
-      "bg-red-700 hover:bg-red-600 disabled:bg-red-900 text-white hover:shadow-red-500/70 hover:scale-[1.02]",
+      "bg-[#CE1126] hover:bg-red-700 disabled:bg-red-800 text-white hover:shadow-red-500/30 hover:scale-[1.02]",
     google:
       "bg-gray-900 border border-gray-700 text-white hover:bg-gray-800 hover:shadow-red-500/30",
   };
@@ -507,9 +508,7 @@ export default function SignUpPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-full bg-black flex items-center justify-center text-white">
-          Loading...
-        </div>
+        <div className="flex h-screen w-full items-center justify-center bg-black"><BrandLoader /></div>
       }
     >
       <SignUpContent />

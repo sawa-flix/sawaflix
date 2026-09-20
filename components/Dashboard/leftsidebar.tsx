@@ -117,17 +117,17 @@ export default function LeftSidebar({
 
   const topItems = [
     { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
-    { name: 'Reels', icon: Clapperboard, id: 'reels', route: '/dashboard/reels', badge: null },
+    { name: 'Reels', icon: Clapperboard, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'reels', route: '/dashboard/reels', badge: null },
   ];
 
   const exploreItems = [
-    { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null },
-    { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New' },
-    { name: 'LiveTv', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: null },
-    { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null },
-    { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null },
-    { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null },
-    { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null },
+    { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null, requiresAuth: true },
+    { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New', requiresAuth: true },
+    { name: 'Live TV', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: 'Live', requiresAuth: true },
+    { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null, requiresAuth: true },
+    { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null, requiresAuth: true },
+    { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null, requiresAuth: true },
+    { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null, requiresAuth: true },
   ];
 
   const youItems: any[] = [
@@ -147,10 +147,10 @@ export default function LeftSidebar({
   ];
 
   const creatorItems = [
-    { name: 'Post', icon: LayoutGrid, id: 'post', route: '/creator-dashboard', badge: null },
-    { name: 'My Content', icon: Film, id: 'my-content', route: '/creator-dashboard/content', badge: null },
-    { name: 'Analytics', icon: BarChart2, id: 'analytics', route: '/creator-dashboard/analytics', badge: null },
-    { name: 'Comments', icon: MessageSquare, id: 'comments', route: '/creator-dashboard/comments', badge: null },
+    { name: 'Post', icon: LayoutGrid, id: 'post', route: '/creator-dashboard', badge: null, requiresAuth: true },
+    { name: 'My Content', icon: Film, id: 'my-content', route: '/creator-dashboard/content', badge: null, requiresAuth: true },
+    { name: 'Analytics', icon: BarChart2, id: 'analytics', route: '/creator-dashboard/analytics', badge: null, requiresAuth: true },
+    { name: 'Comments', icon: MessageSquare, id: 'comments', route: '/creator-dashboard/comments', badge: null, requiresAuth: true },
   ];
 
   const handleItemClick = () => {
@@ -191,8 +191,8 @@ export default function LeftSidebar({
       >
         <div className="flex items-center space-x-4">
           {item.imageUrl ? (
-            <div className="w-5 h-5 rounded-full overflow-hidden relative shrink-0">
-              <Image src={item.imageUrl} alt="Profile" fill className="object-cover" unoptimized />
+            <div className={`relative shrink-0 ${item.id === 'reels' ? 'h-6 w-6' : 'h-5 w-5 rounded-full overflow-hidden'}`}>
+              <Image src={item.imageUrl} alt={item.id === 'reels' ? '' : 'Profile'} fill className={item.id === 'reels' ? 'object-contain' : 'object-cover'} unoptimized />
             </div>
           ) : (
             Icon && <Icon

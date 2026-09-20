@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resetPassword } from '../actions';
+import BrandLoader from '@/components/BrandLoader';
 
 function ForgotPasswordContent() {
   const [email, setEmail] = useState('');
@@ -176,9 +177,7 @@ function ForgotPasswordContent() {
 export default function ForgotPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="h-screen w-full bg-black flex items-center justify-center text-white">
-        Loading...
-      </div>
+      <div className="flex h-screen w-full items-center justify-center bg-black"><BrandLoader /></div>
     }>
       <ForgotPasswordContent />
     </Suspense>

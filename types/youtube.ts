@@ -37,6 +37,9 @@ export interface VideoDetails {
     channelId?: string;
     channelTitle?: string;
     isLiked?: boolean;
+    sharesCount?: number;
+    downloadsCount?: number;
+    interactors?: Array<{ id: string; name: string; avatar: string }>;
 }
 
 export interface Comment {
@@ -46,6 +49,11 @@ export interface Comment {
     text: string;
     likeCount: number;
     publishedAt: string;
+    isLikedByMe?: boolean;
+    userRole?: string;
+    parentId?: string | null;
+    replies?: Comment[];
+    repliesCount?: number;
 }
 
 export interface ApiError {

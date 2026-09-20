@@ -24,7 +24,7 @@ export async function GET(request) {
       return NextResponse.redirect(new URL('/dashboard?error=auth_config_missing', request.url))
     }
 
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
 
     // pendingCookies collects every Set-Cookie call made during this request
     // (including session cookies written by exchangeCodeForSession)

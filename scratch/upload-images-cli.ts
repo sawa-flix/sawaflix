@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const client = getCliClient()
 
-async function downloadImage(url, filename) {
+async function downloadImage(url: string, filename: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const filePath = path.join(__dirname, filename)
     const file = fs.createWriteStream(filePath)
@@ -27,12 +27,12 @@ async function downloadImage(url, filename) {
 async function uploadAndPatch() {
   try {
     console.log('Downloading images...')
-    const headerImgPath = await downloadImage('https://i.ibb.co/F4sYK2wW/vb.jpg', 'header.jpg')
-    const midImgPath = await downloadImage('https://i.ibb.co/0y5txKy5/cameroon.jpg', 'mid.jpg')
+    const headerImgPath = await downloadImage('https://i.ibb.co/F4sYK2wW/vb.jpg', 'header.jpg') as string
+    const midImgPath = await downloadImage('https://i.ibb.co/0y5txKy5/cameroon.jpg', 'mid.jpg') as string
 
     console.log('Uploading images to Sanity...')
-    const headerAsset = await client.assets.upload('image', fs.createReadStream(headerImgPath), { filename: 'vb.jpg' })
-    const midAsset = await client.assets.upload('image', fs.createReadStream(midImgPath), { filename: 'cameroon.jpg' })
+    const headerAsset = await (client as any).assets.upload('image', fs.createReadStream(headerImgPath), { filename: 'vb.jpg' })
+    const midAsset = await (client as any).assets.upload('image', fs.createReadStream(midImgPath), { filename: 'cameroon.jpg' })
 
     console.log('Header Asset ID:', headerAsset._id)
     console.log('Mid Asset ID:', midAsset._id)
@@ -53,7 +53,7 @@ async function uploadAndPatch() {
     }
 
     // We will append the midImageBlock after the stakes section
-    const res = await client
+    const res = await (client as any)
       .patch(docId)
       .set({
         mainImage: {

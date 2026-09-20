@@ -14,7 +14,8 @@ interface ReelsPageProps {
  * 1 is owned by useReels inside ReelsFeed.
  */
 export default async function ReelsPage({ searchParams }: ReelsPageProps) {
-  const { id: initialVideoId } = await searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { id: initialVideoId } = resolvedSearchParams ?? {};
 
   let videos: Video[] = [];
   let hasMore = false;
@@ -29,14 +30,33 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
   }
 
   return (
-    // Sized to the dashboard's own content area, not the browser viewport:
-    // the shared <main> is h-[calc(100vh-4rem)] (header), and DashboardWrapper
+    // On phones this is genuinely fullscreen (h-dvh): DashboardWrapper gives
+    // Reels zero header offset and zero padding below md, since Header
+    // itself renders transparent there (floating back/search/mute over the
+    // video, no reserved bar). dvh (not vh) accounts for mobile browser
+    // chrome so this doesn't over/under-shoot the real visible viewport.
+    //
+    // At md+ it's sized to the dashboard's own content area instead: the
+    // shared <main> is h-[calc(100vh-4rem)] (header), and DashboardWrapper
     // gives this route pb-4 instead of every other page's pb-40 (that 10rem
     // is trailing scroll space for flowing content — a fixed-height video
     // panel doesn't need it). 2rem top + 1rem bottom padding remains, so
-    // 100vh - 7rem is what's actually available here.
-    <div className="h-[calc(100vh-7rem)] min-h-[500px] w-full">
-      <ReelsFeed initialVideos={videos} initialHasMore={hasMore} initialVideoId={initialVideoId} />
+    // 100vh - 7rem is what's actually available there.
+    <div className="h-dvh md:h-[calc(100vh-7rem)] min-h-[500px] w-full">
+      {/* Keyed on the target id: navigating here again with a different
+          ?id= (e.g. clicking another reel in the right sidebar while
+          already on this page) is a same-route search-param change, which
+          React does NOT remount for by default — it would just hand new
+          props to the existing ReelsFeed instance, whose handoff-consuming
+          seed state (a useState lazy initializer) only ever runs once per
+          mount. Keying forces a clean remount per target reel, so the
+          handoff and initial-video seeding actually re-run each time. */}
+      <ReelsFeed
+        key={initialVideoId ?? 'feed'}
+        initialVideos={videos}
+        initialHasMore={hasMore}
+        initialVideoId={initialVideoId}
+      />
     </div>
   );
 }

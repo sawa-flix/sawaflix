@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, BellRing } from 'lucide-react';
+import { X, Bell } from 'lucide-react';
+import Image from 'next/image';
 
 export default function NotificationPrompt({ userId }: { userId?: string }) {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -98,35 +99,49 @@ export default function NotificationPrompt({ userId }: { userId?: string }) {
   }, [userId]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      console.log('🔕 Notifications not supported in this browser.');
+    if (typeof window === 'undefined') {
       return;
     }
 
-    const permission = Notification.permission;
+    const dismissed = sessionStorage.getItem('notification-prompt-dismissed');
+    if (dismissed) {
+      return;
+    }
+
+    const permission = 'Notification' in window ? Notification.permission : 'unsupported';
     console.log(`🔔 Current notification permission: "${permission}"`);
 
-    // Check if user has dismissed the prompt before (session storage — resets per session)
-    const dismissed = sessionStorage.getItem('notification-prompt-dismissed');
-
-    if (permission === 'default') {
-      // Not yet asked — show the prompt after 3 seconds
-      const timer = setTimeout(() => setShowPrompt(true), 3000);
-      return () => clearTimeout(timer);
-    } else if (permission === 'granted') {
-      // Already granted — silently ensure push subscription exists
+    if (permission === 'granted') {
       subscribeToPush();
+      return;
     }
-    // If 'denied', do nothing — browser won't let us ask again
+
+    if (permission === 'denied') {
+      return;
+    }
+
+    // The app keeps its own CTA rather than waiting for a native permission
+    // prompt that some browsers never show. This allows the in-app banner to
+    // display consistently without being blocked by browser-specific gates.
+    const timer = setTimeout(() => setShowPrompt(true), 3000);
+    return () => clearTimeout(timer);
   }, [subscribeToPush]);
 
   const handleEnable = async () => {
+    if (!('Notification' in window)) {
+      sessionStorage.setItem('notification-prompt-dismissed', 'true');
+      setShowPrompt(false);
+      return;
+    }
+
     try {
       const permission = await Notification.requestPermission();
       console.log(`🔔 User responded with: "${permission}"`);
-      
+
       if (permission === 'granted') {
         console.log('✅ Notification permission granted.');
+        localStorage.setItem('sawaflix_subscribed_notifications', 'true');
+        window.dispatchEvent(new Event('sawaflix_subscription_changed'));
         await subscribeToPush();
       }
     } catch (error) {
@@ -150,39 +165,48 @@ export default function NotificationPrompt({ userId }: { userId?: string }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-6 left-6 z-[9998] w-[340px] max-w-[calc(100vw-3rem)] rounded-xl bg-[#111111] border border-[#222222] shadow-2xl p-5 flex flex-col gap-4 overflow-hidden"
+          className="fixed bottom-5 left-5 z-[9998] w-[340px] max-w-[calc(100vw-2rem)] rounded-md bg-[#11151c]/95 border border-white/10 shadow-2xl p-5 flex flex-col gap-4 overflow-hidden backdrop-blur-xl"
         >
           <button 
             onClick={handleDismiss}
-            className="absolute top-3 right-3 text-[#666666] hover:text-white transition-colors cursor-pointer"
+            className="absolute top-3.5 right-3.5 text-zinc-500 hover:text-white transition-colors cursor-pointer"
             aria-label="Dismiss"
           >
             <X size={16} />
           </button>
           
-          <div className="flex items-start gap-4 pr-6">
-            <div className="w-12 h-12 bg-[#222222] border border-[#333333] rounded-lg flex items-center justify-center shrink-0">
-              <BellRing size={22} className="text-white" />
+          <div className="flex items-center gap-3.5 pr-5">
+            <div className="w-12 h-12 rounded-md bg-[#0B0E14] border border-white/10 flex items-center justify-center shrink-0 shadow-md p-1.5 overflow-hidden">
+              <Image 
+                src="/logos_and_pwas/android-chrome-192x192.png" 
+                alt="SawaFlix" 
+                width={192} 
+                height={192} 
+                className="h-full w-full object-contain" 
+                priority
+              />
             </div>
-            <div className="flex flex-col pt-0.5">
-              <h3 className="text-white font-medium text-base tracking-tight">Stay Updated</h3>
-              <p className="text-[#888888] text-sm mt-1 leading-snug">Turn on notifications to get alerts for new movies and episodes.</p>
+            <div className="flex flex-col">
+              <h3 className="text-white font-semibold text-[13px] tracking-tight">Stay Connected with SawaFlix</h3>
+              <p className="text-zinc-400 text-[11px] mt-0.5 leading-snug">Get instant alerts for new movies, music releases, and cultural stories.</p>
             </div>
           </div>
+
+          <div className="h-px bg-white/5" />
           
-          <div className="flex gap-3 mt-1">
-            <button
-              onClick={handleEnable}
-              className="flex-1 bg-white hover:bg-gray-200 text-black font-medium py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Bell size={16} />
-              Enable
-            </button>
+          <div className="flex gap-3 justify-end">
             <button
               onClick={handleDismiss}
-              className="flex-1 bg-[#222222] hover:bg-[#333333] text-[#aaaaaa] hover:text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors cursor-pointer"
+              className="px-5 py-2 bg-white/10 hover:bg-white/15 text-zinc-200 hover:text-white font-medium text-xs rounded-md transition-all cursor-pointer active:scale-[0.97]"
             >
               Maybe Later
+            </button>
+            <button
+              onClick={handleEnable}
+              className="px-5 py-2 bg-white hover:bg-zinc-100 text-[#0B0E14] font-bold text-xs rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.97] shadow-sm"
+            >
+              <Bell size={13} />
+              Enable
             </button>
           </div>
         </motion.div>

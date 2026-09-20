@@ -35,7 +35,7 @@ const ArtistPage = () => {
       <Head>
         <title>Artist Page</title>
         <meta name="description" content="Artist page design" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logos_and_pwas/favicon.ico" />
       </Head>
 
       <header className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">

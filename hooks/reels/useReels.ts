@@ -65,7 +65,11 @@ export function useReels({
         setError('No reels found right now.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load reels.');
+      // Never surface the raw backend/YouTube error text (e.g. a quota
+      // message) to the user — same convention as the search hook and the
+      // home page's own search. Log the real cause, show a friendly one.
+      console.error('[useReels] fetchPage failed:', err);
+      setError('Reels are temporarily unavailable. Please try again in a moment.');
     } finally {
       setLoading(false);
       isFetchingRef.current = false;

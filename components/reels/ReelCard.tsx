@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import type { Video } from '@/types/youtube';
 import { YouTubePlayer } from '@/components/YoutubePlayer';
@@ -8,10 +8,17 @@ import { useComments } from '@/hooks/useComments';
 import { useVideoStats } from '@/hooks/useVideoStats';
 import { useScrubGesture } from '@/hooks/reels/useScrubGesture';
 import { followYouTubeChannelAction } from '@/app/actions/youtube';
+import { followService } from '@/services/followService';
 import { ReelOverlay } from './ReelOverlay';
 import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
+import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
+import { ReelProgressBar } from './ReelProgressBar';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useAuthModal } from '@/contexts/AuthModalContext';
+import { videoInteractivityService } from '@/services/videoInteractivityService';
+import { patchStatsCache } from '@/hooks/useVideoStats';
 
 interface ReelCardProps {
   video: Video;
@@ -37,17 +44,73 @@ interface ReelCardProps {
  */
 export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
+  const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
+  const isNative =
+    video.origin === 'sawaflix' ||
+    (Boolean(video.videoUrl) && !video.videoUrl.includes('youtube.com') && !video.videoUrl.includes('youtu.be')) ||
+    (Boolean(video.embedUrl) && !video.embedUrl.includes('youtube.com') && !video.embedUrl.includes('youtu.be')) ||
+    (Boolean(video.id) && video.id.length !== 11);
+
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
+  let nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `${adminUrl}/api/admin/upload/stream/${video.id}` : '');
+  
+  // Fix for videos uploaded locally whose URLs were saved to the DB with localhost:10000 etc.
+  if (nativeSrc && (nativeSrc.includes('localhost:') || nativeSrc.includes('127.0.0.1:'))) {
+    try {
+      const parsed = new URL(nativeSrc);
+      nativeSrc = `${adminUrl}${parsed.pathname}${parsed.search}`;
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+
+  const { user, isAuthenticated } = useAuthSession();
+  const { openAuthModal } = useAuthModal();
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [, startTransition] = useTransition();
-  const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment } =
+  const { comments, loading: commentsLoading, error: commentsError, isOpen, setIsOpen, addComment, toggleCommentLike } =
     useComments(isActive ? video.id : null);
   const { stats } = useVideoStats(isActive ? video.id : null);
 
+  // A new video id means a fresh player load
+  useEffect(() => {
+    setIsPlayerReady(false);
+  }, [video.id]);
+
+  // Sync native video playback with active/paused state
+  useEffect(() => {
+    if (!isNative || !nativeVideoRef.current) return;
+    const v = nativeVideoRef.current;
+    if (isActive && !isPaused) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [isActive, isPaused, isNative]);
+
+  // Sync native video mute state
+  useEffect(() => {
+    if (!isNative || !nativeVideoRef.current) return;
+    nativeVideoRef.current.muted = isMuted;
+  }, [isMuted, isNative]);
+
   const handlePlayerReady = useCallback((player: YT.Player) => {
     playerRef.current = player;
+    setIsPlayerReady(true);
   }, []);
 
-  const getPlayer = useCallback(() => playerRef.current, []);
+  const getPlayer = useCallback(() => {
+    if (isNative && nativeVideoRef.current) {
+      const v = nativeVideoRef.current;
+      return {
+        seekTo: (time: number) => { if (v) v.currentTime = time; },
+        getCurrentTime: () => v?.currentTime || 0,
+        getDuration: () => v?.duration || 0,
+      } as any;
+    }
+    return playerRef.current;
+  }, [isNative]);
 
   const { isScrubbing, scrubTime, duration, handlers: scrubHandlers } = useScrubGesture({
     getPlayer,
@@ -55,9 +118,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     onScrubEnd: onResume,
   });
 
-  // TikTok-style auto-advance: a finished reel moves on to the next one
-  // instead of looping. Only loops itself as a fallback when there's
-  // genuinely nothing next to advance to (end of the loaded feed).
   const handleEnded = useCallback(() => {
     if (hasNext) {
       onEnded();
@@ -67,7 +127,22 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
     }
   }, [hasNext, onEnded]);
 
+  const handleNativeEnded = useCallback(() => {
+    if (hasNext) {
+      onEnded();
+    } else {
+      if (nativeVideoRef.current) {
+        nativeVideoRef.current.currentTime = 0;
+        nativeVideoRef.current.play().catch(() => {});
+      }
+    }
+  }, [hasNext, onEnded]);
+
   const handleToggleFollow = () => {
+    if (!isAuthenticated) {
+      openAuthModal('to follow creators');
+      return;
+    }
     const next = !isFollowing;
     setIsFollowing(next);
     startTransition(async () => {
@@ -76,26 +151,49 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       } catch (err) {
         console.error('[ReelCard] Follow failed:', err);
         setIsFollowing(!next);
+        return;
+      }
+      try {
+        if (next) await followService.follow('youtube_channel', video.channelId);
+        else await followService.unfollow('youtube_channel', video.channelId);
+      } catch (err) {
+        console.warn('[ReelCard] local follow persistence failed:', err);
       }
     });
   };
 
-  const handleSendComment = (text: string) => {
-    addComment({
+  const handleSendComment = (text: string, parentId?: string) => {
+    if (!isAuthenticated) {
+      openAuthModal('to comment on reels');
+      return;
+    }
+    const authorName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'You';
+    const authorAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+    const optimisticComment = {
       id: `local-${Date.now()}`,
-      author: 'You',
-      authorProfileImage: '',
+      author: authorName,
+      authorProfileImage: authorAvatar,
       text,
       likeCount: 0,
       publishedAt: new Date().toISOString(),
-    });
-    // Fire-and-forget: existing server action persists it server-side; the
-    // optimistic local entry above is what the user sees immediately.
-    import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
-      commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
-        console.error('[ReelCard] Comment post failed:', err)
-      )
-    );
+      parentId,
+    };
+    addComment(optimisticComment);
+
+    if (isNative) {
+      // Native SawaFlix/Cloudflare video — use our Neon interactivity service
+      videoInteractivityService.postComment(video.id, text, parentId).catch((err) =>
+        console.error('[ReelCard] Video comment post failed:', err)
+      );
+    } else {
+      // YouTube video — route through the YouTube action (parentId ignored on backend,
+      // which is fine since we store it in Neon's VideoComment with the YT videoId)
+      import('@/app/actions/youtube').then(({ commentYouTubeVideoAction }) =>
+        commentYouTubeVideoAction(video.id, text, video.origin ?? 'youtube').catch((err) =>
+          console.error('[ReelCard] Comment post failed:', err)
+        )
+      );
+    }
   };
 
   return (
@@ -103,17 +201,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       ref={itemRef}
       className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-black"
     >
-      {/* Tap-to-pause / press-and-hold-to-scrub target — scoped to the
-          player itself so taps on the overlay/actions/comments (siblings
-          below, higher z-index) don't also toggle playback. A plain div
-          (not <button>) because it wraps the YouTube iframe, which is
-          itself focusable/interactive — nesting that inside a real
-          <button> would be invalid.
-          touchAction: 'pan-y' is what keeps this gesture from ever
-          fighting vertical swipe navigation: it tells the browser to keep
-          handling vertical drags as native scroll (they never reach the
-          scrub gesture at all), while leaving horizontal movement free
-          for useScrubGesture to interpret via Pointer Events. */}
       <div
         role="button"
         tabIndex={0}
@@ -128,19 +215,52 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         style={{ touchAction: 'pan-y' }}
         {...scrubHandlers}
       >
-        <YouTubePlayer
-          videoId={video.id}
-          isActive={isActive}
-          isPaused={isPaused || isScrubbing}
-          isMuted={isMuted}
-          onPlayerReady={handlePlayerReady}
-          onEnded={handleEnded}
-        />
+        {isNative ? (
+          <video
+            ref={nativeVideoRef}
+            src={nativeSrc}
+            playsInline
+            muted={isMuted}
+            preload={isActive ? 'auto' : 'metadata'}
+            crossOrigin="anonymous"
+            className="w-full h-full object-contain bg-black"
+            onLoadedData={() => setIsPlayerReady(true)}
+            onCanPlay={() => setIsPlayerReady(true)}
+            onEnded={handleNativeEnded}
+            onError={(e) => {
+              const v = e.target as HTMLVideoElement;
+              console.warn('[ReelCard] Video load error:', v.error?.message, '| src:', v.currentSrc || nativeSrc);
+            }}
+          />
+        ) : (
+          <YouTubePlayer
+            videoId={video.id}
+            isActive={isActive}
+            isPaused={isPaused || isScrubbing}
+            isMuted={isMuted}
+            onPlayerReady={handlePlayerReady}
+            onEnded={handleEnded}
+          />
+        )}
       </div>
+
+      {/* Only the active reel gets a loading skeleton — inactive/±1
+          placeholders shouldn't show one while off-screen or waiting their
+          turn. Reuses ReelLoading (same skeleton as the initial feed load,
+          the route-level loading.tsx, and the search-result-opening
+          transition) rather than a one-off spinner, so every "a reel is
+          loading" moment across the app looks the same. */}
+      {isActive && !isPlayerReady && (
+        <div className="pointer-events-none absolute inset-0 z-[1]">
+          <ReelLoading />
+        </div>
+      )}
 
       <AnimatePresence>
         {isScrubbing && <ReelScrubIndicator currentTime={scrubTime} duration={duration} />}
       </AnimatePresence>
+
+      <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />
 
       <ReelOverlay video={video} isFollowing={isFollowing} onToggleFollow={handleToggleFollow} />
 
@@ -149,6 +269,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         commentsCount={comments.length}
         realLikeCount={stats?.likeCount}
         realIsLiked={stats?.isLiked}
+        interactors={stats?.interactors}
         onShowComments={() => setIsOpen(true)}
       />
 
@@ -160,6 +281,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
         error={commentsError}
         onClose={() => setIsOpen(false)}
         onSend={handleSendComment}
+        onLikeComment={toggleCommentLike}
       />
     </div>
   );

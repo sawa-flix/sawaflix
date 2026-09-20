@@ -28,10 +28,11 @@ export default function DashboardPage() {
           .from('users')
           .select('username, role')
           .eq('id', user.id)
-          .single<UserData>();
+          .maybeSingle<UserData>();
 
           if (error) {
-            console.error('error fetching user:', error.message);
+            // Warn-level — profile missing is non-fatal, the app works without it
+            console.warn('error fetching user profile:', error.message);
           } else if (profileData) {
             setUserProfile(profileData);
           }

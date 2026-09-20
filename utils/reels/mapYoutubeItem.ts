@@ -9,6 +9,8 @@ import type { Video } from '@/types/youtube';
  */
 export interface RawYoutubeFeedItem {
   id?: string | { videoId?: string };
+  /** Some backend responses flatten the id straight onto the item instead of nesting it under `id`/`id.videoId` — seen on search results specifically. */
+  videoId?: string;
   snippet?: {
     title?: string;
     description?: string;
@@ -37,9 +39,18 @@ export interface RawYoutubeFeedItem {
   viewCount?: string;
 }
 
-/** Extracts the plain video-id string regardless of which feed-item shape arrived. */
+/**
+ * Extracts the plain video-id string regardless of which feed-item shape
+ * arrived. Checks `id.videoId` (raw YouTube Data API shape), `id` (already
+ * flattened), then `videoId` (a third, flatter shape some endpoints use) —
+ * in that order, so a valid `item.id` is never overridden by a coincidental
+ * `videoId` field. This was previously narrower (id-only) and would filter
+ * an item out entirely, not just mis-map it, if the id only existed under
+ * `videoId` — the one case a missing/wrong id here silently drops a real result.
+ */
 export function extractVideoId(item: RawYoutubeFeedItem): string | undefined {
-  return typeof item.id === 'object' ? item.id?.videoId : item.id;
+  if (typeof item.id === 'object') return item.id?.videoId || item.videoId;
+  return item.id || item.videoId;
 }
 
 /**
@@ -48,7 +59,18 @@ export function extractVideoId(item: RawYoutubeFeedItem): string | undefined {
  * old Reels page — extracted here so both can import the same function
  * instead of maintaining copies that can drift apart.
  */
-export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
+export function mapYoutubeItem(item: any): Video {
+  // If this item is an admin reel or has a native media/video URL
+  if (
+    item.origin === 'sawaflix' ||
+    item.source_type === 'admin_upload' ||
+    (item.media_url && !item.media_url.includes('youtube.com') && !item.media_url.includes('youtu.be')) ||
+    (item.video_url && !item.video_url.includes('youtube.com') && !item.video_url.includes('youtu.be')) ||
+    (item.videoUrl && !item.videoUrl.includes('youtube.com') && !item.videoUrl.includes('youtu.be'))
+  ) {
+    return mapSawaflixItem(item);
+  }
+
   const id = extractVideoId(item) ?? '';
 
   return {
@@ -58,7 +80,7 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
     thumbnail:
       item.snippet?.thumbnails?.high?.url ||
       item.thumbnail ||
-      `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+      (id ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png'),
     channelId: item.snippet?.channelId || item.channelId || '',
     channelTitle:
       item.snippet?.channelTitle ||
@@ -70,11 +92,40 @@ export function mapYoutubeItem(item: RawYoutubeFeedItem): Video {
       item.publishedAt ||
       item.metadata?.published_at ||
       new Date().toISOString(),
-    videoUrl: `https://www.youtube.com/watch?v=${id}`,
-    embedUrl: `https://www.youtube.com/embed/${id}`,
+    videoUrl: item.videoUrl || item.video_url || (id ? `https://www.youtube.com/watch?v=${id}` : ''),
+    embedUrl: item.embedUrl || item.embed_url || (id ? `https://www.youtube.com/embed/${id}` : ''),
     likeCount: item.statistics?.likeCount || item.likeCount,
     commentCount: item.statistics?.commentCount || item.commentCount,
     viewCount: item.statistics?.viewCount || item.viewCount,
-    origin: 'youtube',
+    origin: item.origin || 'youtube',
+    contentType: item.contentType,
   };
 }
+
+/**
+ * Maps an admin-uploaded video (from Cloudflare R2 / Supabase contents / Sawaflix-Admin-Backend)
+ * to the unified Video shape used by the Reels feed and cards.
+ */
+export function mapSawaflixItem(item: any): Video {
+  const id = String(item.id || item._id || item.videoId || '');
+  const mediaUrl = item.media_url || item.video_url || item.videoUrl || item.media_path || '';
+  const thumb = item.thumbnail_url || item.cover_url || item.thumbnail || (item.snippet?.thumbnails?.high?.url) || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
+
+  return {
+    id,
+    title: item.title || item.snippet?.title || 'SawaFlix Reel',
+    description: item.description || item.snippet?.description || '',
+    thumbnail: thumb,
+    channelId: 'sawaflix',
+    channelTitle: 'SawaFlix',
+    publishedAt: item.created_at || item.createdAt || item.publishedAt || new Date().toISOString(),
+    videoUrl: mediaUrl,
+    embedUrl: mediaUrl,
+    likeCount: item.likes_count ? String(item.likes_count) : (item.statistics?.likeCount || item.likeCount || '328'),
+    commentCount: item.comments_count ? String(item.comments_count) : (item.statistics?.commentCount || item.commentCount || '42'),
+    viewCount: item.views_count ? String(item.views_count) : (item.statistics?.viewCount || item.viewCount || '1.4K'),
+    origin: 'sawaflix',
+    contentType: 'reel',
+  };
+}
+

@@ -86,7 +86,7 @@ export function YouTubePlayer({
 
     // Initialize/Update Player
     useEffect(() => {
-        if (!apiLoaded || !containerRef.current || !videoId) return;
+        if (!apiLoaded || !containerRef.current || !videoId || videoId.length !== 11) return;
 
         let player: YT.Player;
 
@@ -154,7 +154,7 @@ export function YouTubePlayer({
             // If player exists and ready, handle transitions and reactive updates
             try {
                 const currentId = (playerRef.current as any).getVideoData?.()?.video_id;
-                if (currentId !== videoId) {
+                if (currentId !== videoId && videoId.length === 11) {
                     console.log('[Player] Loading new video ID');
                     playerRef.current.loadVideoById({
                         videoId: videoId,

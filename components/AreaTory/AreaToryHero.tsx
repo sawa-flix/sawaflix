@@ -135,7 +135,7 @@ export default function AreaToryHero() {
         <img
           src={getHeroBG()}
           alt=""
-          fetchpriority="high"
+          fetchPriority="high"
           className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-transparent to-black/30" />

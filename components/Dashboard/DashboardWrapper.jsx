@@ -21,7 +21,7 @@ const DashboardWrapper = ({ children }) => {
   // Disable right sidebar for movie and profile pages. Reels renders inside
   // the normal dashboard shell like every other page — header, left
   // sidebar, and right sidebar all stay visible.
-  const hideRightSidebarPaths = ['/movie', '/profile', '/edit-profile'];
+  const hideRightSidebarPaths = ['/movie', '/profile', '/edit-profile', '/livetv', '/sawai'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
   // Every other page uses pb-40 as trailing scroll space below flowing
   // content. Reels is a fixed-height video panel, not flowing content —
@@ -73,7 +73,7 @@ const DashboardWrapper = ({ children }) => {
                     console.warn("Backend profile fetch returned non-ok status:", res.status);
                 }
             } catch (apiErr) {
-                console.error("API check failed (likely network error or timeout):", apiErr);
+                console.warn("API check failed (likely network error or timeout):", apiErr.message || apiErr);
             }
 
             // 2. Always fetch Supabase profile as source of truth for permissions
@@ -84,7 +84,7 @@ const DashboardWrapper = ({ children }) => {
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
                 supabaseProfile = profile;
 
                 const { data: submission } = await supabase
@@ -149,10 +149,17 @@ const DashboardWrapper = ({ children }) => {
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
-        {/* Header - Unified across all pages */}
-        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+        {/* Header - Unified across all pages. Reels has its own isolated
+            search (see components/reels/ReelHeader.tsx), so the global
+            search is suppressed there to avoid two search UIs fighting
+            over the same keystrokes and navigating away from /dashboard/reels. */}
+        <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
 
-        <div className="relative z-10 pt-16">
+        {/* No top padding reserved on phones while on Reels — Header renders
+            transparent there (just floating back/search/mute buttons), so
+            the video itself should run edge-to-edge instead of leaving a
+            4rem gap under it. Desktop/tablet keep the normal offset. */}
+        <div className={`relative z-10 ${isReelsRoute ? 'pt-0 md:pt-16' : 'pt-16'}`}>
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
@@ -170,8 +177,8 @@ const DashboardWrapper = ({ children }) => {
           {/* Left Sidebar — Fixed & Unified */}
           <aside
             className={`
-              fixed top-16 left-0 z-50 lg:z-30
-              w-72 h-[calc(100vh-4rem)] bg-[#0B0E14]/80 backdrop-blur-xl
+              fixed top-14 left-0 z-50 lg:z-30
+              w-72 h-[calc(100vh-3.5rem)] bg-[#0B0E14]/80 backdrop-blur-xl
               transform transition-all duration-500 ease-in-out
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0
@@ -189,14 +196,20 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Right Sidebar — Fixed & Unified */}
           {hasRightSidebar && (
-            <aside className="hidden xl:block fixed top-16 right-0 z-30 w-80 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
+            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[#0B0E14]/40 backdrop-blur-md border-l border-white/5">
                 <RightSidebar />
             </aside>
           )}
 
           {/* Main Content Area — Scrollable center, shared by every page */}
-          <main className={`h-[calc(100vh-4rem)] lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
-            <div className={`px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto transition-all duration-500 ${isReelsRoute ? 'pb-4' : 'pb-40'}`}>
+          <main className={`${isReelsRoute ? 'h-dvh md:h-[calc(100vh-3.5rem)]' : 'h-[calc(100vh-3.5rem)]'} lg:ml-72 ${hasRightSidebar ? 'xl:mr-80' : ''} overflow-y-auto scrollbar-none bg-transparent scroll-smooth`}>
+            <div
+              className={
+                isReelsRoute
+                  ? 'w-full max-w-[1920px] mx-auto transition-all duration-500 px-0 py-0 md:px-4 md:py-8 lg:px-10 md:pb-4'
+                  : 'px-4 sm:px-8 lg:px-10 py-8 w-full max-w-[1920px] mx-auto transition-all duration-500 pb-40'
+              }
+            >
               {children}
             </div>
           </main>

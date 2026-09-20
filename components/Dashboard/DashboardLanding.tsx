@@ -1,7 +1,8 @@
 'use client'
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import { Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp } from 'lucide-react';
+import { Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp, BookOpen, Video as VideoIcon, Heart, MessageCircle, Eye } from 'lucide-react';
+
 import { MOVIES_DATA } from '../Movie/constants';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
@@ -9,6 +10,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
+import { useHomeSearchStore } from '@/store/homeSearchStore';
+import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import CultureInfiniteFeed from './CultureInfiniteFeed';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -59,34 +63,165 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const router = useRouter();
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
-  const [bannerMovie, setBannerMovie] = useState<any>(null);
+  const { query: homeSearchQuery, results: homeSearchResults, clear: clearHomeSearch } = useHomeSearchStore();
+  const [heroItem, setHeroItem] = useState<{
+    id: string;
+    type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+    title: string;
+    subtitle?: string;
+    image: string;
+    badge: string;
+    targetUrl: string;
+  } | null>(null);
+  const [adminVideos, setAdminVideos] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
   const [loadingStories, setLoadingStories] = useState(true);
+  const [storyStatsMap, setStoryStatsMap] = useState<Record<string, { likesCount: number; viewsCount: number; commentsCount: number }>>({});
+
 
   const moviesScrollRef = useRef<HTMLDivElement>(null);
   const longFormScrollRef = useRef<HTMLDivElement>(null);
   const reelsPreviewScrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and rotate banner every 10 minutes
+  // Fetch admin uploaded content for the banner pool
   useEffect(() => {
-    const getRandomMovie = () => MOVIES_DATA[Math.floor(Math.random() * MOVIES_DATA.length)];
-    setBannerMovie(getRandomMovie());
-    const interval = setInterval(() => {
-      setBannerMovie(getRandomMovie());
-    }, 10 * 60 * 1000);
-    return () => clearInterval(interval);
+    async function fetchAdminContent() {
+      try {
+        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
+        const res = await fetch(`${adminUrl}/api/public/featured`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+            setAdminVideos(json.data);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Direct fallback to Supabase contents table
+      try {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('contents')
+          .select('*')
+          .eq('visibility', 'public')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (data && data.length > 0) {
+          setAdminVideos(data.map((c: any) => ({
+            id: c.id,
+            type: 'admin_video',
+            title: c.title,
+            description: c.description,
+            image: c.cover_url || c.thumbnail_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+            badge: 'SawaFlix Original',
+            action_url: `/dashboard/reels?id=${c.id}`
+          })));
+        }
+      } catch (sbErr) {}
+    }
+    fetchAdminContent();
   }, []);
 
-  // Handle playing the banner movie
-  const handleBannerPlay = () => {
+  // Multi-source pool: Admin Videos, YouTube Videos, Blog Articles, and Movies
+  const heroPool = useMemo(() => {
+    const pool: Array<{
+      id: string;
+      type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+      title: string;
+      subtitle?: string;
+      image: string;
+      badge: string;
+      targetUrl: string;
+    }> = [];
+
+    // 1. Admin Uploaded Videos
+    adminVideos.forEach((v: any) => {
+      pool.push({
+        id: v.id || v._id,
+        type: 'admin_video',
+        title: v.title || 'SawaFlix Original',
+        subtitle: v.description || 'Watch now exclusively on SawaFlix',
+        image: v.image || v.thumbnail_url || v.cover_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+        badge: 'SawaFlix Original',
+        targetUrl: v.action_url || `/dashboard/reels?id=${v.id || v._id}`
+      });
+    });
+
+    // 2. YouTube Culture Videos from reels
+    (reels || []).slice(0, 6).forEach((r: any) => {
+      pool.push({
+        id: r.id,
+        type: 'youtube',
+        title: r.title || 'Trending Culture',
+        subtitle: r.channelTitle || 'Watch on SawaFlix Reels',
+        image: r.thumbnail || `https://i.ytimg.com/vi/${r.id}/maxresdefault.jpg`,
+        badge: 'Trending Culture',
+        targetUrl: `/dashboard/reels?id=${r.id}`
+      });
+    });
+
+    // 3. Blog Stories from Sanity
+    (stories || []).slice(0, 6).forEach((s: any) => {
+      let imgUrl = 'https://i.ibb.co/27LNPd8v/sawaflixmusic-cover.png';
+      try {
+        if (s.mainImage) imgUrl = urlFor(s.mainImage).width(1200).height(600).url();
+      } catch (e) {}
+
+      pool.push({
+        id: s._id,
+        type: 'blog',
+        title: s.title || 'Area Tory Story',
+        subtitle: s.excerpt || 'Read the full cultural story on SawaFlix',
+        image: imgUrl,
+        badge: 'Area Tory Story',
+        targetUrl: `/dashboard/blogs/${s.slug?.current || s._id}`
+      });
+    });
+
+    // 4. Movies from MOVIES_DATA
+    MOVIES_DATA.slice(0, 3).forEach((m: any) => {
+      pool.push({
+        id: String(m.id),
+        type: 'movie',
+        title: m.title,
+        subtitle: m.genre || 'Sawa Cinema Highlight',
+        image: m.image,
+        badge: 'Sawa Cinema',
+        targetUrl: '/dashboard/movie'
+      });
+    });
+
+    return pool;
+  }, [adminVideos, reels, stories]);
+
+  // Pick random banner item and rotate every 3 minutes
+  useEffect(() => {
+    if (heroPool.length === 0) return;
+    const getRandomItem = () => heroPool[Math.floor(Math.random() * heroPool.length)];
+    setHeroItem(getRandomItem());
+    const interval = setInterval(() => {
+      setHeroItem(getRandomItem());
+    }, 3 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [heroPool]);
+
+  // Handle banner play/read navigation
+  const handleBannerClick = () => {
+    if (!heroItem) return;
     if (!isAuthenticated) {
-      openAuthModal('to watch this movie');
+      const reason = heroItem.type === 'blog' 
+        ? 'to read this story' 
+        : heroItem.type === 'movie' 
+        ? 'to watch this movie' 
+        : 'to watch this video';
+      openAuthModal(reason);
       return;
     }
-    if (bannerMovie) {
-      router.push(`/dashboard/movie`);
-    }
+    router.push(heroItem.targetUrl);
   };
 
   // Fetch Sanity Stories using getStories() like StoryGrid does
@@ -98,8 +233,24 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
           getStories(),
           getCategories()
         ]);
-        if (storiesData) setStories(storiesData);
+        if (storiesData) {
+          setStories(storiesData);
+          const ids = storiesData.map((s: any) => s._id || s.slug?.current).filter(Boolean);
+          if (ids.length > 0) {
+            fetch('/api/stories/batch-stats', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ storyIds: ids }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res?.stats) setStoryStatsMap(res.stats);
+              })
+              .catch(() => {});
+          }
+        }
         if (categoriesData) setStoryCategories(categoriesData);
+
       } catch (err) {
         console.error('Failed to fetch stories:', err);
       } finally {
@@ -144,8 +295,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
   // Sample of the same feed, shown as a row of vertical reel cards linking
   // into the real Reels page (/dashboard/reels?id=...) — deep-link support
-  // there jumps straight to the tapped video.
-  const reelsPreview = useMemo(() => (reels || []).slice(0, 10), [reels]);
+  // there jumps straight to the tapped video. When a home-page search has
+  // results (see store/homeSearchStore.ts), this row shows those instead —
+  // picking a card is a search result, still opening into the real Reels
+  // page rather than playing in place.
+  const reelsPreview = useMemo(
+    () => (homeSearchResults.length > 0 ? homeSearchResults : (reels || []).slice(0, 10)),
+    [reels, homeSearchResults]
+  );
 
   // Long-form videos (news, comedy, etc.) — filter for non-short content
   const longFormVideos = useMemo(() => {
@@ -188,7 +345,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
                 : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
             }`}
           >
@@ -210,7 +367,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[#CE1126] text-white shadow-[0_0_15px_rgba(206,17,38,0.3)]'
+                ? 'bg-white text-[#0B0E14] shadow-[0_0_15px_rgba(255,255,255,0.18)]'
                 : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white border border-white/10'
             }`}
           >
@@ -221,54 +378,90 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
       <div className="px-2 sm:px-6 lg:px-8 flex flex-col gap-10">
 
-        {/* ═══ Dynamic Hero Banner — clean image, no text overlay ═══ */}
-        {bannerMovie && (
-          <section className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-white/5 bg-black">
+        {/* ═══ Dynamic Multi-Source Hero Banner (Admin Video, YouTube, Blog, Movie) ═══ */}
+        {heroItem && (
+          <section 
+            onClick={handleBannerClick}
+            className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-white/5 bg-black cursor-pointer"
+          >
             <Image
-              src={bannerMovie.image}
-              alt={bannerMovie.title}
+              src={heroItem.image}
+              alt={heroItem.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               unoptimized
               priority
               sizes="100vw"
             />
-            {/* Subtle bottom gradient only */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14]/60 via-transparent to-transparent" />
+            {/* Dark gradient for high contrast reading */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/40 to-transparent" />
 
-            {/* Play button */}
-            <div className="absolute inset-0 z-20 flex items-center justify-center">
-              <button
-                onClick={handleBannerPlay}
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-[#CE1126] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
-                <Play size={32} className="text-white relative z-10 ml-2 fill-current" />
-              </button>
+            {/* Top-right item type badge */}
+            <div className="absolute top-4 right-4 z-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase border bg-white/30 text-black border-white/20">
+                {heroItem.badge}
+              </span>
             </div>
 
-            {/* Bottom-left movie title badge */}
-            <div className="absolute bottom-4 left-4 z-10">
-              <span className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10">
-                {bannerMovie.title}
-              </span>
+            {/* Center Play / Read button */}
+            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+              <div
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-500"
+              >
+                <div className="absolute inset-0 bg-[#CE1126] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
+                {heroItem.type === 'blog' ? (
+                  <BookOpen size={28} className="text-white relative z-10" />
+                ) : (
+                  <Play size={32} className="text-white relative z-10 ml-2 fill-current" />
+                )}
+              </div>
+            </div>
+
+            {/* Bottom-left metadata overlay */}
+            <div className="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 z-10 max-w-xl">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider border border-white/15">
+                  {heroItem.type === 'admin_video' ? 'Featured Video' : heroItem.type === 'blog' ? 'Featured Story' : heroItem.type === 'youtube' ? 'Trending Culture' : 'Featured Cinema'}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight line-clamp-2 drop-shadow-md">
+                {heroItem.title}
+              </h1>
+              {heroItem.subtitle && (
+                <p className="text-xs sm:text-sm text-white/80 font-medium line-clamp-1 mt-1 drop-shadow-sm">
+                  {heroItem.subtitle}
+                </p>
+              )}
             </div>
           </section>
         )}
 
-        {/* ═══ Reels Preview — links into the real /dashboard/reels feed ═══ */}
+        {/* ═══ Reels Preview — links into the real /dashboard/reels feed, or
+            a home-page search's results while one is active ═══ */}
         {reelsPreview.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 relative">
-                  <Image src="/sawaplay.png" alt="Sawa" fill sizes="24px" className="object-contain" />
+                  <Image src="/logos_and_pwas/loaderLogo.png" alt="" fill sizes="24px" className="object-contain" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Reels</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
+                </h2>
               </div>
-              <Link href="/dashboard/reels" className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">
-                View all
-              </Link>
+              {homeSearchQuery ? (
+                <button
+                  type="button"
+                  onClick={clearHomeSearch}
+                  className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors"
+                >
+                  Clear
+                </button>
+              ) : (
+                <Link href="/dashboard/reels" className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">
+                  View all
+                </Link>
+              )}
             </div>
 
             <div className="relative group/slider">
@@ -280,6 +473,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   <Link
                     key={reel.id}
                     href={`/dashboard/reels?id=${reel.id}`}
+                    // Hands the already-fetched video straight to the Reels
+                    // page (same mechanism the right sidebar and home search
+                    // use) — needed for search results specifically, since
+                    // they usually won't be in the Reels page's own
+                    // server-fetched culture feed for a plain ?id= lookup
+                    // to find on its own.
+                    onClick={() => stashReelForHandoff(reel)}
                     className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-white/5 hover:border-white/20 transition-colors"
                   >
                     <Image
@@ -336,7 +536,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 {longFormVideos.map((video: any) => (
                   <div
                     key={video.id}
-                    onClick={() => onPlayReel(video)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        openAuthModal('to watch videos');
+                        return;
+                      }
+                      onPlayReel(video);
+                    }}
                     className="relative w-[260px] sm:w-[300px] flex-shrink-0 snap-start flex flex-col gap-3 cursor-pointer group/card"
                   >
                     <div className="relative aspect-video rounded-xl overflow-hidden border border-white/5 group-hover/card:border-white/20 transition-colors">
@@ -388,42 +594,90 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             ) : filteredStories.length > 0 ? (
               filteredStories.slice(0, 8).map((story: any, index: number) => {
                 const dateText = formatRelativeTime(story.publishedAt);
+                const storyKey = story._id || story.slug?.current;
+                const neonStats = storyStatsMap[storyKey];
+                const likes = neonStats ? neonStats.likesCount : (story.likes ?? 0);
+                const views = neonStats ? neonStats.viewsCount : (story.views ?? 0);
+                const comments = neonStats ? neonStats.commentsCount : 0;
                 
                 return (
                   <div
                     key={story._id}
-                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all flex flex-col"
+                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/25 hover:shadow-lg hover:shadow-black/30 transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative h-40 sm:h-48 overflow-hidden flex-shrink-0">
+                    <div className="relative h-44 sm:h-52 overflow-hidden flex-shrink-0">
                       <div
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                         style={{ backgroundImage: `url(${getImageUrl(story.mainImage, index)})` }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-50" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
+                      {/* Category badge */}
                       <div className="absolute top-3 left-3">
                         <span
                           className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md tracking-widest backdrop-blur-md uppercase"
-                          style={{ backgroundColor: (story.category?.color || "#E50914") + "E6" }}
+                          style={{ backgroundColor: (story.category?.color || "#555") + "D0" }}
                         >
                           {story.category?.title || "Story"}
+                        </span>
+                      </div>
+
+                      {/* Read time badge top-right */}
+                      <div className="absolute top-3 right-3">
+                        <span className="px-2 py-0.5 bg-black/50 text-white/70 text-[9px] font-semibold rounded-md backdrop-blur-md">
+                          {story.readTime || "3 min"}
                         </span>
                       </div>
                     </div>
 
                     <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                      <h3 className="text-sm sm:text-base font-bold text-white mb-2 group-hover:text-red-500 transition-colors leading-snug line-clamp-2">
+                      <h3 className="text-sm sm:text-base font-bold text-white mb-2 group-hover:text-white/90 transition-colors leading-snug line-clamp-2">
                         {story.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold tracking-widest mt-auto pt-2">
+                      <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-medium tracking-wide mt-auto pt-2">
                         <span>{dateText}</span>
-                        <div className="w-1 h-1 rounded-full bg-gray-700" />
-                        <span>{story.readTime || "3 min read"}</span>
                       </div>
-                      
-                      {/* Hidden link that covers the card for clicking */}
-                      <Link href={`/dashboard/blogs/${story.slug?.current || story._id}`} className="absolute inset-0 z-10" />
+
+                      {/* Stats Row */}
+                      <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-white/5 text-zinc-400">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1.5 hover:text-white/80 transition-colors" title="Likes">
+                            <Image
+                              src="/logos_and_pwas/like.png"
+                              alt="Likes"
+                              width={14}
+                              height={14}
+                              className="w-3.5 h-3.5 object-contain"
+                            />
+                            <span className="font-mono text-[10px] font-medium text-zinc-300">{formatCount(likes)}</span>
+                          </span>
+                          <span className="flex items-center gap-1 hover:text-white transition-colors" title="Comments">
+                            <MessageCircle className="w-3 h-3 text-zinc-500" />
+                            <span className="font-mono text-[10px] font-medium text-zinc-400">{formatCount(comments)}</span>
+                          </span>
+                        </div>
+                        <span className="flex items-center gap-1 text-zinc-500" title="Views">
+                          <Eye className="w-3 h-3 text-zinc-500" />
+                          <span className="font-mono text-[10px] font-medium text-zinc-500">{formatCount(views)}</span>
+                        </span>
+                      </div>
+
+                      {/* Link overlay — triggers NProgress top loader */}
+                      {isAuthenticated ? (
+                        <Link
+                          href={`/dashboard/blogs/${story.slug?.current || story._id}`}
+                          className="absolute inset-0 z-10"
+                          aria-label={story.title}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openAuthModal('to read stories')}
+                          className="absolute inset-0 z-10 w-full h-full cursor-pointer opacity-0"
+                          aria-label={story.title}
+                        />
+                      )}
                     </div>
                   </div>
                 );
@@ -435,6 +689,12 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             )}
           </div>
         </section>
+ 
+        {/* ═══ Cameroonian Culture Infinite Feed ═══ */}
+        <CultureInfiniteFeed
+          onPlayVideo={onPlayReel}
+          activeCategory={activeCategory}
+        />
 
         {/* ═══ Continue Watching Section ═══ */}
         <section>
@@ -454,6 +714,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
               {MOVIES_DATA.slice(0, 8).map((movie: any, idx: number) => (
                 <div
                   key={movie.id}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      openAuthModal('to watch movies');
+                      return;
+                    }
+                    router.push('/dashboard/movie');
+                  }}
                   className="relative w-[260px] sm:w-[300px] flex-shrink-0 snap-start flex flex-col gap-3 cursor-pointer group/card"
                 >
                   <div className="relative aspect-video rounded-xl overflow-hidden border border-white/5 group-hover/card:border-white/20 transition-colors">

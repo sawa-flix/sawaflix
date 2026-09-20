@@ -40,7 +40,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
         videoUrl: item.videoUrl || item.media_url,
         embedUrl: item.videoUrl || item.media_url,
         likeCount: item.likes || 0,
-        commentCount: 0,
+        commentCount: '0',
         origin: 'sawaflix',
         contentType: item.contentType || item.content_type || (item.media_url?.match(/\.(mp3|wav|ogg|flac|aac)$/i) ? 'music' : 'video')
     });
