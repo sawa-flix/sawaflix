@@ -12,19 +12,30 @@ export default function Hero() {
       id="home"
       className="relative h-[100dvh] w-full overflow-hidden flex flex-col justify-center items-center bg-[#0B0E14]"
     >
-      {/* High-Performance Optimized Background Image */}
-      <div className="absolute inset-0 z-0 bg-[#0B0E14]">
-        <img
-          src="https://i.ibb.co/pBFfWnZP/Chat-GPT-Image-Apr-25-2026-04-40-19-AM.png"
-          alt=""
-          fetchPriority="high"
-          loading="eager"
-          className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.55] saturate-[1.2] transition-opacity duration-700"
-        />
+      {/* High-Performance Optimized Background Cover Image */}
+      <div
+        className="absolute inset-0 z-0 bg-[#0B0E14] bg-cover bg-center"
+        style={{
+          backgroundImage:
+            'url("data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAAAQBACdASogAA4APzmGulOvKSWisAgB4CcJagCdAGmG2gb6SuTNmaBOAAD+9ttNgpLv1siyjnSYfeZPe+5pe8Jeev9H0NZZd3FCEyhlj1YhzHbqBoLPJQI9HVrLSAnkN6brjZ710iMFcKhgzvAN8JAA/54yF2YQuUswUAlcHimijmSVIaW/KOIR98J4HqNyVB/ZqpirJXcyxRemKVTQLqsQwB9PSnAgAAA=")',
+        }}
+      >
+        <picture>
+          <source srcSet="/SawaFlix_Cameroonian_Entertainment_Cover.avif" type="image/avif" />
+          <source srcSet="/SawaFlix_Cameroonian_Entertainment_Cover.webp" type="image/webp" />
+          <img
+            src="/SawaFlix_Cameroonian_Entertainment_Cover.svg"
+            alt="SawaFlix Cameroonian Entertainment Cover"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.58] saturate-[1.15] transition-opacity duration-500"
+          />
+        </picture>
         {/* Minimal gradients — just enough for text readability */}
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent hidden md:block" />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent hidden md:block" />
       </div>
 
       {/* Content Container */}
