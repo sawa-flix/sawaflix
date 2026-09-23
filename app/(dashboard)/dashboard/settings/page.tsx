@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -23,13 +23,6 @@ import {
   Sliders
 } from 'lucide-react';
 import { handleSignOut } from '@/app/(auth)/actions';
-import { useTheme } from '@/components/ThemeProvider';
-
-const THEME_OPTIONS = [
-  { value: 'system' as const, label: 'System default' },
-  { value: 'light' as const, label: 'Light' },
-  { value: 'dark' as const, label: 'Dark' },
-];
 
 interface UserProfile {
   id?: string;
@@ -52,13 +45,6 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [pushNotificationEnabled, setPushNotificationEnabled] = useState(false);
   const [autoplayEnabled, setAutoplayEnabled] = useState(true);
-  const { preference, setTheme } = useTheme();
-  const [themeMounted, setThemeMounted] = useState(false);
-  const themeOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
-
-  useEffect(() => {
-    setThemeMounted(true);
-  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -254,72 +240,6 @@ export default function SettingsPage() {
             </h2>
 
             <div className="space-y-4">
-              {/* Appearance */}
-              <div className="p-4 rounded-xl bg-[color:var(--background-secondary)] border border-[color:var(--border)]">
-                <div>
-                  <h4 className="text-sm font-semibold text-[color:var(--foreground)]">Appearance</h4>
-                  <p className="text-xs text-[color:var(--muted-foreground)] mt-0.5">Choose how SawaFlix looks, or match your device.</p>
-                </div>
-                {themeMounted && (
-                  <div
-                    role="radiogroup"
-                    aria-label="Theme"
-                    className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4"
-                    onKeyDown={(event) => {
-                      const currentIndex = THEME_OPTIONS.findIndex((option) => option.value === preference);
-                      let nextIndex = currentIndex;
-
-                      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                        nextIndex = (currentIndex + 1) % THEME_OPTIONS.length;
-                      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                        nextIndex = (currentIndex - 1 + THEME_OPTIONS.length) % THEME_OPTIONS.length;
-                      } else if (event.key !== 'Home' && event.key !== 'End') {
-                        return;
-                      }
-
-                      if (event.key === 'Home') nextIndex = 0;
-                      if (event.key === 'End') nextIndex = THEME_OPTIONS.length - 1;
-                      event.preventDefault();
-                      const nextOption = THEME_OPTIONS[nextIndex];
-                      setTheme(nextOption.value);
-                      themeOptionRefs.current[nextIndex]?.focus();
-                    }}
-                  >
-                    {THEME_OPTIONS.map((option) => {
-                      const isSelected = preference === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          ref={(element) => {
-                            themeOptionRefs.current[THEME_OPTIONS.indexOf(option)] = element;
-                          }}
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelected}
-                          tabIndex={isSelected ? 0 : -1}
-                          onClick={() => setTheme(option.value)}
-                          className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--focus-ring)] ${
-                            isSelected
-                              ? 'border-[color:var(--primary)] bg-[color:var(--primary-soft)] text-[color:var(--foreground)]'
-                              : 'border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)]'
-                          }`}
-                        >
-                          <span>{option.label}</span>
-                          <span
-                            aria-hidden="true"
-                            className={`h-3.5 w-3.5 rounded-full border-2 ${
-                              isSelected
-                                ? 'border-[color:var(--primary)] bg-[color:var(--primary)]'
-                                : 'border-[color:var(--muted-foreground)]'
-                            }`}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
               {/* Push Notifications Toggle */}
               <div className="flex items-center justify-between p-4 rounded-xl bg-[color:var(--background-secondary)] border border-[color:var(--border)]">
                 <div className="flex items-start gap-3">

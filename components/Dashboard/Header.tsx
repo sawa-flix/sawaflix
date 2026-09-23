@@ -22,7 +22,9 @@ import {
   Edit3, 
   BookOpen, 
   HelpCircle, 
-  ShieldCheck 
+  ShieldCheck,
+  Moon,
+  SunMedium 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -47,6 +49,7 @@ import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { useSawaiStore } from '@/store/sawaiStore';
+import { useTheme } from '@/components/ThemeProvider';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -83,6 +86,7 @@ const Header = ({
   const [isSearching, setIsSearching] = useState(false);
   const { isMuted, toggleMute } = useReelsMuteStore();
   const { toggleSawai } = useSawaiStore();
+  const { theme, toggleTheme } = useTheme();
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
@@ -533,6 +537,40 @@ const Header = ({
                       </Link>
 
                       <div className="my-1.5 border-t border-[color:var(--border)]" />
+
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={theme === 'dark'}
+                        aria-label={theme === 'dark' ? 'Dark mode enabled' : 'Dark mode disabled'}
+                        onClick={toggleTheme}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            toggleTheme();
+                          }
+                        }}
+                        className="flex w-full items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:bg-[color:var(--surface-hover)] transition-colors">
+                            {theme === 'dark' ? <Moon size={15} /> : <SunMedium size={15} />}
+                          </div>
+                          <span>Dark mode</span>
+                        </div>
+                        <span
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                            theme === 'dark' ? 'bg-[color:var(--foreground)]' : 'bg-[color:var(--muted-foreground)]'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <span
+                            className={`inline-block h-3.5 w-3.5 rounded-full bg-[color:var(--background)] shadow-sm transition-transform ${
+                              theme === 'dark' ? 'translate-x-4' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </span>
+                      </button>
 
                       <Link 
                         href="/dashboard/settings" 
