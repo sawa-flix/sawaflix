@@ -123,7 +123,7 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{
-          __html: `(function(){try{var stored=localStorage.getItem('theme');var theme=stored==='light'||stored==='dark'?stored:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme', theme);document.documentElement.style.colorScheme=theme;}catch(e){}})();`
+          __html: `(function(){try{var key='theme';var saved=localStorage.getItem(key);if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);document.documentElement.style.colorScheme=saved;return;}var hasAuthCookie=document.cookie.split('; ').some(function(cookie){return /^sb-[^=]+-auth-token(?:\.\d+)?=/.test(cookie);});var theme=hasAuthCookie?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):'light';localStorage.setItem(key, theme);document.documentElement.setAttribute('data-theme', theme);document.documentElement.style.colorScheme=theme;}catch(e){}})();`
         }} />
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />

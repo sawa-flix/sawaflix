@@ -3,71 +3,67 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
-type ThemePreference = Theme | "system";
 
 type ThemeContextValue = {
   theme: Theme;
-  preference: ThemePreference;
-  setTheme: (preference: ThemePreference) => void;
+  setTheme: (nextTheme: Theme) => void;
   toggleTheme: () => void;
 };
 
+const THEME_STORAGE_KEY = "theme";
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function getSystemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark";
 }
 
-function getStoredPreference(): ThemePreference {
+function readSavedTheme(): Theme | null {
   try {
-    const stored = localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark" || stored === "system") return stored;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return stored === "light" || stored === "dark" ? stored : null;
   } catch {
-    // Fall back to the system preference when storage is unavailable.
+    return null;
   }
-  return "system";
+}
+
+function hasSupabaseAuthCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split("; ")
+    .some((cookie) => /^sb-[^=]+-auth-token(?:\.\d+)?=/.test(cookie));
+}
+
+function applyTheme(nextTheme: Theme) {
+  document.documentElement.dataset.theme = nextTheme;
+  document.documentElement.style.colorScheme = nextTheme;
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  } catch {
+    // Ignore storage failures and keep the in-memory theme active.
+  }
+}
+
+function resolveInitialTheme(): Theme {
+  if (typeof window === "undefined") return "dark";
+
+  const savedTheme = readSavedTheme();
+  if (savedTheme) return savedTheme;
+
+  const hasAuth = hasSupabaseAuthCookie();
+  const nextTheme = hasAuth ? getSystemTheme() : "light";
+  applyTheme(nextTheme);
+  return nextTheme;
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreference] = useState<ThemePreference>(() => {
-    if (typeof window === "undefined") return "system";
-    return getStoredPreference();
-  });
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
-    const current = document.documentElement.dataset.theme as Theme | undefined;
-    return current === "light" || current === "dark" ? current : getSystemTheme();
-  });
+  const [theme, setThemeState] = useState<Theme>(() => resolveInitialTheme());
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-    const applyTheme = (nextPreference: ThemePreference) => {
-      const nextTheme = nextPreference === "system"
-        ? (mediaQuery.matches ? "light" : "dark")
-        : nextPreference;
-      setThemeState(nextTheme);
-      document.documentElement.dataset.theme = nextTheme;
-      document.documentElement.style.colorScheme = nextTheme;
-    };
+    applyTheme(theme);
+  }, [theme]);
 
-    applyTheme(preference);
-
-    try {
-      localStorage.setItem("theme", preference);
-    } catch {
-      // Storage may be blocked; the in-memory theme still works.
-    }
-
-    const handleSystemThemeChange = () => {
-      if (preference === "system") applyTheme("system");
-    };
-    mediaQuery.addEventListener?.("change", handleSystemThemeChange);
-
-    return () => mediaQuery.removeEventListener?.("change", handleSystemThemeChange);
-  }, [preference]);
-
-  const setTheme = (nextPreference: ThemePreference) => {
-    setPreference(nextPreference);
+  const setTheme = (nextTheme: Theme) => {
+    setThemeState(nextTheme);
   };
 
   const toggleTheme = () => {
@@ -75,7 +71,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, preference, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
