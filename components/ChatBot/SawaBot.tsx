@@ -260,20 +260,20 @@ export default function SawaBot() {
                         {isUser ? (
                           <div className="whitespace-pre-wrap break-words">{m.content}</div>
                         ) : (
-                          <div className="prose prose-invert max-w-none text-[12.5px] leading-relaxed break-words space-y-2">
+                          <div className="max-w-none text-[12.5px] leading-relaxed break-words space-y-2 text-[color:var(--foreground)]">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm]}
                               components={{
-                                h1: ({ children }) => <h1 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h1>,
-                                h2: ({ children }) => <h2 className="text-[13px] font-semibold text-white mt-2 mb-1">{children}</h2>,
-                                h3: ({ children }) => <h3 className="text-xs font-semibold text-zinc-100 mt-1.5 mb-0.5">{children}</h3>,
-                                p: ({ children }) => <p className="mb-2 last:mb-0 text-zinc-300 leading-relaxed">{children}</p>,
-                                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-                                ul: ({ children }) => <ul className="list-disc pl-3.5 space-y-1 mb-2 text-zinc-300">{children}</ul>,
-                                ol: ({ children }) => <ol className="list-decimal pl-3.5 space-y-1 mb-2 text-zinc-300">{children}</ol>,
-                                li: ({ children }) => <li className="leading-snug">{children}</li>,
+                                h1: ({ children }) => <h1 className="text-sm font-semibold text-[color:var(--foreground)] mt-2 mb-1">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-[13px] font-semibold text-[color:var(--foreground)] mt-2 mb-1">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-xs font-semibold text-[color:var(--foreground)] mt-1.5 mb-0.5">{children}</h3>,
+                                p: ({ children }) => <p className="mb-2 last:mb-0 text-[color:var(--foreground)] leading-relaxed">{children}</p>,
+                                strong: ({ children }) => <strong className="font-semibold text-[color:var(--foreground)]">{children}</strong>,
+                                ul: ({ children }) => <ul className="list-disc pl-3.5 space-y-1 mb-2 text-[color:var(--foreground)]">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal pl-3.5 space-y-1 mb-2 text-[color:var(--foreground)]">{children}</ol>,
+                                li: ({ children }) => <li className="leading-snug text-[color:var(--foreground)]">{children}</li>,
                                 code: ({ children }) => (
-                                  <code className="bg-white/10 text-zinc-200 px-1 py-0.2 rounded text-[11px] font-mono">
+                                  <code className="bg-[color:var(--surface-hover)] text-[color:var(--foreground)] px-1 py-0.2 rounded text-[11px] font-mono">
                                     {children}
                                   </code>
                                 ),
@@ -282,7 +282,7 @@ export default function SawaBot() {
                                     href={href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-zinc-100 hover:text-white underline underline-offset-2 transition-colors"
+                                    className="text-[color:var(--foreground)] hover:text-[color:var(--primary)] underline underline-offset-2 transition-colors"
                                   >
                                     {children}
                                   </a>
@@ -303,7 +303,7 @@ export default function SawaBot() {
                           <button
                             key={idx}
                             onClick={() => sendMessage(suggestion)}
-                            className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/5 transition-colors cursor-pointer"
+                            className="text-[11px] px-2.5 py-1 rounded-lg bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] border border-[color:var(--border)] transition-colors cursor-pointer"
                           >
                             {suggestion}
                           </button>
@@ -315,8 +315,8 @@ export default function SawaBot() {
               })}
 
               {isLoading && (
-                <div className="flex gap-2 items-center text-zinc-400 text-xs py-1">
-                  <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
+                <div className="flex gap-2 items-center text-[color:var(--muted-foreground)] text-xs py-1">
+                  <div className="w-5 h-5 rounded-full bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                     <Image
                       src="/logos_and_pwas/favicon-32x32.png"
                       alt="Sawai"
@@ -325,10 +325,10 @@ export default function SawaBot() {
                       className="w-full h-full object-contain rounded-full"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 bg-[#11141D] border border-white/5 rounded-lg px-3 py-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="flex items-center gap-1.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-lg px-3 py-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--muted-foreground)] animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               )}

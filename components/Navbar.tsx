@@ -36,8 +36,8 @@ export default function Navbar() {
   return (
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${isScrolled
-        ? "bg-[color:var(--background)]/90 backdrop-blur-md shadow-lg border-b border-[color:var(--secondary)]"
-        : "bg-transparent"
+        ? "bg-[#0B0E14]/90 backdrop-blur-md shadow-lg border-b border-[#1F2937]"
+        : "bg-[#0B0E14]/15 backdrop-blur-sm border-b border-transparent"
         }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -63,7 +63,7 @@ export default function Navbar() {
                     href={link.href}
                     scroll={true}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? "text-red-600 font-bold" : "text-[color:var(--foreground)]/80 hover:text-[color:var(--foreground)]"
+                      isActive ? "text-red-600 font-bold" : "text-white/80 hover:text-white"
                     }`}
                   >
                     {link.name}
@@ -88,7 +88,7 @@ export default function Navbar() {
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-[color:var(--foreground)]/70 hover:text-[color:var(--foreground)] hover:bg-[color:var(--secondary)] focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white/70 hover:text-white hover:bg-white/5 focus:outline-none"
             >
               {isOpen ? (
                 <X className="h-6 w-6" />
@@ -104,7 +104,7 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="md:hidden bg-[color:var(--background)] border-b border-[color:var(--secondary)]"
+            className="md:hidden bg-[#0B0E14] border-b border-[#1F2937]"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -114,7 +114,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-[color:var(--foreground)]/80 hover:text-[color:var(--foreground)] block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-white/80 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.name}
