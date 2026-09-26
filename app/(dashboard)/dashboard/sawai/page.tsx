@@ -201,10 +201,10 @@ export default function SawaiPage() {
             <span className="hidden sm:inline">Back</span>
           </Link>
 
-          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+          <div className="h-4 w-px bg-[color:var(--border)] hidden sm:block" />
 
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/15 flex items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center p-0.5 overflow-hidden shrink-0 shadow-sm">
               <Image
                 src="/logos_and_pwas/android-chrome-192x192.png"
                 alt="Sawai Logo"
@@ -258,7 +258,7 @@ export default function SawaiPage() {
                       {item.title}
                     </h3>
                   </div>
-                  <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed pl-9">
+                  <p className="text-[11px] text-[color:var(--muted-foreground)] line-clamp-2 leading-relaxed pl-9">
                     {item.description}
                   </p>
                 </button>
@@ -279,7 +279,7 @@ export default function SawaiPage() {
                 className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start items-start'}`}
               >
                 {!isUser && (
-                  <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 p-0.5 overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center shrink-0 mt-0.5 p-0.5 overflow-hidden">
                     <Image
                       src="/logos_and_pwas/favicon-32x32.png"
                       alt="Sawai"
@@ -300,18 +300,18 @@ export default function SawaiPage() {
                   {isUser ? (
                     <div className="whitespace-pre-wrap break-words">{m.content}</div>
                   ) : (
-                    <div className="prose prose-invert max-w-none text-[13.5px] leading-relaxed break-words space-y-2.5">
+                    <div className="max-w-none text-[13.5px] leading-relaxed break-words space-y-2.5 text-[color:var(--foreground)]">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
                           h1: ({ children }) => <h1 className="text-base font-bold text-[color:var(--foreground)] mt-3 mb-1.5 pb-1 border-b border-[color:var(--border)]">{children}</h1>,
                           h2: ({ children }) => <h2 className="text-sm font-bold text-[color:var(--foreground)] mt-2.5 mb-1">{children}</h2>,
                           h3: ({ children }) => <h3 className="text-xs font-bold text-[color:var(--foreground)] mt-2 mb-1">{children}</h3>,
-                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-[color:var(--muted-foreground)]">{children}</p>,
+                          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-[color:var(--foreground)]">{children}</p>,
                           strong: ({ children }) => <strong className="font-semibold text-[color:var(--foreground)]">{children}</strong>,
-                          ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 text-[color:var(--muted-foreground)]">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 text-[color:var(--muted-foreground)]">{children}</ol>,
-                          li: ({ children }) => <li className="leading-snug">{children}</li>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 text-[color:var(--foreground)]">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 text-[color:var(--foreground)]">{children}</ol>,
+                          li: ({ children }) => <li className="leading-snug text-[color:var(--foreground)]">{children}</li>,
                           code: ({ children }) => (
                             <code className="bg-[color:var(--surface-hover)] text-[color:var(--foreground)] px-1 py-0.2 rounded text-xs font-mono">
                               {children}
