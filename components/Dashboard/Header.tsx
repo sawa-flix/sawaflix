@@ -619,6 +619,14 @@ const Header = ({
                   )}
                 </AnimatePresence>
               </div>
+            ) : (
+              <button
+                onClick={() => openAuthModal('to access your account')}
+                className="ml-1 flex items-center justify-center rounded-xl bg-[#E50914] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#E50914]/90 transition-all shadow-sm"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </header>

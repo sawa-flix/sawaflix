@@ -436,13 +436,11 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   <Image src="/logos_and_pwas/loaderLogo.png" alt="" fill sizes="24px" className="object-contain" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">
-                  {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
+                  {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Sawa Reels'}
                 </h2>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Sawa Reels</h2>
+              <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
             </div>
-            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
-          </div>
 
             <div className="relative group/slider">
               <div
@@ -471,34 +469,24 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
+                    {/* Intentionally white — sits on a photo overlay rather than a themed surface */}
+                    <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
+                      <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
+                        {reel.title}
+                      </h3>
+                      <p className="text-white/70 text-xs truncate">
+                        @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase()}
+                      </p>
+                    </div>
+
+                    {/* Play Icon Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
                         <Play size={24} className="text-white fill-white ml-1" />
                       </div>
                     </div>
-
-                  {/* Intentionally white — sits on a photo overlay rather than a themed surface */}
-                  <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
-                    <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
-                      {reel.title}
-                    </h3>
-                    <p className="text-white/70 text-xs truncate">
-                      @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase()}
-                    </p>
-                  </div>
-
-                  {/* Play Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
-                      <Play size={24} className="text-white fill-white ml-1" />
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="w-full py-12 text-center text-[color:var(--muted-foreground)] text-sm">
-                  No reels found for this category.
-                </div>
-              )}
+                  </Link>
+                ))}
             </div>
 
               <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
