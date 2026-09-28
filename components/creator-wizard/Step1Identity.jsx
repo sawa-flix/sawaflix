@@ -39,7 +39,7 @@ const Step1Identity = ({ data, errors, updateData }) => {
                         value={data.creatorName || ''}
                         onChange={handleChange}
                         placeholder="Your stage or creator name"
-                        className={`w-full bg-[#0B0E14] border ${errors?.creatorName ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                        className={`w-full bg-[#0B0E14] border ${errors?.creatorName ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                     />
                     {errors?.creatorName && <p className="mt-2 text-sm text-red-500">{errors.creatorName}</p>}
                 </div>
@@ -54,7 +54,7 @@ const Step1Identity = ({ data, errors, updateData }) => {
                         value={data.ethnicGroup || ''}
                         onChange={handleChange}
                         placeholder="ethnic group or community name"
-                        className={`w-full bg-[#0B0E14] border ${errors?.ethnicGroup ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                        className={`w-full bg-[#0B0E14] border ${errors?.ethnicGroup ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                     />
                     {errors?.ethnicGroup && <p className="mt-2 text-sm text-red-500">{errors.ethnicGroup}</p>}
                 </div>
@@ -70,7 +70,7 @@ const Step1Identity = ({ data, errors, updateData }) => {
                             value={data.phone || ''}
                             onChange={handleChange}
                             placeholder="your phone number"
-                            className={`w-full bg-[#0B0E14] border ${errors?.phone ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                            className={`w-full bg-[#0B0E14] border ${errors?.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                         />
                         {errors?.phone && <p className="mt-2 text-sm text-red-500">{errors.phone}</p>}
                     </div>
@@ -84,7 +84,7 @@ const Step1Identity = ({ data, errors, updateData }) => {
                             value={data.email || ''}
                             onChange={handleChange}
                             placeholder="your email"
-                            className={`w-full bg-[#0B0E14] border ${errors?.email ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                            className={`w-full bg-[#0B0E14] border ${errors?.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                         />
                         {errors?.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
                     </div>

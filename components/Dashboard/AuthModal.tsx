@@ -93,53 +93,63 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-            className="relative z-10 w-full max-w-[390px] bg-[#0E121A]/95 border border-white/10 rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-6 sm:p-7 flex flex-col items-center backdrop-blur-2xl overflow-hidden"
+            className="relative z-10 w-full max-w-[390px] bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.4)] p-6 sm:p-7 flex flex-col items-center backdrop-blur-2xl overflow-hidden transition-colors"
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer z-30"
+              className="absolute top-4 right-4 p-2 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer z-30"
               aria-label="Close modal"
             >
               <X size={18} />
             </button>
 
             {/* Logo */}
-            <div className="relative w-32 h-10 mb-5 flex items-center justify-center">
+            <div className="relative w-36 h-10 mb-5 flex items-center justify-center">
+              {/* Dark mode logo */}
               <Image
                 src="/logos_and_pwas/headerLogo..png"
                 alt="SawaFlix"
                 width={160}
                 height={40}
-                className="h-8 w-auto object-contain"
+                className="h-8 w-auto object-contain block [[data-theme=light]_&]:hidden"
+                priority
+              />
+              {/* Light mode logo */}
+              <Image
+                src="/logos_and_pwas/sawa.svg"
+                alt="SawaFlix"
+                width={245}
+                height={57}
+                className="h-8 w-auto object-contain hidden [[data-theme=light]_&]:block"
                 priority
               />
             </div>
 
             {/* Heading & Subtitle */}
             <div className="text-center space-y-2 mb-6">
-              <h2 className="text-white font-bold text-xl sm:text-[22px] tracking-tight">
+              <h2 className="text-[color:var(--foreground)] font-bold text-xl sm:text-[22px] tracking-tight">
                 Sign in {promptMessage}
               </h2>
-              <p className="text-zinc-400 text-xs sm:text-[13px] leading-relaxed max-w-[280px] mx-auto">
+              <p className="text-[color:var(--muted-foreground)] text-xs sm:text-[13px] leading-relaxed max-w-[280px] mx-auto">
                 Join thousands watching and sharing authentic Cameroonian entertainment.
               </p>
             </div>
 
             {/* Error message */}
             {error && (
-              <div className="w-full mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-medium">
+              <div className="w-full mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs text-center font-medium">
                 {error}
               </div>
             )}
 
             {/* Google Sign In Button — GIS Client-Side Popup with ID Token */}
-            <div className="relative w-full mb-5 overflow-hidden rounded-xl">
+            <div className="relative w-full mb-5 overflow-hidden rounded-xl border border-[color:var(--border)] shadow-sm">
               {/* Styled visible button */}
-              <div className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-white text-[#0E121A] font-bold text-sm shadow-md transition-all duration-200 pointer-events-none border border-white/20">
+              <div className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-[color:var(--surface)] text-[color:var(--foreground)] font-bold text-sm shadow-sm transition-all duration-200 pointer-events-none hover:bg-[color:var(--surface-hover)]">
                 {isGoogleLoading ? (
                   <>
-                    <Loader2 size={18} className="animate-spin text-zinc-600" />
+                    <Loader2 size={18} className="animate-spin text-[color:var(--muted-foreground)]" />
                     <span>Signing in…</span>
                   </>
                 ) : (
@@ -162,7 +172,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
                     onSuccess={handleGoogleCredential}
                     onError={() => setError('Unable to continue with Google right now. Please try again.')}
                     width="400"
-                    theme="filled_black"
+                    theme="outline"
                     shape="rectangular"
                   />
                 </div>
@@ -170,13 +180,13 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
             </div>
 
             {/* Terms and Privacy Footer */}
-            <p className="text-zinc-500 text-[11px] text-center leading-relaxed">
+            <p className="text-[color:var(--muted-foreground)] text-[11px] text-center leading-relaxed">
               By continuing, you agree to our{' '}
-              <a href="/terms" className="text-zinc-300 hover:text-white underline transition-colors" target="_blank" rel="noreferrer">
+              <a href="/terms" className="text-[color:var(--foreground)] hover:underline transition-colors font-medium" target="_blank" rel="noreferrer">
                 Terms
               </a>{' '}
               and{' '}
-              <a href="/privacy" className="text-zinc-300 hover:text-white underline transition-colors" target="_blank" rel="noreferrer">
+              <a href="/privacy" className="text-[color:var(--foreground)] hover:underline transition-colors font-medium" target="_blank" rel="noreferrer">
                 Privacy Policy
               </a>
               .

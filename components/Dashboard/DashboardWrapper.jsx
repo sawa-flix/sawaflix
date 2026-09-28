@@ -183,7 +183,7 @@ const DashboardWrapper = ({ children }) => {
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               lg:translate-x-0
               overflow-y-auto scrollbar-none
-              border-r border-[color:var(--border)] shadow-2xl shadow-[color:var(--border)]/40
+              border-r border-[color:var(--border)] shadow-xl shadow-black/20
             `}
           >
             <LeftSidebar
@@ -196,7 +196,7 @@ const DashboardWrapper = ({ children }) => {
 
           {/* Right Sidebar — Fixed & Unified */}
           {hasRightSidebar && (
-            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[color:var(--surface)]/95 backdrop-blur-md border-l border-[color:var(--border)]">
+            <aside className="hidden xl:block fixed top-14 right-0 z-30 w-80 h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-none bg-[color:var(--surface)]/95 backdrop-blur-md border-l border-[color:var(--border)] shadow-sm">
                 <RightSidebar />
             </aside>
           )}
@@ -228,9 +228,9 @@ const DashboardWrapper = ({ children }) => {
             scrollbar-width: none;
           }
           
-          /* Custom focus styles */
+          /* Clean accessible focus styles without red borders */
           .focus-ring:focus-visible {
-            outline: 2px solid rgb(239 68 68);
+            outline: 2px solid var(--focus-ring);
             outline-offset: 2px;
           }
         `}</style>

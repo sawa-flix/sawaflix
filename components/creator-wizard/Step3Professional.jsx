@@ -5,7 +5,7 @@ const inputClass = (hasError) =>
     `w-full rounded-2xl px-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 transition-all font-bold text-sm bg-white/5 border hover:bg-white/10 ${
         hasError
             ? 'border-red-500/50 focus:ring-red-500/30'
-            : 'border-white/10 focus:ring-red-600/20 focus:border-red-500/50'
+            : 'border-white/10 focus:ring-white/20 focus:border-white/30'
     } shadow-inner`;
 
 const FieldError = ({ message }) => message ? (

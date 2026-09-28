@@ -130,34 +130,34 @@ export function ReelComments({
             }}
             className={
               isDesktop
-                ? 'fixed inset-y-0 right-0 z-[9999] flex w-[380px] sm:w-[420px] flex-col border-l border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
-                : 'fixed inset-x-0 bottom-0 z-[9999] flex h-[78vh] max-h-[85vh] flex-col rounded-t-3xl border-t border-white/15 bg-[#07090E] shadow-[0_-12px_40px_rgba(0,0,0,0.85)] overflow-hidden'
+                ? 'fixed inset-y-0 right-0 z-[9999] flex w-[380px] sm:w-[420px] flex-col border-l border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl overflow-hidden'
+                : 'fixed inset-x-0 bottom-0 z-[9999] flex h-[78vh] max-h-[85vh] flex-col rounded-t-3xl border-t border-[color:var(--border)] bg-[color:var(--surface)] shadow-[0_-12px_40px_rgba(0,0,0,0.4)] overflow-hidden'
             }
           >
             {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
             <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 dark:opacity-30 dark:mix-blend-screen"
               style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--surface)]/95 via-[color:var(--surface)]/85 to-[color:var(--surface)]/98 pointer-events-none" />
 
             {/* Mobile Swipe / Drag Handle */}
             {!isDesktop && (
-              <div className="relative z-10 pt-3 pb-2 flex justify-center w-full shrink-0 bg-[#0F1117]/90 backdrop-blur-md cursor-grab active:cursor-grabbing border-b border-white/5">
-                <div className="h-1.5 w-12 rounded-full bg-white/30" />
+              <div className="relative z-10 pt-3 pb-2 flex justify-center w-full shrink-0 bg-[color:var(--surface)]/90 backdrop-blur-md cursor-grab active:cursor-grabbing border-b border-[color:var(--border)]">
+                <div className="h-1.5 w-12 rounded-full bg-[color:var(--muted-foreground)]/30" />
               </div>
             )}
 
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[#0F1117]/80 backdrop-blur-md p-4 shrink-0">
-              <h2 className="text-sm font-black uppercase tracking-widest text-white">
+            <div className="relative z-10 flex items-center justify-between border-b border-[color:var(--border)] bg-[color:var(--surface)]/95 backdrop-blur-md p-4 shrink-0">
+              <h2 className="text-sm font-black uppercase tracking-widest text-[color:var(--foreground)]">
                 {totalCommentsCount} {totalCommentsCount === 1 ? 'Comment' : 'Comments'}
               </h2>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close comments"
-                className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                className="rounded-full p-1.5 text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -201,17 +201,17 @@ export function ReelComments({
                       {/* Content */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-white/80">{comment.author}</span>
+                          <span className="text-xs font-bold text-[color:var(--foreground)]">{comment.author}</span>
                           {comment.userRole && !['member', 'viewer', 'user'].includes(comment.userRole.toLowerCase()) && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white/10 border border-white/20 text-[8px] font-black uppercase text-zinc-300">
-                              <ShieldCheck className="w-2.5 h-2.5 text-zinc-400" />
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-[color:var(--surface-hover)] border border-[color:var(--border)] text-[8px] font-black uppercase text-[color:var(--muted-foreground)]">
+                              <ShieldCheck className="w-2.5 h-2.5 text-[color:var(--muted-foreground)]" />
                               {comment.userRole}
                             </span>
                           )}
-                          <span className="text-[10px] text-white/40">{formatTimeAgo(comment.publishedAt)}</span>
+                          <span className="text-[10px] text-[color:var(--muted-foreground)]">{formatTimeAgo(comment.publishedAt)}</span>
                         </div>
 
-                        <p className="mt-0.5 text-sm text-white/90 break-words leading-relaxed">{comment.text}</p>
+                        <p className="mt-0.5 text-sm text-[color:var(--foreground-secondary)] break-words leading-relaxed">{comment.text}</p>
 
                         {/* Actions */}
                         <div className="mt-1.5 flex items-center gap-4 text-xs">
@@ -220,7 +220,7 @@ export function ReelComments({
                             type="button"
                             onClick={() => onLikeComment?.(comment.id, false)}
                             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-                              comment.isLikedByMe ? 'text-red-400 font-bold' : 'text-zinc-400 hover:text-white'
+                              comment.isLikedByMe ? 'text-red-500 font-bold' : 'text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]'
                             }`}
                             aria-label={comment.isLikedByMe ? 'Unlike comment' : 'Like comment'}
                           >
@@ -247,7 +247,7 @@ export function ReelComments({
                               setReplyingTo({ id: comment.id, author: comment.author });
                               inputRef.current?.focus();
                             }}
-                            className="text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            className="text-[11px] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors cursor-pointer"
                           >
                             Reply
                           </button>
@@ -348,7 +348,7 @@ export function ReelComments({
             </div>
 
             {/* Pinned Bottom Composer */}
-            <div className="relative z-10 border-t border-white/10 p-4 bg-[#0F1117]/90 backdrop-blur-md shrink-0">
+            <div className="relative z-10 border-t border-[color:var(--border)] p-4 bg-[color:var(--surface)]/95 backdrop-blur-md shrink-0">
               {/* Replying banner */}
               <AnimatePresence>
                 {replyingTo && (
@@ -356,15 +356,15 @@ export function ReelComments({
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
-                    className="flex items-center justify-between mb-2 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-zinc-300"
+                    className="flex items-center justify-between mb-2 px-3 py-1 rounded-lg bg-[color:var(--surface-hover)] border border-[color:var(--border)] text-xs text-[color:var(--muted-foreground)]"
                   >
                     <span>
-                      Replying to <strong className="text-white">@{replyingTo.author}</strong>
+                      Replying to <strong className="text-[color:var(--foreground)]">@{replyingTo.author}</strong>
                     </span>
                     <button
                       type="button"
                       onClick={() => setReplyingTo(null)}
-                      className="p-0.5 hover:text-white transition-colors cursor-pointer"
+                      className="p-0.5 hover:text-[color:var(--foreground)] transition-colors cursor-pointer"
                     >
                       <X size={14} />
                     </button>
@@ -379,7 +379,7 @@ export function ReelComments({
                     key={item.label}
                     type="button"
                     onClick={() => handleAppendReaction(item.text)}
-                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-[11px] text-zinc-300 hover:text-white transition-all shrink-0 cursor-pointer active:scale-95"
+                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[color:var(--surface-hover)] hover:bg-[color:var(--border)]/30 border border-[color:var(--border)] text-[11px] text-[color:var(--foreground-secondary)] hover:text-[color:var(--foreground)] transition-all shrink-0 cursor-pointer active:scale-95"
                   >
                     <span>{item.emoji}</span>
                     <span className="text-[10px] font-medium">{item.label}</span>
@@ -394,13 +394,13 @@ export function ReelComments({
                   onChange={(e) => setText(e.target.value)}
                   placeholder={replyingTo ? `Reply to @${replyingTo.author}...` : 'Add a comment...'}
                   aria-label="Add a comment"
-                  className="flex-1 rounded-full bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:bg-white/10 border border-transparent focus:border-white/10 transition-colors"
+                  className="flex-1 rounded-full bg-[color:var(--surface-hover)] px-4 py-2.5 text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] outline-none border border-[color:var(--border)] focus:border-[color:var(--foreground)]/30 transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={!text.trim()}
                   aria-label="Send comment"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white text-[#0B0E14] transition-colors hover:bg-white/85 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] transition-opacity hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
                 >
                   <Send size={16} />
                 </button>

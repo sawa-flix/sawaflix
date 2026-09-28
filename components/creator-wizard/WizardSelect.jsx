@@ -23,7 +23,7 @@ const WizardSelect = ({ value, onChange, options, placeholder, error }) => {
                 className={`w-full flex items-center justify-between rounded-2xl px-5 py-4 text-left text-sm font-bold bg-white/5 border hover:bg-white/10 transition-all shadow-inner ${
                     error
                         ? 'border-red-500/50 focus:ring-red-500/30'
-                        : 'border-white/10 focus:ring-red-600/20 text-white'
+                        : 'border-white/10 focus:ring-white/20 text-white'
                 }`}
             >
                 <span className={value ? 'text-white font-bold' : 'text-zinc-600 font-bold'}>

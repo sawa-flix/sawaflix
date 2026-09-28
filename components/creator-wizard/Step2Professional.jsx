@@ -24,7 +24,7 @@ const Step2Professional = ({ data, errors, updateData }) => {
                         value={data.languages || ''}
                         onChange={handleChange}
                         placeholder="e.g. English, Swahili, French"
-                        className={`w-full bg-[#0B0E14] border ${errors?.languages ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                        className={`w-full bg-[#0B0E14] border ${errors?.languages ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                     />
                     {errors?.languages && <p className="mt-2 text-sm text-red-500">{errors.languages}</p>}
                 </div>
@@ -39,7 +39,7 @@ const Step2Professional = ({ data, errors, updateData }) => {
                         value={data.experienceTime || ''}
                         onChange={handleChange}
                         placeholder="e.g. 5 years of documenting oral histories"
-                        className={`w-full bg-[#0B0E14] border ${errors?.experienceTime ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all`}
+                        className={`w-full bg-[#0B0E14] border ${errors?.experienceTime ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all`}
                     />
                     {errors?.experienceTime && <p className="mt-2 text-sm text-red-500">{errors.experienceTime}</p>}
                 </div>
@@ -54,7 +54,7 @@ const Step2Professional = ({ data, errors, updateData }) => {
                         value={data.bio || ''}
                         onChange={handleChange}
                         placeholder="A brief explanation of your background and experiences..."
-                        className={`w-full bg-[#0B0E14] border ${errors?.bio ? 'border-red-500' : 'border-gray-800'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all resize-none`}
+                        className={`w-full bg-[#0B0E14] border ${errors?.bio ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:ring-white/20 focus:border-white/30'} rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 transition-all resize-none`}
                     />
                     <div className="flex justify-between mt-2">
                         {errors?.bio ? <p className="text-sm text-red-500">{errors.bio}</p> : <div />}

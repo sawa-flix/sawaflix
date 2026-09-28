@@ -220,7 +220,7 @@ const Step4Portfolio = ({ data, documents, updatePortfolio, updateDocuments, err
                                         newLinks[index] = e.target.value;
                                         updatePortfolio({ links: newLinks });
                                     }}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-500/50 transition-all hover:bg-white/10"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all hover:bg-white/10"
                                     placeholder={platform.placeholder}
                                 />
                             </div>

@@ -8,11 +8,11 @@ const ContentFilters = ({ filters, onFilterChange }) => {
     <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between bg-[color:var(--surface)]/30 p-4 rounded-2xl border border-[color:var(--border)]/50 backdrop-blur-md">
       {/* Search bar */}
       <div className="relative w-full md:w-64 group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[color:var(--muted-foreground)] group-focus-within:text-red-500 transition-colors" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[color:var(--muted-foreground)] group-focus-within:text-[color:var(--foreground)] transition-colors" />
         <input
           type="text"
           placeholder="Search..."
-          className="w-full bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
+          className="w-full bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] focus:outline-none focus:border-[color:var(--foreground)]/40 focus:ring-1 focus:ring-[color:var(--foreground)]/10 transition-all"
           value={filters.search}
           onChange={(e) => onFilterChange("search", e.target.value)}
         />
@@ -23,7 +23,7 @@ const ContentFilters = ({ filters, onFilterChange }) => {
         {/* Type Filter */}
         <div className="relative min-w-[120px]">
           <select
-            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-[color:var(--foreground)]/40 transition-all cursor-pointer"
             value={filters.type}
             onChange={(e) => onFilterChange("type", e.target.value)}
           >
@@ -39,7 +39,7 @@ const ContentFilters = ({ filters, onFilterChange }) => {
         {/* Status Filter */}
         <div className="relative min-w-[120px]">
           <select
-            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-[color:var(--foreground)]/40 transition-all cursor-pointer"
             value={filters.status}
             onChange={(e) => onFilterChange("status", e.target.value)}
           >
@@ -56,7 +56,7 @@ const ContentFilters = ({ filters, onFilterChange }) => {
         {/* Sort by Date */}
         <div className="relative min-w-[140px]">
           <select
-            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-[color:var(--foreground)]/40 transition-all cursor-pointer"
             value={filters.sortByDate}
             onChange={(e) => onFilterChange("sortByDate", e.target.value)}
           >
@@ -69,7 +69,7 @@ const ContentFilters = ({ filters, onFilterChange }) => {
         {/* Sort by Views */}
         <div className="relative min-w-[140px]">
           <select
-            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-red-500/50 transition-all cursor-pointer"
+            className="w-full appearance-none bg-[color:var(--surface)]/40 border border-[color:var(--border)] rounded-xl py-2.5 pl-4 pr-10 text-sm text-[color:var(--foreground)] focus:outline-none focus:border-[color:var(--foreground)]/40 transition-all cursor-pointer"
             value={filters.sortByViews}
             onChange={(e) => onFilterChange("sortByViews", e.target.value)}
           >

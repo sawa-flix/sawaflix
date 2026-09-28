@@ -249,7 +249,7 @@ const Header = ({
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="lg:hidden p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-red-500"
+              className="lg:hidden p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-white/20"
               aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             >
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -268,7 +268,7 @@ const Header = ({
                 type="button"
                 onClick={() => setIsSearchFocused(true)}
                 className="w-full flex items-center justify-between pl-3.5 pr-3 py-1.5 bg-[color:var(--input-bg)] border border-[color:var(--input-border)] rounded-xl
-                           text-[color:var(--muted-foreground)] text-xs hover:border-[color:var(--primary)] hover:bg-[color:var(--surface-hover)] transition-all duration-300 group"
+                           text-[color:var(--muted-foreground)] text-xs hover:border-[color:var(--border)] hover:bg-[color:var(--surface-hover)] transition-all duration-200 group"
               >
                 <div className="flex items-center">
                   <Search className="text-[color:var(--muted-foreground)] mr-2.5 group-hover:text-[color:var(--foreground)] transition-colors" size={14} />

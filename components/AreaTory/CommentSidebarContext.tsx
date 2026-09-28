@@ -151,21 +151,21 @@ const CommentSidebar = ({ storyId, storyTitle, initialComments, onClose, onStats
         }}
         className={
           isDesktop
-            ? 'fixed inset-y-0 right-0 z-[9999] flex w-[380px] sm:w-[420px] flex-col border-l border-white/10 bg-[#07090E] shadow-2xl overflow-hidden'
-            : 'fixed inset-x-0 bottom-0 z-[9999] flex h-[78vh] max-h-[85vh] flex-col rounded-t-3xl border-t border-white/15 bg-[#07090E] shadow-[0_-12px_40px_rgba(0,0,0,0.85)] overflow-hidden'
+            ? 'fixed inset-y-0 right-0 z-[9999] flex w-[380px] sm:w-[420px] flex-col border-l border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl overflow-hidden'
+            : 'fixed inset-x-0 bottom-0 z-[9999] flex h-[78vh] max-h-[85vh] flex-col rounded-t-3xl border-t border-[color:var(--border)] bg-[color:var(--surface)] shadow-[0_-12px_40px_rgba(0,0,0,0.4)] overflow-hidden'
         }
       >
         {/* High-Performance African Indigo Textile / Sawai Pattern Background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-30 mix-blend-screen"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-20 dark:opacity-30 dark:mix-blend-screen"
           style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090E]/90 via-[#07090E]/75 to-[#07090E]/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--surface)]/95 via-[color:var(--surface)]/85 to-[color:var(--surface)]/98 pointer-events-none" />
 
         {/* Mobile Swipe / Drag Handle */}
         {!isDesktop && (
-          <div className="relative z-10 pt-3 pb-2 flex justify-center w-full shrink-0 bg-[#0F1117]/90 backdrop-blur-md cursor-grab active:cursor-grabbing border-b border-white/5">
-            <div className="h-1.5 w-12 rounded-full bg-white/30" />
+          <div className="relative z-10 pt-3 pb-2 flex justify-center w-full shrink-0 bg-[color:var(--surface)]/90 backdrop-blur-md cursor-grab active:cursor-grabbing border-b border-[color:var(--border)]">
+            <div className="h-1.5 w-12 rounded-full bg-[color:var(--muted-foreground)]/30" />
           </div>
         )}
 

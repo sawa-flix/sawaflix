@@ -15,6 +15,7 @@ import { ReelComments } from './ReelComments';
 import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
 import { ReelProgressBar } from './ReelProgressBar';
+import { ReelControls } from './ReelControls';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { videoInteractivityService } from '@/services/videoInteractivityService';
@@ -34,6 +35,8 @@ interface ReelCardProps {
   onEnded: () => void;
   /** Clears ReelsFeed's manual-pause flag once a scrub completes, so playback always resumes on release even if the reel was paused before scrubbing began. */
   onResume: () => void;
+  /** Explicit advance to next video triggered from UI controls */
+  onNext?: () => void;
 }
 
 /**
@@ -42,7 +45,7 @@ interface ReelCardProps {
  * current index; YouTubePlayer already maps isActive/isPaused to real
  * playVideo()/pauseVideo() calls.
  */
-export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
+export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume, onNext }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
   const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
   const isNative =
@@ -126,6 +129,19 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       playerRef.current?.playVideo();
     }
   }, [hasNext, onEnded]);
+
+  const handleForward = useCallback(() => {
+    const player = getPlayer();
+    if (!player) return;
+    try {
+      const cur = player.getCurrentTime?.() ?? 0;
+      const dur = player.getDuration?.() ?? 0;
+      const target = dur > 0 ? Math.min(cur + 10, dur) : cur + 10;
+      player.seekTo?.(target, true);
+    } catch (e) {
+      console.warn('[ReelCard] Forward failed:', e);
+    }
+  }, [getPlayer]);
 
   const handleNativeEnded = useCallback(() => {
     if (hasNext) {
@@ -259,6 +275,16 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
       <AnimatePresence>
         {isScrubbing && <ReelScrubIndicator currentTime={scrubTime} duration={duration} />}
       </AnimatePresence>
+
+      <ReelControls
+        getPlayer={getPlayer}
+        isActive={isActive}
+        isPaused={isPaused}
+        onTogglePlay={onTogglePlay}
+        onForward={handleForward}
+        onNext={onNext}
+        hasNext={hasNext}
+      />
 
       <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />
 

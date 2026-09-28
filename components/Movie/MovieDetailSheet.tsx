@@ -27,16 +27,16 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
       />
 
       {/* Bottom Sheet */}
-      <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] flex flex-col bg-gradient-to-t from-[#0B0E14] via-[#0F1419] to-[#141820] rounded-t-3xl overflow-hidden">
+      <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] flex flex-col bg-[color:var(--surface)] border-t border-[color:var(--border)] rounded-t-3xl overflow-hidden shadow-2xl">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2 shrink-0">
-          <div className="w-12 h-1 bg-white/20 rounded-full" />
+          <div className="w-12 h-1 bg-[color:var(--muted-foreground)]/30 rounded-full" />
         </div>
 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+          className="absolute top-4 right-4 z-10 bg-[color:var(--background)]/70 hover:bg-[color:var(--background)] text-[color:var(--foreground)] p-2 rounded-full transition-colors cursor-pointer border border-[color:var(--border)]"
           aria-label="Close details"
         >
           <X size={20} />
@@ -57,7 +57,7 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
               {/* Play Button */}
               <button
                 onClick={() => onWatchNow(movie)}
-                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors group"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors group cursor-pointer"
               >
                 <div className="bg-[#CE1126] hover:scale-110 text-white rounded-full p-4 shadow-2xl transition-transform">
                   <Play size={28} fill="currentColor" className="ml-1" />
@@ -66,25 +66,25 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
             </div>
 
             {/* Title and Rating */}
-            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">{movie.title}</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-[color:var(--foreground)] mb-2">{movie.title}</h2>
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-1 bg-[#FCD116]/20 text-[#FCD116] px-3 py-1 rounded-full">
                 <Star size={16} fill="currentColor" />
                 <span className="font-bold">{movie.rating || 4.5}</span>
               </div>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-400">{movie.year}</span>
-              <span className="text-gray-400">•</span>
-              <span className="bg-white/10 text-white px-2 py-0.5 rounded text-xs font-semibold">
+              <span className="text-[color:var(--muted-foreground)]">•</span>
+              <span className="text-[color:var(--muted-foreground)]">{movie.year}</span>
+              <span className="text-[color:var(--muted-foreground)]">•</span>
+              <span className="bg-[color:var(--surface-hover)] border border-[color:var(--border)] text-[color:var(--foreground)] px-2 py-0.5 rounded text-xs font-semibold">
                 {movie.ageRating || '13+'}
               </span>
             </div>
 
             {/* Description */}
-            <p className="text-gray-300 text-sm mb-6 leading-relaxed">{movie.description}</p>
+            <p className="text-[color:var(--foreground-secondary)] text-sm mb-6 leading-relaxed">{movie.description}</p>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b border-white/10">
+            <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b border-[color:var(--border)]">
               {movie.year && (
                 <DetailCell icon={<Calendar size={18} />} label="Year" value={movie.year.toString()} />
               )}
@@ -104,8 +104,8 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
               <div className="space-y-3 mb-2 pb-2">
                 {movie.director && (
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold mb-1">DIRECTOR</p>
-                    <p className="text-sm text-white">{movie.director}</p>
+                    <p className="text-xs text-[color:var(--muted-foreground)] font-semibold mb-1">DIRECTOR</p>
+                    <p className="text-sm text-[color:var(--foreground)]">{movie.director}</p>
                   </div>
                 )}
                 {movie.writer && (

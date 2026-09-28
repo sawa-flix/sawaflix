@@ -410,23 +410,23 @@ export default function StoryCommentsSection({
                   <div className="min-w-0 flex-1">
                     {/* Header: Name + Badge + Time */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-white/80">{comment.userName}</span>
+                      <span className="text-xs font-bold text-[color:var(--foreground)]">{comment.userName}</span>
                       {comment.userRole && !['member', 'viewer', 'user'].includes(comment.userRole.toLowerCase()) && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white/10 border border-white/20 text-[8px] font-black uppercase text-zinc-300">
-                          <ShieldCheck className="w-2.5 h-2.5 text-zinc-400" />
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-[color:var(--surface-hover)] border border-[color:var(--border)] text-[8px] font-black uppercase text-[color:var(--muted-foreground)]">
+                          <ShieldCheck className="w-2.5 h-2.5 text-[color:var(--muted-foreground)]" />
                           {comment.userRole}
                         </span>
                       )}
                       {comment.isPinned && (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/30 text-[8px] font-black uppercase text-amber-400">
+                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/30 text-[8px] font-black uppercase text-amber-500">
                           Pinned
                         </span>
                       )}
-                      <span className="text-[10px] text-white/40">{formatTimeAgo(comment.createdAt)}</span>
+                      <span className="text-[10px] text-[color:var(--muted-foreground)]">{formatTimeAgo(comment.createdAt)}</span>
                     </div>
 
                     {/* Text */}
-                    <p className="mt-0.5 text-sm text-white/90 break-words leading-relaxed">{comment.content}</p>
+                    <p className="mt-0.5 text-sm text-[color:var(--foreground-secondary)] break-words leading-relaxed">{comment.content}</p>
 
                     {/* Actions: Like, Reply, Toggle Replies */}
                     <div className="mt-1.5 flex items-center gap-4 text-xs">
@@ -504,7 +504,7 @@ export default function StoryCommentsSection({
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               placeholder={`Reply to @${comment.userName}...`}
-                              className="flex-1 rounded-full bg-white/5 px-3 py-1.5 text-xs text-white placeholder-white/30 outline-none focus:bg-white/10 border border-transparent focus:border-white/10"
+                              className="flex-1 rounded-full bg-[color:var(--surface-hover)] px-3 py-1.5 text-xs text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] outline-none border border-[color:var(--border)] focus:border-[color:var(--foreground)]/30"
                               autoFocus
                             />
                             <button
@@ -513,7 +513,7 @@ export default function StoryCommentsSection({
                                 setReplyingToId(null);
                                 setReplyText('');
                               }}
-                              className="text-[10px] text-zinc-400 hover:text-white px-1.5 cursor-pointer"
+                              className="text-[10px] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] px-1.5 cursor-pointer"
                             >
                               Cancel
                             </button>
@@ -521,7 +521,7 @@ export default function StoryCommentsSection({
                               type="button"
                               onClick={() => handlePostReply(comment.id)}
                               disabled={replySubmitting || !replyText.trim()}
-                              className="px-3 py-1 rounded-full bg-white text-black text-xs font-bold hover:bg-white/90 disabled:opacity-30 flex items-center gap-1 cursor-pointer"
+                              className="px-3 py-1 rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-xs font-bold hover:opacity-90 disabled:opacity-30 flex items-center gap-1 cursor-pointer"
                             >
                               {replySubmitting ? <Loader2 size={12} className="animate-spin" /> : <span>Reply</span>}
                             </button>
