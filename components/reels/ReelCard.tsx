@@ -16,6 +16,7 @@ import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
 import { ReelProgressBar } from './ReelProgressBar';
 import { ReelControls } from './ReelControls';
+import { ReelsBackdrop } from './ReelsBackdrop';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
 import { videoInteractivityService } from '@/services/videoInteractivityService';
@@ -27,6 +28,7 @@ interface ReelCardProps {
   isPaused: boolean;
   isMuted: boolean;
   isDesktop: boolean;
+  desktopOverlayRoot: HTMLDivElement | null;
   /** Whether ReelsFeed has another reel to advance to when this one ends. */
   hasNext: boolean;
   itemRef: (el: HTMLDivElement | null) => (() => void) | void;
@@ -45,7 +47,7 @@ interface ReelCardProps {
  * current index; YouTubePlayer already maps isActive/isPaused to real
  * playVideo()/pauseVideo() calls.
  */
-export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNext, itemRef, onTogglePlay, onEnded, onResume, onNext }: ReelCardProps) {
+export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, desktopOverlayRoot, hasNext, itemRef, onTogglePlay, onEnded, onResume, onNext }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
   const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
   const isNative =
@@ -215,8 +217,9 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
   return (
     <div
       ref={itemRef}
-      className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-black"
+      className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-transparent"
     >
+      <ReelsBackdrop className="absolute inset-0" />
       <div
         role="button"
         tabIndex={0}
@@ -239,7 +242,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
             muted={isMuted}
             preload={isActive ? 'auto' : 'metadata'}
             crossOrigin="anonymous"
-            className="w-full h-full object-contain bg-black"
+            className="w-full h-full object-contain bg-transparent"
             onLoadedData={() => setIsPlayerReady(true)}
             onCanPlay={() => setIsPlayerReady(true)}
             onEnded={handleNativeEnded}
@@ -288,7 +291,14 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, hasNex
 
       <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />
 
-      <ReelOverlay video={video} isFollowing={isFollowing} onToggleFollow={handleToggleFollow} />
+      <ReelOverlay
+        video={video}
+        isFollowing={isFollowing}
+        isActive={isActive}
+        isDesktop={isDesktop}
+        portalTarget={desktopOverlayRoot}
+        onToggleFollow={handleToggleFollow}
+      />
 
       <ReelActions
         video={video}

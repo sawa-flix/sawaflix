@@ -47,10 +47,10 @@ export function ReelProgressBar({ getPlayer, isActive, isScrubbing }: ReelProgre
   }, [getPlayer, isActive, isScrubbing]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-1 z-30 bg-white/20 pointer-events-none">
+    <div className="absolute bottom-1 left-0 right-0 h-1.5 z-30 bg-[color:var(--primary-soft)] pointer-events-none">
       <div 
         ref={barRef} 
-        className="h-full bg-white opacity-80"
+        className="h-full bg-[color:var(--primary)] shadow-[0_0_8px_rgba(229,9,20,0.35)]"
         style={{ width: '0%', transition: isScrubbing ? 'none' : 'width 100ms linear' }}
       />
     </div>

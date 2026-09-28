@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Play, X, Loader2, RefreshCw } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Play, X, Loader2, RefreshCw, Heart, MessageCircle, Send, Share2 } from 'lucide-react';
 import {
   MovieCard,
   RightSidebarContent,
@@ -67,11 +68,16 @@ function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
 }
 
 export default function MoviePage(): React.ReactElement {
+  const searchParams = useSearchParams();
+  const movieQuery = (searchParams.get('q') || '').trim().toLowerCase();
   const [movies, setMovies] = useState<Movie[]>(MOVIES_DATA);
   const [genres, setGenres] = useState<string[]>(FILTERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [selectedMovie, setSelectedMovie] = useState<Movie>(MOVIES_DATA[0]);
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
+  const [showPlayerDiscussion, setShowPlayerDiscussion] = useState(false);
+  const [playerCommentDraft, setPlayerCommentDraft] = useState('');
+  const [isPlayerLiked, setIsPlayerLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,16 +119,26 @@ export default function MoviePage(): React.ReactElement {
   }, [loadMovies]);
 
   // Featured Hero movie
+  const matchingMovies = useMemo(() => {
+    if (!movieQuery) return movies;
+    return movies.filter((movie) =>
+      movie.title.toLowerCase().includes(movieQuery) ||
+      movie.description.toLowerCase().includes(movieQuery) ||
+      movie.genres.some((genre) => genre.toLowerCase().includes(movieQuery)) ||
+      String(movie.year).includes(movieQuery)
+    );
+  }, [movies, movieQuery]);
+
   const featuredMovie = useMemo(
-    () => movies.find((m) => m.featured) || movies[0] || MOVIES_DATA[0],
-    [movies]
+    () => (movieQuery ? matchingMovies[0] : movies.find((m) => m.featured) || movies[0]) || MOVIES_DATA[0],
+    [movies, movieQuery, matchingMovies]
   );
 
   // Memoized filtered movies for responsive grid
   const filteredMovies = useMemo(() => {
-    if (activeFilter === 'All') return movies.filter((m) => m.id !== featuredMovie.id);
-    return movies.filter((m) => m.id !== featuredMovie.id && m.genres?.includes(activeFilter));
-  }, [movies, activeFilter, featuredMovie]);
+    if (activeFilter === 'All') return matchingMovies.filter((m) => m.id !== featuredMovie.id);
+    return matchingMovies.filter((m) => m.id !== featuredMovie.id && m.genres?.includes(activeFilter));
+  }, [matchingMovies, activeFilter, featuredMovie]);
 
   // Related movies for the desktop right sidebar
   const moreMovies = useMemo(
@@ -146,11 +162,9 @@ export default function MoviePage(): React.ReactElement {
 
   return (
     <>
-      <div className="movie-page-root flex flex-col xl:flex-row gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-[color:var(--foreground)] pb-20">
-        {/* ========== LEFT CONTENT AREA ========== */}
-        <div className="flex-1 min-w-0 flex flex-col pt-2">
-          {/* Filters Bar - Sticky above hero banner (YouTube style chips) */}
-          <div className="sticky top-0 z-40 bg-[color:var(--background)]/90 backdrop-blur-md py-3 mb-6 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-[color:var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="movie-page-root flex flex-col gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-[color:var(--foreground)] pb-20">
+        {/* Filters span the same cinema canvas as the featured title. */}
+        <div className="sticky top-0 z-40 bg-[color:var(--background)]/90 backdrop-blur-md py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-[color:var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0">
             {genres.map((filter) => (
               <button
                 key={filter}
@@ -172,14 +186,24 @@ export default function MoviePage(): React.ReactElement {
                 <span>Syncing catalog…</span>
               </div>
             )}
-          </div>
+        </div>
 
-          {/* Featured Hero Banner */}
+        {(!movieQuery || matchingMovies.length > 0) && (
           <MovieHeroBanner
             movie={featuredMovie}
             onWatchNow={() => setPlayingMovie(featuredMovie)}
           />
+        )}
 
+        {movieQuery && matchingMovies.length === 0 && (
+          <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-5 py-8 text-center text-sm font-semibold text-[color:var(--muted-foreground)]">
+            No movies found for &quot;{searchParams.get('q')}&quot;.
+          </div>
+        )}
+
+        <div className="flex flex-col xl:flex-row gap-6 lg:gap-8">
+        {/* ========== MOVIE CATALOG ========== */}
+        <div className="flex-1 min-w-0 flex flex-col pt-2">
           {/* Movie Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
             {filteredMovies.map((movie, idx) => (
@@ -208,6 +232,7 @@ export default function MoviePage(): React.ReactElement {
             onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
           />
         </div>
+        </div>
       </div>
 
       {/* ========== MOBILE BOTTOM SHEET (SLIDES FROM BOTTOM) ========== */}
@@ -223,19 +248,23 @@ export default function MoviePage(): React.ReactElement {
 
       {/* ========== THEATER VIDEO PLAYER MODAL ========== */}
       {playingMovie && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.9)] flex flex-col">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-5xl max-h-[94dvh] bg-[color:var(--surface)] text-[color:var(--foreground)] rounded-2xl overflow-hidden border border-[color:var(--border)] shadow-[0_25px_80px_rgba(0,0,0,0.45)] flex flex-col">
             {/* Player Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[#0B0E14] border-b border-white/10">
+            <div className="flex items-center justify-between px-4 py-3 bg-[color:var(--surface)] border-b border-[color:var(--border)]">
               <div className="flex items-center gap-2 min-w-0 pr-4">
                 <span className="bg-[#CE1126] text-white text-[10px] font-black uppercase px-2 py-0.5 rounded">
                   Now Playing
                 </span>
-                <h3 className="text-sm font-bold text-white truncate">{playingMovie.title}</h3>
+                <h3 className="text-sm font-bold text-[color:var(--foreground)] truncate">{playingMovie.title}</h3>
               </div>
               <button
-                onClick={() => setPlayingMovie(null)}
-                className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                onClick={() => {
+                  setPlayingMovie(null);
+                  setShowPlayerDiscussion(false);
+                  setPlayerCommentDraft('');
+                }}
+                className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer shrink-0"
                 aria-label="Close Player"
               >
                 <X size={20} />
@@ -251,6 +280,74 @@ export default function MoviePage(): React.ReactElement {
                 allowFullScreen
                 className="absolute inset-0 w-full h-full border-0"
               />
+            </div>
+
+            <div className="overflow-y-auto border-t border-[color:var(--border)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-bold text-[color:var(--foreground)]">{playingMovie.title}</h2>
+                  <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">{playingMovie.year} · {playingMovie.genres?.[0] || 'Cameroonian cinema'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-pressed={isPlayerLiked}
+                    onClick={() => setIsPlayerLiked((liked) => !liked)}
+                    className={`inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] px-3 py-2 text-xs font-semibold transition-colors ${isPlayerLiked ? 'bg-[color:var(--primary-soft)] text-[color:var(--primary)]' : 'bg-[color:var(--surface-hover)] text-[color:var(--foreground)] hover:bg-[color:var(--border)]'}`}
+                  >
+                    <Heart size={15} className={isPlayerLiked ? 'fill-current' : ''} /> {isPlayerLiked ? 129 : 128}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPlayerDiscussion((visible) => !visible)}
+                    aria-expanded={showPlayerDiscussion}
+                    className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface-hover)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--border)]"
+                  >
+                    <MessageCircle size={15} /> 24 comments
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Share movie"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface-hover)] text-[color:var(--foreground)] hover:bg-[color:var(--border)]"
+                  >
+                    <Share2 size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {showPlayerDiscussion && (
+                <div className="border-t border-[color:var(--border)] bg-[color:var(--background-secondary)] px-4 py-4 sm:px-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-[color:var(--foreground)]">Community discussion</h3>
+                      <p className="text-xs text-[color:var(--muted-foreground)]">Join the conversation about this film.</p>
+                    </div>
+                    <span className="text-xs font-semibold text-[color:var(--muted-foreground)]">24 comments</span>
+                  </div>
+                  <div className="grid gap-3 border-y border-[color:var(--border)] py-3 sm:grid-cols-2">
+                    <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Nadia:</strong> A beautiful story. The cast was excellent.</p>
+                    <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Kevin:</strong> More Cameroon cinema like this, please.</p>
+                  </div>
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      setPlayerCommentDraft('');
+                    }}
+                    className="mt-3 flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-2"
+                  >
+                    <input
+                      value={playerCommentDraft}
+                      onChange={(event) => setPlayerCommentDraft(event.target.value)}
+                      placeholder="Add a comment"
+                      aria-label="Add a movie comment"
+                      className="min-w-0 flex-1 bg-transparent text-sm text-[color:var(--foreground)] outline-none placeholder:text-[color:var(--muted-foreground)]"
+                    />
+                    <button type="submit" aria-label="Post comment" disabled={!playerCommentDraft.trim()} className="text-[color:var(--primary)] disabled:opacity-40">
+                      <Send size={16} />
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
         </div>

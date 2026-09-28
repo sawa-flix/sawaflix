@@ -68,14 +68,14 @@ export function ReelControls({
           onClick={onTogglePlay}
           className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-[1px] transition-all cursor-pointer"
         >
-          <div className="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-2xl scale-100 hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-full bg-[color:var(--surface)]/95 backdrop-blur-md border border-[color:var(--border)] flex items-center justify-center text-[color:var(--foreground)] shadow-2xl scale-100 hover:scale-110 transition-transform">
             <Play size={28} fill="currentColor" className="ml-1" />
           </div>
         </div>
       )}
 
       {/* Floating Controls Bar at Bottom Above Progress Bar */}
-      <div className="absolute bottom-2.5 left-3 right-16 z-30 flex items-center gap-1.5 pointer-events-auto">
+      <div className="absolute bottom-4 left-3 right-16 z-30 flex items-center gap-1.5 pointer-events-auto">
         {/* Play/Pause Button */}
         <button
           type="button"
@@ -84,7 +84,7 @@ export function ReelControls({
             onTogglePlay();
           }}
           aria-label={isPaused ? 'Play video' : 'Pause video'}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 transition-all shadow-md active:scale-95 cursor-pointer"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 cursor-pointer"
         >
           {isPaused ? <Play size={13} fill="currentColor" className="ml-0.5" /> : <Pause size={13} fill="currentColor" />}
         </button>
@@ -98,7 +98,7 @@ export function ReelControls({
           }}
           aria-label="Skip forward 10 seconds"
           title="Forward 10s"
-          className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
+          className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
         >
           <FastForward size={13} fill="currentColor" />
           <span className="text-[10px] tracking-tight">+10s</span>
@@ -114,7 +114,7 @@ export function ReelControls({
             }}
             aria-label="Next video"
             title="Next video"
-            className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
+            className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
           >
             <SkipForward size={13} fill="currentColor" />
             <span className="text-[10px] hidden sm:inline tracking-tight">Next</span>
@@ -123,10 +123,10 @@ export function ReelControls({
 
         {/* Elapsed / Total Duration Pill */}
         {time.duration > 0 && (
-          <div className="flex items-center px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] font-mono text-white/90 shadow-sm ml-auto">
+          <div className="flex items-center px-2 py-0.5 rounded-full bg-[color:var(--surface)]/95 backdrop-blur-md border border-[color:var(--border)] text-[10px] font-mono text-[color:var(--foreground)] shadow-sm ml-auto">
             <span>{formatTime(time.current)}</span>
-            <span className="mx-1 text-white/40">/</span>
-            <span className="text-white/60">{formatTime(time.duration)}</span>
+            <span className="mx-1 text-[color:var(--muted-foreground)]">/</span>
+            <span className="text-[color:var(--muted-foreground)]">{formatTime(time.duration)}</span>
           </div>
         )}
       </div>

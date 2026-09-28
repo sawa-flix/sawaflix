@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RotateCcw, Film } from 'lucide-react';
+import { RotateCcw, Film, ChevronsDown } from 'lucide-react';
 import type { Video } from '@/types/youtube';
 import { useReels } from '@/hooks/reels/useReels';
 import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
@@ -81,6 +81,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   const [isMuted, setIsMuted] = useState(true);
   const [manuallyPaused, setManuallyPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
+  const [desktopOverlayRoot, setDesktopOverlayRoot] = useState<HTMLDivElement | null>(null);
 
   // Enforce guest preview limit (free preview of up to 4 reels)
   useEffect(() => {
@@ -332,8 +333,17 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
   // (forced-paused via searchMode === 'searching' below) — it only swaps to
   // showing something else if a specific search result gets opened.
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[color:var(--background)]">
+    <div className="relative isolate flex h-full w-full items-center justify-center overflow-hidden bg-transparent">
       <ReelHeader isMuted={isMuted} onToggleMute={toggleMute} />
+      <div
+        ref={setDesktopOverlayRoot}
+        className="pointer-events-none absolute bottom-5 left-5 z-30 hidden w-[min(22rem,calc(100%-2.5rem))] lg:block"
+      />
+      <div className="pointer-events-none absolute right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 text-[color:var(--muted-foreground)] lg:flex">
+        <ChevronsDown className="h-6 w-6 animate-bounce" aria-hidden="true" />
+        <span className="text-[9px] font-bold uppercase tracking-widest [writing-mode:vertical-rl]">Scroll down</span>
+        <span className="text-[9px] font-medium [writing-mode:vertical-rl]">Swipe up for next</span>
+      </div>
 
       {isOpeningResult ? (
         // Between picking a search result and the swipeable list actually
@@ -348,7 +358,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
         // from an already-populated dropdown row), so this is always the
         // normal feed's own error state — same one shown whether or not a
         // search happens to be open above it.
-        <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[color:var(--background)] px-6 text-center">
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-4 bg-[color:var(--background)]/85 px-6 text-center backdrop-blur-sm">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)]">
             <Film size={24} className="text-[color:var(--muted-foreground)]" />
           </div>
@@ -368,7 +378,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
           ref={containerRef}
           className="relative h-full w-full snap-y snap-mandatory overflow-y-scroll scroll-smooth
                      lg:h-full lg:w-auto lg:aspect-[9/16] lg:max-h-full
-                     lg:rounded-[1.75rem] lg:ring-1 lg:ring-white/10 lg:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)]"
+                     lg:rounded-[1.75rem] lg:ring-1 lg:ring-[color:var(--border)] lg:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)]"
           style={{ scrollbarWidth: 'none' }}
         >
           {videos.map((video, index) => {
@@ -388,6 +398,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
                     isPaused={!isActive || manuallyPaused || searchMode === 'searching'}
                     isMuted={isMuted}
                     isDesktop={isDesktop}
+                    desktopOverlayRoot={desktopOverlayRoot}
                     hasNext={index < videos.length - 1}
                     itemRef={setItemRef(index)}
                     onTogglePlay={() => setManuallyPaused((prev) => !prev)}

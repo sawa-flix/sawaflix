@@ -52,10 +52,10 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ notificati
         >
           <div 
             onClick={handleToastClick}
-            className="bg-[#0E121A]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-3.5 shadow-[0_25px_60px_rgba(0,0,0,0.7)] flex items-center gap-3.5 overflow-hidden relative group cursor-pointer select-none hover:border-white/30 transition-all duration-300"
+            className="bg-[color:var(--surface-elevated)]/98 backdrop-blur-2xl border border-[color:var(--border)] rounded-2xl p-3.5 shadow-[0_25px_60px_rgba(0,0,0,0.24)] flex items-center gap-3.5 overflow-hidden relative group cursor-pointer select-none hover:border-[color:var(--muted-foreground)] transition-all duration-300"
           >
             {/* Ambient Red Glow on Left */}
-            <div className="absolute -left-4 -top-4 w-20 h-20 bg-[#CE1126]/20 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute left-0 top-3 bottom-3 w-1 bg-[color:var(--primary)] rounded-r pointer-events-none" />
 
             {/* Actor Image / SawaFlix Logo Fallback */}
             <div className="relative flex-shrink-0">
@@ -63,10 +63,10 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ notificati
                 <img 
                   src={notification.actorImage} 
                   alt={notification.actorName || 'User'} 
-                  className="w-11 h-11 rounded-full object-cover border border-white/20 shadow-md ring-1 ring-white/10"
+                  className="w-11 h-11 rounded-full object-cover border border-[color:var(--border)] shadow-md ring-1 ring-[color:var(--border)]"
                 />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1A1E29] to-[#0D1017] flex items-center justify-center border border-white/15 shadow-md p-2">
+                <div className="w-11 h-11 rounded-full bg-[color:var(--surface)] flex items-center justify-center border border-[color:var(--border)] shadow-md p-2">
                   <img 
                     src="/logos_and_pwas/android-chrome-192x192.png" 
                     alt="SawaFlix" 
@@ -75,7 +75,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ notificati
                 </div>
               )}
               {/* Type Badge Icon */}
-              <div className="absolute -bottom-1 -right-1 p-1 bg-[#0F1219] rounded-full border border-white/20 shadow-xl flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 p-1 bg-[color:var(--surface)] rounded-full border border-[color:var(--border)] shadow-xl flex items-center justify-center">
                 {getIcon(notification.type)}
               </div>
             </div>
@@ -83,24 +83,24 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ notificati
             {/* Text Content */}
             <div className="flex-1 min-w-0 pr-1">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <h4 className="text-[13px] font-bold text-white truncate tracking-tight">
+                <h4 className="text-[13px] font-bold text-[color:var(--foreground)] truncate tracking-tight">
                   {notification.actorName || 'SawaFlix Alert'}
                 </h4>
                 {!notification.read && (
                   <span className="w-1.5 h-1.5 rounded-full bg-[#CE1126] shadow-[0_0_8px_#CE1126] shrink-0" />
                 )}
               </div>
-              <p className="text-[11px] text-zinc-300 font-semibold line-clamp-1">
+              <p className="text-[11px] text-[color:var(--foreground-secondary)] font-semibold line-clamp-1">
                 {notification.title}
               </p>
-              <p className="text-[10px] text-zinc-400 line-clamp-1 leading-snug font-normal mt-0.5">
+              <p className="text-[10px] text-[color:var(--muted-foreground)] line-clamp-1 leading-snug font-normal mt-0.5">
                 {notification.message}
               </p>
             </div>
 
             {/* Thumbnail Preview if present */}
             {notification.thumbnail && (
-              <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-white/15 shadow-md shrink-0">
+              <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-[color:var(--border)] shadow-md shrink-0">
                 <img 
                   src={notification.thumbnail} 
                   alt="Content" 
@@ -115,7 +115,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({ notificati
                 e.stopPropagation();
                 onClose();
               }}
-              className="relative p-1.5 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-all active:scale-90 shrink-0"
+              className="relative p-1.5 hover:bg-[color:var(--surface-hover)] rounded-full text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-all active:scale-90 shrink-0"
               aria-label="Dismiss notification"
             >
               <X className="w-3.5 h-3.5" />

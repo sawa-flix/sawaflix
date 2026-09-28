@@ -268,58 +268,57 @@ export default function CultureInfiniteFeed({ activeCategory = 'all' }: CultureI
   return (
     <section className="w-full relative flex flex-col gap-5 my-2">
       {/* Section Header: Clean & Simple with NO red color */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/5 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[color:var(--border)] pb-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">
             Discover more content
           </h2>
-          <p className="text-white/50 text-sm mt-1">
+          <p className="text-[color:var(--muted-foreground)] text-sm mt-1">
             Endless authentic Cameroonian music, comedy, traditions, and stories preserved for you.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-white/40 self-start sm:self-end">
-          <span className="inline-block w-2 h-2 rounded-full bg-white/40" />
+        <div className="flex items-center gap-2 text-xs text-[color:var(--muted-foreground)] self-start sm:self-end">
+          <span className="inline-block w-2 h-2 rounded-full bg-[color:var(--muted-foreground)]/60" />
           <span>{videos.length} videos loaded</span>
         </div>
       </div>
 
       {/* Main Grid of Culture Videos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
         {videos.map((video, idx) => {
           const thumbnail = video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`;
-          const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(video.channelTitle || 'Sawaflix')}`;
 
           return (
             <div
               key={`${video.id}-${idx}`}
               onClick={() => handleVideoClick(video)}
-              className="group relative flex flex-col gap-3 rounded-2xl bg-[#12151D]/60 hover:bg-[#151923] border border-white/5 hover:border-white/20 p-3 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-white/5 hover:-translate-y-1"
+              className="relative w-full group/card cursor-pointer transition-all duration-300"
             >
               {/* Thumbnail Container */}
-              <div className="relative aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/5">
+              <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
                 <Image
                   src={thumbnail}
                   alt={video.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="object-contain sm:object-cover group-hover/card:scale-105 transition-transform duration-500"
                   unoptimized
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 
                 {/* Gradient vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
 
                 {/* Center Play Button on hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-300">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/50 backdrop-blur-sm transform scale-90 group-hover/card:scale-100 transition-all">
                     <Play size={20} className="text-white fill-white ml-0.5" />
                   </div>
                 </div>
 
                 {/* Cultural Badge */}
                 <div className="absolute top-2.5 left-2.5">
-                  <span className="px-2 py-0.5 bg-black/70 backdrop-blur-md rounded-md text-[10px] font-medium text-white/80 border border-white/10 uppercase tracking-wider">
+                  <span className="bg-[#009639]/90 backdrop-blur-md text-white border border-[#009639]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
                     Sawa Culture
                   </span>
                 </div>
@@ -330,47 +329,31 @@ export default function CultureInfiniteFeed({ activeCategory = 'all' }: CultureI
                 </div>
               </div>
 
-              {/* Info Container */}
-              <div className="flex gap-3 px-1">
-                {/* Channel Avatar */}
-                <div className="w-9 h-9 rounded-full bg-white/10 border border-white/10 overflow-hidden flex-shrink-0 relative">
-                  <Image
-                    src={avatar}
-                    alt={video.channelTitle || 'Channel'}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1 min-w-0 flex-1">
-                  <h3 className="text-white text-sm font-semibold leading-snug line-clamp-2 group-hover:text-white/90 transition-colors">
+              <div className="px-1">
+                <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
                     {video.title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs text-white/50">
-                    <span className="truncate hover:text-white transition-colors">{video.channelTitle}</span>
-                    <span>•</span>
-                    <span className="flex-shrink-0">{formatRelativeTime(video.publishedAt)}</span>
-                  </div>
+                </h3>
+                <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)] gap-2">
+                  <span className="truncate">{video.channelTitle || 'Sawa Culture'}</span>
+                  <span className="shrink-0">{formatRelativeTime(video.publishedAt)}</span>
                 </div>
               </div>
             </div>
           );
         })}
 
-        {/* When videos end or while loading initial/more content, ALWAYS show nice skeletons */}
-        {(loading || loadingMore || videos.length > 0) &&
+        {(loading || loadingMore) &&
           Array.from({ length: loading ? 8 : 4 }).map((_, i) => (
             <div
               key={`skeleton-${i}`}
-              className="flex flex-col gap-3 rounded-2xl bg-white/[0.02] border border-white/5 p-3 animate-pulse"
+              className="relative w-full animate-pulse"
             >
-              <div className="w-full aspect-video rounded-xl bg-white/5" />
-              <div className="flex gap-3 px-1 mt-1">
-                <div className="w-9 h-9 rounded-full bg-white/5 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-white/5 rounded w-full" />
-                  <div className="h-3 bg-white/5 rounded w-2/3" />
+              <div className="w-full aspect-[3/4] rounded-xl mb-3 bg-[color:var(--surface-hover)] border border-[color:var(--border)]" />
+              <div className="px-1 space-y-2">
+                <div className="h-4 bg-[color:var(--surface-hover)] rounded w-4/5" />
+                <div className="flex justify-between gap-3">
+                  <div className="h-3 bg-[color:var(--surface-hover)] rounded w-2/5" />
+                  <div className="h-3 bg-[color:var(--surface-hover)] rounded w-1/5" />
                 </div>
               </div>
             </div>

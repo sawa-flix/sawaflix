@@ -7,7 +7,7 @@ import { ReelLoading } from '@/components/reels/ReelLoading';
  */
 export default function ReelsLoading() {
   return (
-    <div className="h-[calc(100vh-7rem)] min-h-[500px] w-full">
+    <div className="relative isolate h-[calc(100vh-7rem)] min-h-[500px] w-full overflow-hidden bg-transparent">
       <ReelLoading />
     </div>
   );

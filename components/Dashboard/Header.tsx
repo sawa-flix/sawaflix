@@ -27,7 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '../../utils/supabase/client';
 import { handleSignOut } from '../../app/(auth)/actions';
 import SawaflixLogo from '../SawaflixLogo';
@@ -44,7 +44,6 @@ import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
 import { mapYoutubeItem } from '@/utils/reels/mapYoutubeItem';
 import { useHomeSearchStore } from '@/store/homeSearchStore';
-import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { useSawaiStore } from '@/store/sawaiStore';
 import { ThemeToggle } from './ThemeToggle';
@@ -104,6 +103,8 @@ const Header = ({
       : userNotificationContext;
 
   const router = useRouter();
+  const pathname = usePathname();
+  const isMovieRoute = pathname?.startsWith('/dashboard/movie') ?? false;
 
   useEffect(() => {
     if (!currentUser) {
@@ -140,6 +141,16 @@ const Header = ({
       try {
         const q = searchValue.toLowerCase();
 
+        if (isMovieRoute) {
+          const filteredMovies = MOVIES_DATA.filter((movie) =>
+            movie.title.toLowerCase().includes(q) ||
+            movie.description.toLowerCase().includes(q) ||
+            movie.genres.some((genre) => genre.toLowerCase().includes(q))
+          ).slice(0, 8);
+          setSearchResults({ videos: [], stories: [], movies: filteredMovies });
+          return;
+        }
+
         // Fetch videos and stories in parallel
         const [videoRes, allStories] = await Promise.all([
           youtubeApi.searchVideos(`Cameroon ${q}`, null, 5).catch(() => ({ items: [] })),
@@ -150,8 +161,8 @@ const Header = ({
           s.title?.toLowerCase().includes(q) || s.excerpt?.toLowerCase().includes(q)
         ).slice(0, 5);
 
-        const filteredMovies = MOVIES_DATA.filter((m: any) =>
-          m.title?.toLowerCase().includes(q) || m.genre?.some((g: string) => g.toLowerCase().includes(q))
+        const filteredMovies = MOVIES_DATA.filter((m) =>
+          m.title.toLowerCase().includes(q) || m.genres.some((genre) => genre.toLowerCase().includes(q))
         ).slice(0, 5);
 
         setSearchResults({
@@ -171,7 +182,7 @@ const Header = ({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchValue]);
+  }, [searchValue, isMovieRoute]);
 
   // Keyboard shortcuts: Escape to close, ⌘K / Ctrl+K to open
   useEffect(() => {
@@ -193,7 +204,8 @@ const Header = ({
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      router.push(`/dashboard?q=${encodeURIComponent(searchValue.trim())}`);
+      const query = encodeURIComponent(searchValue.trim());
+      router.push(isMovieRoute ? `/dashboard/movie?q=${query}` : `/dashboard?q=${query}`);
       setShowMobileSearchBar(false);
       setIsSearchFocused(false);
     }
@@ -213,7 +225,7 @@ const Header = ({
       <header
         className={
           isReelsRoute
-            ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[#0B0E14]/40 md:backdrop-blur-md md:border-b md:border-white/5 md:shadow-2xl'
+            ? 'fixed top-0 left-0 right-0 z-50 h-14 bg-transparent md:bg-[color:var(--background)]/85 md:backdrop-blur-md md:border-b md:border-[color:var(--border)]'
             : 'fixed top-0 left-0 right-0 z-50 h-14 bg-[color:var(--surface)]/90 backdrop-blur-md border-b border-[color:var(--border)] shadow-2xl'
         }
       >
@@ -347,8 +359,6 @@ const Header = ({
               )}
             </div>
 
-            <ThemeToggle />
-
             <Link href="/dashboard/settings" className="hidden sm:block p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer">
               <Settings size={18} />
             </Link>
@@ -375,7 +385,7 @@ const Header = ({
                     <User size={14} className="text-[color:var(--muted-foreground)]" />
                   </div>
                 )}
-                <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
+                <ChevronDown size={12} className={`text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
               {showProfileMenu && (
@@ -473,7 +483,14 @@ const Header = ({
                     </Link>
                   </div>
 
-                  <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
+                    <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
+                      <div className="flex items-center justify-between px-3 py-1">
+                        <span className="text-xs font-semibold text-[color:var(--muted-foreground)]">Appearance</span>
+                        <ThemeToggle />
+                      </div>
+                    </div>
+
+                    <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
                     <form action={handleSignOut}>
                       <button
                         type="submit"
@@ -567,7 +584,10 @@ const Header = ({
                     autoFocus
                     type="text"
                     value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                      if (!e.target.value.trim()) useHomeSearchStore.getState().clear();
+                    }}
                     placeholder="Search videos, stories, movies..."
                     className="w-full pl-11 sm:pl-13 pr-11 py-3.5 sm:py-4 bg-transparent
                              text-[color:var(--foreground)] text-[15px] sm:text-base placeholder-[color:var(--muted-foreground)]/70 focus:outline-none tracking-wide"
@@ -647,24 +667,14 @@ const Header = ({
                                   key={mapped.id || idx}
                                   onClick={() => {
                                     setIsSearchFocused(false);
-                                    // Doesn't play this video directly — shows
-                                    // the whole search's results in the home
-                                    // page's own Reels row (DashboardLanding),
-                                    // the same card style/location reels
-                                    // normally appear in. Picking a card from
-                                    // there is what actually opens it into the
-                                    // real Reels page.
                                     useHomeSearchStore.setState({
                                       query: searchValue,
                                       results: searchResults.videos.map((v: any) => mapYoutubeItem(v)),
                                     });
                                     setSearchValue('');
-                                    // Same handoff the right sidebar uses: hand the
-                                    // already-fetched video straight to Reels so it
-                                    // opens playing, instead of just filtering the
-                                    // dashboard's own feed by title text.
-                                    stashReelForHandoff(mapped);
-                                    router.push(`/dashboard/reels?id=${encodeURIComponent(mapped.id)}`);
+                                    if (pathname !== '/dashboard') {
+                                      router.push(`/dashboard?q=${encodeURIComponent(searchValue)}`);
+                                    }
                                   }}
                                   className="flex items-center gap-3 w-full px-4 py-2 hover:bg-[color:var(--surface)]/10 transition-colors text-left group"
                                 >
@@ -693,7 +703,7 @@ const Header = ({
                                   onClick={() => {
                                     setIsSearchFocused(false);
                                     setSearchValue('');
-                                    router.push(`/dashboard/movie`);
+                                    router.push(`/dashboard/movie?q=${encodeURIComponent(movie.title)}`);
                                   }}
                                   className="group flex flex-col rounded-lg overflow-hidden bg-[color:var(--surface)]/10 hover:bg-[color:var(--surface)]/20 border border-[color:var(--border)]/20 hover:border-[color:var(--border)]/40 transition-all"
                                 >

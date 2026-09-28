@@ -53,28 +53,28 @@ interface RelatedStory {
 const portableTextComponents = {
   block: {
     normal: ({ children }: any) => (
-      <p className="text-gray-300 text-sm font-medium leading-relaxed mb-6 opacity-85">
+      <p className="text-[color:var(--foreground-secondary)] text-sm font-medium leading-relaxed mb-6 opacity-85">
         {children}
       </p>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-xl font-bold text-white mt-10 mb-4 tracking-tight">{children}</h2>
+      <h2 className="text-xl font-bold text-[color:var(--foreground)] mt-10 mb-4 tracking-tight">{children}</h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-lg font-bold text-white mt-8 mb-3 tracking-tight">{children}</h3>
+      <h3 className="text-lg font-bold text-[color:var(--foreground)] mt-8 mb-3 tracking-tight">{children}</h3>
     ),
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-2 border-red-600 pl-4 my-6 text-gray-400 italic text-sm">
+      <blockquote className="border-l-2 border-red-600 pl-4 my-6 text-[color:var(--muted-foreground)] italic text-sm">
         {children}
       </blockquote>
     ),
   },
   marks: {
     strong: ({ children }: any) => (
-      <strong className="text-white font-bold">{children}</strong>
+      <strong className="text-[color:var(--foreground)] font-bold">{children}</strong>
     ),
     em: ({ children }: any) => (
-      <em className="text-gray-300 italic">{children}</em>
+      <em className="text-[color:var(--foreground-secondary)] italic">{children}</em>
     ),
     link: ({ value, children }: any) => (
       <a
@@ -92,7 +92,7 @@ const portableTextComponents = {
       if (!value?.asset) return null;
       return (
         <figure className="my-8">
-          <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10">
+          <div className="relative aspect-video rounded-xl overflow-hidden border border-[color:var(--border)]">
             <Image
               src={urlFor(value).width(1200).height(675).url()}
               alt={value.alt || "Story image"}
@@ -101,7 +101,7 @@ const portableTextComponents = {
             />
           </div>
           {value.caption && (
-            <figcaption className="text-center text-gray-500 text-xs mt-2 italic">
+            <figcaption className="text-center text-[color:var(--muted-foreground)] text-xs mt-2 italic">
               {value.caption}
             </figcaption>
           )}
@@ -274,10 +274,10 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
+      <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] flex items-center justify-center">
         <div className="flex items-center gap-3">
           <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
-          <span className="text-gray-400 text-sm font-medium">Loading story...</span>
+          <span className="text-[color:var(--muted-foreground)] text-sm font-medium">Loading story...</span>
         </div>
       </div>
     );
@@ -285,10 +285,10 @@ export default function BlogDetailsClient({ slug }: { slug: string }) {
 
   if (!story) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
+      <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Story not found</h2>
-          <p className="text-gray-500 text-sm mb-6">This story may have been moved or deleted.</p>
+          <h2 className="text-2xl font-bold text-[color:var(--foreground)] mb-2">Story not found</h2>
+          <p className="text-[color:var(--muted-foreground)] text-sm mb-6">This story may have been moved or deleted.</p>
           <Link href="/dashboard/blogs" className="text-red-500 hover:text-red-400 text-sm font-bold">
             ← Back to stories
           </Link>
@@ -355,10 +355,10 @@ function BlogDetailsContent({
   const { isOpen, toggle } = useCommentSidebar();
 
   return (
-    <div className={`min-h-screen bg-[#0B0E14] text-white transition-all duration-300 ${isOpen ? 'lg:pr-[380px] xl:pr-[400px]' : ''}`}>
+    <div className={`min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] transition-all duration-300 ${isOpen ? 'lg:pr-[380px] xl:pr-[400px]' : ''}`}>
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 mb-6 text-gray-500 hover:text-white transition-all group cursor-pointer"
+        className="flex items-center gap-2 mb-6 text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-all group cursor-pointer"
       >
         <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
         <span className="text-[10px] font-bold uppercase tracking-widest">Back to stories</span>
@@ -373,17 +373,17 @@ function BlogDetailsContent({
             >
               {story.category?.title || "Culture"}
             </span>
-            <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest">
               <Clock className="w-3 h-3" />
               {story.readTime || "5 min read"}
             </div>
           </div>
 
-          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-white mb-4 leading-[1.2]">
+          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-[color:var(--foreground)] mb-4 leading-[1.2]">
             {story.title}
           </h1>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-y border-white/5 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-y border-[color:var(--border)] py-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-red-600/10 overflow-hidden">
                 {story.author?.avatar ? (
@@ -399,8 +399,8 @@ function BlogDetailsContent({
                 )}
               </div>
               <div className="text-left">
-                <p className="text-white font-bold text-xs">By {story.author?.name || "Sawaflix"}</p>
-                <div className="flex items-center gap-1.5 text-gray-500 text-[10px]">
+                <p className="text-[color:var(--foreground)] font-bold text-xs">By {story.author?.name || "Sawaflix"}</p>
+                <div className="flex items-center gap-1.5 text-[color:var(--muted-foreground)] text-[10px]">
                   <Calendar className="w-2.5 h-2.5" />
                   {formatDate(story.publishedAt)}
                 </div>
@@ -422,7 +422,7 @@ function BlogDetailsContent({
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden mb-8 shadow-xl border border-white/5"
+          className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden mb-8 shadow-xl border border-[color:var(--border)]"
         >
           <Image
             src={getImageUrl(
@@ -443,8 +443,8 @@ function BlogDetailsContent({
             className="mb-16"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-4 bg-white/20 rounded-full" />
-              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/90">Video Highlight</h3>
+              <div className="w-1 h-4 bg-[color:var(--border)] rounded-full" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-[color:var(--foreground)]">Video Highlight</h3>
             </div>
             
             <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] transition-all duration-500 hover:border-white/40">
@@ -498,24 +498,24 @@ function BlogDetailsContent({
           </motion.div>
         )}
 
-        <div className="prose prose-invert prose-sm max-w-none px-4 md:px-0">
+        <div className="prose prose-sm max-w-none px-4 md:px-0">
           {story.body && story.body.length > 0 ? (
             <PortableText value={story.body} components={portableTextComponents} />
           ) : (
-            <div className="text-gray-400 font-medium leading-relaxed space-y-6 text-sm">
+            <div className="text-[color:var(--foreground-secondary)] font-medium leading-relaxed space-y-6 text-sm">
               <p className="opacity-80">{story.excerpt}</p>
             </div>
           )}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-12 pt-8 border-t border-[color:var(--border)] flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <span className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Share story:</span>
+            <span className="text-[color:var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest">Share story:</span>
             <div className="flex gap-2">
               {["Facebook", "Twitter", "WhatsApp"].map((platform) => (
                 <button
                   key={platform}
-                  className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-md text-[9px] font-bold hover:bg-white hover:text-black transition-all cursor-pointer"
+                  className="px-3 py-1.5 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-md text-[9px] font-bold text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer"
                 >
                   {platform}
                 </button>
@@ -523,27 +523,27 @@ function BlogDetailsContent({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 text-[color:var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest">
             <Eye className="w-3.5 h-3.5" />
             {(stats.viewsCount || story.views || 0).toLocaleString()} Views
           </div>
         </div>
 
         {/* Discussions Trigger Card at the bottom of the story */}
-        <div className="mt-16 pt-8 border-t border-white/10">
-          <div className="bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-16 pt-8 border-t border-[color:var(--border)]">
+          <div className="bg-[color:var(--surface)] border border-[color:var(--border)] hover:border-[color:var(--muted-foreground)] transition-all rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-[color:var(--surface-hover)] border border-[color:var(--border)] flex items-center justify-center text-[color:var(--foreground)] shrink-0">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-[color:var(--foreground)] flex items-center gap-2">
                   Discussions
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono font-bold">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[color:var(--surface-hover)] text-[color:var(--muted-foreground-strong)] font-mono font-bold">
                     {stats.commentsCount}
                   </span>
                 </h3>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-[color:var(--muted-foreground)]">
                   Join the conversation and read what fellow readers are saying.
                 </p>
               </div>
@@ -554,8 +554,8 @@ function BlogDetailsContent({
               onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
               className={`px-5 py-2.5 rounded-full font-bold text-xs transition-all cursor-pointer shadow-md flex items-center gap-2 active:scale-95 shrink-0 ${
                 isOpen
-                  ? 'bg-white/15 text-white border border-white/30 hover:bg-white/20'
-                  : 'bg-white text-black hover:bg-white/90'
+                  ? 'bg-[color:var(--surface-hover)] text-[color:var(--foreground)] border border-[color:var(--border)] hover:bg-[color:var(--surface)]'
+                  : 'bg-[color:var(--foreground)] text-[color:var(--background)] hover:bg-[color:var(--muted-foreground-strong)]'
               }`}
             >
               <MessageCircle className="w-4 h-4" />
@@ -566,7 +566,7 @@ function BlogDetailsContent({
 
         {relatedStories.length > 0 && (
           <div className="mt-20 mb-12">
-            <h3 className="text-lg font-bold text-white mb-6 tracking-tight">Related stories</h3>
+            <h3 className="text-lg font-bold text-[color:var(--foreground)] mb-6 tracking-tight">Related stories</h3>
             <div className="grid md:grid-cols-2 gap-6">
               {relatedStories.map((related) => (
                 <Link
@@ -574,7 +574,7 @@ function BlogDetailsContent({
                   href={`/dashboard/blogs/${related.slug?.current || related._id}`}
                   className="group cursor-pointer"
                 >
-                  <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-white/10">
+                  <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-[color:var(--border)]">
                     <Image
                       src={getImageUrl(
                         related.mainImage,
@@ -585,7 +585,7 @@ function BlogDetailsContent({
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-red-600 transition-colors">
+                  <h4 className="text-sm font-bold text-[color:var(--foreground)] group-hover:text-red-600 transition-colors">
                     {related.title}
                   </h4>
                 </Link>
@@ -605,11 +605,11 @@ function BlogDetailsContent({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
-          className="fixed bottom-6 right-6 z-30 flex items-center gap-2.5 px-4 py-3 rounded-full shadow-2xl bg-[#0F1117]/95 text-white border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-transparent transition-all cursor-pointer group"
+          className="fixed bottom-6 right-6 z-30 flex items-center gap-2.5 px-4 py-3 rounded-full shadow-2xl bg-[color:var(--surface)] text-[color:var(--foreground)] border border-[color:var(--border)] backdrop-blur-md hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer group"
           aria-label="Open comments panel"
           title="Open comments"
         >
-          <MessageCircle className="w-4 h-4 text-white group-hover:text-black transition-colors" />
+          <MessageCircle className="w-4 h-4 text-[color:var(--foreground)] transition-colors" />
           <span className="text-xs font-black uppercase tracking-wider font-mono">
             {stats.commentsCount}
           </span>

@@ -24,7 +24,7 @@ export const NotificationDropdown: React.FC = () => {
     <div className="relative dropdown dropdown-end group">
       <label 
         tabIndex={0} 
-        className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all relative cursor-pointer group flex items-center justify-center"
+        className="p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-all relative cursor-pointer group flex items-center justify-center"
         onClick={(e) => {
           if (!isAuthenticated) {
             e.preventDefault();
@@ -35,7 +35,7 @@ export const NotificationDropdown: React.FC = () => {
           setIsOpen(!isOpen);
         }}
       >
-        <Bell size={20} className="group-hover:text-white transition-colors" />
+        <Bell size={20} className="group-hover:text-[color:var(--foreground)] transition-colors" />
         {isAuthenticated && isSubscribed && unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-[#E50914] text-white font-black rounded-full flex items-center justify-center text-[9px] shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-in zoom-in duration-300">
             {unreadCount > 99 ? '99+' : unreadCount}

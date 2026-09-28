@@ -156,20 +156,17 @@ const NotificationPanel = ({
 
   return (
     <div 
-      className="fixed left-3 right-3 top-[68px] sm:absolute sm:left-auto sm:top-auto sm:right-0 sm:mt-3 w-auto sm:w-[420px] 
-                 bg-[color:var(--surface-elevated)]/98 backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-xl
+      className="fixed left-3 right-3 top-[68px] sm:absolute sm:left-auto sm:top-auto sm:right-0 sm:mt-3 w-auto sm:w-[420px]
+                 bg-[color:var(--surface)] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.16)]
                  border border-[color:var(--border)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top sm:origin-top-right flex flex-col"
       style={{ maxHeight: 'calc(85vh - 70px)' }}
     >
-      {/* Subtle top glow line */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-
       {/* Header */}
-      <div className="px-5 py-4 border-b border-[color:var(--border)] bg-[color:var(--background-secondary)] flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--surface)] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button 
             onClick={onClose}
-            className="sm:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors text-zinc-400 hover:text-white cursor-pointer"
+            className="sm:hidden p-1.5 hover:bg-[color:var(--surface-hover)] rounded-lg transition-colors text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] cursor-pointer"
             aria-label="Close notifications"
             type="button"
           >
@@ -178,7 +175,7 @@ const NotificationPanel = ({
           
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[color:var(--foreground)] tracking-tight">{title}</h3>
+              <h3 className="text-base font-semibold text-[color:var(--foreground)] tracking-tight">{title}</h3>
               {isSubscribed && unreadCount > 0 && (
                 <span className="px-2 py-0.5 bg-[#E50914] text-white rounded-full text-[10px] font-bold shadow-[0_0_8px_rgba(229,9,20,0.5)]">
                   {unreadCount} new
@@ -205,8 +202,8 @@ const NotificationPanel = ({
         {isSubscribed && unreadCount > 0 && (
           <button 
             onClick={onMarkAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-white 
-                       border border-white/15 hover:border-white/30 transition-all duration-200 text-[11px] font-semibold group cursor-pointer shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)]
+                       border border-[color:var(--border)] transition-all duration-200 text-[11px] font-semibold group cursor-pointer shadow-sm active:scale-95"
             type="button"
             title="Mark all as read"
           >
@@ -220,18 +217,18 @@ const NotificationPanel = ({
       {!isSubscribed ? (
         <div className="p-7 text-center flex flex-col items-center justify-center flex-1 my-auto">
           <div className="relative mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600/20 via-zinc-800/40 to-black/60 border border-white/15 flex items-center justify-center shadow-xl">
+            <div className="w-16 h-16 rounded-2xl bg-[color:var(--surface)] border border-[color:var(--border)] flex items-center justify-center shadow-xl">
               <Bell size={26} className="text-[#E50914] animate-bounce" style={{ animationDuration: '2.5s' }} />
             </div>
-            <div className="absolute -bottom-1 -right-1 p-1 bg-black rounded-full border border-white/20 shadow-md">
+            <div className="absolute -bottom-1 -right-1 p-1 bg-[color:var(--surface-elevated)] rounded-full border border-[color:var(--border)] shadow-md">
               <Sparkles size={13} className="text-amber-400" />
             </div>
           </div>
 
-          <h4 className="text-base font-bold text-white tracking-tight mb-1.5">
+          <h4 className="text-base font-bold text-[color:var(--foreground)] tracking-tight mb-1.5">
             Subscribe to Notifications
           </h4>
-          <p className="text-xs text-zinc-400 max-w-xs leading-relaxed mb-6">
+          <p className="text-xs text-[color:var(--muted-foreground)] max-w-xs leading-relaxed mb-6">
             Get real-time alerts whenever fresh movies, cultural reels, exclusive music drops, and community articles arrive on SawaFlix.
           </p>
 
@@ -247,7 +244,7 @@ const NotificationPanel = ({
             <span>{isSubscribing ? 'Enabling...' : 'Enable Notifications'}</span>
           </button>
 
-          <div className="flex items-center gap-3 mt-4 text-[10px] text-zinc-500 font-medium">
+          <div className="flex items-center gap-3 mt-4 text-[10px] text-[color:var(--muted-foreground)] font-medium">
             <span className="flex items-center gap-1">
               <ShieldCheck size={12} className="text-emerald-500" />
               Privacy protected
@@ -297,25 +294,25 @@ const NotificationPanel = ({
 
           {/* Body: Notifications List with Sleek Dark Custom Scrollbar */}
           <div 
-            className="overflow-y-auto overscroll-contain flex-1 py-1 divide-y divide-white/[0.04]
-                       [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.12)_transparent]
+            className="overflow-y-auto overscroll-contain flex-1 py-1 divide-y divide-[color:var(--border)]
+                       [scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent]
                        [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent
-                       [&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full
-                       hover:[&::-webkit-scrollbar-thumb]:bg-white/30"
+                       [&::-webkit-scrollbar-thumb]:bg-[color:var(--border)] [&::-webkit-scrollbar-thumb]:rounded-full
+                       hover:[&::-webkit-scrollbar-thumb]:bg-[color:var(--muted-foreground)]"
             style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(255, 255, 255, 0.12) transparent',
+              scrollbarColor: 'var(--muted-foreground) transparent',
             }}
           >
             {filteredNotifications.length === 0 ? (
               <div className="px-6 py-14 text-center">
-                <div className="w-14 h-14 bg-white/[0.03] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-white/[0.08] shadow-inner">
-                  <Bell size={22} className="text-zinc-500" />
+                <div className="w-14 h-14 bg-[color:var(--surface)] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[color:var(--border)] shadow-inner">
+                  <Bell size={22} className="text-[color:var(--muted-foreground)]" />
                 </div>
-                <p className="text-sm font-bold text-white mb-1">
+                <p className="text-sm font-bold text-[color:var(--foreground)] mb-1">
                   {activeTab === 'unread' ? 'No unread notifications' : activeTab === 'blogs' ? 'No story alerts yet' : 'All caught up!'}
                 </p>
-                <p className="text-[11px] text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                <p className="text-[11px] text-[color:var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                   {activeTab === 'blogs' 
                     ? 'New blogs posted from editorial and creators will show up right here.' 
                     : "You're completely up to date with community releases and stories."}
@@ -331,54 +328,45 @@ const NotificationPanel = ({
                   <div 
                     key={n.id} 
                     onClick={() => onItemClick(n.id, n.contentId)}
-                    className={`relative px-4 py-3.5 transition-all group cursor-pointer hover:bg-white/[0.05] ${
-                      !n.read ? 'bg-white/[0.03]' : ''
+                    className={`relative px-4 py-3 transition-all group cursor-pointer hover:bg-[color:var(--surface-hover)] ${
+                      !n.read ? 'bg-[color:var(--surface-hover)]' : ''
                     }`}
                   >
-                    {/* Left accent indicator for unread item */}
-                    {!n.read && (
-                      <div className="absolute left-0 top-3 bottom-3 w-1 bg-white rounded-r shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-                    )}
-
                     <div className="flex items-start gap-3.5">
                       {/* Thumbnail / Icon Container */}
                       <div className="relative shrink-0 mt-0.5">
                         {n.thumbnail ? (
-                          <div className="w-12 h-12 bg-black/50 rounded-xl overflow-hidden border border-white/10 group-hover:border-white/30 transition-all shadow-md relative">
+                          <div className="w-10 h-10 bg-[color:var(--surface)] rounded-full overflow-hidden border border-[color:var(--border)] group-hover:border-[color:var(--muted-foreground)] transition-all relative">
                             <Image src={n.thumbnail} alt="" fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-xl border border-white/10 bg-gradient-to-br from-[#161B26] to-[#0A0D14] flex items-center justify-center group-hover:border-white/30 transition-all shadow-md relative">
-                            <BadgeIcon size={20} className="text-white" />
+                          <div className="w-10 h-10 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] flex items-center justify-center group-hover:border-[color:var(--muted-foreground)] transition-all relative">
+                            <BadgeIcon size={20} className="text-[color:var(--foreground)]" />
                           </div>
                         )}
 
                         {/* Unread indicator dot */}
                         {!n.read && (
-                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white rounded-full border-2 border-[#0C0F17] shadow-sm animate-pulse" />
+                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[color:var(--primary)] rounded-full border-2 border-[color:var(--surface-elevated)] shadow-sm animate-pulse" />
                         )}
                       </div>
 
                       {/* Content Info */}
                       <div className="flex-1 min-w-0 pr-6">
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${badge.bg}`}>
-                            <BadgeIcon size={10} />
-                            {badge.label}
-                          </span>
-                          <span className="text-[10px] text-zinc-400 font-medium whitespace-nowrap shrink-0">
+                          <span className="text-[10px] text-[color:var(--muted-foreground)] font-medium whitespace-nowrap shrink-0">
                             {timeStr}
                           </span>
                         </div>
 
                         <h4 className={`text-[12.5px] font-semibold leading-snug truncate transition-colors ${
-                          !n.read ? 'text-white font-bold' : 'text-zinc-300 group-hover:text-white'
+                          !n.read ? 'text-[color:var(--foreground)] font-bold' : 'text-[color:var(--muted-foreground-strong)] group-hover:text-[color:var(--foreground)]'
                         }`}>
                           {n.title}
                         </h4>
 
-                        <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed mt-0.5 group-hover:text-zinc-300 transition-colors">
+                        <p className="text-[11px] text-[color:var(--muted-foreground)] line-clamp-2 leading-relaxed mt-0.5 group-hover:text-[color:var(--foreground-secondary)] transition-colors">
                           {n.message}
                         </p>
                       </div>
@@ -392,14 +380,14 @@ const NotificationPanel = ({
                               e.stopPropagation();
                               onDismissItem(n.id);
                             }}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                             title="Take down notification"
                             aria-label="Take down notification"
                           >
                             <X size={14} />
                           </button>
                         )}
-                        <div className="text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all">
+                        <div className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all">
                           <ChevronRight size={15} />
                         </div>
                       </div>
@@ -412,11 +400,11 @@ const NotificationPanel = ({
 
           {/* Footer */}
           {viewAllHref && (
-            <div className="px-4 py-3 bg-black/40 border-t border-white/[0.06] text-center shrink-0 flex items-center justify-between">
+            <div className="px-4 py-3 bg-[color:var(--background-secondary)] border-t border-[color:var(--border)] text-center shrink-0 flex items-center justify-between">
               <Link 
                 href={viewAllHref} 
                 onClick={onClose}
-                className="inline-flex items-center justify-center gap-2 text-[11px] font-bold text-zinc-400 hover:text-white transition-colors group/view py-1"
+                className="inline-flex items-center justify-center gap-2 text-[11px] font-bold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors group/view py-1"
               >
                 <span>View all notifications</span>
                 <ChevronRight size={13} className="group-hover/view:translate-x-1 transition-transform" />
@@ -426,7 +414,7 @@ const NotificationPanel = ({
                 <button
                   type="button"
                   onClick={onUnsubscribe}
-                  className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                  className="text-[10px] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors cursor-pointer"
                   title="Turn off notifications"
                 >
                   Unsubscribe

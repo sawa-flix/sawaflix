@@ -6,9 +6,9 @@ import Image from 'next/image';
  */
 export function ReelLoading() {
   return (
-    <div className="relative flex h-full w-full items-center justify-center bg-[#0B0E14]">
-      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-[0_0_24px_rgba(206,17,38,0.18)] backdrop-blur-sm">
-        <div className="absolute inset-0 rounded-full bg-red-600/10 animate-pulse" />
+    <div className="relative z-10 flex h-full w-full items-center justify-center bg-[color:var(--background)]/95 backdrop-blur-sm">
+      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] shadow-[0_0_24px_rgba(206,17,38,0.18)] backdrop-blur-sm">
+        <div className="absolute inset-0 rounded-full bg-[color:var(--primary-soft)] animate-pulse" />
         <Image
           src="/logos_and_pwas/loaderLogo.png"
           alt=""

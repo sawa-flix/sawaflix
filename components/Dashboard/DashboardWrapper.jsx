@@ -13,6 +13,7 @@ import { NotificationProvider } from '../../contexts/NotificationContext';
 import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import { AuthModalProvider } from '../../contexts/AuthModalContext';
 import BottomPlayer from '../BottomPlayer';
+import { ReelsBackdrop } from '../reels/ReelsBackdrop';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
@@ -148,6 +149,7 @@ const DashboardWrapper = ({ children }) => {
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
         </div>
+          {isReelsRoute && <ReelsBackdrop />}
 
         {/* Header - Unified across all pages. Reels has its own isolated
             search (see components/reels/ReelHeader.tsx), so the global

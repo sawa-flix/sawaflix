@@ -66,7 +66,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const { query: homeSearchQuery, results: homeSearchResults, clear: clearHomeSearch } = useHomeSearchStore();
   const [heroItem, setHeroItem] = useState<{
     id: string;
-    type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+    type: 'admin_video' | 'blog' | 'movie';
     title: string;
     subtitle?: string;
     image: string;
@@ -83,6 +83,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const moviesScrollRef = useRef<HTMLDivElement>(null);
   const longFormScrollRef = useRef<HTMLDivElement>(null);
   const reelsPreviewScrollRef = useRef<HTMLDivElement>(null);
+  const topStoriesScrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch admin uploaded content for the banner pool
   useEffect(() => {
@@ -116,7 +117,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             type: 'admin_video',
             title: c.title,
             description: c.description,
-            image: c.cover_url || c.thumbnail_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+            image: c.cover_url || c.poster_url || c.banner_url || '',
             badge: 'SawaFlix Original',
             action_url: `/dashboard/reels?id=${c.id}`
           })));
@@ -126,11 +127,11 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     fetchAdminContent();
   }, []);
 
-  // Multi-source pool: Admin Videos, YouTube Videos, Blog Articles, and Movies
+  // Rotate between editorial covers, featured uploads, and movie posters.
   const heroPool = useMemo(() => {
     const pool: Array<{
       id: string;
-      type: 'admin_video' | 'youtube' | 'blog' | 'movie';
+      type: 'admin_video' | 'blog' | 'movie';
       title: string;
       subtitle?: string;
       image: string;
@@ -140,33 +141,23 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
     // 1. Admin Uploaded Videos
     adminVideos.forEach((v: any) => {
+      const image = v.cover_url || v.poster_url || v.banner_url;
+      if (!image || /ytimg\.com|youtube\.com|\/vi\/|hqdefault|mqdefault|sddefault|maxresdefault/i.test(image)) return;
       pool.push({
         id: v.id || v._id,
         type: 'admin_video',
         title: v.title || 'SawaFlix Original',
         subtitle: v.description || 'Watch now exclusively on SawaFlix',
-        image: v.image || v.thumbnail_url || v.cover_url || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png',
+        image,
         badge: 'SawaFlix Original',
         targetUrl: v.action_url || `/dashboard/reels?id=${v.id || v._id}`
       });
     });
 
-    // 2. YouTube Culture Videos from reels
-    (reels || []).slice(0, 6).forEach((r: any) => {
-      pool.push({
-        id: r.id,
-        type: 'youtube',
-        title: r.title || 'Trending Culture',
-        subtitle: r.channelTitle || 'Watch on SawaFlix Reels',
-        image: r.thumbnail || `https://i.ytimg.com/vi/${r.id}/maxresdefault.jpg`,
-        badge: 'Trending Culture',
-        targetUrl: `/dashboard/reels?id=${r.id}`
-      });
-    });
-
-    // 3. Blog Stories from Sanity
+    // 2. Blog Stories from Sanity, using each article's own cover image
     (stories || []).slice(0, 6).forEach((s: any) => {
-      let imgUrl = 'https://i.ibb.co/27LNPd8v/sawaflixmusic-cover.png';
+      if (!s.mainImage?.asset) return;
+      let imgUrl = '';
       try {
         if (s.mainImage) imgUrl = urlFor(s.mainImage).width(1200).height(600).url();
       } catch (e) {}
@@ -182,21 +173,37 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
       });
     });
 
-    // 4. Movies from MOVIES_DATA
-    MOVIES_DATA.slice(0, 3).forEach((m: any) => {
+    // 3. Movies use the same curated feed and posters as the movie page.
+    const movieItems = MOVIES_DATA
+          .filter((movie) => movie.image && !movie.image.includes('/sawa.png'))
+          .map((movie) => ({
+            id: String(movie.id),
+            title: movie.title,
+            image: movie.image,
+            subtitle: `${movie.genres?.[0] || 'Cameroonian cinema'} • ${movie.year}`,
+          }));
+    const seenMovieImages = new Set<string>();
+    movieItems
+      .filter((movie) => {
+        if (seenMovieImages.has(movie.image)) return false;
+        seenMovieImages.add(movie.image);
+        return true;
+      })
+      .slice(0, 6)
+      .forEach((m) => {
       pool.push({
-        id: String(m.id),
+        id: m.id,
         type: 'movie',
         title: m.title,
-        subtitle: m.genre || 'Sawa Cinema Highlight',
+        subtitle: m.subtitle || 'Cameroonian cinema',
         image: m.image,
-        badge: 'Sawa Cinema',
+        badge: 'Trending movie',
         targetUrl: '/dashboard/movie'
       });
     });
 
     return pool;
-  }, [adminVideos, reels, stories]);
+  }, [adminVideos, stories]);
 
   // Pick random banner item and rotate every 3 minutes
   useEffect(() => {
@@ -267,6 +274,17 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
       (s) => s.category?.slug?.current === activeCategory || s.category?.title?.toLowerCase() === activeCategory
     );
   }, [stories, activeCategory]);
+
+  const topStoriesByComments = useMemo(
+    () => [...filteredStories].sort((first, second) => {
+      const firstKey = first._id || first.slug?.current;
+      const secondKey = second._id || second.slug?.current;
+      const firstComments = storyStatsMap[firstKey]?.commentsCount ?? first.commentsCount ?? 0;
+      const secondComments = storyStatsMap[secondKey]?.commentsCount ?? second.commentsCount ?? 0;
+      return secondComments - firstComments;
+    }),
+    [filteredStories, storyStatsMap]
+  );
 
   // Image fallback logic from StoryGrid
   const getImageUrl = (image: any, fallbackIndex: number) => {
@@ -378,7 +396,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
       <div className="px-2 sm:px-6 lg:px-8 flex flex-col gap-10">
 
-        {/* ═══ Dynamic Multi-Source Hero Banner (Admin Video, YouTube, Blog, Movie) ═══ */}
+        {/* ═══ Dynamic Hero Banner (Featured upload, blog cover, or movie poster) ═══ */}
         {heroItem && (
           <section 
             onClick={handleBannerClick}
@@ -458,7 +476,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     // server-fetched culture feed for a plain ?id= lookup
                     // to find on its own.
                     onClick={() => stashReelForHandoff(reel)}
-                    className="relative w-[140px] sm:w-[180px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-colors"
+                    className="relative w-[210px] sm:w-[240px] lg:w-[280px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                   >
                     <Image
                       src={reel.thumbnail || `https://i.ytimg.com/vi/${reel.id}/maxresdefault.jpg`}
@@ -568,13 +586,18 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             </div>
           </div>
 
-          <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6 sm:overflow-visible">
+          <div className="relative">
+          <div
+            ref={topStoriesScrollRef}
+            className="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar pb-5 sm:gap-6"
+            aria-label="Top stories, horizontally scrollable"
+          >
             {loadingStories ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="w-[260px] sm:w-auto flex-shrink-0 aspect-[4/5] rounded-xl bg-[color:var(--surface)]/70 animate-pulse snap-start" />
+                <div key={i} className="w-[220px] sm:w-[240px] lg:w-[260px] shrink-0 aspect-[3/4] rounded-xl bg-[color:var(--surface)]/70 animate-pulse snap-start" />
               ))
-            ) : filteredStories.length > 0 ? (
-              filteredStories.slice(0, 8).map((story: any, index: number) => {
+            ) : topStoriesByComments.length > 0 ? (
+              topStoriesByComments.slice(0, 8).map((story: any, index: number) => {
                 const dateText = formatRelativeTime(story.publishedAt);
                 const storyKey = story._id || story.slug?.current;
                 const neonStats = storyStatsMap[storyKey];
@@ -585,11 +608,11 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 return (
                   <div
                     key={story._id}
-                    className="w-[260px] sm:w-auto flex-shrink-0 snap-start group relative bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl overflow-hidden hover:border-[color:var(--primary)] hover:shadow-lg transition-all duration-300 flex flex-col"
+                    className="relative w-[220px] sm:w-[240px] lg:w-[260px] shrink-0 snap-start group/card cursor-pointer transition-all duration-300"
                   >
-                    <div className="relative h-44 sm:h-52 overflow-hidden flex-shrink-0">
+                    <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
                       <div
-                        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover/card:scale-105"
                         style={{ backgroundImage: `url(${getImageUrl(story.mainImage, index)})` }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
@@ -612,19 +635,23 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                       </div>
                     </div>
 
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                      <h3 className="text-sm sm:text-base font-bold text-[color:var(--foreground)] mb-2 group-hover:text-[color:var(--primary)] transition-colors leading-snug line-clamp-2">
+                    <div className="px-1">
+                      <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
                         {story.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-[10px] font-medium tracking-wide mt-auto pt-2">
-                        <span>{dateText}</span>
+                      <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)] gap-2">
+                        <span className="truncate">{dateText}</span>
+                        <span className="flex shrink-0 items-center gap-1" title="Comments">
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{formatCount(comments)}</span>
+                        </span>
                       </div>
 
                       {/* Stats Row */}
-                      <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[color:var(--border)] text-[color:var(--muted-foreground)]">
+                      <div className="flex items-center justify-between pt-2 mt-2 border-t border-[color:var(--border)] text-[color:var(--muted-foreground)]">
                         <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1.5 hover:text-white/80 transition-colors" title="Likes">
+                          <span className="flex items-center gap-1.5 transition-colors" title="Likes">
                             <Image
                               src="/logos_and_pwas/like.png"
                               alt="Likes"
@@ -632,16 +659,12 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                               height={14}
                               className="w-3.5 h-3.5 object-contain"
                             />
-                            <span className="font-mono text-[10px] font-medium text-zinc-300">{formatCount(likes)}</span>
-                          </span>
-                          <span className="flex items-center gap-1 hover:text-white transition-colors" title="Comments">
-                            <MessageCircle className="w-3 h-3 text-zinc-500" />
-                            <span className="font-mono text-[10px] font-medium text-zinc-400">{formatCount(comments)}</span>
+                            <span className="font-mono text-[10px] font-medium text-[color:var(--foreground-secondary)]">{formatCount(likes)}</span>
                           </span>
                         </div>
-                        <span className="flex items-center gap-1 text-zinc-500" title="Views">
-                          <Eye className="w-3 h-3 text-zinc-500" />
-                          <span className="font-mono text-[10px] font-medium text-zinc-500">{formatCount(views)}</span>
+                        <span className="flex items-center gap-1" title="Views">
+                          <Eye className="w-3 h-3" />
+                          <span className="font-mono text-[10px] font-medium">{formatCount(views)}</span>
                         </span>
                       </div>
 
@@ -669,6 +692,33 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 No stories found for this category.
               </div>
             )}
+          </div>
+          {!loadingStories && topStoriesByComments.length > 1 && (
+            <div className="mt-1 flex items-center justify-between gap-4 text-xs text-[color:var(--muted-foreground)]">
+              <span className="flex items-center gap-2">
+                <span className="h-px w-8 bg-[color:var(--border)]" />
+                Swipe or scroll to explore stories
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => scrollLeft(topStoriesScrollRef)}
+                  aria-label="Scroll stories left"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--surface-hover)]"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollRight(topStoriesScrollRef)}
+                  aria-label="Scroll stories right"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--surface-hover)]"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
           </div>
         </section>
  

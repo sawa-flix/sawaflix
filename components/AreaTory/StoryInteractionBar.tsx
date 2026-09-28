@@ -162,7 +162,7 @@ export default function StoryInteractionBar({
           className={`group flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-sm ${
             liked
               ? 'bg-red-500/15 border-red-500/40 text-red-500 shadow-[0_0_15px_rgba(229,9,20,0.25)] ring-1 ring-red-500/30'
-              : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20'
+              : 'bg-[color:var(--surface)] border-[color:var(--border)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] hover:border-[color:var(--border)]'
           }`}
           aria-label={liked ? 'Unlike story' : 'Like story'}
           title="Like story"
@@ -185,7 +185,7 @@ export default function StoryInteractionBar({
               }`}
             />
           </motion.div>
-          <span className="text-xs font-bold font-mono tracking-tight text-white/90">
+          <span className="text-xs font-bold font-mono tracking-tight text-[color:var(--foreground)]">
             {likesCount.toLocaleString()}
           </span>
         </motion.button>
@@ -199,7 +199,7 @@ export default function StoryInteractionBar({
             {displayedInteractors.map((interactor, idx) => (
               <div
                 key={interactor.id || idx}
-                className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full ring-2 ring-[#0B0E14] overflow-hidden bg-zinc-800 transition-transform duration-200 hover:scale-115 hover:z-10 cursor-pointer shadow-md"
+                className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full ring-2 ring-[color:var(--background)] overflow-hidden bg-[color:var(--surface)] transition-transform duration-200 hover:scale-115 hover:z-10 cursor-pointer shadow-md"
               >
                 <Image
                   src={interactor.avatar}
@@ -212,7 +212,7 @@ export default function StoryInteractionBar({
             ))}
             {remainingCount > 0 && (
               <div
-                className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full ring-2 ring-[#0B0E14] bg-zinc-800/90 border border-white/10 text-[9px] font-bold text-gray-300 shadow-md font-mono"
+                className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full ring-2 ring-[color:var(--background)] bg-[color:var(--surface)] border border-[color:var(--border)] text-[9px] font-bold text-[color:var(--muted-foreground)] shadow-md font-mono"
                 title={`${remainingCount} more people liked this story`}
               >
                 +{remainingCount > 99 ? '99+' : remainingCount}
@@ -229,14 +229,14 @@ export default function StoryInteractionBar({
         onClick={handleOpenComments}
         className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-sm ${
           isOpen
-            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]'
-            : 'border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20'
+            ? 'bg-[color:var(--foreground)] text-[color:var(--background)] border-[color:var(--foreground)] shadow-sm'
+            : 'border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] hover:border-[color:var(--border)]'
         }`}
         aria-label={isOpen ? 'Close comments panel' : 'View comments'}
         title={isOpen ? 'Close comments panel' : 'Open comments panel'}
       >
-        <MessageCircle className={`w-4 h-4 ${isOpen ? 'text-black' : 'text-gray-400 group-hover:text-white'}`} />
-        <span className={`text-xs font-bold font-mono tracking-tight ${isOpen ? 'text-black font-extrabold' : 'text-white/90'}`}>
+        <MessageCircle className="w-4 h-4 text-[color:var(--muted-foreground)]" />
+        <span className="text-xs font-bold font-mono tracking-tight text-[color:var(--foreground)]">
           {initialComments.toLocaleString()}
         </span>
       </motion.button>
@@ -246,7 +246,7 @@ export default function StoryInteractionBar({
         type="button"
         whileTap={{ scale: 0.92 }}
         onClick={handleShare}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer shadow-sm"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] hover:border-[color:var(--border)] transition-all duration-300 cursor-pointer shadow-sm"
         title="Share this story"
         aria-label="Share story"
       >
@@ -256,7 +256,7 @@ export default function StoryInteractionBar({
             <span className="text-[11px] font-bold text-emerald-400">Copied!</span>
           </>
         ) : (
-          <Share2 className="w-4 h-4 text-gray-400 hover:text-white" />
+          <Share2 className="w-4 h-4 text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]" />
         )}
       </motion.button>
     </div>
