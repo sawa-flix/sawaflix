@@ -106,12 +106,12 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
 
             {/* Logo */}
             <div className="relative w-32 h-10 mb-5 flex items-center justify-center">
-              <Image 
-                src="/logos_and_pwas/headerLogo..png" 
-                alt="SawaFlix" 
+              <Image
+                src="/logos_and_pwas/headerLogo..png"
+                alt="SawaFlix"
                 width={160}
                 height={40}
-                className="h-8 w-auto object-contain" 
+                className="h-8 w-auto object-contain"
                 priority
               />
             </div>

@@ -420,7 +420,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             {/* Bottom-left movie title badge — intentionally white over image */}
             <div className="absolute bottom-4 left-4 z-10">
               <span className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10">
-                {bannerMovie.title}
+                {heroItem.title}
               </span>
             </div>
           </section>

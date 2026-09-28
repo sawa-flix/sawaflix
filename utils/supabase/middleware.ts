@@ -31,7 +31,21 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return request.cookies.get(name)?.value
+          // Supabase SSR splits large auth tokens across multiple cookies: name.0, name.1, …
+          // We must stitch them back together or getUser() will see an incomplete (invalid) token.
+          const single = request.cookies.get(name)?.value;
+          if (single !== undefined) return single;
+
+          // Try chunked: name.0 + name.1 + …
+          let combined = '';
+          let i = 0;
+          while (true) {
+            const chunk = request.cookies.get(`${name}.${i}`)?.value;
+            if (chunk === undefined) break;
+            combined += chunk;
+            i++;
+          }
+          return combined || undefined;
         },
         set(name: string, value: string, options: any) {
           request.cookies.set({
