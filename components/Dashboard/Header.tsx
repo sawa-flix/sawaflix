@@ -379,26 +379,113 @@ const Header = ({
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-[color:var(--surface)] rounded-xl shadow-xl border border-[color:var(--border)] py-2 z-50">
-                  <div className="px-4 py-2 border-b border-[color:var(--border)]">
-                    <p className="text-sm font-medium text-[color:var(--foreground)]">{userProfile?.username || 'Guest'}</p>
-                    <p className="text-xs text-[color:var(--muted-foreground)]">{currentUser?.email || 'N/A'}</p>
+                <div className="absolute right-0 mt-2 w-56 bg-[color:var(--surface)] rounded-2xl shadow-xl border border-[color:var(--border)] p-2 z-50 overflow-hidden">
+                  <div className="px-3 py-2 mb-1">
+                    <p className="text-sm font-bold text-[color:var(--foreground)]">{userProfile?.username || 'Guest'}</p>
+                    <p className="text-xs text-[color:var(--muted-foreground)] truncate">{currentUser?.email || 'N/A'}</p>
                   </div>
-                  <Link href="/dashboard/edit-profile" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                    Update Profile
-                  </Link>
-                  <a href="#" className="block px-4 py-2 text-sm text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface)]/10 hover:text-[color:var(--foreground)] transition-colors">
-                    Help & Support
-                  </a>
-                  <hr className="my-2 border-[color:var(--border)]" />
-                  <form action={handleSignOut}>
-                    <button
-                      type="submit"
-                      className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+                  
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/dashboard/edit-profile"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
                     >
-                      Sign Out
-                    </button>
-                  </form>
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <Edit3 size={15} />
+                        </div>
+                        <span>Edit Profile</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+
+                    <Link
+                      href="/dashboard/favorites"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <Bookmark size={15} />
+                        </div>
+                        <span>Saved & Favorites</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+
+                    <Link
+                      href="/dashboard/blogs"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <BookOpen size={15} />
+                        </div>
+                        <span>Stories & Dev.to Blogs</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+
+                    <Link
+                      href="/creator-dashboard"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <Video size={15} />
+                        </div>
+                        <span>Creator Studio</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+
+                    <div className="my-1.5 border-t border-[color:var(--border)]" />
+
+                    <Link
+                      href="/dashboard/settings"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <Settings size={15} />
+                        </div>
+                        <span>Settings</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+
+                    <Link
+                      href="/dashboard/support"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-[color:var(--surface)] text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] transition-colors">
+                          <HelpCircle size={15} />
+                        </div>
+                        <span>Help & Support</span>
+                      </div>
+                      <ChevronRight size={13} className="text-[color:var(--muted-foreground)] group-hover:text-[color:var(--foreground)] group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  </div>
+
+                  <div className="mt-1 pt-1.5 border-t border-[color:var(--border)]">
+                    <form action={handleSignOut}>
+                      <button
+                        type="submit"
+                        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer"
+                      >
+                        <div className="p-1.5 rounded-lg bg-red-500/15 text-red-400">
+                          <LogOut size={15} />
+                        </div>
+                        <span>Sign Out</span>
+                      </button>
+                    </form>
+                  </div>
                 </div>
               )}
             </div>

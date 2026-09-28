@@ -57,8 +57,8 @@ export async function sanityFetch(query: string, params: Record<string, any> = {
       const json = await res.json();
       console.log(`[Sanity] Successfully fetched from direct API.`);
       return json.result;
-    } catch (fetchError) {
-      console.error("[Sanity] Direct API fetch also failed:", fetchError);
+    } catch (fetchError: any) {
+      console.warn(`[Sanity] Direct API fetch also failed: ${fetchError?.message || 'Unknown error'}`);
       return null;
     }
   }
