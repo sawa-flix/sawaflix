@@ -420,7 +420,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             {/* Bottom-left movie title badge — intentionally white over image */}
             <div className="absolute bottom-4 left-4 z-10">
               <span className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10">
-                {bannerMovie.title}
+                {heroItem.title}
               </span>
             </div>
           </section>
@@ -486,7 +486,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   </div>
 
                   </Link>
-                )}
+                ))}
             </div>
 
               <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">

@@ -370,9 +370,10 @@ const Header = ({
                     />
                   </div>
                 ) : (
-                <div className="w-8 h-8 bg-[color:var(--surface)] rounded-full flex items-center justify-center border border-[color:var(--border)] shadow-sm flex-shrink-0">
-                  <User size={14} className="text-[color:var(--muted-foreground)]" />
-                </div>
+                  <div className="w-8 h-8 bg-[color:var(--surface)] rounded-full flex items-center justify-center border border-[color:var(--border)] shadow-sm flex-shrink-0">
+                    <User size={14} className="text-[color:var(--muted-foreground)]" />
+                  </div>
+                )}
                 <ChevronDown size={12} className={`text-zinc-400 group-hover:text-white transition-transform duration-200 ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
@@ -550,6 +551,9 @@ const Header = ({
                               // Same canonical mapper Reels itself uses — not a
                               // second ad-hoc field-extraction implementation.
                               const mapped = mapYoutubeItem(video);
+                              const thumb = mapped.thumbnail || `https://i.ytimg.com/vi/${mapped.id}/mqdefault.jpg`;
+                              const title = mapped.title || 'Untitled';
+                              const channel = mapped.channelTitle || '';
                               return (
                                 <button
                                   key={mapped.id || idx}
