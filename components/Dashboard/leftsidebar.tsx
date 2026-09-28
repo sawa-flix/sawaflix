@@ -13,7 +13,6 @@ import {
   Music,
   User,
   FileText,
-  Workflow,
   Wallet,
   Heart,
   Tv,
@@ -143,7 +142,7 @@ export default function LeftSidebar({
     { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null, requiresAuth: true },
     { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null, requiresAuth: true },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null, requiresAuth: true },
-    { name: 'SawaSmart', icon: Workflow, id: 'SawaSmart', route: '/dashboard/sawasmart', badge: null, requiresAuth: true },
+    { name: 'Sawai', icon: null, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'sawai', route: '/dashboard/sawai', badge: null, requiresAuth: true },
   ];
 
   const creatorItems = [
@@ -191,8 +190,8 @@ export default function LeftSidebar({
       >
         <div className="flex items-center space-x-4">
           {item.imageUrl ? (
-            <div className={`relative shrink-0 ${item.id === 'reels' ? 'h-6 w-6' : 'h-5 w-5 rounded-full overflow-hidden'}`}>
-              <Image src={item.imageUrl} alt={item.id === 'reels' ? '' : 'Profile'} fill className={item.id === 'reels' ? 'object-contain' : 'object-cover'} unoptimized />
+            <div className={`relative shrink-0 ${item.id === 'reels' ? 'h-6 w-6' : item.id === 'sawai' ? 'h-5 w-5 rounded-full bg-white p-0.5 overflow-hidden' : 'h-5 w-5 rounded-full overflow-hidden'}`}>
+              <Image src={item.imageUrl} alt={item.id === 'reels' ? '' : item.id === 'sawai' ? 'SawaFlix logo' : 'Profile'} fill className={item.id === 'reels' || item.id === 'sawai' ? 'object-contain' : 'object-cover'} unoptimized />
             </div>
           ) : (
             Icon && <Icon
