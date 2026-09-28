@@ -217,50 +217,51 @@ export default function MoviePage(): React.ReactElement {
           </div>
         )}
 
-      {playingMovie && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3 sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Playing ${playingMovie.title}`}
-          onClick={() => setPlayingMovie(null)}
-        >
+        {playingMovie && (
           <div
-            className="max-h-full w-full max-w-6xl overflow-y-auto bg-[#12151b] shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Playing ${playingMovie.title}`}
+            onClick={() => setPlayingMovie(null)}
           >
-            <header className="flex min-h-14 items-center justify-between gap-3 border-b border-white/10 bg-[#12151b] px-3 sm:px-4">
-              <button
-                type="button"
-                onClick={() => setPlayingMovie(null)}
-                className="inline-flex h-10 shrink-0 items-center gap-2 px-2 text-sm font-bold text-white hover:bg-white/10"
-              >
-                <ArrowLeft size={19} />
-                <span>Back to movies</span>
-              </button>
-              <p className="hidden min-w-0 flex-1 truncate text-center text-sm font-semibold text-gray-300 sm:block">
-                {playingMovie.title}
-              </p>
-              <button
-                type="button"
-                onClick={() => setPlayingMovie(null)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white"
-                aria-label="Close player"
-                title="Close player"
-              >
-                <X size={21} />
-              </button>
-            </header>
-            <div className="aspect-video w-full bg-black">
-              <iframe src={`${playingMovie.embed_url}?autoplay=1&rel=0`} title={playingMovie.title} className="h-full w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-            </div>
-            <div className="bg-[#12151b] p-4 sm:p-5">
-              <h2 className="pr-10 text-lg font-bold sm:text-xl">{playingMovie.title}</h2>
-              <p className="mt-1 text-sm text-gray-400">{playingMovie.channel_title}</p>
+            <div
+              className="max-h-full w-full max-w-6xl overflow-y-auto bg-[#12151b] shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header className="flex min-h-14 items-center justify-between gap-3 border-b border-white/10 bg-[#12151b] px-3 sm:px-4">
+                <button
+                  type="button"
+                  onClick={() => setPlayingMovie(null)}
+                  className="inline-flex h-10 shrink-0 items-center gap-2 px-2 text-sm font-bold text-white hover:bg-white/10"
+                >
+                  <ArrowLeft size={19} />
+                  <span>Back to movies</span>
+                </button>
+                <p className="hidden min-w-0 flex-1 truncate text-center text-sm font-semibold text-gray-300 sm:block">
+                  {playingMovie.title}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setPlayingMovie(null)}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white"
+                  aria-label="Close player"
+                  title="Close player"
+                >
+                  <X size={21} />
+                </button>
+              </header>
+              <div className="aspect-video w-full bg-black">
+                <iframe src={`${playingMovie.embed_url}?autoplay=1&rel=0`} title={playingMovie.title} className="h-full w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+              </div>
+              <div className="bg-[#12151b] p-4 sm:p-5">
+                <h2 className="pr-10 text-lg font-bold sm:text-xl">{playingMovie.title}</h2>
+                <p className="mt-1 text-sm text-gray-400">{playingMovie.channel_title}</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }

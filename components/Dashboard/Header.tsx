@@ -47,6 +47,7 @@ import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { useSawaiStore } from '@/store/sawaiStore';
+import { ThemeToggle } from './ThemeToggle';
 
 const youtubeApi = new YouTubeApiService();
 
