@@ -439,10 +439,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
                 </h2>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[color:var(--foreground)] tracking-tight">Sawa Reels</h2>
+              <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
             </div>
-            <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
-          </div>
 
             <div className="relative group/slider">
               <div
@@ -487,18 +485,8 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                     </p>
                   </div>
 
-                  {/* Play Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
-                      <Play size={24} className="text-white fill-white ml-1" />
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="w-full py-12 text-center text-[color:var(--muted-foreground)] text-sm">
-                  No reels found for this category.
-                </div>
-              )}
+                  </Link>
+                )}
             </div>
 
               <button onClick={() => scrollLeft(reelsPreviewScrollRef)} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity z-10">
