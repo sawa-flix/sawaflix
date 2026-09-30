@@ -27,7 +27,7 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
       />
 
       {/* Bottom Sheet */}
-      <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] flex flex-col bg-[color:var(--surface)] border-t border-[color:var(--border)] rounded-t-3xl overflow-hidden shadow-2xl">
+      <div className="absolute bottom-0 left-0 right-0 max-h-[86dvh] flex flex-col bg-[color:var(--surface)] border-t border-[color:var(--border)] rounded-t-2xl overflow-hidden shadow-2xl">
         {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-2 shrink-0">
           <div className="w-12 h-1 bg-[color:var(--muted-foreground)]/30 rounded-full" />
@@ -44,9 +44,9 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 w-full">
-          <div className="px-4 pb-6">
+          <div className="px-3 pb-4">
             {/* Movie Image */}
-            <div className="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden mb-6 shadow-2xl shrink-0">
+            <div className="relative w-full h-40 sm:h-48 rounded-xl overflow-hidden mb-4 shadow-xl shrink-0">
               <Image
                 src={movie.image}
                 alt={movie.title}
@@ -59,15 +59,15 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
                 onClick={() => onWatchNow(movie)}
                 className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors group cursor-pointer"
               >
-                <div className="bg-[#CE1126] hover:scale-110 text-white rounded-full p-4 shadow-2xl transition-transform">
+                <div className="bg-[color:var(--foreground)] text-[color:var(--background)] hover:scale-110 rounded-full p-3 shadow-2xl transition-transform">
                   <Play size={28} fill="currentColor" className="ml-1" />
                 </div>
               </button>
             </div>
 
             {/* Title and Rating */}
-            <h2 className="text-2xl lg:text-3xl font-bold text-[color:var(--foreground)] mb-2">{movie.title}</h2>
-            <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-xl lg:text-2xl font-bold text-[color:var(--foreground)] mb-2">{movie.title}</h2>
+            <div className="flex items-center gap-2 mb-3">
               <div className="flex items-center gap-1 bg-[#FCD116]/20 text-[#FCD116] px-3 py-1 rounded-full">
                 <Star size={16} fill="currentColor" />
                 <span className="font-bold">{movie.rating || 4.5}</span>
@@ -81,10 +81,10 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
             </div>
 
             {/* Description */}
-            <p className="text-[color:var(--foreground-secondary)] text-sm mb-6 leading-relaxed">{movie.description}</p>
+            <p className="text-[color:var(--foreground-secondary)] text-[13px] mb-4 leading-relaxed">{movie.description}</p>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b border-[color:var(--border)]">
+            <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-[color:var(--border)]">
               {movie.year && (
                 <DetailCell icon={<Calendar size={18} />} label="Year" value={movie.year.toString()} />
               )}
@@ -111,19 +111,19 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
                 {movie.writer && (
                   <div>
                     <p className="text-xs text-gray-400 font-semibold mb-1">WRITER</p>
-                    <p className="text-sm text-white">{movie.writer}</p>
+                    <p className="text-sm text-[color:var(--foreground)]">{movie.writer}</p>
                   </div>
                 )}
                 {movie.stars && (
                   <div>
                     <p className="text-xs text-gray-400 font-semibold mb-1">CAST</p>
-                    <p className="text-sm text-white">{movie.stars}</p>
+                    <p className="text-sm text-[color:var(--foreground)]">{movie.stars}</p>
                   </div>
                 )}
                 {movie.language && (
                   <div>
                     <p className="text-xs text-gray-400 font-semibold mb-1">LANGUAGE</p>
-                    <p className="text-sm text-white">{movie.language}</p>
+                    <p className="text-sm text-[color:var(--foreground)]">{movie.language}</p>
                   </div>
                 )}
               </div>
@@ -132,10 +132,10 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
         </div>
 
         {/* Sticky Watch Now Button */}
-        <div className="w-full p-4 bg-[#0F1419] border-t border-white/5 shrink-0 z-20">
+        <div className="w-full p-3 bg-[color:var(--surface)] border-t border-[color:var(--border)] shrink-0 z-20">
           <button
             onClick={() => onWatchNow(movie)}
-            className="w-full bg-[#CE1126] hover:bg-[#a30d1e] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
+            className="w-full bg-[color:var(--foreground)] hover:opacity-85 text-[color:var(--background)] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
           >
             <Play size={20} fill="currentColor" /> Watch Now
           </button>
@@ -156,10 +156,10 @@ interface DetailCellProps {
 }
 
 const DetailCell: React.FC<DetailCellProps> = ({ icon, label, value }) => (
-  <div className="bg-white/5 rounded-lg p-3">
-    <div className="text-gray-400 mb-1">{icon}</div>
-    <p className="text-xs text-gray-400 font-semibold">{label}</p>
-    <p className="text-sm text-white font-semibold mt-1">{value}</p>
+  <div className="bg-[color:var(--surface-hover)] rounded-lg p-2.5">
+    <div className="text-[color:var(--muted-foreground)] mb-1">{icon}</div>
+    <p className="text-[11px] text-[color:var(--muted-foreground)] font-semibold">{label}</p>
+    <p className="text-[13px] text-[color:var(--foreground)] font-semibold mt-1">{value}</p>
   </div>
 );
 

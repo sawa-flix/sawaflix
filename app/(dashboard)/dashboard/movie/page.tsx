@@ -224,11 +224,12 @@ export default function MoviePage(): React.ReactElement {
         </div>
 
         {/* ========== RIGHT SIDEBAR (DESKTOP ONLY) ========== */}
-        <div className="hidden xl:block w-[340px] shrink-0 sticky top-4 h-[calc(100vh-2rem)] rounded-2xl overflow-y-auto scrollbar-hide bg-[color:var(--surface)] border border-[color:var(--border)] shadow-xl p-6 transition-colors">
+        <div className="hidden xl:block w-[400px] 2xl:w-[440px] shrink-0 sticky top-4 h-[calc(100vh-2rem)] rounded-xl overflow-y-auto scrollbar-hide bg-[color:var(--surface)] border border-[color:var(--border)] shadow-xl p-5 transition-colors">
           <RightSidebarContent
             movie={selectedMovie}
             onClose={() => setSelectedMovie(featuredMovie)}
             moreMovies={moreMovies}
+            onSelectMovie={setSelectedMovie}
             onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
           />
         </div>
@@ -253,7 +254,7 @@ export default function MoviePage(): React.ReactElement {
             {/* Player Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-[color:var(--surface)] border-b border-[color:var(--border)]">
               <div className="flex items-center gap-2 min-w-0 pr-4">
-                <span className="bg-[#CE1126] text-white text-[10px] font-black uppercase px-2 py-0.5 rounded">
+                <span className="bg-[color:var(--foreground)] text-[color:var(--background)] text-[10px] font-black uppercase px-2 py-0.5 rounded">
                   Now Playing
                 </span>
                 <h3 className="text-sm font-bold text-[color:var(--foreground)] truncate">{playingMovie.title}</h3>

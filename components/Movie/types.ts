@@ -32,6 +32,7 @@ export interface RightSidebarContentProps {
   movie: Movie | null;
   onClose: () => void;
   moreMovies: Movie[];
+  onSelectMovie: (movie: Movie) => void;
   onWatchNow: (movie: Movie) => void;
 }
 
