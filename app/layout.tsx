@@ -10,6 +10,16 @@ import GoogleAuthProvider from '@/components/providers/GoogleAuthProvider';
 import SawaBot from '@/components/ChatBot/SawaBot';
 import ThemeProvider from '@/components/ThemeProvider';
 
+const ADMIN_MEDIA_ORIGIN = (() => {
+  try {
+    return new URL(
+      process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com'
+    ).origin;
+  } catch {
+    return 'https://api.sawaflix.com';
+  }
+})();
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://sawaflix.com'),
   title: {
@@ -127,6 +137,8 @@ export default function RootLayout({
         }} />
         <link rel="preconnect" href="https://i.ibb.co" />
         <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="preconnect" href={ADMIN_MEDIA_ORIGIN} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={ADMIN_MEDIA_ORIGIN} />
         <link rel="preload" href="/logos_and_pwas/sawai.svg" as="image" type="image/svg+xml" fetchPriority="high" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logos_and_pwas/apple-touch-icon.png" />

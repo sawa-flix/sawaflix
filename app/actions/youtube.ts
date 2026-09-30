@@ -151,40 +151,45 @@ export async function getCultureFeedAction(page: number = 1, limit: number = 20)
     const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
     let youtubeFeed: any[] = [];
     let paginationData: any = { current_page: page, next_page: page + 1 };
-
-    // 1. Fetch YouTube culture feed from the Render backend
-    try {
-        const response = await fetchWithTimeout(url, {}, 8000, 1);
-        const resJson = await handleResponse(response);
-        youtubeFeed = resJson?.feed || [];
-        if (resJson?.pagination) {
-            paginationData = resJson.pagination;
-        }
-    } catch (error: any) {
-        // 429 / quota / backend offline — silently degrade, Supabase will fill the feed
-        if (error.status !== 429 && error.status !== 500 &&
-            !error.message?.includes('Too Many Requests') &&
-            !error.message?.includes('quota') &&
-            error.code !== 'BACKEND_UNREACHABLE') {
-            console.warn('[getCultureFeedAction] Backend feed warning:', error.message);
-        }
-    }
-
-    // 2. Fetch Sawaflix uploaded reels — only if admin backend URL is configured
     let adminReels: any[] = [];
-    if (ADMIN_API_URL) {
-        try {
-            const adminRes = await fetchWithTimeout(`${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`, {}, 3000, 0);
-            if (adminRes.ok) {
-                const adminData = await adminRes.json();
-                if (adminData?.data && Array.isArray(adminData.data)) {
-                    adminReels = adminData.data;
+
+    // Fetch both sources concurrently; waiting for YouTube before asking for
+    // uploaded reels made the first playable native video arrive unnecessarily late.
+    const [feedResult, adminResult] = await Promise.all([
+        (async () => {
+            try {
+                const response = await fetchWithTimeout(url, { next: { revalidate: 30 } }, 6000, 0);
+                return await handleResponse(response);
+            } catch (error: any) {
+                if (error.status !== 429 && error.status !== 500 &&
+                    !error.message?.includes('Too Many Requests') &&
+                    !error.message?.includes('quota') &&
+                    error.code !== 'BACKEND_UNREACHABLE') {
+                    console.warn('[getCultureFeedAction] Backend feed warning:', error.message);
                 }
+                return null;
             }
-        } catch {
-            // Admin backend not available — silently skip
-        }
-    }
+        })(),
+        (async () => {
+            if (!ADMIN_API_URL) return [];
+            try {
+                const response = await fetchWithTimeout(
+                    `${ADMIN_API_URL}/api/public/reels?page=${page}&limit=10`,
+                    { next: { revalidate: 30 } },
+                    2500,
+                    0
+                );
+                if (!response.ok) return [];
+                const data = await response.json();
+                return Array.isArray(data?.data) ? data.data : [];
+            } catch {
+                return [];
+            }
+        })(),
+    ]);
+    youtubeFeed = feedResult?.feed || [];
+    if (feedResult?.pagination) paginationData = feedResult.pagination;
+    adminReels = adminResult;
 
     // Fallback: If admin backend endpoint didn't return reels, query Supabase directly
     if (adminReels.length === 0) {
