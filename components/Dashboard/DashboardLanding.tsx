@@ -363,7 +363,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[color:var(--primary)] text-white shadow-[0_0_15px_rgba(206,17,38,0.18)]'
+                ? 'bg-[color:var(--foreground)] text-[color:var(--background)] border border-[color:var(--foreground)]'
                 : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'
             }`}
           >
@@ -385,7 +385,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
             onClick={() => onCategoryChange(tab.id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 ${
               activeCategory === tab.id
-                ? 'bg-[color:var(--primary)] text-white shadow-[0_0_15px_rgba(206,17,38,0.18)]'
+                ? 'bg-[color:var(--foreground)] text-[color:var(--background)] border border-[color:var(--foreground)]'
                 : 'bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'
             }`}
           >

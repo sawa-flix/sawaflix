@@ -392,18 +392,19 @@ export default function MusicPage() {
           white-space: nowrap;
           cursor: pointer;
           transition: all 0.25s ease;
-          border: none;
+          border: 1px solid var(--border);
           background: transparent;
           color: var(--muted-foreground);
         }
         .tab-btn:hover {
           color: var(--foreground);
-          background: var(--primary-soft);
-          border-color: var(--primary);
+          background: var(--surface-hover);
+          border-color: var(--border);
         }
         .tab-btn.active {
-          background: var(--primary);
+          background: var(--foreground);
           color: var(--background);
+          border-color: var(--foreground);
           font-weight: 600;
         }
 
