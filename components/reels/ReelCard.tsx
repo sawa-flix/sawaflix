@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
 import type { Video } from '@/types/youtube';
 import { YouTubePlayer } from '@/components/YoutubePlayer';
@@ -12,7 +13,6 @@ import { followService } from '@/services/followService';
 import { ReelOverlay } from './ReelOverlay';
 import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
-import { ReelLoading } from './ReelLoading';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
 import { ReelProgressBar } from './ReelProgressBar';
 import { ReelControls } from './ReelControls';
@@ -37,8 +37,6 @@ interface ReelCardProps {
   onEnded: () => void;
   /** Clears ReelsFeed's manual-pause flag once a scrub completes, so playback always resumes on release even if the reel was paused before scrubbing began. */
   onResume: () => void;
-  /** Explicit advance to next video triggered from UI controls */
-  onNext?: () => void;
 }
 
 /**
@@ -47,7 +45,7 @@ interface ReelCardProps {
  * current index; YouTubePlayer already maps isActive/isPaused to real
  * playVideo()/pauseVideo() calls.
  */
-export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, desktopOverlayRoot, hasNext, itemRef, onTogglePlay, onEnded, onResume, onNext }: ReelCardProps) {
+export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, desktopOverlayRoot, hasNext, itemRef, onTogglePlay, onEnded, onResume }: ReelCardProps) {
   const playerRef = useRef<YT.Player | null>(null);
   const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
   const isNative =
@@ -87,6 +85,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
   useEffect(() => {
     if (!isNative || !nativeVideoRef.current) return;
     const v = nativeVideoRef.current;
+    v.setAttribute('fetchpriority', isActive ? 'high' : 'auto');
     if (isActive && !isPaused) {
       v.play().catch(() => {});
     } else {
@@ -112,7 +111,9 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
         seekTo: (time: number) => { if (v) v.currentTime = time; },
         getCurrentTime: () => v?.currentTime || 0,
         getDuration: () => v?.duration || 0,
-      } as any;
+        pauseVideo: () => v?.pause(),
+        playVideo: () => { void v?.play().catch(() => {}); },
+      } as unknown as YT.Player;
     }
     return playerRef.current;
   }, [isNative]);
@@ -238,6 +239,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
           <video
             ref={nativeVideoRef}
             src={nativeSrc}
+            poster={video.thumbnail || undefined}
             playsInline
             muted={isMuted}
             preload={isActive ? 'auto' : 'metadata'}
@@ -252,26 +254,35 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
             }}
           />
         ) : (
-          <YouTubePlayer
-            videoId={video.id}
-            isActive={isActive}
-            isPaused={isPaused || isScrubbing}
-            isMuted={isMuted}
-            onPlayerReady={handlePlayerReady}
-            onEnded={handleEnded}
-          />
+          <>
+            {isActive && !isPlayerReady && video.thumbnail && (
+              <Image
+                src={video.thumbnail}
+                alt=""
+                fill
+                unoptimized
+                priority
+                className="z-10 object-cover"
+              />
+            )}
+            <div className="absolute inset-0">
+              <YouTubePlayer
+                videoId={video.id}
+                isActive={isActive}
+                isPaused={isPaused || isScrubbing}
+                isMuted={isMuted}
+                onPlayerReady={handlePlayerReady}
+                onEnded={handleEnded}
+              />
+            </div>
+          </>
         )}
       </div>
 
-      {/* Only the active reel gets a loading skeleton — inactive/±1
-          placeholders shouldn't show one while off-screen or waiting their
-          turn. Reuses ReelLoading (same skeleton as the initial feed load,
-          the route-level loading.tsx, and the search-result-opening
-          transition) rather than a one-off spinner, so every "a reel is
-          loading" moment across the app looks the same. */}
+      {/* Keep the poster visible and limit buffering feedback to a small spinner. */}
       {isActive && !isPlayerReady && (
-        <div className="pointer-events-none absolute inset-0 z-[1]">
-          <ReelLoading />
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 justify-center">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/25 border-t-white/90 shadow-lg" />
         </div>
       )}
 
@@ -284,9 +295,16 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
         isActive={isActive}
         isPaused={isPaused}
         onTogglePlay={onTogglePlay}
+        onBackward={() => {
+          const player = getPlayer();
+          if (!player) return;
+          try {
+            player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
+          } catch (e) {
+            console.warn('[ReelCard] Rewind failed:', e);
+          }
+        }}
         onForward={handleForward}
-        onNext={onNext}
-        hasNext={hasNext}
       />
 
       <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />

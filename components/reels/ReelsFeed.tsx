@@ -404,7 +404,6 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
                     onTogglePlay={() => setManuallyPaused((prev) => !prev)}
                     onEnded={goToNext}
                     onResume={() => setManuallyPaused(false)}
-                    onNext={goToNext}
                   />
                 )}
               </div>
