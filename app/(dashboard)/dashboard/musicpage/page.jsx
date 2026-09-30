@@ -235,6 +235,7 @@ export default function MusicPage() {
           min-height: 400px;
           display: flex;
           align-items: flex-end;
+          background: var(--surface);
           box-shadow: 0 16px 40px rgba(0,0,0,0.5);
           border: 1px solid rgba(255,255,255,0.06);
         }
@@ -260,6 +261,9 @@ export default function MusicPage() {
               transparent 100%
             );
         }
+        :global([data-theme="light"]) .music-hero-banner .hero-overlay {
+          background: linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0.52) 55%, rgba(255,255,255,0.12));
+        }
         /* Artistic left vignette for text readability */
         .music-hero-banner .hero-vignette {
           position: absolute;
@@ -271,6 +275,9 @@ export default function MusicPage() {
             rgba(11,14,20,0.3) 40%,
             transparent 70%
           );
+        }
+        :global([data-theme="light"]) .music-hero-banner .hero-vignette {
+          background: linear-gradient(to right, rgba(255,255,255,0.68), rgba(255,255,255,0.2) 48%, transparent 76%);
         }
         /* Subtle Cameroonian color tint */
         .music-hero-banner .hero-tint {
@@ -313,6 +320,10 @@ export default function MusicPage() {
           letter-spacing: -1px;
           text-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.4);
         }
+        :global([data-theme="light"]) .hero-title {
+          color: var(--foreground);
+          text-shadow: 0 1px 12px rgba(255,255,255,0.72);
+        }
         .hero-subtitle {
           font-size: 15px;
           color: rgba(255,255,255,0.85);
@@ -320,6 +331,10 @@ export default function MusicPage() {
           line-height: 1.6;
           max-width: 480px;
           text-shadow: 0 1px 10px rgba(0,0,0,0.6);
+        }
+        :global([data-theme="light"]) .hero-subtitle {
+          color: var(--foreground-secondary);
+          text-shadow: 0 1px 8px rgba(255,255,255,0.78);
         }
         .hero-buttons {
           display: flex;
@@ -331,20 +346,20 @@ export default function MusicPage() {
           align-items: center;
           gap: 8px;
           padding: 11px 26px;
-          background: #E50914;
-          color: #fff;
+          background: var(--foreground);
+          color: var(--background);
           border: none;
           border-radius: 25px;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: 0 4px 20px rgba(229,9,20,0.4);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
         }
         .btn-listen:hover {
-          background: #FF1A25;
+          background: var(--muted-foreground-strong);
           transform: translateY(-2px);
-          box-shadow: 0 6px 25px rgba(229,9,20,0.5);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
         .btn-explore {
           display: inline-flex;
@@ -352,8 +367,8 @@ export default function MusicPage() {
           gap: 8px;
           padding: 11px 26px;
           background: transparent;
-          color: #fff;
-          border: 1.5px solid rgba(255,255,255,0.3);
+          color: var(--foreground);
+          border: 1.5px solid var(--border);
           border-radius: 25px;
           font-size: 14px;
           font-weight: 700;
@@ -362,8 +377,8 @@ export default function MusicPage() {
           backdrop-filter: blur(10px);
         }
         .btn-explore:hover {
-          background: rgba(255,255,255,0.1);
-          border-color: rgba(255,255,255,0.5);
+          background: var(--surface-hover);
+          border-color: var(--muted-foreground);
           transform: translateY(-2px);
         }
 

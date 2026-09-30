@@ -164,16 +164,17 @@ export default function BottomPlayer() {
           left: 0;
           right: 0;
           z-index: 100;
-          color: #fff;
+          color: var(--foreground);
           pointer-events: none;
         }
         .sawa-player * { pointer-events: auto; }
 
         .player-body {
-          background: linear-gradient(180deg, rgba(11,14,20,0.97) 0%, rgba(6,8,12,0.99) 100%);
+          background: color-mix(in srgb, var(--surface) 96%, transparent);
           backdrop-filter: blur(24px);
-          border-top: 1px solid rgba(255,255,255,0.05);
+          border-top: 1px solid var(--border);
           position: relative;
+          box-shadow: 0 -12px 36px rgba(0,0,0,0.14);
         }
 
         /* ===================== CAMEROON PROGRESS (top) ===================== */
@@ -206,9 +207,9 @@ export default function BottomPlayer() {
         .p-close {
           position: absolute;
           top: -20px; right: 14px;
-          background: rgba(20,24,36,0.95);
-          border: 1px solid rgba(255,255,255,0.06);
-          color: rgba(255,255,255,0.4);
+          background: var(--surface-elevated);
+          border: 1px solid var(--border);
+          color: var(--muted-foreground);
           width: 24px; height: 20px;
           border-radius: 5px 5px 0 0;
           cursor: pointer;
@@ -216,7 +217,7 @@ export default function BottomPlayer() {
           transition: all 0.2s;
           z-index: 15;
         }
-        .p-close:hover { background: #CE1126; color: #fff; }
+        .p-close:hover { background: var(--surface-hover); color: var(--foreground); }
 
         /* ===================== SPINNING VINYL DISK ===================== */
         .vinyl-wrap {
@@ -317,18 +318,18 @@ export default function BottomPlayer() {
           border-radius: 8px;
           overflow: hidden;
           flex-shrink: 0;
-          background: #1a1f2e;
+          background: var(--surface-elevated);
           box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .dt-left .dt-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .dt-left .dt-meta { min-width: 0; flex: 1; }
         .dt-left .dt-title {
-          font-size: 13px; font-weight: 700; color: #fff;
+          font-size: 13px; font-weight: 700; color: var(--foreground);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           margin: 0 0 2px 0;
         }
         .dt-left .dt-artist {
-          font-size: 11px; color: rgba(255,255,255,0.4);
+          font-size: 11px; color: var(--muted-foreground);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           margin: 0;
         }
@@ -351,23 +352,23 @@ export default function BottomPlayer() {
         }
         .dt-ctrls .cb {
           background: none; border: none;
-          color: rgba(255,255,255,0.6);
+          color: var(--muted-foreground);
           cursor: pointer; padding: 8px;
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.2s;
         }
-        .dt-ctrls .cb:hover { color: #fff; background: rgba(255,255,255,0.07); }
+        .dt-ctrls .cb:hover { color: var(--foreground); background: var(--surface-hover); }
         .dt-ctrls .cb.pp {
           width: 46px; height: 46px;
-          background: #fff; color: #0a0a0a;
+          background: var(--foreground); color: var(--background);
           border-radius: 50%;
           margin: 0 6px;
-          box-shadow: 0 2px 14px rgba(255,255,255,0.12);
+          box-shadow: 0 2px 14px rgba(0,0,0,0.16);
         }
         .dt-ctrls .cb.pp:hover {
           transform: scale(1.08);
-          box-shadow: 0 4px 24px rgba(255,255,255,0.2);
+          box-shadow: 0 4px 24px rgba(0,0,0,0.2);
         }
 
         /* Right: volume */
@@ -381,27 +382,27 @@ export default function BottomPlayer() {
         }
         .dt-right .vb {
           background: none; border: none;
-          color: rgba(255,255,255,0.45);
+          color: var(--muted-foreground);
           cursor: pointer; padding: 4px;
           display: flex; align-items: center;
           transition: color 0.2s;
         }
-        .dt-right .vb:hover { color: #fff; }
+        .dt-right .vb:hover { color: var(--foreground); }
         .dt-right .vs {
           -webkit-appearance: none; appearance: none;
           width: 100px; height: 4px;
-          background: rgba(255,255,255,0.12);
+          background: var(--border);
           border-radius: 3px; outline: none; cursor: pointer;
         }
         .dt-right .vs::-webkit-slider-thumb {
           -webkit-appearance: none;
           width: 13px; height: 13px;
-          border-radius: 50%; background: #fff; cursor: pointer;
+          border-radius: 50%; background: var(--foreground); cursor: pointer;
           box-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
         .dt-right .vs::-moz-range-thumb {
           width: 13px; height: 13px;
-          border-radius: 50%; background: #fff; cursor: pointer; border: none;
+          border-radius: 50%; background: var(--foreground); cursor: pointer; border: none;
         }
 
         /* =====================================================
@@ -432,17 +433,17 @@ export default function BottomPlayer() {
           border-radius: 8px;
           overflow: hidden;
           flex-shrink: 0;
-          background: #1a1f2e;
+          background: var(--surface-elevated);
         }
         .mb-top .mb-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .mb-top .mb-meta { flex: 1; min-width: 0; }
         .mb-top .mb-t {
-          font-size: 11px; font-weight: 700; color: #fff;
+          font-size: 11px; font-weight: 700; color: var(--foreground);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           margin: 0 0 2px 0;
         }
         .mb-top .mb-a {
-          font-size: 9px; color: rgba(255,255,255,0.6); margin: 0;
+          font-size: 9px; color: var(--muted-foreground); margin: 0;
         }
 
         /* Mobile controls */
@@ -454,19 +455,19 @@ export default function BottomPlayer() {
         }
         .mb-ctrls .mcb {
           background: none; border: none;
-          color: rgba(255,255,255,0.65);
+          color: var(--muted-foreground);
           cursor: pointer; padding: 6px;
           display: flex; align-items: center;
           transition: color 0.2s;
         }
-        .mb-ctrls .mcb:hover { color: #fff; }
+        .mb-ctrls .mcb:hover { color: var(--foreground); }
         .mb-ctrls .mpp {
           width: 50px; height: 50px;
           border-radius: 50%;
-          background: #fff; color: #0a0a0a;
+          background: var(--foreground); color: var(--background);
           border: none; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 2px 14px rgba(255,255,255,0.12);
+          box-shadow: 0 2px 14px rgba(0,0,0,0.16);
           transition: transform 0.2s;
         }
         .mb-ctrls .mpp:hover { transform: scale(1.06); }
