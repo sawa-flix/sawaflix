@@ -25,7 +25,9 @@ export function useVideos(categoryQuery: string): UseVideosResult {
 
     const nextPageTokenRef = useRef<string | null>(null);
     const isLoadingRef = useRef(false);
-    const currentCategoryRef = useRef(categoryQuery);
+    const isRefreshingRef = useRef(false);
+    const refreshRequestIdRef = useRef(0);
+    const currentCategoryRef = useRef<string | null>(null);
 
     const mapYouTubeItem = mapYoutubeItem;
 
@@ -46,11 +48,19 @@ export function useVideos(categoryQuery: string): UseVideosResult {
     });
 
     const refresh = useCallback(async () => {
-        if (isLoadingRef.current) return;
+        const requestId = ++refreshRequestIdRef.current;
+        const isNewQuery = currentCategoryRef.current !== categoryQuery;
+        currentCategoryRef.current = categoryQuery;
+        isRefreshingRef.current = true;
+
+        if (isNewQuery) {
+            nextPageTokenRef.current = null;
+            setVideos([]);
+            setHasMore(true);
+        }
 
         setIsRefreshing(true);
         setError(null);
-        isLoadingRef.current = true;
 
         const CACHE_KEY = `sawaflix:feed:${categoryQuery.replace(/\s+/g, '_')}`;
 
@@ -60,23 +70,18 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             const cachedStr = await get(CACHE_KEY);
             if (cachedStr) {
                 const parsed = typeof cachedStr === 'string' ? JSON.parse(cachedStr) : cachedStr;
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                if (requestId === refreshRequestIdRef.current && Array.isArray(parsed) && parsed.length > 0) {
                     cachedVideos = parsed;
-                    // Immediately show stale cache — user sees content right away
-                    if (videos.length === 0) {
-                        setVideos([...cachedVideos].sort(() => Math.random() - 0.5));
-                    }
+                    setVideos([...cachedVideos].sort(() => Math.random() - 0.5));
                 }
             }
         } catch (e) {
             console.warn('[useVideos] Failed to read from IndexedDB cache', e);
         }
 
-        nextPageTokenRef.current = null;
-        setHasMore(true);
-        currentCategoryRef.current = categoryQuery;
-
         let finalVideos: Video[] = [];
+        let nextPageToken: string | null = null;
+        let hasMoreResults = false;
 
         const isDefaultFeed = categoryQuery === 'Cameroon shorts viral 2026' || categoryQuery === 'Cameroon music hits 2026';
         const isMusicQuery = categoryQuery.toLowerCase().includes('music');
@@ -88,8 +93,8 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 const feedList = response.feed || [];
                 finalVideos = feedList.map(mapYouTubeItem);
                 
-                nextPageTokenRef.current = response.pagination?.next_page ? String(response.pagination.next_page) : null;
-                setHasMore(!!response.pagination?.next_page);
+                nextPageToken = response.pagination?.next_page ? String(response.pagination.next_page) : null;
+                hasMoreResults = !!response.pagination?.next_page;
             } else {
                 // Specific category search
                 const response = await youtubeApi.searchVideos(categoryQuery, null, 10);
@@ -112,9 +117,14 @@ export function useVideos(categoryQuery: string): UseVideosResult {
 
                 finalVideos = [...ytVideos, ...sawaflixVideos].sort(() => Math.random() - 0.5);
 
-                nextPageTokenRef.current = (response as any).nextPageToken || null;
-                setHasMore(!!(response as any).nextPageToken);
+                nextPageToken = (response as any).nextPageToken || null;
+                hasMoreResults = !!(response as any).nextPageToken;
             }
+
+            if (requestId !== refreshRequestIdRef.current) return;
+
+            nextPageTokenRef.current = nextPageToken;
+            setHasMore(hasMoreResults);
 
             if (finalVideos.length === 0 && cachedVideos.length > 0) {
                 // No fresh data but we have cache — shuffle the cache and return it
@@ -138,6 +148,7 @@ export function useVideos(categoryQuery: string): UseVideosResult {
 
             console.log(`[useVideos] Refreshed: ${shuffled.length} videos`);
         } catch (err) {
+            if (requestId !== refreshRequestIdRef.current) return;
             const errorMessage = err instanceof Error ? err.message : 'Failed to refresh videos';
             // Only show error if we have NO fallback cache to show
             if (cachedVideos.length === 0) {
@@ -149,14 +160,16 @@ export function useVideos(categoryQuery: string): UseVideosResult {
             }
             console.error('[useVideos] Refresh failed:', err);
         } finally {
-            setIsRefreshing(false);
-            isLoadingRef.current = false;
+            if (requestId === refreshRequestIdRef.current) {
+                setIsRefreshing(false);
+                isRefreshingRef.current = false;
+            }
         }
     }, [categoryQuery]);
 
 
     const loadMore = useCallback(async () => {
-        if (isLoadingRef.current) return;
+        if (isLoadingRef.current || isRefreshingRef.current) return;
         if (!hasMore) return;
         if (!nextPageTokenRef.current) return;
         if (currentCategoryRef.current !== categoryQuery) return;
@@ -193,6 +206,8 @@ export function useVideos(categoryQuery: string): UseVideosResult {
                 nextPageToken = (response as any).nextPageToken || null;
                 hasMoreResponse = !!(response as any).nextPageToken;
             }
+
+            if (currentCategoryRef.current !== categoryQuery) return;
 
             setVideos(prev => {
                 const existingIds = new Set(prev.map(v => v.id));

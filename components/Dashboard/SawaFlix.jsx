@@ -1147,7 +1147,7 @@ function SawaFlixContent({ videoId: videoIdProp }) {
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
                   {isSearchMode
                     ? <div className="flex items-center gap-3">
-                      <span className="w-1.5 h-9 bg-red-600 rounded-full" />
+                      <span className="w-1.5 h-9 bg-[color:var(--foreground)]/50 rounded-full" />
                       <>Watching <span className="text-white/60 font-medium">"{urlQuery}"</span></>
                     </div>
                     : (
