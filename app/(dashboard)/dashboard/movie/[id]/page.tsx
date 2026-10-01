@@ -121,38 +121,6 @@ export default function MovieDetailsPage() {
   }, [movies, selectedMovie]);
 
   const firstEpisode = seriesEpisodes[0];
-  const selectedEpisodeIndex = seriesEpisodes.findIndex((episode) => episode.id === selectedMovie?.id);
-  const nextEpisode = selectedEpisodeIndex >= 0
-    ? seriesEpisodes[selectedEpisodeIndex + 1]
-    : selectedMovie?.mediaKind === 'series' ? firstEpisode : undefined;
-  const activePlaybackId = selectedMovie?.mediaKind === 'series' ? firstEpisode?.id : selectedMovie?.id;
-
-  const selectMovieInPlace = useCallback((movie: Movie) => {
-    const nextUrl = `/dashboard/movie/${encodeURIComponent(movie.id)}`;
-    if (window.location.pathname !== nextUrl) window.history.pushState(null, '', nextUrl);
-    setSelectedRouteId(movie.id);
-    setSelectedMovie(movie);
-    autoAdvanceStartedRef.current = false;
-    setCurrentTime(0);
-    setDuration(0);
-    setShowPremiumCheckout(false);
-    const playable = movie.mediaKind === 'series'
-      ? movies.find((candidate) => candidate.seriesId === movie.seriesId && candidate.mediaKind === 'episode')
-      : movie;
-    const progress = playable ? getMovieProgress(playable.id) : null;
-    setSavedProgress(progress);
-    setStartFromSeconds(progress?.currentTime || 0);
-  }, [movies]);
-
-  useEffect(() => {
-    const onMovieSelection = (event: Event) => {
-      const customEvent = event as CustomEvent<{ movieId: string }>;
-      const movie = movies.find((item) => item.id === customEvent.detail?.movieId);
-      if (movie) selectMovieInPlace(movie);
-    };
-    window.addEventListener(MOVIE_SELECTION_EVENT, onMovieSelection);
-    return () => window.removeEventListener(MOVIE_SELECTION_EVENT, onMovieSelection);
-  }, [movies, selectMovieInPlace]);
 
   const handleSelectEpisode = useCallback((episode: Movie) => {
     selectMovieInPlace(episode);
@@ -244,6 +212,7 @@ export default function MovieDetailsPage() {
     );
   }
 
+  const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableId = playableMovie.id;
   const title = playableMovie.episodeTitle || playableMovie.title;
