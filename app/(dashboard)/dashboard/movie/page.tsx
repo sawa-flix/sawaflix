@@ -79,6 +79,7 @@ export default function MoviePage(): React.ReactElement {
       .filter((movie) => movie.seriesId === selectedMovie.seriesId && movie.mediaKind === 'episode')
       .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0));
   }, [movies, selectedMovie]);
+  const sidebarMovie = selectedMovie || featuredMovie;
 
   return (
     <>
@@ -110,16 +111,18 @@ export default function MoviePage(): React.ReactElement {
               {filteredMovies.length === 0 && <div className="col-span-full py-20 text-center font-bold text-[color:var(--muted-foreground)]">No movies found for &quot;{activeFilter}&quot;</div>}
             </div>
           </div>
-          <div className="sticky top-4 hidden h-[calc(100vh-2rem)] w-[400px] shrink-0 overflow-y-auto rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5 shadow-xl transition-colors 2xl:w-[440px] xl:block">
-            <RightSidebarContent
-              movie={selectedMovie}
-              onClose={() => featuredMovie && setSelectedMovie(featuredMovie)}
-              moreMovies={moreMovies}
-              seriesEpisodes={seriesEpisodes}
-              onSelectMovie={setSelectedMovie}
-              detailsHref={movieDetailsHref(selectedMovie || featuredMovie || movies[0])}
-            />
-          </div>
+          {sidebarMovie && (
+            <div className="sticky top-4 hidden h-[calc(100vh-2rem)] w-[400px] shrink-0 overflow-y-auto rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5 shadow-xl transition-colors 2xl:w-[440px] xl:block">
+              <RightSidebarContent
+                movie={sidebarMovie}
+                onClose={() => featuredMovie && setSelectedMovie(featuredMovie)}
+                moreMovies={moreMovies}
+                seriesEpisodes={seriesEpisodes}
+                onSelectMovie={setSelectedMovie}
+                detailsHref={movieDetailsHref(sidebarMovie)}
+              />
+            </div>
+          )}
         </div>
       </div>
       <div className="xl:hidden">
