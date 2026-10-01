@@ -1,12 +1,7 @@
-import { getCultureFeedAction } from "@/app/actions/youtube";
-import type { Video } from "@/types/youtube";
-import {
-  mapYoutubeItem,
-  extractVideoId,
-  type RawYoutubeFeedItem,
-} from "@/utils/reels/mapYoutubeItem";
-import { ReelsFeed } from "@/components/reels/ReelsFeed";
-// import { DownloadManager } from "@/components/DownloadManager";
+import { getCategoryReelsAction, getCultureFeedAction } from '@/app/actions/youtube';
+import type { Video } from '@/types/youtube';
+import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
+import { ReelsFeed } from '@/components/reels/ReelsFeed';
 
 interface ReelsPageProps {
   searchParams: Promise<{ id?: string; cat?: string }>;
@@ -56,7 +51,7 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
     // 100vh - 7rem is what's actually available there.
     <div className="relative h-dvh md:h-[calc(100vh-7rem)] min-h-[500px] w-full">
       <ReelsFeed
-        key={initialVideoId ?? "feed"}
+        key={`${categoryId ?? 'feed'}:${initialVideoId ?? 'start'}`}
         initialVideos={videos}
         initialHasMore={hasMore}
         initialVideoId={initialVideoId}
