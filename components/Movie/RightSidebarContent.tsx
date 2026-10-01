@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Play, Star, Globe, Users, Calendar, Volume2 } from 'lucide-react';
 import { MovieEpisodeGuide } from './MovieEpisodeGuide';
 import { RightSidebarContentProps } from './types';
@@ -17,7 +18,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
   moreMovies,
   onSelectMovie,
   seriesEpisodes,
-  onWatchNow,
+  detailsHref,
 }) => {
   if (!movie) return null;
 
@@ -56,13 +57,13 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
 
         {/* Play Button Overlay */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <button
-            onClick={() => onWatchNow(movie)}
+          <Link
+            href={detailsHref}
             className="cursor-pointer bg-[color:var(--foreground)] text-[color:var(--background)] rounded-full p-4 shadow-2xl transform scale-90 group-hover:scale-100 transition-all"
-            aria-label={`Play ${movie.title}`}
+            aria-label={`View details for ${movie.title}`}
           >
             <Play size={24} fill="currentColor" className="ml-1" />
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -89,7 +90,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
         movie={movie}
         episodes={seriesEpisodes}
         onSelectEpisode={onSelectMovie}
-        onPlayEpisode={onWatchNow}
+        onPlayEpisode={onSelectMovie}
       />
 
       {/* Movie Details Grid */}
@@ -110,12 +111,12 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
       </div>
 
       {/* Watch Now Button */}
-      <button
-        onClick={() => onWatchNow(movie)}
+      <Link
+        href={detailsHref}
         className="w-full cursor-pointer bg-[color:var(--foreground)] hover:opacity-85 text-[color:var(--background)] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg mb-6"
       >
         <Play size={18} fill="currentColor" /> Watch Now
-      </button>
+      </Link>
 
       {/* Related Movies Section */}
       <div>

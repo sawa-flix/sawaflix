@@ -2,13 +2,14 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Play, Plus, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Movie } from './types';
 
 interface MovieHeroBannerProps {
   movie: Movie;
-  onWatchNow: () => void;
+  detailsHref: string;
   slideIndex?: number;
   slideCount?: number;
   onPrevious?: () => void;
@@ -22,7 +23,7 @@ interface MovieHeroBannerProps {
  */
 export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
   movie,
-  onWatchNow,
+  detailsHref,
   slideIndex = 0,
   slideCount = 1,
   onPrevious,
@@ -127,13 +128,13 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
-          <button
-            onClick={onWatchNow}
+          <Link
+            href={detailsHref}
             className="bg-white hover:bg-white/90 text-black font-bold py-2.5 sm:py-3 px-4 sm:px-7 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm cursor-pointer"
             aria-label={`Play ${movie.title}`}
           >
             <Play size={16} fill="currentColor" className="sm:w-[18px] sm:h-[18px]" /> Watch now
-          </button>
+          </Link>
           <button
             className="bg-white/15 hover:bg-white/25 border border-white/35 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm cursor-pointer"
             aria-label={`Add ${movie.title} to watchlist`}

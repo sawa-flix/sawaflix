@@ -40,7 +40,7 @@ export interface RightSidebarContentProps {
   moreMovies: Movie[];
   onSelectMovie: (movie: Movie) => void;
   seriesEpisodes: Movie[];
-  onWatchNow: (movie: Movie) => void;
+  detailsHref: string;
 }
 
 export interface MovieDetailSheetProps {
