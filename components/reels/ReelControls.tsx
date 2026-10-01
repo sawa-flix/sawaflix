@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Play, Pause, FastForward, Rewind } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 
 interface ReelControlsProps {
   getPlayer: () => any;
   isActive: boolean;
   isPaused: boolean;
   onTogglePlay: () => void;
-  onBackward: () => void;
-  onForward: () => void;
 }
 
 function formatTime(seconds: number): string {
@@ -24,8 +22,6 @@ export function ReelControls({
   isActive,
   isPaused,
   onTogglePlay,
-  onBackward,
-  onForward,
 }: ReelControlsProps) {
   const [time, setTime] = useState({ current: 0, duration: 0 });
   const reqRef = useRef<number | null>(null);
@@ -85,36 +81,6 @@ export function ReelControls({
           className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 cursor-pointer"
         >
           {isPaused ? <Play size={13} fill="currentColor" className="ml-0.5" /> : <Pause size={13} fill="currentColor" />}
-        </button>
-
-        {/* Rewind 10 seconds */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onBackward();
-          }}
-          aria-label="Rewind 10 seconds"
-          title="Back 10s"
-          className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
-        >
-          <Rewind size={13} />
-          <span className="text-[10px] tracking-tight">-10s</span>
-        </button>
-
-        {/* Forward 10 seconds */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onForward();
-          }}
-          aria-label="Skip forward 10 seconds"
-          title="Forward 10s"
-          className="flex h-7 px-2 items-center justify-center gap-1 rounded-full bg-[color:var(--surface)]/95 hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)] backdrop-blur-md border border-[color:var(--border)] transition-all shadow-md active:scale-95 text-xs font-bold cursor-pointer"
-        >
-          <FastForward size={13} />
-          <span className="text-[10px] tracking-tight">+10s</span>
         </button>
 
         {/* Elapsed / Total Duration Pill */}

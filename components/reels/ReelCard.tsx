@@ -133,19 +133,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
     }
   }, [hasNext, onEnded]);
 
-  const handleForward = useCallback(() => {
-    const player = getPlayer();
-    if (!player) return;
-    try {
-      const cur = player.getCurrentTime?.() ?? 0;
-      const dur = player.getDuration?.() ?? 0;
-      const target = dur > 0 ? Math.min(cur + 10, dur) : cur + 10;
-      player.seekTo?.(target, true);
-    } catch (e) {
-      console.warn('[ReelCard] Forward failed:', e);
-    }
-  }, [getPlayer]);
-
   const handleNativeEnded = useCallback(() => {
     if (hasNext) {
       onEnded();
@@ -295,16 +282,6 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
         isActive={isActive}
         isPaused={isPaused}
         onTogglePlay={onTogglePlay}
-        onBackward={() => {
-          const player = getPlayer();
-          if (!player) return;
-          try {
-            player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
-          } catch (e) {
-            console.warn('[ReelCard] Rewind failed:', e);
-          }
-        }}
-        onForward={handleForward}
       />
 
       <ReelProgressBar getPlayer={getPlayer} isActive={isActive} isScrubbing={isScrubbing} />
