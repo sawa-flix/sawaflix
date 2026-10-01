@@ -6,7 +6,6 @@ import type { Video } from '@/types/youtube';
 import { useReels } from '@/hooks/reels/useReels';
 import { useReelsSearch } from '@/hooks/reels/useReelsSearch';
 import { useActiveReel } from '@/hooks/reels/useActiveReel';
-import { useIntersection } from '@/hooks/reels/useIntersection';
 import { useReelsSearchStore } from '@/store/reelsSearchStore';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { consumeReelHandoff } from '@/utils/reels/reelHandoff';
@@ -74,7 +73,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId, initi
   const retry = isViewingSearchResult ? search.retry : feed.retry;
 
   const { containerRef, activeIndex, setItemRef } = useActiveReel({ threshold: 0.8 });
-  const [sentinelRef, sentinelVisible] = useIntersection<HTMLDivElement>({ threshold: 0.1 });
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
@@ -278,13 +277,22 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId, initi
     return () => window.removeEventListener('resize', checkIsDesktop);
   }, []);
 
-  // Infinite scroll: fetch the next page once the sentinel near the end
-  // of the list scrolls into view.
+  // Observe inside the swipeable feed itself so its overflow scroller, not
+  // the browser viewport, controls prefetch timing on desktop and mobile.
   useEffect(() => {
-    if (sentinelVisible && hasMore && !loading) {
-      loadMore();
-    }
-  }, [sentinelVisible, hasMore, loading, loadMore]);
+    const container = containerRef.current;
+    const sentinel = sentinelRef.current;
+    if (!container || !sentinel || !hasMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) void loadMore();
+      },
+      { root: container, rootMargin: `${container.clientHeight}px 0px`, threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [videos.length, hasMore, loading, loadMore, containerRef]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

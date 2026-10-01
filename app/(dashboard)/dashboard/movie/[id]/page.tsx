@@ -101,22 +101,39 @@ export default function MovieDetailsPage() {
       </button>
 
       {isPlaying ? (
-        <div className="overflow-hidden rounded-xl border border-[color:var(--border)] bg-black shadow-2xl">
-          <div className="flex items-center justify-between gap-4 bg-[color:var(--surface)] px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">Now playing</p>
-              <h1 className="truncate text-sm font-bold text-[color:var(--foreground)]">{title}</h1>
+        <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-black sm:items-center sm:justify-center sm:bg-black/90 sm:p-4">
+          <div className="flex h-full w-full flex-col overflow-hidden bg-black sm:h-auto sm:max-h-[94dvh] sm:max-w-7xl sm:rounded-2xl sm:border sm:border-[color:var(--border)] sm:shadow-2xl">
+            <header className="z-10 flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-black/90 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white backdrop-blur-xl sm:bg-[color:var(--surface)] sm:pt-3 sm:text-[color:var(--foreground)]">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/55 sm:text-[color:var(--muted-foreground)]">Now playing</p>
+                <h1 className="truncate text-sm font-bold">{title}</h1>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlaying(false)}
+                aria-label="Close player"
+                className="shrink-0 cursor-pointer rounded-lg border border-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/10 sm:border-[color:var(--border)] sm:text-[color:var(--foreground)] sm:hover:bg-[color:var(--surface-hover)]"
+              >
+                Close
+              </button>
+            </header>
+            <div className="flex min-h-0 flex-1 items-center justify-center bg-black sm:flex-none">
+              <div className="relative aspect-video max-h-full w-full sm:max-h-[calc(94dvh-9rem)] sm:max-w-full">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${playableId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full border-0"
+                />
+              </div>
             </div>
-            <button type="button" onClick={() => setIsPlaying(false)} className="cursor-pointer rounded-md px-3 py-1.5 text-xs font-bold text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]">Close player</button>
-          </div>
-          <div className="relative aspect-video w-full">
-            <iframe
-                src={`https://www.youtube-nocookie.com/embed/${playableId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-              title={title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full border-0"
-            />
+            <footer className="shrink-0 border-t border-white/10 bg-black/90 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 text-white backdrop-blur-xl sm:bg-[color:var(--surface)] sm:pb-3 sm:text-[color:var(--foreground)]">
+              <h2 className="truncate text-sm font-bold">{title}</h2>
+              <p className="mt-1 text-xs text-white/60 sm:text-[color:var(--muted-foreground)]">
+                {selectedMovie.year} · {selectedMovie.country} · {selectedMovie.genres.join(' · ')}
+              </p>
+            </footer>
           </div>
         </div>
       ) : (
