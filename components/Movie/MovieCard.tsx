@@ -89,7 +89,11 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Premium/Free Badge */}
         <div className="absolute top-2 left-2 z-10">
-          {isPremium ? (
+          {movie.mediaKind !== 'movie' ? (
+            <span className="bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] border border-[color:var(--border)] text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+              {movie.mediaKind === 'episode' ? `S${movie.seasonNumber || 1} · E${movie.episodeNumber || 1}` : 'Series'}
+            </span>
+          ) : isPremium ? (
             <span className="bg-[#111]/90 backdrop-blur-md text-[#FCD116] border border-[#FCD116]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg flex items-center gap-1 uppercase tracking-wider">
               <Star size={10} fill="currentColor" /> Premium
             </span>

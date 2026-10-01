@@ -26,6 +26,12 @@ interface CuratedMovieDto {
   genres: string[];
   language: string | null;
   is_featured: boolean;
+  media_kind?: 'movie' | 'series' | 'episode';
+  series_id?: string;
+  series_title?: string;
+  season_number?: number;
+  episode_number?: number;
+  episode_title?: string;
 }
 
 interface MovieApiResponse {
@@ -47,6 +53,14 @@ function publicationYear(value: string): number {
 }
 
 function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
+  const episodePattern = dto.title.match(/^(.*?)\s+(?:S(\d{1,2})E(\d{1,2})|Season\s*(\d+)\s*Episode\s*(\d+))\s*[:.-]?\s*(.*)$/i);
+  const explicitSeason = Number(dto.season_number) || undefined;
+  const explicitEpisode = Number(dto.episode_number) || undefined;
+  const seasonNumber = explicitSeason || (episodePattern ? Number(episodePattern[2] || episodePattern[4]) : undefined);
+  const episodeNumber = explicitEpisode || (episodePattern ? Number(episodePattern[3] || episodePattern[5]) : undefined);
+  const seriesTitle = dto.series_title || episodePattern?.[1]?.trim() || undefined;
+  const mediaKind = dto.media_kind || (episodeNumber ? 'episode' : seriesTitle ? 'series' : 'movie');
+
   return {
     id: dto.youtube_video_id,
     title: dto.title,
@@ -64,6 +78,12 @@ function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
     stars: dto.channel_title,
     language: dto.language || 'English / French',
     subtitles: 'English',
+    seriesId: dto.series_id || (seriesTitle ? seriesTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-') : undefined),
+    seriesTitle,
+    seasonNumber,
+    episodeNumber,
+    episodeTitle: dto.episode_title || episodePattern?.[6]?.trim() || undefined,
+    mediaKind,
   };
 }
 
@@ -145,6 +165,13 @@ export default function MoviePage(): React.ReactElement {
     () => movies.filter((m) => m.id !== selectedMovie?.id).slice(0, 6),
     [movies, selectedMovie]
   );
+
+  const seriesEpisodes = useMemo(() => {
+    if (!selectedMovie?.seriesId) return [];
+    return movies
+      .filter((movie) => movie.seriesId === selectedMovie.seriesId)
+      .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0));
+  }, [movies, selectedMovie]);
 
   // Close player modal on Escape key
   useEffect(() => {
@@ -229,6 +256,7 @@ export default function MoviePage(): React.ReactElement {
             movie={selectedMovie}
             onClose={() => setSelectedMovie(featuredMovie)}
             moreMovies={moreMovies}
+            seriesEpisodes={seriesEpisodes}
             onSelectMovie={setSelectedMovie}
             onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
           />
@@ -241,6 +269,8 @@ export default function MoviePage(): React.ReactElement {
         {selectedMovie && selectedMovie.id !== featuredMovie.id && (
           <MovieDetailSheet
             movie={selectedMovie}
+            seriesEpisodes={seriesEpisodes}
+            onSelectMovie={setSelectedMovie}
             onClose={() => setSelectedMovie(featuredMovie)}
             onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
           />

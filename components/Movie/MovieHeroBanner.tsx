@@ -100,7 +100,9 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
         <div className="flex max-w-3xl flex-col items-start justify-end">
         <span className="inline-flex items-center gap-1.5 bg-[color:var(--primary)] text-white text-[9px] sm:text-[10px] font-bold px-2.5 py-1.5 rounded tracking-widest uppercase mb-3">
           <span className="h-1.5 w-1.5 rounded-full bg-white" />
-          Cameroon Cinema
+          {movie.mediaKind === 'episode'
+            ? `${movie.seriesTitle || 'Series'} · Season ${movie.seasonNumber || 1}, Episode ${movie.episodeNumber || 1}`
+            : movie.mediaKind === 'series' ? 'Cameroon Series' : 'Cameroon Cinema'}
         </span>
 
         <h1 className="max-w-3xl text-3xl sm:text-4xl lg:text-6xl font-black text-white leading-[1.05] mb-3 drop-shadow-lg">

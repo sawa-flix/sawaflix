@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Play, Star, X, Globe, Users, Calendar, Volume2 } from 'lucide-react';
+import { MovieEpisodeGuide } from './MovieEpisodeGuide';
 import { MovieDetailSheetProps } from './types';
 
 /**
@@ -12,6 +13,8 @@ import { MovieDetailSheetProps } from './types';
  */
 export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
   movie,
+  seriesEpisodes,
+  onSelectMovie,
   onClose,
   onWatchNow,
 }) => {
@@ -82,6 +85,14 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
 
             {/* Description */}
             <p className="text-[color:var(--foreground-secondary)] text-[13px] mb-4 leading-relaxed">{movie.description}</p>
+
+            <MovieEpisodeGuide
+              key={`${movie.seriesId || movie.id}-${movie.id}`}
+              movie={movie}
+              episodes={seriesEpisodes}
+              onSelectEpisode={onSelectMovie}
+              onPlayEpisode={onWatchNow}
+            />
 
             {/* Details Grid */}
             <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-[color:var(--border)]">

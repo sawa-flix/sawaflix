@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Play, Star, Info, Globe, Users, Calendar, FileText, Volume2 } from 'lucide-react';
+import { Play, Star, Globe, Users, Calendar, Volume2 } from 'lucide-react';
+import { MovieEpisodeGuide } from './MovieEpisodeGuide';
 import { RightSidebarContentProps } from './types';
 
 /**
@@ -15,6 +16,7 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
   onClose,
   moreMovies,
   onSelectMovie,
+  seriesEpisodes,
   onWatchNow,
 }) => {
   if (!movie) return null;
@@ -23,9 +25,16 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
     <div className="animate-fadeIn">
       {/* Sidebar Header */}
       <div className="flex justify-between items-center mb-5">
-        <span className="bg-[#FCD116]/20 text-[#FCD116] border border-[#FCD116]/30 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase tracking-wider">
-          <Star size={10} fill="currentColor" /> Premium Content
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {movie.mediaKind !== 'movie' && (
+            <span className="inline-flex items-center gap-1 rounded border border-[color:var(--border)] bg-[color:var(--surface-hover)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--foreground)]">
+              {movie.mediaKind === 'episode' ? `S${String(movie.seasonNumber || 1).padStart(2, '0')} · E${String(movie.episodeNumber || 1).padStart(2, '0')}` : 'Series'}
+            </span>
+          )}
+          <span className="flex items-center gap-1 rounded border border-[#FCD116]/30 bg-[#FCD116]/20 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#8A6A00] dark:text-[#FCD116]">
+            <Star size={10} fill="currentColor" /> Premium
+          </span>
+        </div>
         <button
           onClick={onClose}
           className="text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] transition-colors"
@@ -74,6 +83,14 @@ export const RightSidebarContent: React.FC<RightSidebarContentProps> = ({
       <p className="text-xs lg:text-sm text-[color:var(--foreground-secondary)] mb-4 line-clamp-3">
         {movie.description}
       </p>
+
+      <MovieEpisodeGuide
+        key={`${movie.seriesId || movie.id}-${movie.id}`}
+        movie={movie}
+        episodes={seriesEpisodes}
+        onSelectEpisode={onSelectMovie}
+        onPlayEpisode={onWatchNow}
+      />
 
       {/* Movie Details Grid */}
       <div className="space-y-3 mb-6 pb-6 border-b border-[color:var(--border)]">

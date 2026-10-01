@@ -19,6 +19,12 @@ export interface Movie {
   stars?: string;
   language?: string;
   subtitles?: string;
+  seriesId?: string;
+  seriesTitle?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  episodeTitle?: string;
+  mediaKind?: 'movie' | 'series' | 'episode';
 }
 
 export interface MovieCardProps {
@@ -33,11 +39,14 @@ export interface RightSidebarContentProps {
   onClose: () => void;
   moreMovies: Movie[];
   onSelectMovie: (movie: Movie) => void;
+  seriesEpisodes: Movie[];
   onWatchNow: (movie: Movie) => void;
 }
 
 export interface MovieDetailSheetProps {
   movie: Movie;
+  seriesEpisodes: Movie[];
+  onSelectMovie: (movie: Movie) => void;
   onClose: () => void;
   onWatchNow: (movie: Movie) => void;
 }
