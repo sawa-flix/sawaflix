@@ -1,7 +1,12 @@
-import { getCultureFeedAction } from '@/app/actions/youtube';
-import type { Video } from '@/types/youtube';
-import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
-import { ReelsFeed } from '@/components/reels/ReelsFeed';
+import { getCultureFeedAction } from "@/app/actions/youtube";
+import type { Video } from "@/types/youtube";
+import {
+  mapYoutubeItem,
+  extractVideoId,
+  type RawYoutubeFeedItem,
+} from "@/utils/reels/mapYoutubeItem";
+import { ReelsFeed } from "@/components/reels/ReelsFeed";
+// import { DownloadManager } from "@/components/DownloadManager";
 
 interface ReelsPageProps {
   searchParams: Promise<{ id?: string }>;
@@ -23,10 +28,12 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
   try {
     const response = await getCultureFeedAction(1, 20);
     const feedList: RawYoutubeFeedItem[] = response?.feed || [];
-    videos = feedList.filter((item) => !!extractVideoId(item)).map(mapYoutubeItem);
+    videos = feedList
+      .filter((item) => !!extractVideoId(item))
+      .map(mapYoutubeItem);
     hasMore = !!response?.pagination?.next_page;
   } catch (error) {
-    console.error('[ReelsPage] Failed to fetch initial feed:', error);
+    console.error("[ReelsPage] Failed to fetch initial feed:", error);
   }
 
   return (
@@ -42,17 +49,9 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
     // is trailing scroll space for flowing content — a fixed-height video
     // panel doesn't need it). 2rem top + 1rem bottom padding remains, so
     // 100vh - 7rem is what's actually available there.
-    <div className="h-dvh md:h-[calc(100vh-7rem)] min-h-[500px] w-full">
-      {/* Keyed on the target id: navigating here again with a different
-          ?id= (e.g. clicking another reel in the right sidebar while
-          already on this page) is a same-route search-param change, which
-          React does NOT remount for by default — it would just hand new
-          props to the existing ReelsFeed instance, whose handoff-consuming
-          seed state (a useState lazy initializer) only ever runs once per
-          mount. Keying forces a clean remount per target reel, so the
-          handoff and initial-video seeding actually re-run each time. */}
+    <div className="relative h-dvh md:h-[calc(100vh-7rem)] min-h-[500px] w-full">
       <ReelsFeed
-        key={initialVideoId ?? 'feed'}
+        key={initialVideoId ?? "feed"}
         initialVideos={videos}
         initialHasMore={hasMore}
         initialVideoId={initialVideoId}
