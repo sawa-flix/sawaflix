@@ -25,8 +25,6 @@ export interface Movie {
   episodeNumber?: number;
   episodeTitle?: string;
   mediaKind?: 'movie' | 'series' | 'episode';
-  playbackId?: string;
-  isSample?: boolean;
 }
 
 export interface MovieCardProps {

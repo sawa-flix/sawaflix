@@ -1,107 +1,26 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Play, X, Loader2, RefreshCw, Heart, MessageCircle, Send, Share2, Film, Tv, Clapperboard } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import {
   MovieCard,
   RightSidebarContent,
   MovieDetailSheet,
   FILTERS,
-  MOVIES_DATA,
-  SAMPLE_SERIES_DATA,
   Movie,
 } from '@/components/Movie';
 import MovieHeroBanner from '@/components/Movie/MovieHeroBanner';
-import { BACKEND_URL } from '@/lib/apiConfig';
-
-interface CuratedMovieDto {
-  youtube_video_id: string;
-  channel_title: string;
-  title: string;
-  description: string;
-  thumbnail_url: string;
-  embed_url: string;
-  duration_seconds: number;
-  published_at: string;
-  genres: string[];
-  language: string | null;
-  is_featured: boolean;
-  media_kind?: 'movie' | 'series' | 'episode';
-  series_id?: string;
-  series_title?: string;
-  season_number?: number;
-  episode_number?: number;
-  episode_title?: string;
-}
-
-interface MovieApiResponse {
-  success: boolean;
-  movies?: CuratedMovieDto[];
-  genres?: string[];
-  error?: string;
-}
-
-function formatDuration(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-}
-
-function publicationYear(value: string): number {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 2026 : date.getFullYear();
-}
-
-function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
-  const episodePattern = dto.title.match(/^(.*?)\s+(?:S(\d{1,2})E(\d{1,2})|Season\s*(\d+)\s*Episode\s*(\d+))\s*[:.-]?\s*(.*)$/i);
-  const namedEpisodePattern = dto.title.match(/^(.*?)\s*[([\s]*(?:Episode|Ep\.?\s*)\s*(\d+)\s*[)\]]?\s*[:.\-–]?\s*(.*)$/i);
-  const explicitSeason = Number(dto.season_number) || undefined;
-  const explicitEpisode = Number(dto.episode_number) || undefined;
-  const genreMarksSeries = dto.genres?.some((genre) => /series/i.test(genre)) || false;
-  const seasonNumber = explicitSeason || (episodePattern ? Number(episodePattern[2] || episodePattern[4]) : undefined);
-  const episodeNumber = explicitEpisode || (episodePattern ? Number(episodePattern[3] || episodePattern[5]) : undefined) || (namedEpisodePattern ? Number(namedEpisodePattern[2]) : undefined);
-  const seriesTitle = dto.series_title || episodePattern?.[1]?.trim() || namedEpisodePattern?.[1]?.trim() || undefined;
-  const mediaKind = dto.media_kind || (episodeNumber ? 'episode' : seriesTitle || genreMarksSeries ? 'series' : 'movie');
-
-  return {
-    id: dto.youtube_video_id,
-    title: dto.title,
-    image: dto.thumbnail_url,
-    year: publicationYear(dto.published_at),
-    country: 'Cameroon',
-    genres: dto.genres && dto.genres.length > 0 ? dto.genres : ['Drama'],
-    featured: dto.is_featured,
-    description: dto.description || 'Authentic Cameroonian movie streaming on SawaFlix.',
-    duration: formatDuration(dto.duration_seconds),
-    ageRating: '16+',
-    rating: 4.8,
-    director: dto.channel_title,
-    writer: dto.channel_title,
-    stars: dto.channel_title,
-    language: dto.language || 'English / French',
-    subtitles: 'English',
-    seriesId: dto.series_id || (seriesTitle ? seriesTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-') : undefined),
-    seriesTitle,
-    seasonNumber,
-    episodeNumber,
-    episodeTitle: dto.episode_title || episodePattern?.[6]?.trim() || namedEpisodePattern?.[3]?.trim() || undefined,
-    mediaKind,
-  };
-}
+import { fetchCuratedMovies } from '@/components/Movie/movieApi';
 
 export default function MoviePage(): React.ReactElement {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const movieQuery = (searchParams.get('q') || '').trim().toLowerCase();
-  const [movies, setMovies] = useState<Movie[]>([...MOVIES_DATA, ...SAMPLE_SERIES_DATA]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<string[]>(FILTERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const [activeCatalog, setActiveCatalog] = useState<'movies' | 'series' | 'episodes'>('movies');
-  const [selectedMovie, setSelectedMovie] = useState<Movie>(MOVIES_DATA.find((movie) => movie.featured) || MOVIES_DATA[0]);
-  const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
-  const [showPlayerDiscussion, setShowPlayerDiscussion] = useState(false);
-  const [playerCommentDraft, setPlayerCommentDraft] = useState('');
-  const [isPlayerLiked, setIsPlayerLiked] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,31 +29,21 @@ export default function MoviePage(): React.ReactElement {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/youtube/movies?limit=100`, {
-        headers: { Accept: 'application/json' },
-        cache: 'no-store',
-      });
-      const result: MovieApiResponse = await response.json();
-      if (!response.ok || !result.success || !result.movies || result.movies.length === 0) {
-        throw new Error(result.error || 'Using curated catalog.');
-      }
-      const mapped = result.movies.map(mapCuratedToMovie);
-      const catalogById = new Map([...MOVIES_DATA, ...SAMPLE_SERIES_DATA, ...mapped].map((movie) => [movie.id, movie]));
-      const catalog = Array.from(catalogById.values());
+      const catalog = await fetchCuratedMovies();
+      if (catalog.length === 0) throw new Error('No curated movies are available.');
       setMovies(catalog);
       
       const availableGenres = Array.from(
-        new Set(['All', ...(result.genres || []), ...catalog.flatMap((m) => m.genres)])
+        new Set(['All', ...catalog.flatMap((m) => m.genres)])
       ).slice(0, 12);
       setGenres(availableGenres);
 
       const featured = catalog.find((m) => m.featured && m.mediaKind !== 'episode') || catalog[0];
       setSelectedMovie(featured);
-    } catch {
-      // Fallback to static catalog if backend is syncing
-      const featured = MOVIES_DATA.find((m) => m.featured) || MOVIES_DATA[0];
-      setMovies(MOVIES_DATA);
-      setSelectedMovie(featured);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Movie catalog is unavailable.');
+      setMovies([]);
+      setSelectedMovie(null);
     } finally {
       setLoading(false);
     }
@@ -155,28 +64,16 @@ export default function MoviePage(): React.ReactElement {
     );
   }, [movies, movieQuery]);
 
-  const catalogMovies = useMemo(() => matchingMovies.filter((movie) => {
-    if (activeCatalog === 'series') return movie.mediaKind === 'series';
-    if (activeCatalog === 'episodes') return movie.mediaKind === 'episode';
-    return movie.mediaKind !== 'series' && movie.mediaKind !== 'episode';
-  }), [matchingMovies, activeCatalog]);
-
-  const featuredMovie = useMemo(() => {
-    if (movieQuery) return catalogMovies[0] || matchingMovies[0] || MOVIES_DATA[0];
-    return catalogMovies.find((movie) => movie.featured) || catalogMovies[0] || matchingMovies[0] || MOVIES_DATA[0];
-  }, [catalogMovies, matchingMovies, movieQuery]);
-
-  useEffect(() => {
-    if (activeCatalog !== 'movies' && featuredMovie.mediaKind !== 'movie') {
-      setSelectedMovie(featuredMovie);
-    }
-  }, [activeCatalog, featuredMovie]);
+  const featuredMovie = useMemo(
+    () => movieQuery ? matchingMovies[0] || null : matchingMovies.find((movie) => movie.featured && movie.mediaKind !== 'episode') || matchingMovies[0] || null,
+    [movies, movieQuery, matchingMovies]
+  );
 
   // Memoized filtered movies for responsive grid
   const filteredMovies = useMemo(() => {
-    if (activeFilter === 'All') return catalogMovies.filter((m) => m.id !== featuredMovie.id);
-    return catalogMovies.filter((m) => m.id !== featuredMovie.id && m.genres?.includes(activeFilter));
-  }, [catalogMovies, activeFilter, featuredMovie]);
+    if (activeFilter === 'All') return matchingMovies.filter((movie) => movie.id !== featuredMovie?.id);
+    return matchingMovies.filter((movie) => movie.id !== featuredMovie?.id && movie.genres?.includes(activeFilter));
+  }, [matchingMovies, activeFilter, featuredMovie]);
 
   // Related movies for the desktop right sidebar
   const moreMovies = useMemo(
@@ -187,63 +84,19 @@ export default function MoviePage(): React.ReactElement {
   const seriesEpisodes = useMemo(() => {
     if (!selectedMovie?.seriesId) return [];
     return movies
-      .filter((movie) => movie.seriesId === selectedMovie.seriesId)
+      .filter((movie) => movie.seriesId === selectedMovie.seriesId && movie.mediaKind === 'episode')
       .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0));
   }, [movies, selectedMovie]);
 
   const handleWatchMovie = useCallback((movie: Movie) => {
-    if (movie.mediaKind === 'series' && movie.seriesId) {
-      const firstEpisode = movies
-        .filter((item) => item.seriesId === movie.seriesId && item.mediaKind === 'episode')
-        .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0))[0];
-      if (firstEpisode) {
-        setPlayingMovie(firstEpisode);
-        return;
-      }
-    }
-    setPlayingMovie(movie);
-  }, [movies]);
-
-  // Close player modal on Escape key
-  useEffect(() => {
-    if (!playingMovie) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPlayingMovie(null);
-    };
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [playingMovie]);
+    router.push(`/dashboard/movie/${encodeURIComponent(movie.id)}`);
+  }, [router]);
 
   return (
     <>
       <div className="movie-page-root flex flex-col gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-[color:var(--foreground)] pb-20">
         {/* Filters span the same cinema canvas as the featured title. */}
         <div className="sticky top-0 z-40 bg-[color:var(--background)]/90 backdrop-blur-md py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-[color:var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0">
-            {([
-              { id: 'movies', label: 'Movies', icon: Film, count: movies.filter((movie) => movie.mediaKind !== 'series' && movie.mediaKind !== 'episode').length },
-              { id: 'series', label: 'Series', icon: Tv, count: movies.filter((movie) => movie.mediaKind === 'series').length },
-              { id: 'episodes', label: 'Episodes', icon: Clapperboard, count: movies.filter((movie) => movie.mediaKind === 'episode').length },
-            ] as const).map(({ id, label, icon: Icon, count }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setActiveCatalog(id);
-                  setActiveFilter('All');
-                }}
-                aria-pressed={activeCatalog === id}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${activeCatalog === id ? 'bg-[color:var(--foreground)] text-[color:var(--background)]' : 'bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'}`}
-              >
-                <Icon size={15} />
-                {label}
-                <span className="text-[10px] opacity-70">{count}</span>
-              </button>
-            ))}
-            <span className="mx-1 h-6 w-px shrink-0 bg-[color:var(--border)]" />
             {genres.map((filter) => (
               <button
                 key={filter}
@@ -267,7 +120,7 @@ export default function MoviePage(): React.ReactElement {
             )}
         </div>
 
-        {(!movieQuery || matchingMovies.length > 0) && (
+        {featuredMovie && (!movieQuery || matchingMovies.length > 0) && (
           <MovieHeroBanner
             movie={featuredMovie}
             onWatchNow={() => handleWatchMovie(featuredMovie)}
@@ -277,6 +130,13 @@ export default function MoviePage(): React.ReactElement {
         {movieQuery && matchingMovies.length === 0 && (
           <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-5 py-8 text-center text-sm font-semibold text-[color:var(--muted-foreground)]">
             No movies found for &quot;{searchParams.get('q')}&quot;.
+          </div>
+        )}
+
+        {!loading && error && movies.length === 0 && !movieQuery && (
+          <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-5 py-10 text-center">
+            <p className="text-sm font-semibold text-[color:var(--foreground)]">The SawaFlix movie catalog is unavailable right now.</p>
+            <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">Please try again shortly.</p>
           </div>
         )}
 
@@ -296,7 +156,7 @@ export default function MoviePage(): React.ReactElement {
             ))}
             {filteredMovies.length === 0 && (
               <div className="col-span-full py-20 text-center text-[color:var(--muted-foreground)] font-bold">
-                No {activeCatalog} found for &quot;{activeFilter}&quot;
+                No movies found for &quot;{activeFilter}&quot;
               </div>
             )}
           </div>
@@ -318,7 +178,7 @@ export default function MoviePage(): React.ReactElement {
 
       {/* ========== MOBILE BOTTOM SHEET (SLIDES FROM BOTTOM) ========== */}
       <div className="xl:hidden">
-        {selectedMovie && (selectedMovie.id !== featuredMovie.id || activeCatalog !== 'movies') && (
+        {selectedMovie && selectedMovie.id !== featuredMovie?.id && (
           <MovieDetailSheet
             movie={selectedMovie}
             seriesEpisodes={seriesEpisodes}
@@ -328,113 +188,6 @@ export default function MoviePage(): React.ReactElement {
           />
         )}
       </div>
-
-      {/* ========== THEATER VIDEO PLAYER MODAL ========== */}
-      {playingMovie && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-5xl max-h-[94dvh] bg-[color:var(--surface)] text-[color:var(--foreground)] rounded-2xl overflow-hidden border border-[color:var(--border)] shadow-[0_25px_80px_rgba(0,0,0,0.45)] flex flex-col">
-            {/* Player Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[color:var(--surface)] border-b border-[color:var(--border)]">
-              <div className="flex items-center gap-2 min-w-0 pr-4">
-                <span className="bg-[color:var(--foreground)] text-[color:var(--background)] text-[10px] font-black uppercase px-2 py-0.5 rounded">
-                  Now Playing
-                </span>
-                <h3 className="text-sm font-bold text-[color:var(--foreground)] truncate">{playingMovie.episodeTitle || playingMovie.title}</h3>
-              </div>
-              <button
-                onClick={() => {
-                  setPlayingMovie(null);
-                  setShowPlayerDiscussion(false);
-                  setPlayerCommentDraft('');
-                }}
-                className="p-1.5 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors cursor-pointer shrink-0"
-                aria-label="Close Player"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Embed Player */}
-            <div className="relative aspect-video w-full bg-black">
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${playingMovie.playbackId || playingMovie.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                title={playingMovie.episodeTitle || playingMovie.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full border-0"
-              />
-            </div>
-
-            <div className="overflow-y-auto border-t border-[color:var(--border)]">
-              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-                <div className="min-w-0">
-                  <h2 className="truncate text-base font-bold text-[color:var(--foreground)]">{playingMovie.episodeTitle || playingMovie.title}</h2>
-                  <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">{playingMovie.year} · {playingMovie.genres?.[0] || 'Cameroonian cinema'}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-pressed={isPlayerLiked}
-                    onClick={() => setIsPlayerLiked((liked) => !liked)}
-                    className={`inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] px-3 py-2 text-xs font-semibold transition-colors ${isPlayerLiked ? 'bg-[color:var(--primary-soft)] text-[color:var(--primary)]' : 'bg-[color:var(--surface-hover)] text-[color:var(--foreground)] hover:bg-[color:var(--border)]'}`}
-                  >
-                    <Heart size={15} className={isPlayerLiked ? 'fill-current' : ''} /> {isPlayerLiked ? 129 : 128}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPlayerDiscussion((visible) => !visible)}
-                    aria-expanded={showPlayerDiscussion}
-                    className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface-hover)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--border)]"
-                  >
-                    <MessageCircle size={15} /> 24 comments
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Share movie"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface-hover)] text-[color:var(--foreground)] hover:bg-[color:var(--border)]"
-                  >
-                    <Share2 size={15} />
-                  </button>
-                </div>
-              </div>
-
-              {showPlayerDiscussion && (
-                <div className="border-t border-[color:var(--border)] bg-[color:var(--background-secondary)] px-4 py-4 sm:px-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-[color:var(--foreground)]">Community discussion</h3>
-                      <p className="text-xs text-[color:var(--muted-foreground)]">Join the conversation about this film.</p>
-                    </div>
-                    <span className="text-xs font-semibold text-[color:var(--muted-foreground)]">24 comments</span>
-                  </div>
-                  <div className="grid gap-3 border-y border-[color:var(--border)] py-3 sm:grid-cols-2">
-                    <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Nadia:</strong> A beautiful story. The cast was excellent.</p>
-                    <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Kevin:</strong> More Cameroon cinema like this, please.</p>
-                  </div>
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      setPlayerCommentDraft('');
-                    }}
-                    className="mt-3 flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-2"
-                  >
-                    <input
-                      value={playerCommentDraft}
-                      onChange={(event) => setPlayerCommentDraft(event.target.value)}
-                      placeholder="Add a comment"
-                      aria-label="Add a movie comment"
-                      className="min-w-0 flex-1 bg-transparent text-sm text-[color:var(--foreground)] outline-none placeholder:text-[color:var(--muted-foreground)]"
-                    />
-                    <button type="submit" aria-label="Post comment" disabled={!playerCommentDraft.trim()} className="text-[color:var(--primary)] disabled:opacity-40">
-                      <Send size={16} />
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style jsx global>{`
         .scrollbar-hide {

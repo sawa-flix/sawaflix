@@ -103,11 +103,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             </span>
           )}
         </div>
-        {movie.isSample && (
-          <span className="absolute top-2 right-2 z-10 rounded bg-[color:var(--surface)]/90 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)] backdrop-blur-md">
-            Sample
-          </span>
-        )}
       </div>
 
       {/* Movie Info Below Card */}
