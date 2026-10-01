@@ -147,6 +147,32 @@ export async function getUnifiedFeedAction() {
 // No localhost fallback — it's never running locally and causes ECONNREFUSED spam.
 const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.ADMIN_BACKEND_URL || '';
 
+const REELS_CATEGORY_QUERIES: Record<string, string> = {
+    news: 'Cameroon news shorts today',
+    music: 'Cameroon music shorts hits',
+    comedy: 'Cameroon comedy shorts',
+    tourism: 'Cameroon tourism travel shorts',
+    heritage: 'Cameroon heritage history shorts',
+    culture: 'Cameroon culture tradition shorts',
+    cinema: 'Cameroon cinema movies shorts',
+    announcement: 'Cameroon news announcement shorts',
+};
+
+export async function getCategoryReelsAction(categoryId: string, pageToken: string | null = null, limit: number = 20) {
+    const query = REELS_CATEGORY_QUERIES[categoryId];
+    if (!query) return getCultureFeedAction(1, limit);
+
+    const response = await searchVideosAction(query, pageToken, limit, false);
+    return {
+        success: true,
+        feed: response.items || [],
+        pagination: {
+            current_page: 1,
+            next_page: response.nextPageToken || null,
+        },
+    };
+}
+
 export async function getCultureFeedAction(page: number = 1, limit: number = 20) {
     const url = `${API_BASE_URL}/api/feed/culture?page=${page}&limit=${limit}`;
     let youtubeFeed: any[] = [];
@@ -277,7 +303,8 @@ export async function getCultureFeedAction(page: number = 1, limit: number = 20)
 export async function searchVideosAction(
     query: string,
     pageToken: string | null = null,
-    maxResults: number = 7
+    maxResults: number = 7,
+    useMockFallback: boolean = true
 ): Promise<VideoSearchResponse> {
     if (!query || query.trim() === '') {
         throw new Error('Search query cannot be empty');
@@ -307,7 +334,7 @@ export async function searchVideosAction(
             error.status === 500 ||
             error.message?.includes('Too Many Requests') ||
             error.message?.includes('quota')) {
-            return { items: MOCK_VIDEOS, nextPageToken: null };
+            return { items: useMockFallback ? MOCK_VIDEOS : [], nextPageToken: null };
         }
         throw error;
     }

@@ -373,7 +373,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
         {/* Reels navigates to its own page rather than filtering in-page content. */}
         <Link
-          href="/dashboard/reels"
+          href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}`}
           className="px-5 py-1.5 rounded-full text-sm font-medium tracking-tight transition-all duration-300 flex-shrink-0 bg-transparent text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]"
         >
           Reels
@@ -457,7 +457,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                   {homeSearchQuery ? `Search results for "${homeSearchQuery}"` : 'Reels'}
                 </h2>
               </div>
-              <button onClick={() => onCategoryChange('reels')} className="text-[#CE1126] text-sm font-bold hover:text-red-400 transition-colors">View all</button>
+              <Link href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}`} className="text-[color:var(--primary)] text-sm font-bold hover:opacity-75 transition-opacity">View all</Link>
             </div>
 
             <div className="relative group/slider">
@@ -468,7 +468,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 {reelsPreview.map((reel: any) => (
                   <Link
                     key={reel.id}
-                    href={`/dashboard/reels?id=${reel.id}`}
+                    href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(reel.id)}`}
                     // Hands the already-fetched video straight to the Reels
                     // page (same mechanism the right sidebar and home search
                     // use) — needed for search results specifically, since

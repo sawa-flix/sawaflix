@@ -59,7 +59,6 @@ export default function MovieDetailsPage() {
   }, [movies, selectedMovie]);
 
   const firstEpisode = seriesEpisodes[0];
-  const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
 
   const handleSelectEpisode = useCallback((episode: Movie) => {
     setSelectedMovie(episode);
@@ -80,6 +79,7 @@ export default function MovieDetailsPage() {
     );
   }
 
+  const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableId = playableMovie.id;
   const title = playableMovie.episodeTitle || playableMovie.title;
 

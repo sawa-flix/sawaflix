@@ -66,7 +66,7 @@ const RightSidebar = () => {
       // it's from a different query than the culture feed Reels loads
       // server-side, so it usually wouldn't be found there by id alone.
       stashReelForHandoff(videoToPlay);
-      router.push(`/dashboard/reels?id=${encodeURIComponent(videoToPlay.id)}`);
+      router.push(`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(videoToPlay.id)}`);
     }
   };
 
@@ -86,24 +86,24 @@ const RightSidebar = () => {
             {loading && !featuredVideo ? (
               <div className="w-full h-56 rounded-2xl bg-[color:var(--surface)]/20 animate-pulse" />
             ) : (
-              <div 
+              <div
                 onClick={() => handleItemClick(trendingMusic.video, videos)}
-                className="group cursor-pointer rounded-2xl p-2 bg-[color:var(--surface)]/30 hover:bg-[color:var(--surface)]/50 border border-[color:var(--border)]/50 transition-all duration-300"
+                className="group cursor-pointer rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)]/60 p-2 shadow-[0_14px_38px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/35 hover:shadow-[0_20px_48px_rgba(0,0,0,0.28)]"
               >
-                <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4">
+                <div className="relative mb-3 h-48 w-full overflow-hidden rounded-xl ring-1 ring-white/10">
                   <Image
                     src={trendingMusic.image}
                     alt="Trending"
                     fill
                     sizes="(max-width: 768px) 100vw, 320px"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                     priority
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--surface)]/80 via-transparent to-transparent" />
+                  <div className="sidebar-feature-fade absolute inset-0" />
                   <div className="absolute bottom-3 left-3 right-3">
-                     <span className="px-2 py-1 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 inline-block">Featured</span>
-                     <h2 className="text-sm font-bold text-[color:var(--foreground)] line-clamp-2 leading-snug drop-shadow-md">
+                    <span className="sidebar-feature-badge mb-2 inline-flex rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em]">Featured in Cameroon</span>
+                    <h2 className="sidebar-feature-title line-clamp-2 text-[15px] font-extrabold leading-snug">
                        {trendingMusic.title}
                      </h2>
                   </div>

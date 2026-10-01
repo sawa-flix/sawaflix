@@ -1,10 +1,10 @@
-import { getCultureFeedAction } from '@/app/actions/youtube';
+import { getCategoryReelsAction, getCultureFeedAction } from '@/app/actions/youtube';
 import type { Video } from '@/types/youtube';
 import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
 import { ReelsFeed } from '@/components/reels/ReelsFeed';
 
 interface ReelsPageProps {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string; cat?: string }>;
 }
 
 /**
@@ -15,16 +15,21 @@ interface ReelsPageProps {
  */
 export default async function ReelsPage({ searchParams }: ReelsPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { id: initialVideoId } = resolvedSearchParams ?? {};
+  const { id: initialVideoId, cat: rawCategoryId } = resolvedSearchParams ?? {};
+  const categoryId = rawCategoryId && rawCategoryId !== 'all' ? rawCategoryId : undefined;
 
   let videos: Video[] = [];
   let hasMore = false;
+  let nextPageToken: string | null = null;
 
   try {
-    const response = await getCultureFeedAction(1, 20);
+    const response = categoryId
+      ? await getCategoryReelsAction(categoryId, null, 20)
+      : await getCultureFeedAction(1, 20);
     const feedList: RawYoutubeFeedItem[] = response?.feed || [];
     videos = feedList.filter((item) => !!extractVideoId(item)).map(mapYoutubeItem);
     hasMore = !!response?.pagination?.next_page;
+    nextPageToken = categoryId && response?.pagination?.next_page ? String(response.pagination.next_page) : null;
   } catch (error) {
     console.error('[ReelsPage] Failed to fetch initial feed:', error);
   }
@@ -52,10 +57,12 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
           mount. Keying forces a clean remount per target reel, so the
           handoff and initial-video seeding actually re-run each time. */}
       <ReelsFeed
-        key={initialVideoId ?? 'feed'}
+        key={`${categoryId ?? 'feed'}:${initialVideoId ?? 'start'}`}
         initialVideos={videos}
         initialHasMore={hasMore}
         initialVideoId={initialVideoId}
+        initialNextPageToken={nextPageToken}
+        categoryId={categoryId}
       />
     </div>
   );

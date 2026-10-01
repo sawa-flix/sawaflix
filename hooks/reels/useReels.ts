@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getCultureFeedAction } from '@/app/actions/youtube';
+import { getCategoryReelsAction, getCultureFeedAction } from '@/app/actions/youtube';
 import type { Video } from '@/types/youtube';
 import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
 
@@ -11,6 +11,8 @@ interface UseReelsOptions {
   initialVideos?: Video[];
   initialPage?: number;
   initialHasMore?: boolean;
+  initialNextPageToken?: string | null;
+  categoryId?: string;
 }
 
 interface UseReelsResult {
@@ -32,23 +34,28 @@ export function useReels({
   initialVideos = [],
   initialPage = 1,
   initialHasMore = true,
+  initialNextPageToken = null,
+  categoryId,
 }: UseReelsOptions = {}): UseReelsResult {
   const [videos, setVideos] = useState<Video[]>(initialVideos);
   const [loading, setLoading] = useState(initialVideos.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
 
-  const pageRef = useRef(initialPage);
+  const pageRef = useRef<number | string>(initialPage);
+  const nextPageTokenRef = useRef<string | null>(initialNextPageToken);
   const isFetchingRef = useRef(false);
 
-  const fetchPage = useCallback(async (page: number, append: boolean) => {
+  const fetchPage = useCallback(async (page: number | string, append: boolean) => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     if (!append) setLoading(true);
     setError(null);
 
     try {
-      const response = await getCultureFeedAction(page, PAGE_SIZE);
+      const response = categoryId
+        ? await getCategoryReelsAction(categoryId, append ? String(page) : null, PAGE_SIZE)
+        : await getCultureFeedAction(Number(page), PAGE_SIZE);
       const feedList: RawYoutubeFeedItem[] = response?.feed || [];
       const mapped: Video[] = feedList.filter((item) => !!extractVideoId(item)).map(mapYoutubeItem);
 
@@ -59,7 +66,8 @@ export function useReels({
       });
 
       setHasMore(!!response?.pagination?.next_page);
-      pageRef.current = page;
+      nextPageTokenRef.current = response?.pagination?.next_page ? String(response.pagination.next_page) : null;
+      pageRef.current = categoryId ? (response?.pagination?.next_page || '') : Number(page);
 
       if (!append && mapped.length === 0) {
         setError('No reels found right now.');
@@ -74,7 +82,7 @@ export function useReels({
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, []);
+  }, [categoryId]);
 
   // The SSR fetch in page.tsx can come back empty (e.g. the backend was
   // mid-cold-start and getCultureFeedAction's built-in fallback returned an
@@ -92,12 +100,17 @@ export function useReels({
 
   const loadMore = useCallback(async () => {
     if (isFetchingRef.current || !hasMore) return;
-    await fetchPage(pageRef.current + 1, true);
-  }, [fetchPage, hasMore]);
+    if (categoryId) {
+      if (!nextPageTokenRef.current) return;
+      await fetchPage(nextPageTokenRef.current, true);
+      return;
+    }
+    await fetchPage(Number(pageRef.current) + 1, true);
+  }, [categoryId, fetchPage, hasMore]);
 
   const retry = useCallback(async () => {
-    await fetchPage(initialPage, false);
-  }, [fetchPage, initialPage]);
+    await fetchPage(categoryId ? '' : initialPage, false);
+  }, [categoryId, fetchPage, initialPage]);
 
   return { videos, loading, error, hasMore, loadMore, retry };
 }

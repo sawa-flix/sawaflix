@@ -22,9 +22,11 @@ interface ReelsFeedProps {
   initialVideos: Video[];
   initialHasMore: boolean;
   initialVideoId?: string;
+  initialNextPageToken?: string | null;
+  categoryId?: string;
 }
 
-export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: ReelsFeedProps) {
+export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId, initialNextPageToken, categoryId }: ReelsFeedProps) {
   // Right-sidebar "open this reel" links stash the full Video object (from a
   // different query than the culture feed below) right before navigating
   // here — consumed exactly once, on the very first render, via useState's
@@ -39,7 +41,7 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId }: Ree
     return initialVideos;
   });
 
-  const feed = useReels({ initialVideos: seededVideos, initialHasMore });
+  const feed = useReels({ initialVideos: seededVideos, initialHasMore, initialNextPageToken, categoryId });
   const search = useReelsSearch();
 
   const isSearching = search.isActive;
