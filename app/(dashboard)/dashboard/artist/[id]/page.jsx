@@ -45,9 +45,9 @@ export default function ArtistDetailsPage({ params }) {
 
   if (!artist) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] text-white flex items-center justify-center flex-col gap-4">
+      <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] flex items-center justify-center flex-col gap-4">
         <h2>Artist not found</h2>
-        <button onClick={() => router.back()} className="px-4 py-2 bg-[#E50914] rounded-full">Go Back</button>
+        <button onClick={() => router.back()} className="px-4 py-2 bg-[color:var(--foreground)] text-[color:var(--background)] rounded-full">Go Back</button>
       </div>
     );
   }
@@ -57,9 +57,9 @@ export default function ArtistDetailsPage({ params }) {
       <style jsx>{`
         .artist-page-root {
           min-height: 100%;
-          color: #fff;
+          color: var(--foreground);
           padding-bottom: 120px;
-          background: #0B0E14;
+          background: var(--background);
         }
 
         /* ====== BANNER ====== */
@@ -80,7 +80,7 @@ export default function ArtistDetailsPage({ params }) {
         .banner-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to top, #0B0E14 0%, transparent 80%);
+          background: linear-gradient(to top, var(--background) 0%, transparent 80%);
           border-radius: 20px;
         }
         .back-btn {
@@ -119,10 +119,10 @@ export default function ArtistDetailsPage({ params }) {
           width: 160px;
           height: 160px;
           border-radius: 50%;
-          border: 4px solid #0B0E14;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          border: 4px solid var(--background);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.22);
           object-fit: cover;
-          background: #1a1f2e;
+          background: var(--surface-elevated);
         }
         .artist-info {
           padding-bottom: 60px; /* offset from the bottom of avatar */
@@ -130,13 +130,14 @@ export default function ArtistDetailsPage({ params }) {
         .artist-name {
           font-size: 48px;
           font-weight: 900;
+          color: var(--foreground);
           margin: 0 0 8px 0;
           line-height: 1;
           text-shadow: 0 4px 20px rgba(0,0,0,0.6);
         }
         .artist-meta {
           font-size: 14px;
-          color: rgba(255,255,255,0.7);
+          color: var(--muted-foreground);
           display: flex;
           align-items: center;
           gap: 8px;
@@ -145,7 +146,7 @@ export default function ArtistDetailsPage({ params }) {
           width: 4px;
           height: 4px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.3);
+          background: var(--muted-foreground);
         }
 
         /* ====== ACTION BAR ====== */
@@ -160,33 +161,34 @@ export default function ArtistDetailsPage({ params }) {
           width: 56px;
           height: 56px;
           border-radius: 50%;
-          background: #E50914;
+          background: var(--foreground);
+          color: var(--background);
           display: flex;
           align-items: center;
           justify-content: center;
           border: none;
           cursor: pointer;
-          box-shadow: 0 4px 20px rgba(229,9,20,0.4);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.16);
           transition: transform 0.2s, background 0.2s;
         }
         .play-all-btn:hover {
           transform: scale(1.05);
-          background: #FF1A25;
+          background: var(--muted-foreground-strong);
         }
         .btn-about {
           padding: 8px 20px;
           border-radius: 20px;
-          border: 1px solid rgba(255,255,255,0.3);
+          border: 1px solid var(--border);
           background: transparent;
-          color: #fff;
+          color: var(--foreground);
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
         }
         .btn-about:hover {
-          background: rgba(255,255,255,0.1);
-          border-color: #fff;
+          background: var(--surface-hover);
+          border-color: var(--muted-foreground);
         }
 
         @keyframes slideUp {
@@ -210,7 +212,7 @@ export default function ArtistDetailsPage({ params }) {
           width: 4px;
           height: 24px;
           border-radius: 4px;
-          background: #E50914;
+          background: var(--foreground);
         }
 
         /* ====== DESKTOP GRID CARDS ====== */
@@ -235,7 +237,7 @@ export default function ArtistDetailsPage({ params }) {
           border-radius: 14px;
           overflow: hidden;
           margin-bottom: 10px;
-          background: #1a1f2e;
+          background: var(--surface-elevated);
         }
         .music-card-thumb img {
           width: 100%;
@@ -264,11 +266,12 @@ export default function ArtistDetailsPage({ params }) {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          background: rgba(229,9,20,0.9);
+          background: var(--foreground);
+          color: var(--background);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 20px rgba(229,9,20,0.4);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.18);
           transition: transform 0.2s ease;
         }
         .play-btn-circle:hover {
@@ -296,7 +299,7 @@ export default function ArtistDetailsPage({ params }) {
         }
         .music-card-artist {
           font-size: 12px;
-          color: rgba(255,255,255,0.45);
+          color: var(--muted-foreground);
           margin: 0;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -320,7 +323,7 @@ export default function ArtistDetailsPage({ params }) {
         }
         .mobile-list-item:hover,
         .mobile-list-item.active-track {
-          background: rgba(255,255,255,0.04);
+          background: var(--surface-hover);
         }
         .mobile-list-thumb {
           width: 56px;
@@ -329,7 +332,7 @@ export default function ArtistDetailsPage({ params }) {
           overflow: hidden;
           flex-shrink: 0;
           position: relative;
-          background: #1a1f2e;
+          background: var(--surface-elevated);
         }
         .mobile-list-thumb img {
           width: 100%;
@@ -350,11 +353,11 @@ export default function ArtistDetailsPage({ params }) {
         }
         .mobile-list-artist {
           font-size: 12px;
-          color: rgba(255,255,255,0.4);
+          color: var(--muted-foreground);
           margin: 0;
         }
         .mobile-list-more {
-          color: rgba(255,255,255,0.3);
+          color: var(--muted-foreground);
           padding: 6px;
           background: none;
           border: none;
@@ -496,9 +499,9 @@ export default function ArtistDetailsPage({ params }) {
                  togglePlay();
               }
             }}
-            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#FCD116] bg-black/40 backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(252,209,22,0.3)]"
+            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white/70 bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all shadow-lg"
           >
-            {isPlaying ? <Pause size={32} color="#FCD116" /> : <Play size={32} color="#FCD116" className="ml-2" />}
+            {isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-2" />}
           </button>
         </div>
 
@@ -538,7 +541,7 @@ export default function ArtistDetailsPage({ params }) {
             playTrack(trackObj, pl);
           }
         }}>
-          <Play size={24} fill="#fff" color="#fff" style={{ marginLeft: 4 }} />
+          <Play size={24} fill="var(--background)" color="var(--background)" style={{ marginLeft: 4 }} />
         </button>
         <button className="btn-about" onClick={() => setShowBio(true)}>
           About {artist.name}
@@ -554,7 +557,7 @@ export default function ArtistDetailsPage({ params }) {
             onClick={() => setShowBio(false)}
           />
           <div 
-            className="fixed bottom-0 left-0 right-0 z-[101] max-w-3xl mx-auto bg-[#0B0E14] border-t border-white/10 rounded-t-[32px] overflow-hidden shadow-[0_-10px_50px_rgba(0,0,0,0.8)] flex flex-col h-[85vh]"
+            className="fixed bottom-0 left-0 right-0 z-[101] max-w-3xl mx-auto bg-[color:var(--surface)] text-[color:var(--foreground)] border-t border-[color:var(--border)] rounded-t-2xl overflow-hidden shadow-[0_-10px_50px_rgba(0,0,0,0.3)] flex flex-col h-[85dvh]"
             style={{ animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
           >
             {/* Scrollable Content Area */}
@@ -562,7 +565,7 @@ export default function ArtistDetailsPage({ params }) {
               {/* Large Cover Image */}
               <div className="relative w-full h-64 sm:h-80 shrink-0">
                 <img src={artist.image} alt={artist.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14]/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--surface)] via-[color:var(--surface)]/55 to-transparent" />
                 
                 {/* Handle bar inside image */}
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/40 rounded-full cursor-pointer z-10" onClick={() => setShowBio(false)} />
@@ -575,29 +578,29 @@ export default function ArtistDetailsPage({ params }) {
 
               <div className="p-6 sm:p-8">
                 {/* Stats / Metrics mock */}
-                <div className="flex gap-6 mb-8 border-b border-white/5 pb-6">
+                <div className="flex gap-6 mb-8 border-b border-[color:var(--border)] pb-6">
                    <div>
-                     <p className="text-2xl font-bold text-white">2.4M</p>
-                     <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">Monthly Listeners</p>
+                     <p className="text-2xl font-bold text-[color:var(--foreground)]">2.4M</p>
+                     <p className="text-[10px] text-[color:var(--muted-foreground)] uppercase tracking-widest font-bold mt-1">Monthly Listeners</p>
                    </div>
                    <div>
-                     <p className="text-2xl font-bold text-white">450K</p>
-                     <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">Followers</p>
+                     <p className="text-2xl font-bold text-[color:var(--foreground)]">450K</p>
+                     <p className="text-[10px] text-[color:var(--muted-foreground)] uppercase tracking-widest font-bold mt-1">Followers</p>
                    </div>
                 </div>
 
                 <div className="mb-8">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-white/40 mb-4">Biography</h4>
-                  <p className="text-base sm:text-lg leading-relaxed text-white/80 bg-white/5 p-6 rounded-3xl border border-white/5 shadow-inner">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-[color:var(--muted-foreground)] mb-4">Biography</h4>
+                  <p className="text-base sm:text-lg leading-relaxed text-[color:var(--foreground-secondary)] bg-[color:var(--surface-hover)] p-5 rounded-xl border border-[color:var(--border)] shadow-inner">
                     {artist.bio}
                   </p>
                 </div>
 
                 <div className="mb-8">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-white/40 mb-4">Genres</h4>
+                  <h4 className="text-sm font-black uppercase tracking-widest text-[color:var(--muted-foreground)] mb-4">Genres</h4>
                   <div className="flex flex-wrap gap-2">
                     {artist.genres.map(g => (
-                      <span key={g} className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-sm font-medium text-white/80">{g}</span>
+                      <span key={g} className="px-4 py-2 bg-[color:var(--surface-hover)] border border-[color:var(--border)] rounded-full text-sm font-medium text-[color:var(--foreground-secondary)]">{g}</span>
                     ))}
                   </div>
                 </div>
@@ -605,9 +608,9 @@ export default function ArtistDetailsPage({ params }) {
             </div>
 
             {/* Sticky Bottom Close Button */}
-            <div className="p-6 bg-gradient-to-t from-[#0B0E14] via-[#0B0E14] to-transparent shrink-0">
+            <div className="p-4 bg-[color:var(--surface)] border-t border-[color:var(--border)] shrink-0">
               <button 
-                className="w-full py-4 bg-white text-black rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                className="w-full py-3 bg-[color:var(--foreground)] text-[color:var(--background)] rounded-lg font-bold text-base hover:opacity-85 active:scale-[0.98] transition-transform"
                 onClick={() => setShowBio(false)}
               >
                 Close
@@ -663,9 +666,9 @@ export default function ArtistDetailsPage({ params }) {
                   <div className={`play-overlay ${isCurrentTrack ? 'visible' : ''}`}>
                     <div className="play-btn-circle">
                       {isTrackPlaying ? (
-                        <Pause size={20} fill="#fff" color="#fff" />
+                        <Pause size={20} fill="var(--background)" color="var(--background)" />
                       ) : (
-                        <Play size={20} fill="#fff" color="#fff" style={{ marginLeft: 2 }} />
+                        <Play size={20} fill="var(--background)" color="var(--background)" style={{ marginLeft: 2 }} />
                       )}
                     </div>
                   </div>
