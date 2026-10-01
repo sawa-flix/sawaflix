@@ -73,7 +73,7 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
             type="button"
             onClick={onPrevious}
             aria-label="Previous featured movie"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/60"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/35 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/60"
           >
             <ChevronLeft size={18} />
           </button>
@@ -81,7 +81,7 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
             type="button"
             onClick={onNext}
             aria-label="Next featured movie"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/60"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/35 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/60"
           >
             <ChevronRight size={18} />
           </button>

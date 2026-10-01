@@ -44,7 +44,7 @@ export function MovieEpisodeGuide({ movie, episodes, onSelectEpisode, onPlayEpis
               type="button"
               onClick={() => setActiveSeason(season)}
               aria-pressed={activeSeason === season}
-              className={`shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors ${activeSeason === season ? 'bg-[color:var(--foreground)] text-[color:var(--background)]' : 'bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]'}`}
+              className={`shrink-0 cursor-pointer rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors ${activeSeason === season ? 'bg-[color:var(--foreground)] text-[color:var(--background)]' : 'bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]'}`}
             >
               Season {season}
             </button>
@@ -66,7 +66,7 @@ export function MovieEpisodeGuide({ movie, episodes, onSelectEpisode, onPlayEpis
                   type="button"
                   onClick={() => onSelectEpisode(episode)}
                   aria-current={isCurrent ? 'true' : undefined}
-                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
                 >
                   <div className="relative h-10 w-16 shrink-0 overflow-hidden rounded-md bg-[color:var(--surface)]">
                     <Image src={episode.image} alt="" fill className="object-cover" unoptimized sizes="64px" />
@@ -89,7 +89,7 @@ export function MovieEpisodeGuide({ movie, episodes, onSelectEpisode, onPlayEpis
                   onClick={() => onPlayEpisode(episode)}
                   title={`Play ${episode.title}`}
                   aria-label={`Play ${episode.title}`}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]"
+                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]"
                 >
                   <Play size={14} fill="currentColor" />
                 </button>

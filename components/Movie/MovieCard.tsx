@@ -68,7 +68,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             onClick={toggleLike}
             aria-label={isLiked ? 'Unlike movie' : 'Like movie'}
             aria-pressed={isLiked}
-            className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
+            className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
           >
             <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
             {likesCount}
@@ -81,7 +81,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             }}
             aria-label={`Show comments for ${movie.title}`}
             aria-expanded={showComments}
-            className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
+            className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
           >
             <MessageCircle size={14} /> 24
           </button>
@@ -136,7 +136,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <button
               type="button"
               onClick={() => setShowComments(false)}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
               aria-label="Close comments"
             >
               <X size={14} />
@@ -160,7 +160,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               className="min-w-0 flex-1 bg-transparent text-[11px] text-[color:var(--foreground)] outline-none placeholder:text-[color:var(--muted-foreground)]"
               aria-label="Add a comment"
             />
-            <button type="submit" aria-label="Post comment" className="text-[color:var(--primary)] disabled:opacity-40" disabled={!commentDraft.trim()}>
+            <button type="submit" aria-label="Post comment" className="cursor-pointer text-[color:var(--primary)] disabled:cursor-not-allowed disabled:opacity-40" disabled={!commentDraft.trim()}>
               <Send size={14} />
             </button>
           </form>

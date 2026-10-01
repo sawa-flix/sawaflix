@@ -74,7 +74,7 @@ export default function MovieDetailsPage() {
     return (
       <main className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-4 px-5 text-center">
         <h1 className="text-xl font-bold text-[color:var(--foreground)]">{loadError ? 'Movie details are unavailable' : 'This title is no longer available'}</h1>
-        <Link href="/dashboard/movie" className="rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-sm font-bold text-[color:var(--background)]">Back to movies</Link>
+        <Link href="/dashboard/movie" className="cursor-pointer rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-sm font-bold text-[color:var(--background)]">Back to movies</Link>
       </main>
     );
   }
@@ -84,11 +84,18 @@ export default function MovieDetailsPage() {
   const title = playableMovie.episodeTitle || playableMovie.title;
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-16 sm:px-6">
+    <main className="relative isolate mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-16 sm:px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-30 mix-blend-screen"
+        style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
+      />
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[color:var(--background)]/90 via-[color:var(--background)]/75 to-[color:var(--background)]/95" />
+      <div className="relative z-10">
       <button
         type="button"
         onClick={() => router.push('/dashboard/movie')}
-        className="mb-4 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[color:var(--muted-foreground)] transition-colors hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
+        className="mb-4 inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[color:var(--muted-foreground)] transition-colors hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
       >
         <ArrowLeft size={17} /> Back to movies
       </button>
@@ -100,7 +107,7 @@ export default function MovieDetailsPage() {
               <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">Now playing</p>
               <h1 className="truncate text-sm font-bold text-[color:var(--foreground)]">{title}</h1>
             </div>
-            <button type="button" onClick={() => setIsPlaying(false)} className="rounded-md px-3 py-1.5 text-xs font-bold text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]">Close player</button>
+            <button type="button" onClick={() => setIsPlaying(false)} className="cursor-pointer rounded-md px-3 py-1.5 text-xs font-bold text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)]">Close player</button>
           </div>
           <div className="relative aspect-video w-full">
             <iframe
@@ -135,7 +142,7 @@ export default function MovieDetailsPage() {
                 {selectedMovie.language && <span className="inline-flex items-center gap-1.5"><Users size={14} />{selectedMovie.language}</span>}
                 <span>{selectedMovie.genres.join(' · ')}</span>
               </div>
-              <button type="button" onClick={() => setIsPlaying(true)} className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-lg transition-transform hover:scale-[1.02]">
+              <button type="button" onClick={() => setIsPlaying(true)} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-lg transition-transform hover:scale-[1.02]">
                 <Play size={18} fill="currentColor" /> {selectedMovie.mediaKind === 'series' ? 'Start series' : 'Watch now'}
               </button>
             </div>
@@ -145,6 +152,28 @@ export default function MovieDetailsPage() {
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-8">
+          <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/80 p-5 shadow-lg backdrop-blur-md sm:p-6">
+            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--primary)]">SawaFlix story guide</p>
+            <h2 className="mb-3 text-xl font-bold text-[color:var(--foreground)]">About this title</h2>
+            <p className="max-w-4xl whitespace-pre-line text-sm leading-7 text-[color:var(--foreground-secondary)]">
+              {selectedMovie.description || `Discover ${selectedMovie.title}, a ${selectedMovie.genres[0]?.toLowerCase() || 'Cameroonian'} title curated for SawaFlix viewers.`}
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/70 p-5 backdrop-blur-md sm:p-6">
+            <h2 className="mb-4 text-lg font-bold text-[color:var(--foreground)]">Title details</h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <DetailFact label="Release year" value={String(selectedMovie.year)} />
+              <DetailFact label="Country" value={selectedMovie.country} />
+              <DetailFact label="Runtime" value={selectedMovie.duration || 'Not listed'} />
+              <DetailFact label="Language" value={selectedMovie.language || 'Not listed'} />
+              <DetailFact label="Genre" value={selectedMovie.genres.join(', ') || 'Drama'} />
+              <DetailFact label="Rating" value={`${selectedMovie.rating || 4.8} / 5`} />
+              {selectedMovie.director && <DetailFact label="From" value={selectedMovie.director} />}
+              {selectedMovie.stars && <DetailFact label="Featured artists" value={selectedMovie.stars} />}
+            </div>
+          </section>
+
           {seriesEpisodes.length > 0 && (
             <section>
               <h2 className="mb-4 text-lg font-bold text-[color:var(--foreground)]">Episodes and seasons</h2>
@@ -161,7 +190,6 @@ export default function MovieDetailsPage() {
             </section>
           )}
 
-          {selectedMovie.director && <p className="text-sm text-[color:var(--muted-foreground)]">From {selectedMovie.director}</p>}
         </div>
 
         <aside className="min-w-0">
@@ -186,6 +214,16 @@ export default function MovieDetailsPage() {
           {similarMovies.length === 0 && <p className="text-sm text-[color:var(--muted-foreground)]">More curated titles are on the way.</p>}
         </aside>
       </div>
+      </div>
     </main>
+  );
+}
+
+function DetailFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 border-l-2 border-[color:var(--border)] pl-3">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--muted-foreground)]">{label}</p>
+      <p className="text-sm font-semibold text-[color:var(--foreground)]">{value}</p>
+    </div>
   );
 }

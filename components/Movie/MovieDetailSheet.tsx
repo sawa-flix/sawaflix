@@ -39,7 +39,7 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-[color:var(--background)]/70 hover:bg-[color:var(--background)] text-[color:var(--foreground)] p-2 rounded-full transition-colors cursor-pointer border border-[color:var(--border)]"
+          className="absolute top-4 right-4 z-10 cursor-pointer bg-[color:var(--background)]/70 p-2 text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--background)] border border-[color:var(--border)] rounded-full"
           aria-label="Close details"
         >
           <X size={20} />
@@ -60,7 +60,7 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
               {/* Play Button */}
               <button
                 onClick={() => onWatchNow(movie)}
-                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors group cursor-pointer"
+                className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 transition-colors group hover:bg-black/50"
               >
                 <div className="bg-[color:var(--foreground)] text-[color:var(--background)] hover:scale-110 rounded-full p-3 shadow-2xl transition-transform">
                   <Play size={28} fill="currentColor" className="ml-1" />
@@ -146,7 +146,7 @@ export const MovieDetailSheet: React.FC<MovieDetailSheetProps> = ({
         <div className="w-full p-3 bg-[color:var(--surface)] border-t border-[color:var(--border)] shrink-0 z-20">
           <button
             onClick={() => onWatchNow(movie)}
-            className="w-full bg-[color:var(--foreground)] hover:opacity-85 text-[color:var(--background)] font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
+            className="w-full cursor-pointer bg-[color:var(--foreground)] py-3 font-bold text-[color:var(--background)] transition-all hover:opacity-85 shadow-lg active:scale-95 rounded-lg flex items-center justify-center gap-2"
           >
             <Play size={20} fill="currentColor" /> Watch Now
           </button>
