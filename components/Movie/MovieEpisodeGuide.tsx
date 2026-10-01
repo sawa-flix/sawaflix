@@ -32,6 +32,7 @@ export function MovieEpisodeGuide({ movie, episodes, onSelectEpisode, onPlayEpis
           <p className="truncate text-sm font-bold text-[color:var(--foreground)]">{movie.seriesTitle || movie.title}</p>
           <p className="text-[11px] text-[color:var(--muted-foreground)]">
             {episodes.length > 0 ? `${episodes.length} episode${episodes.length === 1 ? '' : 's'}` : 'Series'}
+            {movie.isSample ? ' · Sample data' : ''}
           </p>
         </div>
       </div>

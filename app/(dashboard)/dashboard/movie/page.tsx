@@ -2,13 +2,14 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Play, X, Loader2, RefreshCw, Heart, MessageCircle, Send, Share2 } from 'lucide-react';
+import { Play, X, Loader2, RefreshCw, Heart, MessageCircle, Send, Share2, Film, Tv, Clapperboard } from 'lucide-react';
 import {
   MovieCard,
   RightSidebarContent,
   MovieDetailSheet,
   FILTERS,
   MOVIES_DATA,
+  SAMPLE_SERIES_DATA,
   Movie,
 } from '@/components/Movie';
 import MovieHeroBanner from '@/components/Movie/MovieHeroBanner';
@@ -54,12 +55,14 @@ function publicationYear(value: string): number {
 
 function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
   const episodePattern = dto.title.match(/^(.*?)\s+(?:S(\d{1,2})E(\d{1,2})|Season\s*(\d+)\s*Episode\s*(\d+))\s*[:.-]?\s*(.*)$/i);
+  const namedEpisodePattern = dto.title.match(/^(.*?)\s*[([\s]*(?:Episode|Ep\.?\s*)\s*(\d+)\s*[)\]]?\s*[:.\-–]?\s*(.*)$/i);
   const explicitSeason = Number(dto.season_number) || undefined;
   const explicitEpisode = Number(dto.episode_number) || undefined;
+  const genreMarksSeries = dto.genres?.some((genre) => /series/i.test(genre)) || false;
   const seasonNumber = explicitSeason || (episodePattern ? Number(episodePattern[2] || episodePattern[4]) : undefined);
-  const episodeNumber = explicitEpisode || (episodePattern ? Number(episodePattern[3] || episodePattern[5]) : undefined);
-  const seriesTitle = dto.series_title || episodePattern?.[1]?.trim() || undefined;
-  const mediaKind = dto.media_kind || (episodeNumber ? 'episode' : seriesTitle ? 'series' : 'movie');
+  const episodeNumber = explicitEpisode || (episodePattern ? Number(episodePattern[3] || episodePattern[5]) : undefined) || (namedEpisodePattern ? Number(namedEpisodePattern[2]) : undefined);
+  const seriesTitle = dto.series_title || episodePattern?.[1]?.trim() || namedEpisodePattern?.[1]?.trim() || undefined;
+  const mediaKind = dto.media_kind || (episodeNumber ? 'episode' : seriesTitle || genreMarksSeries ? 'series' : 'movie');
 
   return {
     id: dto.youtube_video_id,
@@ -82,7 +85,7 @@ function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
     seriesTitle,
     seasonNumber,
     episodeNumber,
-    episodeTitle: dto.episode_title || episodePattern?.[6]?.trim() || undefined,
+    episodeTitle: dto.episode_title || episodePattern?.[6]?.trim() || namedEpisodePattern?.[3]?.trim() || undefined,
     mediaKind,
   };
 }
@@ -90,10 +93,11 @@ function mapCuratedToMovie(dto: CuratedMovieDto): Movie {
 export default function MoviePage(): React.ReactElement {
   const searchParams = useSearchParams();
   const movieQuery = (searchParams.get('q') || '').trim().toLowerCase();
-  const [movies, setMovies] = useState<Movie[]>(MOVIES_DATA);
+  const [movies, setMovies] = useState<Movie[]>([...MOVIES_DATA, ...SAMPLE_SERIES_DATA]);
   const [genres, setGenres] = useState<string[]>(FILTERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const [selectedMovie, setSelectedMovie] = useState<Movie>(MOVIES_DATA[0]);
+  const [activeCatalog, setActiveCatalog] = useState<'movies' | 'series' | 'episodes'>('movies');
+  const [selectedMovie, setSelectedMovie] = useState<Movie>(MOVIES_DATA.find((movie) => movie.featured) || MOVIES_DATA[0]);
   const [playingMovie, setPlayingMovie] = useState<Movie | null>(null);
   const [showPlayerDiscussion, setShowPlayerDiscussion] = useState(false);
   const [playerCommentDraft, setPlayerCommentDraft] = useState('');
@@ -115,14 +119,16 @@ export default function MoviePage(): React.ReactElement {
         throw new Error(result.error || 'Using curated catalog.');
       }
       const mapped = result.movies.map(mapCuratedToMovie);
-      setMovies(mapped);
+      const catalogById = new Map([...MOVIES_DATA, ...SAMPLE_SERIES_DATA, ...mapped].map((movie) => [movie.id, movie]));
+      const catalog = Array.from(catalogById.values());
+      setMovies(catalog);
       
       const availableGenres = Array.from(
-        new Set(['All', ...(result.genres || []), ...mapped.flatMap((m) => m.genres)])
+        new Set(['All', ...(result.genres || []), ...catalog.flatMap((m) => m.genres)])
       ).slice(0, 12);
       setGenres(availableGenres);
 
-      const featured = mapped.find((m) => m.featured) || mapped[0];
+      const featured = catalog.find((m) => m.featured && m.mediaKind !== 'episode') || catalog[0];
       setSelectedMovie(featured);
     } catch {
       // Fallback to static catalog if backend is syncing
@@ -149,16 +155,28 @@ export default function MoviePage(): React.ReactElement {
     );
   }, [movies, movieQuery]);
 
-  const featuredMovie = useMemo(
-    () => (movieQuery ? matchingMovies[0] : movies.find((m) => m.featured) || movies[0]) || MOVIES_DATA[0],
-    [movies, movieQuery, matchingMovies]
-  );
+  const catalogMovies = useMemo(() => matchingMovies.filter((movie) => {
+    if (activeCatalog === 'series') return movie.mediaKind === 'series';
+    if (activeCatalog === 'episodes') return movie.mediaKind === 'episode';
+    return movie.mediaKind !== 'series' && movie.mediaKind !== 'episode';
+  }), [matchingMovies, activeCatalog]);
+
+  const featuredMovie = useMemo(() => {
+    if (movieQuery) return catalogMovies[0] || matchingMovies[0] || MOVIES_DATA[0];
+    return catalogMovies.find((movie) => movie.featured) || catalogMovies[0] || matchingMovies[0] || MOVIES_DATA[0];
+  }, [catalogMovies, matchingMovies, movieQuery]);
+
+  useEffect(() => {
+    if (activeCatalog !== 'movies' && featuredMovie.mediaKind !== 'movie') {
+      setSelectedMovie(featuredMovie);
+    }
+  }, [activeCatalog, featuredMovie]);
 
   // Memoized filtered movies for responsive grid
   const filteredMovies = useMemo(() => {
-    if (activeFilter === 'All') return matchingMovies.filter((m) => m.id !== featuredMovie.id);
-    return matchingMovies.filter((m) => m.id !== featuredMovie.id && m.genres?.includes(activeFilter));
-  }, [matchingMovies, activeFilter, featuredMovie]);
+    if (activeFilter === 'All') return catalogMovies.filter((m) => m.id !== featuredMovie.id);
+    return catalogMovies.filter((m) => m.id !== featuredMovie.id && m.genres?.includes(activeFilter));
+  }, [catalogMovies, activeFilter, featuredMovie]);
 
   // Related movies for the desktop right sidebar
   const moreMovies = useMemo(
@@ -172,6 +190,19 @@ export default function MoviePage(): React.ReactElement {
       .filter((movie) => movie.seriesId === selectedMovie.seriesId)
       .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0));
   }, [movies, selectedMovie]);
+
+  const handleWatchMovie = useCallback((movie: Movie) => {
+    if (movie.mediaKind === 'series' && movie.seriesId) {
+      const firstEpisode = movies
+        .filter((item) => item.seriesId === movie.seriesId && item.mediaKind === 'episode')
+        .sort((a, b) => (a.seasonNumber || 1) - (b.seasonNumber || 1) || (a.episodeNumber || 0) - (b.episodeNumber || 0))[0];
+      if (firstEpisode) {
+        setPlayingMovie(firstEpisode);
+        return;
+      }
+    }
+    setPlayingMovie(movie);
+  }, [movies]);
 
   // Close player modal on Escape key
   useEffect(() => {
@@ -192,6 +223,27 @@ export default function MoviePage(): React.ReactElement {
       <div className="movie-page-root flex flex-col gap-6 lg:gap-8 w-full max-w-[1920px] mx-auto min-h-screen text-[color:var(--foreground)] pb-20">
         {/* Filters span the same cinema canvas as the featured title. */}
         <div className="sticky top-0 z-40 bg-[color:var(--background)]/90 backdrop-blur-md py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide border-b border-[color:var(--border)] -mx-4 px-4 sm:mx-0 sm:px-0">
+            {([
+              { id: 'movies', label: 'Movies', icon: Film, count: movies.filter((movie) => movie.mediaKind !== 'series' && movie.mediaKind !== 'episode').length },
+              { id: 'series', label: 'Series', icon: Tv, count: movies.filter((movie) => movie.mediaKind === 'series').length },
+              { id: 'episodes', label: 'Episodes', icon: Clapperboard, count: movies.filter((movie) => movie.mediaKind === 'episode').length },
+            ] as const).map(({ id, label, icon: Icon, count }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setActiveCatalog(id);
+                  setActiveFilter('All');
+                }}
+                aria-pressed={activeCatalog === id}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${activeCatalog === id ? 'bg-[color:var(--foreground)] text-[color:var(--background)]' : 'bg-[color:var(--surface)] text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)] border border-[color:var(--border)]'}`}
+              >
+                <Icon size={15} />
+                {label}
+                <span className="text-[10px] opacity-70">{count}</span>
+              </button>
+            ))}
+            <span className="mx-1 h-6 w-px shrink-0 bg-[color:var(--border)]" />
             {genres.map((filter) => (
               <button
                 key={filter}
@@ -218,7 +270,7 @@ export default function MoviePage(): React.ReactElement {
         {(!movieQuery || matchingMovies.length > 0) && (
           <MovieHeroBanner
             movie={featuredMovie}
-            onWatchNow={() => setPlayingMovie(featuredMovie)}
+            onWatchNow={() => handleWatchMovie(featuredMovie)}
           />
         )}
 
@@ -244,7 +296,7 @@ export default function MoviePage(): React.ReactElement {
             ))}
             {filteredMovies.length === 0 && (
               <div className="col-span-full py-20 text-center text-[color:var(--muted-foreground)] font-bold">
-                No movies found for &quot;{activeFilter}&quot;
+                No {activeCatalog} found for &quot;{activeFilter}&quot;
               </div>
             )}
           </div>
@@ -258,7 +310,7 @@ export default function MoviePage(): React.ReactElement {
             moreMovies={moreMovies}
             seriesEpisodes={seriesEpisodes}
             onSelectMovie={setSelectedMovie}
-            onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
+            onWatchNow={handleWatchMovie}
           />
         </div>
         </div>
@@ -266,13 +318,13 @@ export default function MoviePage(): React.ReactElement {
 
       {/* ========== MOBILE BOTTOM SHEET (SLIDES FROM BOTTOM) ========== */}
       <div className="xl:hidden">
-        {selectedMovie && selectedMovie.id !== featuredMovie.id && (
+        {selectedMovie && (selectedMovie.id !== featuredMovie.id || activeCatalog !== 'movies') && (
           <MovieDetailSheet
             movie={selectedMovie}
             seriesEpisodes={seriesEpisodes}
             onSelectMovie={setSelectedMovie}
             onClose={() => setSelectedMovie(featuredMovie)}
-            onWatchNow={(movieToPlay) => setPlayingMovie(movieToPlay)}
+            onWatchNow={handleWatchMovie}
           />
         )}
       </div>
@@ -287,7 +339,7 @@ export default function MoviePage(): React.ReactElement {
                 <span className="bg-[color:var(--foreground)] text-[color:var(--background)] text-[10px] font-black uppercase px-2 py-0.5 rounded">
                   Now Playing
                 </span>
-                <h3 className="text-sm font-bold text-[color:var(--foreground)] truncate">{playingMovie.title}</h3>
+                <h3 className="text-sm font-bold text-[color:var(--foreground)] truncate">{playingMovie.episodeTitle || playingMovie.title}</h3>
               </div>
               <button
                 onClick={() => {
@@ -305,8 +357,8 @@ export default function MoviePage(): React.ReactElement {
             {/* Embed Player */}
             <div className="relative aspect-video w-full bg-black">
               <iframe
-                src={`https://www.youtube-nocookie.com/embed/${playingMovie.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                title={playingMovie.title}
+                src={`https://www.youtube-nocookie.com/embed/${playingMovie.playbackId || playingMovie.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                title={playingMovie.episodeTitle || playingMovie.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full border-0"
@@ -316,7 +368,7 @@ export default function MoviePage(): React.ReactElement {
             <div className="overflow-y-auto border-t border-[color:var(--border)]">
               <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
                 <div className="min-w-0">
-                  <h2 className="truncate text-base font-bold text-[color:var(--foreground)]">{playingMovie.title}</h2>
+                  <h2 className="truncate text-base font-bold text-[color:var(--foreground)]">{playingMovie.episodeTitle || playingMovie.title}</h2>
                   <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">{playingMovie.year} · {playingMovie.genres?.[0] || 'Cameroonian cinema'}</p>
                 </div>
                 <div className="flex items-center gap-2">

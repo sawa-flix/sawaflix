@@ -9,4 +9,4 @@ export { MovieDetailSheet } from './MovieDetailSheet';
 export { MovieHeroBanner } from './MovieHeroBanner';
 
 export type { Movie, MovieCardProps, RightSidebarContentProps, MovieDetailSheetProps } from './types';
-export { FILTERS, MOVIES_DATA } from './constants';
+export { FILTERS, MOVIES_DATA, SAMPLE_SERIES_DATA } from './constants';

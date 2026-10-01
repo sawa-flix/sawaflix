@@ -265,3 +265,55 @@ export const MOVIES_DATA: Movie[] = [
     rating: 4.7,
   },
 ];
+
+const SAMPLE_SERIES_ID = 'sample-crossroads-of-mboa';
+const SAMPLE_SERIES_IMAGE = 'https://i.ibb.co/MDLDZTtf/sawa.png';
+const SAMPLE_EPISODE_VIDEO_ID = 'aqz-KE-bpKQ';
+
+export const SAMPLE_SERIES_DATA: Movie[] = [
+  {
+    id: SAMPLE_SERIES_ID,
+    title: 'Crossroads of Mboa',
+    image: SAMPLE_SERIES_IMAGE,
+    year: 2025,
+    country: 'Cameroon',
+    genres: ['Drama'],
+    featured: true,
+    description: 'Sample series: two families, one neighborhood, and a choice that changes everything.',
+    duration: '2 seasons',
+    ageRating: '13+',
+    rating: 4.7,
+    seriesId: SAMPLE_SERIES_ID,
+    seriesTitle: 'Crossroads of Mboa',
+    mediaKind: 'series',
+    isSample: true,
+  },
+  ...[
+    { id: 'crossroads-s1e1', seasonNumber: 1, episodeNumber: 1, title: 'A New Neighbor', duration: '24m' },
+    { id: 'crossroads-s1e2', seasonNumber: 1, episodeNumber: 2, title: 'The Missing Letter', duration: '27m' },
+    { id: 'crossroads-s2e1', seasonNumber: 2, episodeNumber: 1, title: 'Homecoming', duration: '29m' },
+    { id: 'crossroads-s2e2', seasonNumber: 2, episodeNumber: 2, title: 'The Long Road', duration: '31m' },
+  ].map((episode): Movie => ({
+    id: episode.id,
+    title: `Crossroads of Mboa S${String(episode.seasonNumber).padStart(2, '0')}E${String(episode.episodeNumber).padStart(2, '0')} · ${episode.title}`,
+    image: SAMPLE_SERIES_IMAGE,
+    year: 2025,
+    country: 'Cameroon',
+    genres: ['Drama'],
+    featured: false,
+    description: `Sample episode: ${episode.title}. Part of Crossroads of Mboa.`,
+    duration: episode.duration,
+    ageRating: '13+',
+    rating: 4.7,
+    director: 'SawaFlix Sample Studio',
+    language: 'English',
+    seriesId: SAMPLE_SERIES_ID,
+    seriesTitle: 'Crossroads of Mboa',
+    seasonNumber: episode.seasonNumber,
+    episodeNumber: episode.episodeNumber,
+    episodeTitle: episode.title,
+    mediaKind: 'episode',
+    playbackId: SAMPLE_EPISODE_VIDEO_ID,
+    isSample: true,
+  })),
+];
