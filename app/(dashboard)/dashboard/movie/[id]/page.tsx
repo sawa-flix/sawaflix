@@ -20,7 +20,8 @@ import {
   Settings,
   SkipBack,
   SkipForward,
-  Lock
+  Lock,
+  X
 } from 'lucide-react';
 import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
 import type { Movie } from '@/components/Movie';
@@ -40,11 +41,13 @@ export default function MovieDetailsPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(2760); // Default 46 minutes
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showDescriptionFull, setShowDescriptionFull] = useState(false);
+  const [buffering, setBuffering] = useState(false);
 
+  const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -105,6 +108,43 @@ export default function MovieDetailsPage() {
     setIsPlaying(true);
   }, [handleSelectEpisode, nextEpisode]);
 
+  // Video player controls
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const video = videoRef.current;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleLoadedMetadata = () => setDuration(video.duration);
+    const handlePlay = () => setIsVideoPlaying(true);
+    const handlePause = () => setIsVideoPlaying(false);
+    const handleWaiting = () => setBuffering(true);
+    const handleCanPlay = () => setBuffering(false);
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [isPlaying]);
+
+  // Auto-play when player opens
+  useEffect(() => {
+    if (isPlaying && videoRef.current) {
+      videoRef.current.play().catch(err => console.error('Autoplay failed:', err));
+    }
+  }, [isPlaying]);
+
   const handleMouseMove = () => {
     setShowControls(true);
     if (controlsTimeoutRef.current) {
@@ -115,6 +155,35 @@ export default function MovieDetailsPage() {
         setShowControls(false);
       }
     }, 3000);
+  };
+
+  const togglePlayPause = () => {
+    if (!videoRef.current) return;
+    if (isVideoPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const handleSeek = (value: number) => {
+    if (!videoRef.current) return;
+    const newTime = (value / 100) * duration;
+    videoRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const skipTime = (seconds: number) => {
+    if (!videoRef.current) return;
+    const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
+    videoRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
   };
 
   const toggleFullscreen = () => {
@@ -131,6 +200,11 @@ export default function MovieDetailsPage() {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getVideoUrl = (movieId: string) => {
+    // This will use YouTube video as source. Replace with actual video URLs when available
+    return `https://www.youtube.com/embed/${movieId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
   };
 
   if (loading) {
@@ -172,190 +246,201 @@ export default function MovieDetailsPage() {
       {isPlaying ? (
         <div
           ref={videoContainerRef}
-          className="relative w-full bg-black rounded-xl overflow-hidden"
+          className="fixed inset-0 z-[100] bg-black overflow-y-auto"
           onMouseMove={handleMouseMove}
-          onMouseLeave={() => setShowControls(false)}
         >
-          {/* Video Player Container */}
-          <div className="relative w-full aspect-video bg-black">
-            {/* Video Thumbnail/Poster */}
-            <Image
-              src={selectedMovie.image}
-              alt={title}
-              fill
-              className="object-cover"
-              unoptimized
-            />
+          {/* Video Player Section - Full Width */}
+          <div className="relative w-full min-h-screen flex flex-col">
+            {/* Video Container */}
+            <div className="relative w-full aspect-video bg-black flex-shrink-0">
+              {/* Video Element with YouTube Embed */}
+              <iframe
+                src={getVideoUrl(playableId)}
+                title={title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+              />
 
-            {/* Top Bar - Title and Close */}
-            <div className={`absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[10px] font-bold uppercase rounded">S1 E1</span>
-                    <span className="text-white/60 text-xs">{selectedMovie.duration}</span>
-                  </div>
-                  <h2 className="text-white text-lg font-bold">{title}</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPlaying(false)}
-                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Center Play/Pause Button */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex items-center gap-8">
-                <button
-                  type="button"
-                  className="p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all"
-                >
-                  <SkipBack size={24} className="text-white" fill="white" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsVideoPlaying(!isVideoPlaying)}
-                  className="p-5 rounded-full bg-white/90 hover:bg-white transition-all transform hover:scale-105"
-                >
-                  {isVideoPlaying ? (
-                    <Pause size={32} className="text-black" fill="black" />
-                  ) : (
-                    <Play size={32} className="text-black ml-1" fill="black" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all"
-                >
-                  <SkipForward size={24} className="text-white" fill="white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Controls */}
-            <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-              {/* Progress Bar */}
-              <div className="mb-3">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={(currentTime / duration) * 100 || 0}
-                  onChange={(e) => setCurrentTime((parseFloat(e.target.value) / 100) * duration)}
-                  className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#CE1126] [&::-webkit-slider-thumb]:cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #CE1126 0%, #CE1126 ${(currentTime / duration) * 100 || 0}%, rgba(255,255,255,0.2) ${(currentTime / duration) * 100 || 0}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
-                <div className="flex justify-between text-xs text-white/60 mt-1">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration || 2760)}</span>
-                </div>
-              </div>
-
-              {/* Control Buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsVideoPlaying(!isVideoPlaying)}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    {isVideoPlaying ? (
-                      <Pause size={20} className="text-white" />
-                    ) : (
-                      <Play size={20} className="text-white" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    {isMuted ? (
-                      <VolumeX size={20} className="text-white" />
-                    ) : (
-                      <Volume2 size={20} className="text-white" />
-                    )}
-                  </button>
-                  <span className="text-white text-sm font-medium">12:34 / 46:12</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Settings size={20} className="text-white" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={toggleFullscreen}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <Maximize size={20} className="text-white" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Next Up Section */}
-          <div className="bg-[color:var(--background)] p-6">
-            <h3 className="text-[color:var(--foreground)] font-bold mb-4">Next Up</h3>
-            <div className="flex gap-3 overflow-x-auto no-scrollbar">
-              {seriesEpisodes.slice(0, 5).map((episode) => (
-                <div key={episode.id} className="flex-shrink-0 w-48 group cursor-pointer">
-                  <div className="relative aspect-video rounded-lg overflow-hidden mb-2 border border-[#CE1126]">
-                    <Image src={episode.image} alt={episode.title} fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play size={32} className="text-white" fill="white" />
-                    </div>
-                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded">
-                      65%
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[9px] font-bold uppercase rounded">S1 E{episode.episodeNumber}</span>
-                    </div>
-                  </div>
-                  <h4 className="text-[color:var(--foreground)] text-sm font-semibold line-clamp-1">{episode.episodeTitle || episode.title}</h4>
-                  <p className="text-[color:var(--muted-foreground)] text-xs">Season {episode.seasonNumber} · Episode {episode.episodeNumber}</p>
-                  <p className="text-[color:var(--muted-foreground)] text-xs">{episode.duration}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* More Like This Section */}
-          <div className="bg-[color:var(--background)] px-6 pb-6">
-            <h3 className="text-[color:var(--foreground)] font-bold mb-4">More Like This</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {similarMovies.slice(0, 4).map((movie) => (
-                <div key={movie.id} className="group cursor-pointer">
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-2">
-                    <Image src={movie.image} alt={movie.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute top-2 left-2">
-                      {movie.featured ? (
-                        <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[9px] font-bold uppercase rounded">Series</span>
-                      ) : (
-                        <span className="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold uppercase rounded backdrop-blur-sm">Movie</span>
+              {/* Top Bar - Title and Close */}
+              <div className={`absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 sm:p-6 transition-opacity duration-300 z-10 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="flex items-start justify-between max-w-[1400px] mx-auto">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      {selectedMovie.mediaKind === 'episode' && (
+                        <span className="px-2.5 py-1 bg-[#CE1126] text-white text-[10px] font-bold uppercase rounded">
+                          S{selectedMovie.seasonNumber || 1} E{selectedMovie.episodeNumber || 1}
+                        </span>
                       )}
+                      <span className="text-white/70 text-xs font-medium">{selectedMovie.duration}</span>
                     </div>
-                    <div className="absolute bottom-2 right-2">
-                      <Lock size={16} className="text-white/80" />
+                    <h2 className="text-white text-base sm:text-xl font-bold line-clamp-1">{title}</h2>
+                    {selectedMovie.seriesTitle && (
+                      <p className="text-white/60 text-xs sm:text-sm mt-0.5">{selectedMovie.seriesTitle}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPlaying(false)}
+                    className="p-2.5 rounded-full hover:bg-white/10 transition-colors ml-4"
+                  >
+                    <X size={24} className="text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Dark Background Section with Episodes */}
+            <div className="flex-1 bg-gradient-to-b from-black via-[#0a0a0a] to-black">
+              <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
+                {/* Next Up / Episodes Section */}
+                {seriesEpisodes.length > 0 && (
+                  <div className="mb-10">
+                    <h3 className="text-white text-lg sm:text-xl font-bold mb-5">
+                      {selectedMovie.mediaKind === 'series' ? 'Episodes' : 'Next Up'}
+                    </h3>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                      {seriesEpisodes.map((episode, index) => {
+                        const isCurrentEpisode = episode.id === selectedMovie.id;
+                        const isWatched = index < (selectedEpisodeIndex || 0);
+                        const progress = isCurrentEpisode ? 65 : isWatched ? 100 : 0;
+                        const isComingSoon = !episode.id.includes('v='); // Mock logic for coming soon
+
+                        return (
+                          <button
+                            key={episode.id}
+                            onClick={() => !isComingSoon && handleSelectEpisode(episode)}
+                            disabled={isComingSoon}
+                            className={`flex-shrink-0 w-72 group cursor-pointer ${isComingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <div className={`relative aspect-video rounded-lg overflow-hidden mb-3 ${isCurrentEpisode ? 'ring-2 ring-[#CE1126]' : 'border border-white/10'}`}>
+                              <Image
+                                src={episode.image}
+                                alt={episode.title}
+                                fill
+                                className={`object-cover ${isComingSoon ? 'blur-md' : 'group-hover:scale-105 transition-transform duration-300'}`}
+                                unoptimized
+                              />
+
+                              {/* Blur overlay for coming soon */}
+                              {isComingSoon && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                                  <div className="text-center">
+                                    <Lock size={28} className="text-white/80 mx-auto mb-2" />
+                                    <span className="text-white text-xs font-bold uppercase tracking-wider">Coming Soon</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Play overlay */}
+                              {!isComingSoon && !isCurrentEpisode && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Play size={40} className="text-white" fill="white" />
+                                </div>
+                              )}
+
+                              {/* Progress bar */}
+                              {progress > 0 && !isComingSoon && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                                  <div
+                                    className="h-full bg-[#CE1126]"
+                                    style={{ width: `${progress}%` }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Episode badge */}
+                              <div className="absolute top-2 left-2">
+                                <span className="px-2 py-1 bg-[#CE1126] text-white text-[10px] font-bold uppercase rounded shadow-lg">
+                                  S{episode.seasonNumber || 1} E{episode.episodeNumber || 1}
+                                </span>
+                              </div>
+
+                              {/* Duration badge */}
+                              {episode.duration && !isComingSoon && (
+                                <div className="absolute bottom-2 right-2">
+                                  <span className="px-2 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded backdrop-blur-sm">
+                                    {episode.duration}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Now playing indicator */}
+                              {isCurrentEpisode && (
+                                <div className="absolute top-2 right-2">
+                                  <span className="px-2 py-1 bg-white text-black text-[9px] font-black uppercase rounded shadow-lg">
+                                    Now Playing
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <h4 className="text-white text-sm font-semibold line-clamp-1 mb-1 text-left">
+                              {episode.episodeTitle || episode.title}
+                            </h4>
+                            <p className="text-white/50 text-xs text-left">
+                              Season {episode.seasonNumber} · Episode {episode.episodeNumber}
+                            </p>
+                            {isWatched && !isCurrentEpisode && (
+                              <p className="text-[#CE1126] text-xs font-semibold text-left mt-1">✓ Watched</p>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                  <h4 className="text-[color:var(--foreground)] text-sm font-semibold line-clamp-1">{movie.title}</h4>
-                  <p className="text-[color:var(--muted-foreground)] text-xs">Season 1 · Episode 4</p>
-                </div>
-              ))}
+                )}
+
+                {/* More Like This Section */}
+                {similarMovies.length > 0 && (
+                  <div>
+                    <h3 className="text-white text-lg sm:text-xl font-bold mb-5">More Like This</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {similarMovies.map((movie) => (
+                        <button
+                          key={movie.id}
+                          onClick={() => router.push(`/dashboard/movie/${encodeURIComponent(movie.id)}`)}
+                          className="group cursor-pointer text-left"
+                        >
+                          <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-2">
+                            <Image
+                              src={movie.image}
+                              alt={movie.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              unoptimized
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+                            {/* Badge */}
+                            <div className="absolute top-2 left-2">
+                              <span className="px-2 py-1 bg-[#CE1126] text-white text-[9px] font-bold uppercase rounded">
+                                {movie.mediaKind === 'series' ? 'Series' : 'Movie'}
+                              </span>
+                            </div>
+
+                            {/* Play overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
+                                <Play size={24} className="text-white" fill="white" />
+                              </div>
+                            </div>
+
+                            {/* Info at bottom */}
+                            <div className="absolute bottom-2 left-2 right-2">
+                              <p className="text-white text-xs font-semibold line-clamp-2">{movie.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[#FCD116] text-xs">★ {movie.rating || 4.8}</span>
+                                <span className="text-white/60 text-xs">{movie.year}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
