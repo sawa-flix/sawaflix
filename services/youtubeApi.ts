@@ -1,7 +1,7 @@
 import type { VideoSearchResponse, VideoDetails, Comment } from '@/types/youtube';
-import { 
-    searchVideosAction, 
-    getVideoDetailsAction, 
+import {
+    searchVideosAction,
+    getVideoDetailsAction,
     getVideoCommentsAction,
     likeYouTubeVideoAction,
     followYouTubeChannelAction,
@@ -24,10 +24,11 @@ export class YouTubeApiService {
     async searchVideos(
         query: string,
         pageToken: string | null = null,
-        maxResults: number = 10
+        maxResults: number = 10,
+        useMockFallback: boolean = true
     ): Promise<VideoSearchResponse> {
         console.log('[API] Invoking server action to fetch videos for:', query);
-        return searchVideosAction(query, pageToken, maxResults);
+        return searchVideosAction(query, pageToken, maxResults, useMockFallback);
     }
 
     async getVideoDetails(videoId: string): Promise<VideoDetails> {
@@ -56,4 +57,4 @@ export class YouTubeApiService {
     }
 }
 
-export const youtubeApi = new YouTubeApiService();
+export const youtubeApi = new YouTubeApiService();

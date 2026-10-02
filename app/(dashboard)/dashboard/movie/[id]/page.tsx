@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, Globe2, Loader2, Play, Star, Users, Volume2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, Calendar, ChevronRight, Globe2, Loader2, Play, Star, Users, Volume2 } from 'lucide-react';
 import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
 import type { Movie } from '@/components/Movie';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
@@ -59,12 +59,22 @@ export default function MovieDetailsPage() {
   }, [movies, selectedMovie]);
 
   const firstEpisode = seriesEpisodes[0];
+  const selectedEpisodeIndex = seriesEpisodes.findIndex((episode) => episode.id === selectedMovie?.id);
+  const nextEpisode = selectedEpisodeIndex >= 0
+    ? seriesEpisodes[selectedEpisodeIndex + 1]
+    : selectedMovie?.mediaKind === 'series' ? firstEpisode : undefined;
 
   const handleSelectEpisode = useCallback((episode: Movie) => {
     setSelectedMovie(episode);
     setIsPlaying(false);
     router.replace(`/dashboard/movie/${encodeURIComponent(episode.id)}`, { scroll: false });
   }, [router]);
+
+  const handlePlayNextEpisode = useCallback(() => {
+    if (!nextEpisode) return;
+    handleSelectEpisode(nextEpisode);
+    setIsPlaying(true);
+  }, [handleSelectEpisode, nextEpisode]);
 
   if (loading) {
     return <div className="flex min-h-[60vh] items-center justify-center text-[color:var(--muted-foreground)]"><Loader2 className="animate-spin" /></div>;
@@ -169,6 +179,25 @@ export default function MovieDetailsPage() {
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-8">
+          {nextEpisode && (
+            <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/85 p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)]/10 text-[color:var(--foreground)]">
+                  <ArrowDown size={16} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[color:var(--foreground)]">Swipe or scroll down for the next episode</p>
+                  <p className="mt-0.5 truncate text-xs text-[color:var(--muted-foreground)]">
+                    Next up: S{nextEpisode.seasonNumber || 1} · E{nextEpisode.episodeNumber || 1} · {nextEpisode.episodeTitle || nextEpisode.title}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={handlePlayNextEpisode} className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-[color:var(--foreground)] px-4 py-2.5 text-xs font-bold text-[color:var(--background)] transition-opacity hover:opacity-85">
+                Play next episode <ChevronRight size={15} />
+              </button>
+            </div>
+          )}
+
           <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/80 p-5 shadow-lg backdrop-blur-md sm:p-6">
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--primary)]">SawaFlix story guide</p>
             <h2 className="mb-3 text-xl font-bold text-[color:var(--foreground)]">About this title</h2>

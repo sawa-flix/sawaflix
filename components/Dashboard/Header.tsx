@@ -257,7 +257,32 @@ const Header = ({
           </div>
         )}
 
-        <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
+        {isReelsRoute && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-14 items-start justify-between px-4 pt-2.5 md:flex">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Back"
+              className="pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur-xl transition-colors hover:bg-black/65"
+            >
+              <ArrowLeft size={17} />
+            </button>
+            <div className="pointer-events-auto flex items-center gap-2">
+              <ReelsSearchBar floating />
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                aria-pressed={!isMuted}
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur-xl transition-colors hover:bg-black/65"
+              >
+                {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={`${isReelsRoute ? 'hidden' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}

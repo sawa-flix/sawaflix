@@ -19,7 +19,7 @@ const FAILED_ATTEMPT: SearchAttempt = { ok: false, response: { items: [], nextPa
 
 async function attemptSearch(query: string, pageToken: string | null): Promise<SearchAttempt> {
   try {
-    const response = await youtubeApi.searchVideos(query, pageToken, SEARCH_PAGE_SIZE);
+    const response = await youtubeApi.searchVideos(query, pageToken, SEARCH_PAGE_SIZE, false);
     // The backend can respond 200 with a failure embedded in the body
     // (VideoSearchResponse.error) instead of a real error status — treat
     // that the same as a thrown error, so it can't look like a genuine
@@ -42,6 +42,7 @@ function toVideos(response: VideoSearchResponse): Video[] {
 interface UseReelsSearchResult {
   query: string;
   setQuery: (value: string) => void;
+  submitSearch: () => void;
   clear: () => void;
   isActive: boolean;
   videos: Video[];
@@ -99,6 +100,15 @@ export function useReelsSearch(): UseReelsSearchResult {
     try {
       const { ok, response: initialResponse } = await attemptSearch(q, pageToken);
       if (requestId !== requestIdRef.current) return;
+
+      if (!ok) {
+        setError(append ? 'Could not load more reels. Try again.' : 'Search is temporarily unavailable. Try again.');
+        if (!append) {
+          setVideos([]);
+          setHasMore(false);
+        }
+        return;
+      }
 
       let response = initialResponse;
 
@@ -176,6 +186,18 @@ export function useReelsSearch(): UseReelsSearchResult {
     // Collapse stray double spaces too, not just leading/trailing ones — a
     // formatting slip shouldn't count as a different query from a clean one.
     const trimmed = value.trim().replace(/\s+/g, ' ');
+    if (trimmed && trimmed !== activeQueryRef.current) {
+      requestIdRef.current += 1;
+      pendingQueryRef.current = null;
+      paginationQueryRef.current = '';
+      nextPageTokenRef.current = null;
+      setVideos([]);
+      setError(null);
+      setHasMore(false);
+      setIsActive(trimmed.length >= MIN_QUERY_LENGTH);
+      setLoading(trimmed.length >= MIN_QUERY_LENGTH);
+    }
+
     if (!trimmed || trimmed.length < MIN_QUERY_LENGTH) {
       // Empty or too short to bother searching — restore the culture feed
       // immediately, no need to wait out the debounce.
@@ -210,6 +232,21 @@ export function useReelsSearch(): UseReelsSearchResult {
     }, DEBOUNCE_MS);
   }, [runSearch]);
 
+  const submitSearch = useCallback(() => {
+    const trimmed = query.trim().replace(/\s+/g, ' ');
+    if (trimmed.length < MIN_QUERY_LENGTH) return;
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    setIsActive(true);
+    if (trimmed === activeQueryRef.current && isFetchingRef.current) return;
+    if (isFetchingRef.current) {
+      pendingQueryRef.current = trimmed;
+      return;
+    }
+    activeQueryRef.current = trimmed;
+    nextPageTokenRef.current = null;
+    runSearch(trimmed, null, false);
+  }, [query, runSearch]);
+
   const clear = useCallback(() => setQuery(''), [setQuery]);
 
   const loadMore = useCallback(async () => {
@@ -219,9 +256,13 @@ export function useReelsSearch(): UseReelsSearchResult {
 
   const retry = useCallback(async () => {
     if (!activeQueryRef.current || isFetchingRef.current) return;
+    if (videos.length > 0 && hasMore && paginationQueryRef.current && nextPageTokenRef.current) {
+      await runSearch(paginationQueryRef.current, nextPageTokenRef.current, true);
+      return;
+    }
     nextPageTokenRef.current = null;
     await runSearch(activeQueryRef.current, null, false);
-  }, [runSearch]);
+  }, [hasMore, runSearch, videos.length]);
 
   useEffect(() => {
     return () => {
@@ -229,5 +270,5 @@ export function useReelsSearch(): UseReelsSearchResult {
     };
   }, []);
 
-  return { query, setQuery, clear, isActive, videos, loading, error, hasMore, loadMore, retry };
+  return { query, setQuery, submitSearch, clear, isActive, videos, loading, error, hasMore, loadMore, retry };
 }

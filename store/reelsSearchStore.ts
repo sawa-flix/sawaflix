@@ -18,6 +18,7 @@ interface ReelsSearchStore {
   /** Whether the results dropdown should be open (searchMode === 'searching' in ReelsFeed). */
   showResults: boolean;
   setQuery: (value: string) => void;
+  submitSearch: () => void;
   clear: () => void;
   loadMore: () => void;
   retry: () => void;
@@ -41,6 +42,7 @@ export const useReelsSearchStore = create<ReelsSearchStore>(() => ({
   hasMore: false,
   showResults: false,
   setQuery: noop,
+  submitSearch: noop,
   clear: noop,
   loadMore: noopAsync,
   retry: noopAsync,
