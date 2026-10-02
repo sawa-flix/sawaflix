@@ -101,10 +101,10 @@ export default function EditProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0B0E14]">
+      <div className="flex min-h-screen items-center justify-center bg-[color:var(--background)]">
         <div className="text-center">
           <Loader2 size={40} className="mx-auto mb-4 animate-spin text-[#CE1126]" />
-          <p className="text-gray-400">Loading profile...</p>
+          <p className="text-[color:var(--muted-foreground)]">Loading profile...</p>
         </div>
       </div>
     );
@@ -112,19 +112,19 @@ export default function EditProfilePage() {
 
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0B0E14]">
-        <p className="text-gray-400">Unable to load profile. Please try again.</p>
+      <div className="flex min-h-screen items-center justify-center bg-[color:var(--background)]">
+        <p className="text-[color:var(--muted-foreground)]">Unable to load profile. Please try again.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#06080C] pb-24 font-sans text-white">
+    <div className="min-h-screen bg-[color:var(--background)] pb-24 font-sans text-[color:var(--foreground)]">
       <div className="mx-auto max-w-3xl px-3.5 py-6 sm:px-6 sm:py-10 md:px-8">
         <div className="mb-6 sm:mb-8">
           <Link
             href="/dashboard/profile"
-            className="group mb-4 inline-flex items-center gap-1.5 text-xs text-zinc-400 transition hover:text-white"
+            className="group mb-4 inline-flex items-center gap-1.5 text-xs text-[color:var(--muted-foreground)] transition hover:text-[color:var(--foreground)]"
           >
             <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
             Back to Profile
@@ -133,18 +133,18 @@ export default function EditProfilePage() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
               Edit <span className="text-[#CE1126]">Profile</span>
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-400">Update your personal information and cultural preferences</p>
+            <p className="text-xs sm:text-sm text-[color:var(--muted-foreground)]">Update your personal information and cultural preferences</p>
           </div>
         </div>
 
         {successMessage && (
-          <div className="mb-6 flex items-center gap-3 rounded-lg border border-green-600/30 bg-green-600/10 p-4 text-green-400">
-            <div className="h-2 w-2 rounded-full bg-green-400" />
+          <div className="mb-6 flex items-center gap-3 rounded-lg border border-[color:var(--success-fg)]/30 bg-[color:var(--success-bg)] p-4 text-[color:var(--success-fg)]">
+            <div className="h-2 w-2 rounded-full bg-[color:var(--success-fg)]" />
             {successMessage}
           </div>
         )}
 
-        <div className="rounded-xl border border-white/5 bg-[#0E121A] p-6 md:p-8">
+        <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-6 md:p-8">
           <ProfileEditForm profile={profile} onSave={handleSave} onCancel={() => router.push('/dashboard/profile')} />
         </div>
       </div>

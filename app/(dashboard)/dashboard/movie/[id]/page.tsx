@@ -1,10 +1,27 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowDown, ArrowLeft, Calendar, ChevronRight, Globe2, Loader2, Play, Star, Users, Volume2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  ChevronRight,
+  Globe2,
+  Loader2,
+  Play,
+  Pause,
+  Star,
+  Users,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Settings,
+  SkipBack,
+  SkipForward,
+  Lock
+} from 'lucide-react';
 import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
 import type { Movie } from '@/components/Movie';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
@@ -18,6 +35,18 @@ export default function MovieDetailsPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+
+  // Video player states
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showDescriptionFull, setShowDescriptionFull] = useState(false);
+
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     let cancelled = false;
@@ -76,6 +105,34 @@ export default function MovieDetailsPage() {
     setIsPlaying(true);
   }, [handleSelectEpisode, nextEpisode]);
 
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isVideoPlaying) {
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
+  const toggleFullscreen = () => {
+    if (!videoContainerRef.current) return;
+    if (!isFullscreen) {
+      videoContainerRef.current.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (loading) {
     return <div className="flex min-h-[60vh] items-center justify-center text-[color:var(--muted-foreground)]"><Loader2 className="animate-spin" /></div>;
   }
@@ -92,9 +149,11 @@ export default function MovieDetailsPage() {
   const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableId = playableMovie.id;
   const title = playableMovie.episodeTitle || playableMovie.title;
+  const description = selectedMovie.description || `Discover ${selectedMovie.title}, a ${selectedMovie.genres[0]?.toLowerCase() || 'Cameroonian'} title curated for SawaFlix viewers.`;
+  const shortDescription = description.length > 180 ? description.slice(0, 180) + '...' : description;
 
   return (
-    <main className="relative isolate mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-16 sm:px-6">
+    <main className="relative isolate mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-16 sm:px-6 bg-[color:var(--background)]">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-30 mix-blend-screen"
@@ -111,39 +170,193 @@ export default function MovieDetailsPage() {
       </button>
 
       {isPlaying ? (
-        <div className="fixed inset-0 z-[100] flex h-[100dvh] flex-col bg-black sm:items-center sm:justify-center sm:bg-black/90 sm:p-4">
-          <div className="flex h-full w-full flex-col overflow-hidden bg-black sm:h-auto sm:max-h-[94dvh] sm:max-w-7xl sm:rounded-2xl sm:border sm:border-[color:var(--border)] sm:shadow-2xl">
-            <header className="z-10 flex shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-black/90 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white backdrop-blur-xl sm:bg-[color:var(--surface)] sm:pt-3 sm:text-[color:var(--foreground)]">
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/55 sm:text-[color:var(--muted-foreground)]">Now playing</p>
-                <h1 className="truncate text-sm font-bold">{title}</h1>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPlaying(false)}
-                aria-label="Close player"
-                className="shrink-0 cursor-pointer rounded-lg border border-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/10 sm:border-[color:var(--border)] sm:text-[color:var(--foreground)] sm:hover:bg-[color:var(--surface-hover)]"
-              >
-                Close
-              </button>
-            </header>
-            <div className="flex min-h-0 flex-1 items-center justify-center bg-black sm:flex-none">
-              <div className="relative aspect-video max-h-full w-full sm:max-h-[calc(94dvh-9rem)] sm:max-w-full">
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${playableId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                  title={title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full border-0"
-                />
+        <div
+          ref={videoContainerRef}
+          className="relative w-full bg-black rounded-xl overflow-hidden"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setShowControls(false)}
+        >
+          {/* Video Player Container */}
+          <div className="relative w-full aspect-video bg-black">
+            {/* Video Thumbnail/Poster */}
+            <Image
+              src={selectedMovie.image}
+              alt={title}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+
+            {/* Top Bar - Title and Close */}
+            <div className={`absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[10px] font-bold uppercase rounded">S1 E1</span>
+                    <span className="text-white/60 text-xs">{selectedMovie.duration}</span>
+                  </div>
+                  <h2 className="text-white text-lg font-bold">{title}</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying(false)}
+                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
-            <footer className="shrink-0 border-t border-white/10 bg-black/90 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 text-white backdrop-blur-xl sm:bg-[color:var(--surface)] sm:pb-3 sm:text-[color:var(--foreground)]">
-              <h2 className="truncate text-sm font-bold">{title}</h2>
-              <p className="mt-1 text-xs text-white/60 sm:text-[color:var(--muted-foreground)]">
-                {selectedMovie.year} · {selectedMovie.country} · {selectedMovie.genres.join(' · ')}
-              </p>
-            </footer>
+
+            {/* Center Play/Pause Button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex items-center gap-8">
+                <button
+                  type="button"
+                  className="p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all"
+                >
+                  <SkipBack size={24} className="text-white" fill="white" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+                  className="p-5 rounded-full bg-white/90 hover:bg-white transition-all transform hover:scale-105"
+                >
+                  {isVideoPlaying ? (
+                    <Pause size={32} className="text-black" fill="black" />
+                  ) : (
+                    <Play size={32} className="text-black ml-1" fill="black" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all"
+                >
+                  <SkipForward size={24} className="text-white" fill="white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Controls */}
+            <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+              {/* Progress Bar */}
+              <div className="mb-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={(currentTime / duration) * 100 || 0}
+                  onChange={(e) => setCurrentTime((parseFloat(e.target.value) / 100) * duration)}
+                  className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#CE1126] [&::-webkit-slider-thumb]:cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #CE1126 0%, #CE1126 ${(currentTime / duration) * 100 || 0}%, rgba(255,255,255,0.2) ${(currentTime / duration) * 100 || 0}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-xs text-white/60 mt-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration || 2760)}</span>
+                </div>
+              </div>
+
+              {/* Control Buttons */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    {isVideoPlaying ? (
+                      <Pause size={20} className="text-white" />
+                    ) : (
+                      <Play size={20} className="text-white" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    {isMuted ? (
+                      <VolumeX size={20} className="text-white" />
+                    ) : (
+                      <Volume2 size={20} className="text-white" />
+                    )}
+                  </button>
+                  <span className="text-white text-sm font-medium">12:34 / 46:12</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <Settings size={20} className="text-white" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <Maximize size={20} className="text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Next Up Section */}
+          <div className="bg-[color:var(--background)] p-6">
+            <h3 className="text-[color:var(--foreground)] font-bold mb-4">Next Up</h3>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar">
+              {seriesEpisodes.slice(0, 5).map((episode) => (
+                <div key={episode.id} className="flex-shrink-0 w-48 group cursor-pointer">
+                  <div className="relative aspect-video rounded-lg overflow-hidden mb-2 border border-[#CE1126]">
+                    <Image src={episode.image} alt={episode.title} fill className="object-cover" unoptimized />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Play size={32} className="text-white" fill="white" />
+                    </div>
+                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded">
+                      65%
+                    </div>
+                    <div className="absolute top-2 left-2">
+                      <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[9px] font-bold uppercase rounded">S1 E{episode.episodeNumber}</span>
+                    </div>
+                  </div>
+                  <h4 className="text-[color:var(--foreground)] text-sm font-semibold line-clamp-1">{episode.episodeTitle || episode.title}</h4>
+                  <p className="text-[color:var(--muted-foreground)] text-xs">Season {episode.seasonNumber} · Episode {episode.episodeNumber}</p>
+                  <p className="text-[color:var(--muted-foreground)] text-xs">{episode.duration}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* More Like This Section */}
+          <div className="bg-[color:var(--background)] px-6 pb-6">
+            <h3 className="text-[color:var(--foreground)] font-bold mb-4">More Like This</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {similarMovies.slice(0, 4).map((movie) => (
+                <div key={movie.id} className="group cursor-pointer">
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-2">
+                    <Image src={movie.image} alt={movie.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute top-2 left-2">
+                      {movie.featured ? (
+                        <span className="px-2 py-0.5 bg-[#CE1126] text-white text-[9px] font-bold uppercase rounded">Series</span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-black/60 text-white text-[9px] font-bold uppercase rounded backdrop-blur-sm">Movie</span>
+                      )}
+                    </div>
+                    <div className="absolute bottom-2 right-2">
+                      <Lock size={16} className="text-white/80" />
+                    </div>
+                  </div>
+                  <h4 className="text-[color:var(--foreground)] text-sm font-semibold line-clamp-1">{movie.title}</h4>
+                  <p className="text-[color:var(--muted-foreground)] text-xs">Season 1 · Episode 4</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
@@ -160,7 +373,7 @@ export default function MovieDetailsPage() {
               </div>
               <h1 className="mb-3 text-3xl font-black leading-tight text-white sm:text-5xl">{title}</h1>
               {selectedMovie.seriesTitle && <p className="mb-2 text-sm font-semibold text-white/75">{selectedMovie.seriesTitle}</p>}
-              <p className="mb-5 max-w-2xl line-clamp-3 text-sm leading-relaxed text-white/85 sm:text-base">{selectedMovie.description}</p>
+              <p className="mb-5 max-w-2xl line-clamp-3 text-sm leading-relaxed text-white/85 sm:text-base">{shortDescription}</p>
               <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-white/80">
                 <span className="inline-flex items-center gap-1.5 text-[#FCD116]"><Star size={14} fill="currentColor" /><span className="text-white">{selectedMovie.rating || 4.8}</span></span>
                 <span className="inline-flex items-center gap-1.5"><Calendar size={14} />{selectedMovie.year}</span>
@@ -179,11 +392,11 @@ export default function MovieDetailsPage() {
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-8">
-          {nextEpisode && (
+          {nextEpisode && !isPlaying && (
             <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/85 p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-5">
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)]/10 text-[color:var(--foreground)]">
-                  <ArrowDown size={16} />
+                  <ChevronRight size={16} />
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-[color:var(--foreground)]">Swipe or scroll down for the next episode</p>
@@ -202,8 +415,17 @@ export default function MovieDetailsPage() {
             <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--primary)]">SawaFlix story guide</p>
             <h2 className="mb-3 text-xl font-bold text-[color:var(--foreground)]">About this title</h2>
             <p className="max-w-4xl whitespace-pre-line text-sm leading-7 text-[color:var(--foreground-secondary)]">
-              {selectedMovie.description || `Discover ${selectedMovie.title}, a ${selectedMovie.genres[0]?.toLowerCase() || 'Cameroonian'} title curated for SawaFlix viewers.`}
+              {showDescriptionFull ? description : shortDescription}
             </p>
+            {description.length > 180 && (
+              <button
+                type="button"
+                onClick={() => setShowDescriptionFull(!showDescriptionFull)}
+                className="mt-2 text-sm font-semibold text-[color:var(--primary)] hover:underline"
+              >
+                {showDescriptionFull ? 'Show less' : 'Read more'}
+              </button>
+            )}
           </section>
 
           <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/70 p-5 backdrop-blur-md sm:p-6">
@@ -220,7 +442,7 @@ export default function MovieDetailsPage() {
             </div>
           </section>
 
-          {seriesEpisodes.length > 0 && (
+          {seriesEpisodes.length > 0 && !isPlaying && (
             <section>
               <h2 className="mb-4 text-lg font-bold text-[color:var(--foreground)]">Episodes and seasons</h2>
               <MovieEpisodeGuide
