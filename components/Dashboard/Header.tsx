@@ -257,40 +257,26 @@ const Header = ({
           </div>
         )}
 
-        {isReelsRoute && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-14 items-start justify-between px-4 pt-2.5 md:flex">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              aria-label="Back"
-              className="pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur-xl transition-colors hover:bg-black/65"
-            >
-              <ArrowLeft size={17} />
-            </button>
-            <div className="pointer-events-auto flex items-center gap-2">
-              <ReelsSearchBar floating />
-              <button
-                type="button"
-                onClick={toggleMute}
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-                aria-pressed={!isMuted}
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur-xl transition-colors hover:bg-black/65"
-              >
-                {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className={`${isReelsRoute ? 'hidden' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
           <div className="flex items-center">
-            <button
-              onClick={toggleSidebar}
-              className="lg:hidden p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-white/20"
-              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-            >
-              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            {isReelsRoute ? (
+              <button
+                type="button"
+                onClick={() => router.back()}
+                aria-label="Back"
+                className="p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors"
+              >
+                <ArrowLeft size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={toggleSidebar}
+                className="lg:hidden p-1.5 mr-1 rounded-lg text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface-hover)] transition-colors focus:ring-2 focus:ring-white/20"
+                aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              >
+                {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+            )}
 
             <div className="flex items-center space-x-2 group">
               <Link href="/dashboard" className="flex items-center gap-2">
@@ -299,7 +285,7 @@ const Header = ({
             </div>
           </div>
 
-          {!hideSearch && !searchDisabled && (
+          {!hideSearch && !searchDisabled && !isReelsRoute && (
             <div className="hidden md:flex flex-1 max-w-md lg:max-w-lg mx-6 relative">
               <button
                 type="button"
@@ -319,16 +305,30 @@ const Header = ({
             </div>
           )}
 
-          {isReelsRoute && <ReelsSearchBar />}
+          {isReelsRoute && (
+            <div className="hidden md:flex flex-1 max-w-md lg:max-w-lg mx-6">
+              <ReelsSearchBar />
+            </div>
+          )}
 
           <div className="flex items-center space-x-1 sm:space-x-1.5">
-            {!hideSearch && !searchDisabled && (
+            {!hideSearch && !searchDisabled && !isReelsRoute && (
               <button
                 onClick={() => setIsSearchFocused(true)}
                 className="md:hidden p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
                 aria-label="Toggle search bar"
               >
                 <Search size={17} />
+              </button>
+            )}
+
+            {isReelsRoute && (
+              <button
+                onClick={toggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                className="hidden md:block p-2.5 rounded-xl text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-all cursor-pointer"
+              >
+                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
             )}
 
