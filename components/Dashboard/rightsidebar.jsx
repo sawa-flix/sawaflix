@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
+import { fetchCuratedMovies } from '@/components/Movie/movieApi';
 
 const TOP_ARTISTS = [
   { id: 'jovi', name: 'Jovi', image: 'https://i.ibb.co/TD26rNtX/jovi-2.png' },
@@ -27,12 +28,42 @@ const RightSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("music");
+  const [suggestedMovies, setSuggestedMovies] = useState([]);
+  const [moviesLoading, setMoviesLoading] = useState(false);
 
   React.useEffect(() => {
     if (pathname?.includes('/movie')) setActiveCategory("comedy");
     else if (pathname?.includes('/blogs')) setActiveCategory("news");
     else if (pathname?.includes('/music') || pathname?.includes('/artist')) setActiveCategory("music");
     else setActiveCategory("viral");
+  }, [pathname]);
+
+  React.useEffect(() => {
+    if (!pathname?.includes('/dashboard/movie')) {
+      setSuggestedMovies([]);
+      return;
+    }
+
+    let cancelled = false;
+    setMoviesLoading(true);
+    fetchCuratedMovies()
+      .then((catalog) => {
+        if (cancelled) return;
+        const currentMovieId = decodeURIComponent(pathname.split('/').pop() || '');
+        setSuggestedMovies(
+          catalog
+            .filter((movie) => movie.mediaKind !== 'episode' && movie.id !== currentMovieId)
+            .slice(0, 8)
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSuggestedMovies([]);
+      })
+      .finally(() => {
+        if (!cancelled) setMoviesLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [pathname]);
   
   const currentCategory = CATEGORIES.find(c => c.id === activeCategory);
@@ -152,9 +183,55 @@ const RightSidebar = () => {
       {/* Recommendations / Hit Songs */}
       <div className="space-y-4 mb-6">
         <h3 className="px-2 text-[14px] font-black uppercase tracking-widest text-[color:var(--muted-foreground)]">
-          {activeCategory === 'music' ? 'Hit Songs' : 'Suggested for you'}
+          {pathname?.includes('/dashboard/movie') ? 'Suggested movies' : activeCategory === 'music' ? 'Hit Songs' : 'Suggested for you'}
         </h3>
-        {loading ? (
+        {pathname?.includes('/dashboard/movie') ? (
+          moviesLoading ? (
+            <div className="flex flex-col gap-4">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="flex animate-pulse gap-3 px-2">
+                  <div className="h-[58px] w-[88px] shrink-0 rounded-lg bg-[color:var(--surface-hover)]" />
+                  <div className="flex-1 space-y-2 py-1">
+                    <div className="h-3 w-full rounded bg-[color:var(--surface-hover)]" />
+                    <div className="h-2 w-2/3 rounded bg-[color:var(--surface-hover)]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : suggestedMovies.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {suggestedMovies.map((movie) => (
+                <Link
+                  key={movie.id}
+                  href={`/dashboard/movie/${encodeURIComponent(movie.id)}`}
+                  className="group flex gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-[color:var(--border)] hover:bg-[color:var(--surface-hover)]"
+                >
+                  <div className="relative h-[58px] w-[88px] shrink-0 overflow-hidden rounded-lg bg-[color:var(--surface-hover)]">
+                    <Image
+                      src={movie.image}
+                      alt={movie.title}
+                      fill
+                      sizes="88px"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      unoptimized
+                    />
+                    <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 py-0.5 text-[9px] font-semibold text-white">
+                      {movie.duration || 'Movie'}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1 py-0.5">
+                    <h4 className="mb-1 line-clamp-2 text-xs font-bold leading-tight text-[color:var(--foreground)]">{movie.title}</h4>
+                    <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-[color:var(--muted-foreground)]">
+                      {movie.year} · {movie.genres?.[0] || 'Cameroon cinema'}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="px-2 text-xs text-[color:var(--muted-foreground)]">No movie suggestions are available right now.</p>
+          )
+        ) : loading ? (
            <div className="flex flex-col gap-4">
              {[1,2,3,4,5,6].map(i => (
                <div key={i} className="flex gap-3 animate-pulse px-2">
