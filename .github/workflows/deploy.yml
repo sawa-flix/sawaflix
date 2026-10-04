@@ -27,7 +27,7 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: 'https://api.sawaflix.com'
-          NEXT_PUBLIC_BACKEND_URL: 'https://api.sawaflix.com'
+          NEXT_PUBLIC_ADMIN_API_URL: 'https://adminapi.sawaflix.com'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           
@@ -49,7 +49,7 @@ jobs:
             
             echo "==> Writing production .env..."
             echo "NEXT_PUBLIC_API_URL=https://api.sawaflix.com" > .env.production.local
-            echo "NEXT_PUBLIC_BACKEND_URL=https://api.sawaflix.com" >> .env.production.local
+            echo "NEXT_PUBLIC_ADMIN_API_URL=https://adminapi.sawaflix.com" >> .env.production.local
             echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.production.local
             echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.production.local
             
