@@ -47,7 +47,7 @@ export default function EditContentPage() {
         // Since we don't have a getSingleContent in contentService yet, we'll fetch from the aggregator or direct endpoint
         // For now, let's assume the user has the ID and we can fetch it.
         // If not available, we can redirect back.
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com'}/api/content/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com'}/api/content/${id}`);
         if (res.ok) {
           const data = await res.json();
           setForm({
@@ -88,7 +88,7 @@ export default function EditContentPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://sawaflix-backend.onrender.com'}/api/content/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com'}/api/content/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
