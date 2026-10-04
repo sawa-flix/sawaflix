@@ -1,0 +1,64 @@
+name: Deploy SawaFlix Frontend to VPS
+
+on:
+  push:
+    branches: [ refactored-code ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install lightningcss --save-dev
+          
+      - name: Build Next.js App
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.sawaflix.com'
+          NEXT_PUBLIC_BACKEND_URL: 'https://api.sawaflix.com'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          
+      - name: Deploy to Production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 20
+            cd ~/apps/sawaflix-frontend
+            
+            echo "==> Pulling latest code..."
+            git fetch origin refactored-code
+            git reset --hard origin/refactored-code
+            
+            echo "==> Writing production .env..."
+            echo "NEXT_PUBLIC_API_URL=https://api.sawaflix.com" > .env.production.local
+            echo "NEXT_PUBLIC_BACKEND_URL=https://api.sawaflix.com" >> .env.production.local
+            echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.production.local
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.production.local
+            
+            echo "==> Installing dependencies..."
+            npm install
+            npm install lightningcss --save-dev
+            
+            echo "==> Building application..."
+            npm run build
+            
+            echo "==> Restarting PM2 process..."
+            pm2 reload sawaflix-frontend --update-env || pm2 start npm --name sawaflix-frontend -- start -- -p 3000
