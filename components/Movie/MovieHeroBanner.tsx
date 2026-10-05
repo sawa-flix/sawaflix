@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Play, Plus, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Movie } from './types';
 
@@ -29,34 +28,46 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
   onPrevious,
   onNext,
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const pointerStartX = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (slideCount < 2 || isHovered || !onNext) return;
+    const timer = window.setInterval(onNext, 7000);
+    return () => window.clearInterval(timer);
+  }, [isHovered, onNext, slideCount, slideIndex]);
+
   return (
-    <div className="group relative isolate mb-8 aspect-[16/10] min-h-[420px] w-full overflow-hidden rounded-xl border border-[color:var(--border)] bg-black shadow-2xl sm:min-h-0 sm:aspect-[2.15/1] lg:aspect-[2.35/1] lg:max-h-[620px]">
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={`cover-${movie.id}`}
-          initial={{ opacity: 0, scale: 1.035, x: 20 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          exit={{ opacity: 0, scale: 0.99, x: -18 }}
-          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0"
-        >
-          <Image
-            src={movie.image}
-            alt={movie.title}
-            fill
-            className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-            priority
-            unoptimized
-            sizes="100vw"
-          />
-        </motion.div>
-      </AnimatePresence>
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/5" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
+    <div
+      className="group relative isolate mx-auto mb-6 aspect-[16/9] min-h-[560px] w-full max-w-[1920px] overflow-hidden rounded-[34px] border border-white/10 bg-black shadow-[0_40px_120px_-35px_rgba(0,0,0,0.9)] sm:min-h-0 sm:aspect-[2.1/1] lg:aspect-[22/9] lg:max-h-[980px]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onPointerDown={(event) => { pointerStartX.current = event.clientX; }}
+      onPointerUp={(event) => {
+        if (pointerStartX.current === null) return;
+        const swipeDistance = event.clientX - pointerStartX.current;
+        pointerStartX.current = null;
+        if (Math.abs(swipeDistance) < 60) return;
+        if (swipeDistance < 0) onNext?.();
+        else onPrevious?.();
+      }}
+      onPointerCancel={() => { pointerStartX.current = null; }}
+    >
+      <Image
+        src={movie.image}
+        alt={movie.title}
+        fill
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+        priority
+        unoptimized
+        sizes="100vw"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(255,255,255,0.18),transparent_12%),linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.62)_26%,rgba(0,0,0,0.28)_55%,rgba(0,0,0,0.7)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/20" />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.12] mix-blend-screen"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.10] mix-blend-screen"
         style={{ backgroundImage: "url('/logos_and_pwas/sawai.svg')" }}
       />
 
@@ -89,62 +100,56 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
         </div>
       )}
 
-      <AnimatePresence mode="wait">
-      <motion.div
-        key={`details-${movie.id}`}
-        initial={{ opacity: 0, x: 24, y: 8 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        exit={{ opacity: 0, x: -18, y: -4 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute inset-0 z-10 flex items-end p-5 sm:p-8 lg:p-12"
-      >
-        <div className="flex max-w-3xl flex-col items-start justify-end">
-        <span className="inline-flex items-center gap-1.5 bg-[color:var(--primary)] text-white text-[9px] sm:text-[10px] font-bold px-2.5 py-1.5 rounded tracking-widest uppercase mb-3">
-          <span className="h-1.5 w-1.5 rounded-full bg-white" />
-          {movie.mediaKind === 'episode'
-            ? `${movie.seriesTitle || 'Series'} · Season ${movie.seasonNumber || 1}, Episode ${movie.episodeNumber || 1}`
-            : movie.mediaKind === 'series' ? 'Cameroon Series' : 'Cameroon Cinema'}
-        </span>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 bg-gradient-to-t from-black/90 to-transparent" />
 
-        <h1 className="max-w-3xl text-3xl sm:text-4xl lg:text-6xl font-black text-white leading-[1.05] mb-3 drop-shadow-lg">
-          {movie.title}
-        </h1>
+      <div className="absolute inset-0 z-20 flex items-end p-5 sm:p-8 lg:p-12">
+          <div className="flex max-w-3xl flex-col items-start justify-end">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-[color:var(--primary)]/90 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_32px_rgba(0,0,0,0.35)] sm:text-[10px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              {movie.mediaKind === 'episode'
+                ? `${movie.seriesTitle || 'Series'} · Season ${movie.seasonNumber || 1}, Episode ${movie.episodeNumber || 1}`
+                : movie.mediaKind === 'series' ? 'Cameroon Series' : 'Cameroon Cinema'}
+            </span>
 
-        <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-white/85 line-clamp-2 mb-4 drop-shadow">
-          {movie.description}
-        </p>
+            <h1 className="mb-3 max-w-3xl text-xl font-black leading-[1.02] text-white drop-shadow-[0_18px_40px_rgba(0,0,0,0.7)] sm:text-xl lg:text-2xl">
+              {movie.title}
+            </h1>
 
-        <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold text-white/80 mb-5 flex-wrap">
-          <span className="flex items-center gap-1.5 text-[#FCD116]">
-            <Star size={14} fill="currentColor" className="sm:w-[16px] sm:h-[16px]" />
-            <span className="text-white">{movie.rating || 4.8}</span>
-          </span>
-          <span>{movie.year}</span>
-          <span>{movie.genres?.[0] || 'Drama'}</span>
-          {movie.duration && <span>{movie.duration}</span>}
-          <span className="border border-white/45 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] uppercase text-white/85">
-            {movie.ageRating || '13+'}
-          </span>
-        </div>
+            <p className="mb-4 max-w-2xl text-sm leading-relaxed text-white/85 drop-shadow-[0_8px_22px_rgba(0,0,0,0.55)] line-clamp-2 sm:text-base">
+              {movie.description}
+            </p>
 
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Link
-            href={detailsHref}
-            className="bg-white hover:bg-white/90 text-black font-bold py-2.5 sm:py-3 px-4 sm:px-7 rounded-lg flex items-center gap-2 transition-all shadow-lg text-xs sm:text-sm cursor-pointer"
-            aria-label={`Play ${movie.title}`}
-          >
-            <Play size={16} fill="currentColor" className="sm:w-[18px] sm:h-[18px]" /> Watch now
-          </Link>
-          <button
-            className="bg-white/15 hover:bg-white/25 border border-white/35 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center gap-2 transition-all backdrop-blur-md text-xs sm:text-sm cursor-pointer"
-            aria-label={`Add ${movie.title} to watchlist`}
-          >
-            <Plus size={16} className="sm:w-[18px] sm:h-[18px]" /> Watchlist
-          </button>
-        </div>
-        </div>
-      </motion.div>
-      </AnimatePresence>
+            <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-white/80 sm:gap-4 sm:text-sm">
+              <span className="flex items-center gap-1.5 text-[#FCD116]">
+                <Star size={14} fill="currentColor" className="sm:h-[16px] sm:w-[16px]" />
+                <span className="text-white">{movie.rating || 4.8}</span>
+              </span>
+              <span>{movie.year}</span>
+              <span>{movie.genres?.[0] || 'Drama'}</span>
+              {movie.duration && <span>{movie.duration}</span>}
+              <span className="rounded border border-white/45 px-1.5 py-0.5 text-[9px] uppercase text-white/85 sm:text-[10px]">
+                {movie.ageRating || '13+'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                href={detailsHref}
+                className="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-black shadow-[0_18px_44px_rgba(255,255,255,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:px-7 sm:py-3 sm:text-sm"
+                aria-label={`Play ${movie.title}`}
+              >
+                <Play size={16} fill="currentColor" className="sm:h-[18px] sm:w-[18px]" /> Watch now
+              </Link>
+              <button
+                type="button"
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/35 bg-white/8 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/15 sm:px-6 sm:py-3 sm:text-sm"
+                aria-label={`Add ${movie.title} to watchlist`}
+              >
+                <Plus size={16} className="sm:h-[18px] sm:w-[18px]" /> Watchlist
+              </button>
+            </div>
+          </div>
+      </div>
     </div>
   );
 };

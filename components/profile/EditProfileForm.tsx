@@ -101,26 +101,23 @@ function EditProfileForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Success Message */}
+    <form onSubmit={handleSubmit} className="space-y-6 text-[color:var(--foreground)]">
       {successMessage && (
-        <div className="p-4 bg-green-600/10 border border-green-600/30 rounded-lg text-green-400 text-sm flex items-center gap-3">
-          <div className="w-2 h-2 bg-green-400 rounded-full" />
+        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-600 dark:text-emerald-400">
+          <div className="h-2 w-2 rounded-full bg-emerald-500" />
           {successMessage}
         </div>
       )}
 
-      {/* Submit Error */}
       {errors.submit && (
-        <div className="p-4 bg-red-600/10 border border-red-600/30 rounded-lg text-red-400 text-sm flex items-center gap-3">
+        <div className="flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
           <AlertCircle size={16} />
           {errors.submit}
         </div>
       )}
 
-      {/* Full Name */}
       <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
+        <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
           Full Name
         </label>
         <input
@@ -128,21 +125,18 @@ function EditProfileForm({
           name="fullName"
           value={formData.fullName || ''}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
+          className={`w-full rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:outline-none ${
             errors.fullName
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+              ? 'border-red-500/50 focus:border-red-500'
+              : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+          }`}
           placeholder="Enter your full name"
         />
-        {errors.fullName && (
-          <p className="text-red-400 text-xs mt-1">{errors.fullName}</p>
-        )}
+        {errors.fullName && (<p className="mt-1 text-xs text-red-500">{errors.fullName}</p>)}
       </div>
 
-      {/* Email */}
       <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
+        <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
           Email Address
         </label>
         <input
@@ -150,21 +144,18 @@ function EditProfileForm({
           name="email"
           value={formData.email || ''}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
+          className={`w-full rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:outline-none ${
             errors.email
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+              ? 'border-red-500/50 focus:border-red-500'
+              : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+          }`}
           placeholder="your.email@example.com"
         />
-        {errors.email && (
-          <p className="text-red-400 text-xs mt-1">{errors.email}</p>
-        )}
+        {errors.email && (<p className="mt-1 text-xs text-red-500">{errors.email}</p>)}
       </div>
 
-      {/* Phone Number */}
       <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
+        <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
           Phone Number (Optional)
         </label>
         <input
@@ -172,22 +163,19 @@ function EditProfileForm({
           name="phoneNumber"
           value={formData.phoneNumber || ''}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
+          className={`w-full rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:outline-none ${
             errors.phoneNumber
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+              ? 'border-red-500/50 focus:border-red-500'
+              : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+          }`}
           placeholder="+1 (555) 123-4567"
         />
-        {errors.phoneNumber && (
-          <p className="text-red-400 text-xs mt-1">{errors.phoneNumber}</p>
-        )}
+        {errors.phoneNumber && (<p className="mt-1 text-xs text-red-500">{errors.phoneNumber}</p>)}
       </div>
 
-      {/* Region and Country */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-2">
+          <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
             Region (Optional)
           </label>
           <input
@@ -195,13 +183,13 @@ function EditProfileForm({
             name="region"
             value={formData.region || ''}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#CE1126] focus:outline-none transition"
+            className="w-full rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:border-[color:var(--primary)] focus:outline-none"
             placeholder="e.g., North America"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-2">
+          <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
             Country
           </label>
           <input
@@ -209,33 +197,30 @@ function EditProfileForm({
             name="country"
             value={formData.country || ''}
             onChange={handleChange}
-            className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 transition ${
+            className={`w-full rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:outline-none ${
               errors.country
-                ? 'border-red-600/50 focus:border-red-600'
-                : 'border-white/10 focus:border-[#CE1126]'
-            } focus:outline-none`}
+                ? 'border-red-500/50 focus:border-red-500'
+                : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+            }`}
             placeholder="United States"
           />
-          {errors.country && (
-            <p className="text-red-400 text-xs mt-1">{errors.country}</p>
-          )}
+          {errors.country && (<p className="mt-1 text-xs text-red-500">{errors.country}</p>)}
         </div>
       </div>
 
-      {/* Language */}
       <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
+        <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
           Language Preference
         </label>
         <select
           name="language"
           value={formData.language || ''}
           onChange={handleChange}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white transition ${
+          className={`w-full rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] transition focus:outline-none ${
             errors.language
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+              ? 'border-red-500/50 focus:border-red-500'
+              : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+          }`}
         >
           <option value="">Select a language...</option>
           <option value="English">English</option>
@@ -246,14 +231,11 @@ function EditProfileForm({
           <option value="Japanese">Japanese</option>
           <option value="Arabic">Arabic</option>
         </select>
-        {errors.language && (
-          <p className="text-red-400 text-xs mt-1">{errors.language}</p>
-        )}
+        {errors.language && (<p className="mt-1 text-xs text-red-500">{errors.language}</p>)}
       </div>
 
-      {/* Bio */}
       <div>
-        <label className="block text-sm font-semibold text-gray-300 mb-2">
+        <label className="mb-2 block text-sm font-semibold text-[color:var(--muted-foreground)]">
           Bio (Optional)
         </label>
         <textarea
@@ -262,28 +244,25 @@ function EditProfileForm({
           onChange={handleChange}
           maxLength={500}
           rows={4}
-          className={`w-full px-4 py-3 bg-white/5 border rounded-lg text-white placeholder-gray-500 resize-none transition ${
+          className={`w-full resize-none rounded-lg border bg-[color:var(--surface)] px-4 py-3 text-[color:var(--foreground)] placeholder:text-[color:var(--muted-foreground)] transition focus:outline-none ${
             errors.bio
-              ? 'border-red-600/50 focus:border-red-600'
-              : 'border-white/10 focus:border-[#CE1126]'
-          } focus:outline-none`}
+              ? 'border-red-500/50 focus:border-red-500'
+              : 'border-[color:var(--border)] focus:border-[color:var(--primary)]'
+          }`}
           placeholder="Tell us about yourself..."
         />
-        <div className="flex justify-between items-center mt-2">
-          <p className="text-xs text-gray-500">
-            {formData.bio?.length || 0} / 500 characters
-          </p>
-          {errors.bio && <p className="text-red-400 text-xs">{errors.bio}</p>}
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="text-xs text-[color:var(--muted-foreground)]">{formData.bio?.length || 0} / 500 characters</p>
+          {errors.bio && <p className="text-xs text-red-500">{errors.bio}</p>}
         </div>
       </div>
 
-      {/* Form Actions */}
-      <div className="flex gap-4 pt-6 border-t border-white/10">
+      <div className="flex gap-4 border-t border-[color:var(--border)] pt-6">
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="flex-1 px-6 py-3 border border-white/10 rounded-lg text-white font-semibold hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[color:var(--border)] px-6 py-3 font-semibold text-[color:var(--foreground)] transition hover:bg-[color:var(--surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <X size={18} />
           Cancel
@@ -292,11 +271,11 @@ function EditProfileForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 px-6 py-3 bg-white hover:bg-zinc-100 rounded-xl text-[#0E121A] font-bold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+          className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[color:var(--foreground)] px-6 py-3 font-bold text-[color:var(--background)] shadow-md transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? (
             <>
-              <Loader2 size={18} className="animate-spin text-zinc-700" />
+              <Loader2 size={18} className="animate-spin" />
               <span>Saving...</span>
             </>
           ) : (

@@ -21,6 +21,7 @@ export default function MoviePage(): React.ReactElement {
   const [genres, setGenres] = useState<string[]>(FILTERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +64,20 @@ export default function MoviePage(): React.ReactElement {
     [matchingMovies, movieQuery]
   );
 
+  useEffect(() => {
+    if (!featuredMovie) {
+      setFeaturedIndex(0);
+      return;
+    }
+
+    const targetIndex = matchingMovies.findIndex((movie) => movie.id === featuredMovie.id);
+    if (targetIndex >= 0) {
+      setFeaturedIndex(targetIndex);
+    }
+  }, [featuredMovie, matchingMovies]);
+
+  const heroMovie = matchingMovies[featuredIndex] || featuredMovie;
+
   const filteredMovies = useMemo(() => {
     const catalog = matchingMovies.filter((movie) => movie.id !== featuredMovie?.id);
     return activeFilter === 'All' ? catalog : catalog.filter((movie) => movie.genres.includes(activeFilter));
@@ -71,6 +86,11 @@ export default function MoviePage(): React.ReactElement {
   const moreMovies = useMemo(
     () => movies.filter((movie) => movie.id !== selectedMovie?.id).slice(0, 6),
     [movies, selectedMovie]
+  );
+
+  const recommendedMovies = useMemo(
+    () => (matchingMovies.length > 0 ? matchingMovies.slice(0, 8) : movies.slice(0, 8)),
+    [matchingMovies, movies]
   );
 
   const seriesEpisodes = useMemo(() => {
@@ -97,8 +117,43 @@ export default function MoviePage(): React.ReactElement {
           {loading && <div className="ml-auto flex shrink-0 items-center gap-1.5 pr-2 text-xs text-[color:var(--muted-foreground)]"><Loader2 size={13} className="animate-spin" /> Syncing catalog…</div>}
         </div>
 
-        {featuredMovie && (!movieQuery || matchingMovies.length > 0) && (
-          <MovieHeroBanner movie={featuredMovie} detailsHref={movieDetailsHref(featuredMovie)} />
+        {heroMovie && (!movieQuery || matchingMovies.length > 0) && (
+          <MovieHeroBanner
+            movie={heroMovie}
+            detailsHref={movieDetailsHref(heroMovie)}
+            slideIndex={featuredIndex}
+            slideCount={Math.max(1, matchingMovies.length)}
+            onPrevious={() => setFeaturedIndex((current) => (matchingMovies.length === 0 ? 0 : (current - 1 + matchingMovies.length) % matchingMovies.length))}
+            onNext={() => setFeaturedIndex((current) => (matchingMovies.length === 0 ? 0 : (current + 1) % matchingMovies.length))}
+          />
+        )}
+
+        {recommendedMovies.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-3 px-1">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--muted-foreground)]">Recommended</p>
+                <h2 className="mt-1 text-xl font-bold text-[color:var(--foreground)]">For you</h2>
+              </div>
+              <button type="button" className="hidden rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] px-3 py-1.5 text-xs font-bold text-[color:var(--foreground)] sm:inline-flex">
+                Browse all
+              </button>
+            </div>
+            <div className="scrollbar-hide overflow-x-auto pb-2">
+              <div className="flex min-w-max gap-4 pr-2">
+                {recommendedMovies.map((movie) => (
+                  <div key={movie.id} className="w-[180px] sm:w-[210px]">
+                    <MovieCard
+                      movie={movie}
+                      isPremium={movie.featured || movie.mediaKind === 'series'}
+                      onClick={() => setSelectedMovie(movie)}
+                      isActive={selectedMovie?.id === movie.id}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
         )}
 
         {movieQuery && matchingMovies.length === 0 && <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] px-5 py-8 text-center text-sm font-semibold text-[color:var(--muted-foreground)]">No movies found for &quot;{searchParams.get('q')}&quot;.</div>}
