@@ -54,7 +54,7 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
     (Boolean(video.embedUrl) && !video.embedUrl.includes('youtube.com') && !video.embedUrl.includes('youtu.be')) ||
     (Boolean(video.id) && video.id.length !== 11);
 
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.sawaflix.com';
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://adminapi.sawaflix.com';
   let nativeSrc = video.videoUrl || video.embedUrl || (video.id ? `${adminUrl}/api/admin/upload/stream/${video.id}` : '');
   
   // Fix for videos uploaded locally whose URLs were saved to the DB with localhost:10000 etc.
