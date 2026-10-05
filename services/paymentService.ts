@@ -15,7 +15,7 @@ export interface Transaction {
 }
 
 export const paymentService = {
-  async initiatePayment(assetId: string, method: 'mtn' | 'orange', amount: number = 500): Promise<Transaction> {
+  async initiatePayment(assetId: string, method: 'mtn' | 'orange', amount: number = 500, phoneNumber?: string): Promise<Transaction> {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     const visitorId = typeof window !== 'undefined' ? localStorage.getItem('sawaflix_visitor_id') : null;
@@ -29,7 +29,7 @@ export const paymentService = {
         'Authorization': `Bearer ${session.access_token}`,
         ...(visitorId ? { 'x-visitor-id': visitorId } : {})
       },
-      body: JSON.stringify({ assetId, method, amount, currency: 'XAF' })
+      body: JSON.stringify({ assetId, method, amount, currency: 'XAF', ...(phoneNumber ? { phoneNumber } : {}) })
     });
 
     if (!res.ok) {

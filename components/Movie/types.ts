@@ -10,6 +10,7 @@ export interface Movie {
   country: string;
   genres: string[];
   featured: boolean;
+  isPremium?: boolean;
   description: string;
   duration?: string;
   ageRating?: string;

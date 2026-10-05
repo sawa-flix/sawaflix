@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
+import { MovieViewerPresence } from '@/components/Movie/MovieViewerPresence';
 
 const TOP_ARTISTS = [
   { id: 'jovi', name: 'Jovi', image: 'https://i.ibb.co/TD26rNtX/jovi-2.png' },
@@ -204,7 +205,15 @@ const RightSidebar = () => {
                 <Link
                   key={movie.id}
                   href={`/dashboard/movie/${encodeURIComponent(movie.id)}`}
-                  className="group flex gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-[color:var(--border)] hover:bg-[color:var(--surface-hover)]"
+                  scroll={false}
+                  onClick={(event) => {
+                    const routeParts = pathname?.split('/').filter(Boolean) || [];
+                    const alreadyOnMovieDetails = routeParts[0] === 'dashboard' && routeParts[1] === 'movie' && routeParts.length > 2;
+                    if (!alreadyOnMovieDetails) return;
+                    event.preventDefault();
+                    window.dispatchEvent(new CustomEvent('sawaflix:movie-selection', { detail: { movieId: movie.id } }));
+                  }}
+                  className="group flex w-full gap-3 rounded-xl border border-transparent p-2 text-left transition-colors hover:border-[color:var(--border)] hover:bg-[color:var(--surface-hover)]"
                 >
                   <div className="relative h-[58px] w-[88px] shrink-0 overflow-hidden rounded-lg bg-[color:var(--surface-hover)]">
                     <Image
@@ -224,6 +233,7 @@ const RightSidebar = () => {
                     <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-[color:var(--muted-foreground)]">
                       {movie.year} · {movie.genres?.[0] || 'Cameroon cinema'}
                     </p>
+                    <MovieViewerPresence movieId={movie.id} mode="display" />
                   </div>
                 </Link>
               ))}

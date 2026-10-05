@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Play, Star, Heart, MessageCircle, Send, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Play, Star, MessageCircle, Send, X } from 'lucide-react';
 import { MovieCardProps } from './types';
 
 /**
@@ -63,16 +64,25 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         </div>
 
         <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
-          <button
+          <motion.button
             type="button"
             onClick={toggleLike}
             aria-label={isLiked ? 'Unlike movie' : 'Like movie'}
             aria-pressed={isLiked}
-            className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
+            whileTap={{ scale: 0.9 }}
+            className={`group flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-md transition-all ${isLiked ? 'border-red-400/50 bg-red-500/20' : 'border-white/20 bg-black/65 hover:bg-black/80'}`}
           >
-            <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
+            <motion.span animate={isLiked ? { scale: [1, 1.3, 0.92, 1] } : { scale: 1 }} transition={{ duration: 0.32 }} className="flex items-center">
+              <Image
+                src="/logos_and_pwas/like.png"
+                alt=""
+                width={18}
+                height={18}
+                className={`h-[18px] w-[18px] object-contain transition-transform ${isLiked ? 'scale-110 drop-shadow-[0_0_6px_rgba(239,68,68,.55)]' : 'opacity-85 group-hover:scale-105 group-hover:opacity-100'}`}
+              />
+            </motion.span>
             {likesCount}
-          </button>
+          </motion.button>
           <button
             type="button"
             onClick={(event) => {
@@ -89,13 +99,13 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Premium/Free Badge */}
         <div className="absolute top-2 left-2 z-10">
-          {movie.mediaKind !== 'movie' ? (
-            <span className="bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] border border-[color:var(--border)] text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
-              {movie.mediaKind === 'episode' ? `S${movie.seasonNumber || 1} · E${movie.episodeNumber || 1}` : 'Series'}
-            </span>
-          ) : isPremium ? (
+          {isPremium ? (
             <span className="bg-[#111]/90 backdrop-blur-md text-[#FCD116] border border-[#FCD116]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg flex items-center gap-1 uppercase tracking-wider">
               <Star size={10} fill="currentColor" /> Premium
+            </span>
+          ) : movie.mediaKind !== 'movie' ? (
+            <span className="bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] border border-[color:var(--border)] text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+              {movie.mediaKind === 'episode' ? `S${movie.seasonNumber || 1} · E${movie.episodeNumber || 1}` : 'Series'}
             </span>
           ) : (
             <span className="bg-[#009639]/90 backdrop-blur-md text-white border border-[#009639]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">

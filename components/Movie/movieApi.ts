@@ -13,6 +13,7 @@ export interface CuratedMovieDto {
   genres: string[];
   language: string | null;
   is_featured: boolean;
+  is_premium?: boolean;
   media_kind?: 'movie' | 'series' | 'episode';
   series_id?: string;
   series_title?: string;
@@ -27,6 +28,10 @@ interface CuratedMovieResponse {
   genres?: string[];
   error?: string;
 }
+
+const MOVIE_CACHE_TTL_MS = 90_000;
+let cachedMovies: { movies: Movie[]; cachedAt: number } | null = null;
+let pendingMovieRequest: Promise<Movie[]> | null = null;
 
 function formatDuration(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
@@ -59,6 +64,7 @@ export function mapCuratedMovie(dto: CuratedMovieDto): Movie {
     country: 'Cameroon',
     genres: dto.genres?.length ? dto.genres : ['Drama'],
     featured: dto.is_featured,
+    isPremium: dto.is_premium ?? dto.is_featured,
     description: dto.description?.trim() || '',
     duration: formatDuration(dto.duration_seconds),
     ageRating: '16+',
@@ -78,13 +84,29 @@ export function mapCuratedMovie(dto: CuratedMovieDto): Movie {
 }
 
 export async function fetchCuratedMovies(): Promise<Movie[]> {
-  const response = await fetch(`${BACKEND_URL}/api/youtube/movies?limit=200`, {
-    headers: { Accept: 'application/json' },
-    next: { revalidate: 120 },
-  });
-  const result: CuratedMovieResponse = await response.json();
-  if (!response.ok || !result.success || !result.movies) {
-    throw new Error(result.error || 'Movie catalog is unavailable.');
+  if (cachedMovies && Date.now() - cachedMovies.cachedAt < MOVIE_CACHE_TTL_MS) {
+    return cachedMovies.movies;
   }
-  return result.movies.map(mapCuratedMovie);
+  if (pendingMovieRequest) return pendingMovieRequest;
+
+  pendingMovieRequest = (async () => {
+    const response = await fetch(`${BACKEND_URL}/api/youtube/movies?limit=200`, {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 120 },
+    });
+    const result: CuratedMovieResponse = await response.json();
+    if (!response.ok || !result.success || !result.movies) {
+      throw new Error(result.error || 'Movie catalog is unavailable.');
+    }
+
+    const movies = result.movies.map(mapCuratedMovie);
+    cachedMovies = { movies, cachedAt: Date.now() };
+    return movies;
+  })();
+
+  try {
+    return await pendingMovieRequest;
+  } finally {
+    pendingMovieRequest = null;
+  }
 }

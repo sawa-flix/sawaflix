@@ -32,7 +32,7 @@ const PLANS: Array<{ id: PlanId; label: string; subtitle: string; amount: number
 ];
 
 export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProps) {
-  const { title, amountXaf, onClose } = props;
+  const { title, amountXaf, onClose, onUnlockSuccess } = props;
   const [method, setMethod] = useState<PaymentMethod>('mtn-momo');
   const [phase, setPhase] = useState<'sponsored' | 'payment'>('sponsored');
   const [adSeconds, setAdSeconds] = useState(0);
@@ -41,7 +41,7 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [comingSoon, setComingSoon] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   const activePlan = useMemo(
     () => PLANS.find((plan) => plan.id === selectedPlan) ?? PLANS[1],
@@ -60,11 +60,11 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
 
     setSubmitting(true);
     setPaymentError(null);
-    setComingSoon(false);
+    setPaymentComplete(false);
 
     window.setTimeout(() => {
       setSubmitting(false);
-      setComingSoon(true);
+      setPaymentComplete(true);
     }, 1400);
   };
 
@@ -113,7 +113,7 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
 
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/25 p-0 sm:items-center sm:p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="premium-checkout-title" className="w-full max-w-md rounded-t-2xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5 text-[color:var(--foreground)] shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:rounded-2xl sm:p-6">
+      <section role="dialog" aria-modal="true" aria-labelledby="premium-checkout-title" className="relative w-full max-w-md scale-[0.88] rounded-t-2xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5 text-[color:var(--foreground)] shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:rounded-2xl sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--foreground)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[color:var(--background)]">
@@ -133,7 +133,7 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
           <p className="mt-1 text-[11px] leading-relaxed text-[color:var(--muted-foreground)]">Pricing is set per access type. Backend payment integration is still being finalized.</p>
         </div>
 
-        <div className="space-y-2" aria-label="Choose a rental plan">
+        <div className="grid grid-cols-3 gap-2" aria-label="Choose a rental plan">
           {PLANS.map((plan) => {
             const selected = selectedPlan === plan.id;
             return (
@@ -143,26 +143,24 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
                 onClick={() => {
                   setSelectedPlan(plan.id);
                   setPaymentError(null);
-                  setComingSoon(false);
+                  setPaymentComplete(false);
                 }}
                 aria-pressed={selected}
                 disabled={submitting}
-                className={`flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-[color:var(--foreground)] bg-[color:var(--foreground)]/5' : 'border-[color:var(--border)] bg-[color:var(--background)] hover:bg-[color:var(--surface-hover)]'}`}
+                className={`flex min-h-[108px] flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-[color:var(--foreground)] bg-[color:var(--foreground)]/5' : 'border-[color:var(--border)] bg-[color:var(--background)] hover:bg-[color:var(--surface-hover)]'}`}
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold">{plan.label}</span>
-                  <span className="block text-[10px] text-[color:var(--muted-foreground)]">{plan.subtitle}</span>
-                </span>
-                <span className="text-right">
-                  <span className="block text-sm font-black">{plan.priceLabel}</span>
-                  <span className="block text-[10px] text-[color:var(--muted-foreground)]">{plan.detail}</span>
+                <span className="block text-[11px] font-bold leading-tight">{plan.label}</span>
+                <span className="block text-[9px] leading-snug text-[color:var(--muted-foreground)]">{plan.subtitle}</span>
+                <span className="text-left">
+                  <span className="block text-[11px] font-black">{plan.priceLabel}</span>
+                  <span className="block text-[8px] text-[color:var(--muted-foreground)]">{plan.detail}</span>
                 </span>
               </button>
             );
           })}
         </div>
 
-        {!comingSoon && (
+        {!paymentComplete && !submitting && (
           <>
             <div className="mt-4 space-y-2" aria-label="Choose a payment method">
               {METHODS.map((item) => {
@@ -202,22 +200,31 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
           </>
         )}
 
-        {submitting && !comingSoon && (
-          <div className="mt-5 flex items-center justify-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--background)] p-4 text-xs font-semibold text-[color:var(--muted-foreground)]">
-            <Loader2 size={16} className="animate-spin text-[color:var(--foreground)]" />
-            Waiting for payment confirmation…
+        {submitting && (
+          <div role="status" aria-live="polite" className="absolute inset-0 z-30 flex items-center justify-center overflow-hidden rounded-[inherit] bg-black/35 px-5 py-6 backdrop-blur-sm">
+            <div className="w-full max-w-xs rounded-2xl border border-white/40 bg-[color:var(--surface)]/95 p-6 text-center text-[color:var(--foreground)] shadow-[0_24px_70px_rgba(0,0,0,.35)] ring-1 ring-black/5">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 text-[color:var(--primary)] shadow-[0_0_32px_color-mix(in_srgb,var(--primary)_22%,transparent)]">
+                <Loader2 size={38} strokeWidth={2.4} className="animate-spin" />
+              </div>
+              <p className="text-base font-extrabold">Confirming your selection</p>
+              <p className="mt-1.5 text-xs text-[color:var(--muted-foreground)]">{method === 'mtn-momo' ? 'MTN MoMo' : 'Orange Money'} <span aria-hidden="true">·</span> {activePlan.priceLabel}</p>
+              <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[color:var(--border)]">
+                <div className="h-full w-1/3 animate-pulse rounded-full bg-[color:var(--primary)]" />
+              </div>
+              <p className="mt-4 text-[10px] font-medium text-[color:var(--muted-foreground)]">Demo only. No payment will be charged.</p>
+            </div>
           </div>
         )}
 
-        {comingSoon && (
+        {paymentComplete && (
           <div className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-[color:var(--foreground)]">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/15 text-emerald-400">
               <CheckCircle2 size={22} />
             </div>
-            <p className="text-lg font-black">Coming soon</p>
-            <p className="mt-2 text-xs leading-relaxed text-[color:var(--muted-foreground)]">The rental and lifetime unlock flow is being completed on the backend. This screen is ready for the live checkout release.</p>
-            <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-xs font-bold text-[color:var(--background)] transition-opacity hover:opacity-85">
-              Close
+            <p className="text-lg font-black">Demo payment complete</p>
+            <p className="mt-2 text-xs leading-relaxed text-[color:var(--muted-foreground)]">This frontend simulation unlocks playback for this session only. A real provider confirmation and access grant still require backend integration.</p>
+            <button type="button" onClick={onUnlockSuccess} className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[color:var(--foreground)] px-4 py-2.5 text-sm font-bold text-[color:var(--background)] transition-opacity hover:opacity-85">
+              Continue watching
             </button>
           </div>
         )}
