@@ -5,7 +5,7 @@ import { Play, Pause, ChevronLeft, Heart, MoreVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMusic } from '@/components/MusicContext';
 import { BACKEND_URL } from '@/lib/apiConfig';
-import { artistsData } from '../../musicpage/page';
+import { artistsData } from '@/lib/music/artists';
 
 const BANNER_IMG = "https://i.ibb.co/zhLm73Bh/banner-2.png";
 const MUSIC_CARD_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";

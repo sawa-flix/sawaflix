@@ -73,7 +73,7 @@ This is a classic rendering optimization: the app no longer destroys and rebuild
 
 ### Session-scoped splash state
 
-The app loader is gated by browser session storage. A session is a good scope because it prevents repeated startup friction while still allowing fresh sessions to re-trigger the onboarding experience. The loader also tracks real readiness events like fonts, assets, or initial app boot rather than relying purely on a timer.
+The app loader is gated by browser session storage during normal client-side navigation, preventing repeated startup friction as users move around the app. A full browser reload intentionally shows the splash again and restarts its progress animation. The loader also tracks readiness signals such as fonts, images, and app boot rather than relying purely on a timer.
 
 ### Payment-tier and transaction-state separation
 
@@ -123,7 +123,8 @@ Keeping provider verification outside the present UI prevents a client timer fro
 ### Splash and startup
 
 - `components/PWASplashScreen.tsx`
-  - Adds session gating, progress tracking, retry handling, reduced-motion awareness, and fade-out behavior.
+  - Adds session gating for in-app navigation while replaying the splash on full page reloads.
+  - Tracks progress through 100% before fading out, with retry handling and reduced-motion support.
 
 ### Sidebar and selection flow
 

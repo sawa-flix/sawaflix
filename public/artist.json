@@ -1,0 +1,465 @@
+{
+  "dataset": {
+    "name": "Cameroonian Artists - Spotify Verified Seed",
+    "country": "Cameroon",
+    "country_code": "CM",
+    "last_verified": "2026-10-05",
+    "note": "This is a verified public-data seed dataset, not a claim that it contains every artist on Spotify."
+  },
+
+  "artists": [
+    {
+      "rank_by_followers": 1,
+      "rank_by_monthly_listeners": 1,
+      "name": "Libianca",
+      "spotify_followers": 632000,
+      "spotify_monthly_listeners": 5300000
+    },
+    {
+      "rank_by_followers": 2,
+      "rank_by_monthly_listeners": 2,
+      "name": "Tefo",
+      "spotify_followers": 188000,
+      "spotify_monthly_listeners": 1300000
+    },
+    {
+      "rank_by_followers": 3,
+      "rank_by_monthly_listeners": 31,
+      "name": "Ko-C",
+      "spotify_followers": 133000,
+      "spotify_monthly_listeners": 53000
+    },
+    {
+      "rank_by_followers": 4,
+      "rank_by_monthly_listeners": 10,
+      "name": "Locko",
+      "spotify_followers": 129000,
+      "spotify_monthly_listeners": 215000
+    },
+    {
+      "rank_by_followers": 5,
+      "rank_by_monthly_listeners": 13,
+      "name": "Jamesy",
+      "spotify_followers": 127000,
+      "spotify_monthly_listeners": 142000
+    },
+    {
+      "rank_by_followers": 6,
+      "rank_by_monthly_listeners": 15,
+      "name": "Tenor",
+      "spotify_followers": 121000,
+      "spotify_monthly_listeners": 110000
+    },
+    {
+      "rank_by_followers": 7,
+      "rank_by_monthly_listeners": 7,
+      "name": "Manu Dibango",
+      "spotify_followers": 120000,
+      "spotify_monthly_listeners": 321000
+    },
+    {
+      "rank_by_followers": 8,
+      "rank_by_monthly_listeners": 11,
+      "name": "Charlotte Dipanda",
+      "spotify_followers": 118000,
+      "spotify_monthly_listeners": 212000
+    },
+    {
+      "rank_by_followers": 9,
+      "rank_by_monthly_listeners": 19,
+      "name": "Blanche Bailly",
+      "spotify_followers": 110000,
+      "spotify_monthly_listeners": 80000
+    },
+    {
+      "rank_by_followers": 10,
+      "rank_by_monthly_listeners": 20,
+      "name": "CYSOUL",
+      "spotify_followers": 101000,
+      "spotify_monthly_listeners": 79000
+    },
+    {
+      "rank_by_followers": 11,
+      "rank_by_monthly_listeners": 29,
+      "name": "Vano Baby",
+      "spotify_followers": 92000,
+      "spotify_monthly_listeners": 57000
+    },
+    {
+      "rank_by_followers": 12,
+      "rank_by_monthly_listeners": 17,
+      "name": "Krys M",
+      "spotify_followers": 80000,
+      "spotify_monthly_listeners": 103000
+    },
+    {
+      "rank_by_followers": 13,
+      "rank_by_monthly_listeners": 27,
+      "name": "Mr Leo",
+      "spotify_followers": 79000,
+      "spotify_monthly_listeners": 60000
+    },
+    {
+      "rank_by_followers": 14,
+      "rank_by_monthly_listeners": 16,
+      "name": "Vagabon",
+      "spotify_followers": 77000,
+      "spotify_monthly_listeners": 107000
+    },
+    {
+      "rank_by_followers": 15,
+      "rank_by_monthly_listeners": 30,
+      "name": "Mimie",
+      "spotify_followers": 77000,
+      "spotify_monthly_listeners": 55000
+    },
+    {
+      "rank_by_followers": 16,
+      "rank_by_monthly_listeners": 23,
+      "name": "Daphne",
+      "spotify_followers": 70000,
+      "spotify_monthly_listeners": 70000
+    },
+    {
+      "rank_by_followers": 17,
+      "rank_by_monthly_listeners": 21,
+      "name": "Francis Bebey",
+      "spotify_followers": 67000,
+      "spotify_monthly_listeners": 78000
+    },
+    {
+      "rank_by_followers": 18,
+      "rank_by_monthly_listeners": 14,
+      "name": "BAD NOVA",
+      "spotify_followers": 65000,
+      "spotify_monthly_listeners": 141000
+    },
+    {
+      "rank_by_followers": 19,
+      "rank_by_monthly_listeners": 8,
+      "name": "Blick Bassy",
+      "spotify_followers": 62000,
+      "spotify_monthly_listeners": 295000
+    },
+    {
+      "rank_by_followers": 20,
+      "rank_by_monthly_listeners": 25,
+      "name": "Magasco",
+      "spotify_followers": 53000,
+      "spotify_monthly_listeners": 63000
+    },
+    {
+      "rank_by_followers": 21,
+      "rank_by_monthly_listeners": 26,
+      "name": "Maahlox Le Vibeur",
+      "spotify_followers": 52000,
+      "spotify_monthly_listeners": 61000
+    },
+    {
+      "rank_by_followers": 22,
+      "rank_by_monthly_listeners": 22,
+      "name": "X Maleya",
+      "spotify_followers": 51000,
+      "spotify_monthly_listeners": 78000
+    },
+    {
+      "rank_by_followers": 23,
+      "rank_by_monthly_listeners": 36,
+      "name": "Lady Ponce",
+      "spotify_followers": 50000,
+      "spotify_monthly_listeners": 47000
+    },
+    {
+      "rank_by_followers": 24,
+      "rank_by_monthly_listeners": null,
+      "name": "Kameni",
+      "spotify_followers": 50000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 25,
+      "rank_by_monthly_listeners": null,
+      "name": "Rinyu",
+      "spotify_followers": 50000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 26,
+      "rank_by_monthly_listeners": 6,
+      "name": "Franko",
+      "spotify_followers": 49000,
+      "spotify_monthly_listeners": 345000
+    },
+    {
+      "rank_by_followers": 27,
+      "rank_by_monthly_listeners": 34,
+      "name": "Aveiro Djess",
+      "spotify_followers": 48000,
+      "spotify_monthly_listeners": 48000
+    },
+    {
+      "rank_by_followers": 28,
+      "rank_by_monthly_listeners": null,
+      "name": "Ben Decca",
+      "spotify_followers": 45000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 29,
+      "rank_by_monthly_listeners": 37,
+      "name": "Petit Pays",
+      "spotify_followers": 44000,
+      "spotify_monthly_listeners": 46000
+    },
+    {
+      "rank_by_followers": 30,
+      "rank_by_monthly_listeners": null,
+      "name": "Coco Argentée",
+      "spotify_followers": 43000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 31,
+      "rank_by_monthly_listeners": 12,
+      "name": "Salatiel",
+      "spotify_followers": 41000,
+      "spotify_monthly_listeners": 155000
+    },
+    {
+      "rank_by_followers": 32,
+      "rank_by_monthly_listeners": null,
+      "name": "PhillBill",
+      "spotify_followers": 37000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 33,
+      "rank_by_monthly_listeners": null,
+      "name": "Lydol",
+      "spotify_followers": 34000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 34,
+      "rank_by_monthly_listeners": null,
+      "name": "Yung Swiss",
+      "spotify_followers": 34000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 35,
+      "rank_by_monthly_listeners": 28,
+      "name": "Grace Decca",
+      "spotify_followers": 33000,
+      "spotify_monthly_listeners": 60000
+    },
+    {
+      "rank_by_followers": 36,
+      "rank_by_monthly_listeners": null,
+      "name": "Stanley Enow",
+      "spotify_followers": 33000,
+      "spotify_monthly_listeners": null
+    },
+    {
+      "rank_by_followers": 37,
+      "rank_by_monthly_listeners": 35,
+      "name": "Sandrine Nnanga",
+      "spotify_followers": 30000,
+      "spotify_monthly_listeners": 48000
+    },
+
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 3,
+      "name": "Wes",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 489000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 4,
+      "name": "Eko Roosevelt",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 445000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 5,
+      "name": "B-Spanner",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 370000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 9,
+      "name": "Phina Asa",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 218000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 18,
+      "name": "Shapat",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 94000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 24,
+      "name": "Pasteur Lappe",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 66000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 32,
+      "name": "Prince Dadj",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 49000
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": 33,
+      "name": "Nabila",
+      "spotify_followers": null,
+      "spotify_monthly_listeners": 48000
+    },
+
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Richard Bona",
+      "spotify_followers": 141014,
+      "spotify_monthly_listeners": 469395,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "André Marie Tala",
+      "spotify_followers": 4794,
+      "spotify_monthly_listeners": 11598,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Coco Mbassi",
+      "spotify_followers": 2241,
+      "spotify_monthly_listeners": 3328,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Franck Biyong",
+      "spotify_followers": 936,
+      "spotify_monthly_listeners": 1898,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Teekay Lyon",
+      "spotify_followers": 70,
+      "spotify_monthly_listeners": 1848,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Janea",
+      "spotify_followers": 96,
+      "spotify_monthly_listeners": 875,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Emmanuel Kahe",
+      "spotify_followers": 92,
+      "spotify_monthly_listeners": 724,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Jeanette Kemogne",
+      "spotify_followers": 25,
+      "spotify_monthly_listeners": 721,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "J.P Kaïti",
+      "spotify_followers": 244,
+      "spotify_monthly_listeners": 221,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Sala Bekona",
+      "spotify_followers": 159,
+      "spotify_monthly_listeners": 98,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Nsaykila Elvis",
+      "spotify_followers": 15,
+      "spotify_monthly_listeners": 70,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Mimi Fabiola",
+      "spotify_followers": 15,
+      "spotify_monthly_listeners": 50,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "DD JUNIOR ALPHA",
+      "spotify_followers": 24,
+      "spotify_monthly_listeners": 10,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Young Rich Homie",
+      "spotify_followers": 11,
+      "spotify_monthly_listeners": 8,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Marry Bong",
+      "spotify_followers": 12,
+      "spotify_monthly_listeners": 3,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Wasse",
+      "spotify_followers": 9,
+      "spotify_monthly_listeners": 2,
+      "source": "Music Metrics Vault"
+    },
+    {
+      "rank_by_followers": null,
+      "rank_by_monthly_listeners": null,
+      "name": "Tony Sunshyne",
+      "spotify_followers": 6,
+      "spotify_monthly_listeners": 1,
+      "source": "Music Metrics Vault"
+    }
+  ]
+}
