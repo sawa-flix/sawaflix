@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   ArrowUp, 
   RotateCcw, 
@@ -14,7 +13,6 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 interface ChatMessage {
   id: string;
@@ -155,7 +153,7 @@ export default function SawaiPage() {
           )
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Sawai Page] Error:', err);
       setError('Could not reach Sawai service. Please check your connection or try again shortly.');
     } finally {
@@ -271,7 +269,8 @@ export default function SawaiPage() {
         <div className="flex-1 space-y-4">
           {messages.map((m) => {
             const isUser = m.role === 'user';
-            const formattedContent = stripEmojis(m.content).replace(/:\*\s+/g, ':\n\n* ');
+            const formattedContent = String(m.content ?? '').replace(/:\*\s+/g, ':\n\n* ');
+            const safeMarkdown = stripEmojis(formattedContent);
 
             return (
               <div
@@ -302,7 +301,6 @@ export default function SawaiPage() {
                   ) : (
                     <div className="max-w-none text-[13.5px] leading-relaxed break-words space-y-2.5 text-[color:var(--foreground)]">
                       <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
                         components={{
                           h1: ({ children }) => <h1 className="text-base font-bold text-[color:var(--foreground)] mt-3 mb-1.5 pb-1 border-b border-[color:var(--border)]">{children}</h1>,
                           h2: ({ children }) => <h2 className="text-sm font-bold text-[color:var(--foreground)] mt-2.5 mb-1">{children}</h2>,
@@ -329,7 +327,7 @@ export default function SawaiPage() {
                           ),
                         }}
                       >
-                        {formattedContent}
+                        {safeMarkdown}
                       </ReactMarkdown>
                     </div>
                   )}

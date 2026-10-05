@@ -11,40 +11,61 @@ import {
   ChevronRight,
   ChevronLeft,
   Globe2,
-  Loader2,
   Play,
   Star,
   Users,
   Volume2,
-  X,
   Eye,
   Check
 } from 'lucide-react';
-import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
 import type { Movie } from '@/components/Movie';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
-import { YouTubePlayer } from '@/components/YoutubePlayer';
+import { MovieViewerPresence } from '@/components/Movie/MovieViewerPresence';
+import MovieVideoPlayer from '@/components/Movie/MovieVideoPlayer';
+import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
+import PremiumPreviewCheckout from '@/components/Movie/PremiumPreviewCheckout';
+import { clearMovieProgress, formatMovieTime, getMovieProgress, type MovieProgressEntry } from '@/components/Movie/movieProgress';
+
+const MOVIE_SELECTION_EVENT = 'sawaflix:movie-selection';
 
 export default function MovieDetailsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const movieId = decodeURIComponent(params.id);
+  const [selectedRouteId, setSelectedRouteId] = useState(movieId);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-
-  // Video player states
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showDescriptionFull, setShowDescriptionFull] = useState(false);
   const [showEpisodeDescription, setShowEpisodeDescription] = useState(false);
   const [autoplayEnabled, setAutoplayEnabled] = useState(true);
+  const [showPremiumCheckout, setShowPremiumCheckout] = useState(false);
+  const [unlockedPremiumIds, setUnlockedPremiumIds] = useState<Set<string>>(() => new Set());
+  const [playerResumeToken, setPlayerResumeToken] = useState(0);
+  const [savedProgress, setSavedProgress] = useState<MovieProgressEntry | null>(null);
+  const [startFromSeconds, setStartFromSeconds] = useState(0);
 
   const episodeScrollRef = useRef<HTMLDivElement>(null);
   const autoAdvanceStartedRef = useRef(false);
+  const lastProgressRenderRef = useRef(0);
+
+  useEffect(() => {
+    setSelectedRouteId(movieId);
+  }, [movieId]);
+
+  useEffect(() => {
+    const syncFromHistory = () => {
+      const routeMatch = window.location.pathname.match(/\/dashboard\/movie\/([^/]+)/);
+      if (routeMatch) setSelectedRouteId(decodeURIComponent(routeMatch[1]));
+    };
+    window.addEventListener('popstate', syncFromHistory);
+    return () => window.removeEventListener('popstate', syncFromHistory);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +73,6 @@ export default function MovieDetailsPage() {
       .then((catalog) => {
         if (cancelled) return;
         setMovies(catalog);
-        setSelectedMovie(catalog.find((movie) => movie.id === movieId) || null);
       })
       .catch(() => {
         if (!cancelled) setLoadError(true);
@@ -61,7 +81,27 @@ export default function MovieDetailsPage() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [movieId]);
+  }, []);
+
+  useEffect(() => {
+    if (movies.length === 0) return;
+    const routeMovie = movies.find((movie) => movie.id === selectedRouteId) || null;
+    setSelectedMovie(routeMovie);
+  }, [movies, selectedRouteId]);
+
+  useEffect(() => {
+    autoAdvanceStartedRef.current = false;
+    setCurrentTime(0);
+    setDuration(0);
+    setShowPremiumCheckout(false);
+    const routeMovie = movies.find((movie) => movie.id === selectedRouteId);
+    const routePlayable = routeMovie?.mediaKind === 'series'
+      ? movies.find((movie) => movie.seriesId === routeMovie.seriesId && movie.mediaKind === 'episode')
+      : routeMovie;
+    const progress = routePlayable ? getMovieProgress(routePlayable.id) : null;
+    setSavedProgress(progress);
+    setStartFromSeconds(progress?.currentTime || 0);
+  }, [selectedRouteId, movies]);
 
   const seriesEpisodes = useMemo(() => {
     if (!selectedMovie?.seriesId) return [];
@@ -85,14 +125,38 @@ export default function MovieDetailsPage() {
   const nextEpisode = selectedEpisodeIndex >= 0
     ? seriesEpisodes[selectedEpisodeIndex + 1]
     : selectedMovie?.mediaKind === 'series' ? firstEpisode : undefined;
+  const activePlaybackId = selectedMovie?.mediaKind === 'series' ? firstEpisode?.id : selectedMovie?.id;
 
-  const handleSelectEpisode = useCallback((episode: Movie) => {
-    setSelectedMovie(episode);
+  const selectMovieInPlace = useCallback((movie: Movie) => {
+    const nextUrl = `/dashboard/movie/${encodeURIComponent(movie.id)}`;
+    if (window.location.pathname !== nextUrl) window.history.pushState(null, '', nextUrl);
+    setSelectedRouteId(movie.id);
+    setSelectedMovie(movie);
     autoAdvanceStartedRef.current = false;
     setCurrentTime(0);
     setDuration(0);
-    router.replace(`/dashboard/movie/${encodeURIComponent(episode.id)}`, { scroll: false });
-  }, [router]);
+    setShowPremiumCheckout(false);
+    const playable = movie.mediaKind === 'series'
+      ? movies.find((candidate) => candidate.seriesId === movie.seriesId && candidate.mediaKind === 'episode')
+      : movie;
+    const progress = playable ? getMovieProgress(playable.id) : null;
+    setSavedProgress(progress);
+    setStartFromSeconds(progress?.currentTime || 0);
+  }, [movies]);
+
+  useEffect(() => {
+    const onMovieSelection = (event: Event) => {
+      const customEvent = event as CustomEvent<{ movieId: string }>;
+      const movie = movies.find((item) => item.id === customEvent.detail?.movieId);
+      if (movie) selectMovieInPlace(movie);
+    };
+    window.addEventListener(MOVIE_SELECTION_EVENT, onMovieSelection);
+    return () => window.removeEventListener(MOVIE_SELECTION_EVENT, onMovieSelection);
+  }, [movies, selectMovieInPlace]);
+
+  const handleSelectEpisode = useCallback((episode: Movie) => {
+    selectMovieInPlace(episode);
+  }, [selectMovieInPlace]);
 
   const handlePlayNextEpisode = useCallback(() => {
     if (!nextEpisode) return;
@@ -115,14 +179,29 @@ export default function MovieDetailsPage() {
     return () => window.clearTimeout(timer);
   }, [handlePlayNextEpisode, nextEpisode, shouldAutoAdvance]);
 
-  const handlePlayerProgress = useCallback((_progress: number, _timeLeft: string, actualTime: number, actualDuration: number) => {
+  const handlePlayerProgress = useCallback((actualTime: number, actualDuration: number) => {
+    const now = Date.now();
+    if (now - lastProgressRenderRef.current < 1500 && actualTime < actualDuration) return;
+    lastProgressRenderRef.current = now;
     setCurrentTime(actualTime);
-    setDuration(actualDuration);
-  }, []);
+    if (actualDuration > 0) setDuration(actualDuration);
+    setSavedProgress(activePlaybackId ? getMovieProgress(activePlaybackId) : null);
+  }, [activePlaybackId]);
 
-  const handlePlayerStateChange = useCallback((state: number) => {
-    setIsVideoPlaying(state === 1);
-  }, []);
+  const handlePremiumPaymentSuccess = () => {
+    if (!selectedMovie) return;
+    setUnlockedPremiumIds((previous) => new Set(previous).add(selectedMovie.id));
+    setShowPremiumCheckout(false);
+    setPlayerResumeToken((token) => token + 1);
+    setIsVideoPlaying(true);
+    setIsPlaying(true);
+  };
+
+  const closePremiumCheckout = () => {
+    setShowPremiumCheckout(false);
+    setIsVideoPlaying(false);
+    setIsPlaying(false);
+  };
 
   const scrollEpisodes = (direction: 'left' | 'right') => {
     if (!episodeScrollRef.current) return;
@@ -135,10 +214,16 @@ export default function MovieDetailsPage() {
 
   const currentProgress = duration > 0 ? Math.min(100, Math.round((currentTime / duration) * 100)) : 0;
 
-  if (loading) {
+  if (loading || (!isPlaying && movies.some((movie) => movie.id === selectedRouteId) && selectedMovie?.id !== selectedRouteId)) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-[color:var(--background)]">
-        <Loader2 className="animate-spin text-[color:var(--primary)]" size={40} />
+      <div className="mx-auto w-full max-w-[1080px] space-y-5 px-3 py-5 sm:px-6" aria-label="Loading movie details">
+        <div className="h-9 w-36 animate-pulse rounded-lg bg-[color:var(--surface-hover)]" />
+        <div className="aspect-video w-full animate-pulse rounded-xl bg-[color:var(--surface-hover)]" />
+        <div className="space-y-3 px-1">
+          <div className="h-6 w-2/3 animate-pulse rounded bg-[color:var(--surface-hover)]" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-[color:var(--surface-hover)]" />
+          <div className="h-3 w-4/5 animate-pulse rounded bg-[color:var(--surface-hover)]" />
+        </div>
       </div>
     );
   }
@@ -176,35 +261,21 @@ export default function MovieDetailsPage() {
               <div
                 className="relative aspect-video w-full overflow-hidden rounded-md bg-black shadow-[0_22px_70px_rgba(0,0,0,0.28)] sm:rounded-xl"
               >
-              <YouTubePlayer
+              <MovieVideoPlayer
                 videoId={playableId}
-                isActive={isPlaying}
-                isMuted={true}
-                isPaused={!isVideoPlaying}
-                showControls
-                allowInteraction
+                title={title}
+                poster={playableMovie.image}
+                playing={isPlaying}
+                resumeToken={playerResumeToken}
+                initialResumeSeconds={startFromSeconds}
+                previewLimitSeconds={selectedMovie.isPremium && !unlockedPremiumIds.has(selectedMovie.id) ? 8 : undefined}
+                onPreviewLimitReached={() => setShowPremiumCheckout(true)}
+                onClose={() => { setIsVideoPlaying(false); setIsPlaying(false); }}
                 onProgress={handlePlayerProgress}
-                onPlayerStateChange={handlePlayerStateChange}
+                onPlaybackStateChange={setIsVideoPlaying}
                 onEnded={handlePlayerEnded}
               />
-
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent p-3 sm:p-4">
-                <Link href="/dashboard" className="pointer-events-auto flex items-center gap-2">
-                  <Image src="/logos_and_pwas/android-chrome-192x192.png" alt="SawaFlix" width={28} height={28} className="object-contain" />
-                  <span className="hidden text-sm font-bold text-white sm:inline">SawaFlix</span>
-                </Link>
-                <div className="pointer-events-auto flex items-center gap-2">
-                  <p className="hidden max-w-[min(42vw,420px)] truncate text-sm font-semibold text-white sm:block">{title}</p>
-                  <button
-                    type="button"
-                    onClick={() => { setIsVideoPlaying(false); setIsPlaying(false); }}
-                    aria-label="Close player and return to title"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-white/20"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </div>
+              <MovieViewerPresence movieId={playableId} mode="track-display" active={isPlaying && isVideoPlaying} />
               </div>
             </div>
 
@@ -238,14 +309,7 @@ export default function MovieDetailsPage() {
                       <Eye size={16} className="text-[color:var(--muted-foreground)]" />
                       <span className="text-[color:var(--muted-foreground)]">You&apos;re <strong className="text-[color:var(--foreground)]">{currentProgress}% through</strong></span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Users size={16} className="text-[color:var(--muted-foreground)]" />
-                      <span className="text-[color:var(--muted-foreground)]"><strong className="text-[color:var(--foreground)]">12,480</strong> viewers completed this episode</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users size={16} className="text-[color:var(--muted-foreground)]" />
-                      <span className="text-[color:var(--muted-foreground)]"><strong className="text-[color:var(--foreground)]">3,210</strong> watching now</span>
-                    </div>
+                    <MovieViewerPresence movieId={playableId} mode="track-display" active={isPlaying && isVideoPlaying} />
                   </div>
                 </div>
 
@@ -409,7 +473,7 @@ export default function MovieDetailsPage() {
                         <button
                           key={movie.id}
                           type="button"
-                          onClick={() => router.push(`/dashboard/movie/${encodeURIComponent(movie.id)}`)}
+                          onClick={() => selectMovieInPlace(movie)}
                           className="group w-36 shrink-0 snap-start cursor-pointer text-left sm:w-44"
                         >
                           <span className="relative mb-2 block aspect-video overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)]">
@@ -496,11 +560,32 @@ export default function MovieDetailsPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => { autoAdvanceStartedRef.current = false; setIsVideoPlaying(true); setIsPlaying(true); }}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--foreground)] px-5 py-3 text-sm font-black text-[color:var(--background)] shadow-lg transition-transform hover:scale-[1.02]"
+                    onClick={() => {
+                      autoAdvanceStartedRef.current = false;
+                      setStartFromSeconds(savedProgress?.currentTime || 0);
+                      setIsVideoPlaying(true);
+                      setIsPlaying(true);
+                    }}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-lg transition-transform hover:scale-[1.02] hover:bg-white/90"
                   >
-                    <Play size={18} fill="currentColor" /> {selectedMovie.mediaKind === 'series' ? 'Start series' : 'Watch now'}
+                    <Play size={18} fill="currentColor" /> {savedProgress ? `Resume from ${formatMovieTime(savedProgress.currentTime)}` : selectedMovie.mediaKind === 'series' ? 'Start series' : 'Watch now'}
                   </button>
+                  {savedProgress && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activePlaybackId) clearMovieProgress(activePlaybackId);
+                        setSavedProgress(null);
+                        setStartFromSeconds(0);
+                        autoAdvanceStartedRef.current = false;
+                        setIsVideoPlaying(true);
+                        setIsPlaying(true);
+                      }}
+                      className="ml-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/45 bg-black/25 px-4 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+                    >
+                      Start over
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
@@ -569,9 +654,9 @@ export default function MovieDetailsPage() {
                     <MovieCard
                       key={movie.id}
                       movie={movie}
-                      isPremium={false}
+                      isPremium={Boolean(movie.isPremium)}
                       isActive={false}
-                      onClick={() => router.push(`/dashboard/movie/${encodeURIComponent(movie.id)}`)}
+                      onClick={() => selectMovieInPlace(movie)}
                     />
                   ))}
                 </div>
@@ -580,6 +665,15 @@ export default function MovieDetailsPage() {
             </div>
           </div>
         </main>
+      )}
+      {showPremiumCheckout && selectedMovie && (
+        <PremiumPreviewCheckout
+          title={selectedMovie.title}
+          assetId={selectedMovie.id}
+          amountXaf={500}
+          onClose={closePremiumCheckout}
+          onUnlockSuccess={handlePremiumPaymentSuccess}
+        />
       )}
     </>
   );

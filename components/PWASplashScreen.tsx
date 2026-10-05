@@ -166,18 +166,25 @@ export default function PWASplashScreen() {
           className={`mb-9 h-24 w-24 object-contain sm:h-28 sm:w-28 ${reducedMotion ? '' : 'animate-[splash-arrive_.45s_ease-out_both]'}`}
         />
         <div className="w-full">
-          <div
-            className="h-[3px] w-full overflow-hidden rounded-full bg-[color:var(--surface-hover)]"
-            role="progressbar"
-            aria-label="App loading progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress)}
-          >
+          <div className="flex items-center gap-2">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#E50914] shadow-[0_0_12px_rgba(229,9,20,0.45)]" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="ml-[1px] h-2.5 w-2.5 fill-white" aria-hidden="true">
+                <path d="M8 5.5v13l9-6.5-9-6.5Z" />
+              </svg>
+            </span>
             <div
-              className={`h-full rounded-full bg-[#E50914] ${reducedMotion ? '' : 'transition-[width] duration-150 ease-out'}`}
-              style={{ width: `${Math.min(100, progress)}%` }}
-            />
+              className="h-[3px] flex-1 overflow-hidden rounded-full bg-[color:var(--surface-hover)]"
+              role="progressbar"
+              aria-label="App loading progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress)}
+            >
+              <div
+                className={`h-full rounded-full bg-[#E50914] ${reducedMotion ? '' : 'transition-[width] duration-150 ease-out'}`}
+                style={{ width: `${Math.min(100, progress)}%` }}
+              />
+            </div>
           </div>
           {timedOut && (
             <div className="mt-5 text-center">

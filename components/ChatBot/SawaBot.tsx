@@ -11,7 +11,6 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useSawaiStore } from '@/store/sawaiStore';
 
 interface ChatMessage {
@@ -36,7 +35,7 @@ function stripEmojis(text: string): string {
 }
 
 export default function SawaBot() {
-  const { isOpen, closeSawai, toggleSawai } = useSawaiStore();
+  const { isOpen, closeSawai } = useSawaiStore();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,12 +135,12 @@ export default function SawaBot() {
           if (line.startsWith('0:')) {
             try {
               const textContent = JSON.parse(line.substring(2));
-              assistantText += stripEmojis(textContent);
+              assistantText += stripEmojis(typeof textContent === 'string' ? textContent : String(textContent));
             } catch {
-              assistantText += stripEmojis(line.substring(2));
+              assistantText += stripEmojis(String(line.substring(2)));
             }
           } else {
-            assistantText += stripEmojis(line);
+            assistantText += stripEmojis(String(line));
           }
         }
 
@@ -151,7 +150,7 @@ export default function SawaBot() {
           )
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Sawai] Send error:', err);
       setError('Could not reach Sawai server. Please check your connection and try again.');
     } finally {
@@ -233,7 +232,8 @@ export default function SawaBot() {
           <div className="relative z-10 flex-1 p-3.5 overflow-y-auto space-y-3 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
               {messages.map((m) => {
                 const isUser = m.role === 'user';
-                const formattedContent = stripEmojis(m.content).replace(/:\*\s+/g, ':\n\n* ');
+                const formattedContent = String(m.content ?? '').replace(/:\*\s+/g, ':\n\n* ');
+                const safeMarkdown = stripEmojis(formattedContent);
 
                 return (
                   <div key={m.id} className="space-y-2">
@@ -262,7 +262,6 @@ export default function SawaBot() {
                         ) : (
                           <div className="max-w-none text-[12.5px] leading-relaxed break-words space-y-2 text-[color:var(--foreground)]">
                             <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
                               components={{
                                 h1: ({ children }) => <h1 className="text-sm font-semibold text-[color:var(--foreground)] mt-2 mb-1">{children}</h1>,
                                 h2: ({ children }) => <h2 className="text-[13px] font-semibold text-[color:var(--foreground)] mt-2 mb-1">{children}</h2>,
@@ -289,7 +288,7 @@ export default function SawaBot() {
                                 ),
                               }}
                             >
-                              {formattedContent}
+                              {safeMarkdown}
                             </ReactMarkdown>
                           </div>
                         )}
