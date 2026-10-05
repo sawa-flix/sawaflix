@@ -10,6 +10,8 @@ interface YouTubePlayerProps {
     isActive: boolean;
     isMuted: boolean;
     isPaused?: boolean;
+    showControls?: boolean;
+    allowInteraction?: boolean;
     restriction?: PlaybackRestriction;
     onProgress?: (progress: number, timeLeft: string, currentTime: number, duration: number) => void;
     onPlayerReady?: (player: YT.Player) => void;
@@ -34,6 +36,8 @@ export function YouTubePlayer({
     isActive,
     isMuted,
     isPaused = false,
+    showControls = false,
+    allowInteraction = false,
     restriction,
     onProgress,
     onPlayerReady,
@@ -98,7 +102,7 @@ export function YouTubePlayer({
                 playerVars: {
                     autoplay: 1,
                     mute: 1,
-                    controls: 0,
+                    controls: showControls ? 1 : 0,
                     rel: 0,
                     modestbranding: 1,
                     iv_load_policy: 3,
@@ -110,8 +114,8 @@ export function YouTubePlayer({
                     // minimizing YouTube's own chrome (showinfo above is
                     // deprecated and ignored by YouTube since 2018 — kept
                     // only for legacy embeds, not relied on):
-                    disablekb: 1, // no iframe keyboard shortcuts (we own all keyboard handling in ReelsFeed)
-                    fs: 0,        // no fullscreen button — one less path to YouTube's own controls surfacing
+                    disablekb: showControls ? 0 : 1,
+                    fs: showControls ? 1 : 0,
                 },
                 events: {
                     onReady: (event) => {
@@ -239,7 +243,7 @@ export function YouTubePlayer({
         <div className="w-full h-full relative bg-black">
             <div
                 ref={containerRef}
-                className="w-full h-full pointer-events-none"
+                className={`w-full h-full ${allowInteraction ? 'pointer-events-auto' : 'pointer-events-none'}`}
             />
             {/* Fallback for videos the IFrame API refuses to embed (owner
                 disabled embedding, or region-restricted) — codes 100/101/150.

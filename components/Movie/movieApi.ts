@@ -59,7 +59,7 @@ export function mapCuratedMovie(dto: CuratedMovieDto): Movie {
     country: 'Cameroon',
     genres: dto.genres?.length ? dto.genres : ['Drama'],
     featured: dto.is_featured,
-    description: dto.description || 'Authentic Cameroonian movie streaming on SawaFlix.',
+    description: dto.description?.trim() || '',
     duration: formatDuration(dto.duration_seconds),
     ageRating: '16+',
     rating: 4.8,
