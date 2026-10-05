@@ -5,76 +5,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Heart, Volume2, MoreVertical, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import { BACKEND_URL } from '@/lib/apiConfig';
+import { artistsData } from '@/lib/music/artists';
 
 const COVER_BG = "https://i.ibb.co/Hfms4vV9/coverbg.png";
 const MUSIC_CARD_THUMB = "https://i.ibb.co/21Dd0zTh/sound.png";
-
-export const artistsData = [
-  {
-    id: "jovi",
-    name: "Jovi",
-    image: "https://i.ibb.co/TD26rNtX/jovi-2.png",
-    country: "Cameroon",
-    genres: ["Hip Hop", "Rap", "Mboko", "Afro Trap"],
-    bio: "Award-winning rapper, producer, and founder of New Bell Music. Known for pioneering the Mboko movement in Cameroonian music."
-  },
-  {
-    id: "salatiel",
-    name: "Salatiel",
-    image: "https://i.ibb.co/dwBpWvBH/salatiel.png",
-    country: "Cameroon",
-    genres: ["Afrobeats", "Pop", "R&B", "World Music"],
-    bio: "Singer, songwriter, producer, and CEO of Alpha Better Records. Internationally known for his work on Beyoncé's 'Brown Skin Girl'."
-  },
-  {
-    id: "mr-leo",
-    name: "Mr Leo",
-    image: "https://i.ibb.co/rK1zP0yY/leo.png",
-    country: "Cameroon",
-    genres: ["Afropop", "Afrobeats", "R&B"],
-    bio: "One of Cameroon’s most streamed artists, known for romantic melodies and hit songs like 'Kemayo' and 'Jamais Jamais'."
-  },
-  {
-    id: "askia",
-    name: "Askia",
-    image: "https://i.ibb.co/R4N80w8q/askia.png",
-    country: "Cameroon",
-    genres: ["Hip Hop", "Conscious Rap", "Alternative Rap"],
-    bio: "Respected lyricist and storyteller known for socially conscious music and sharp wordplay."
-  },
-  {
-    id: "stanley-enow",
-    name: "Stanley Enow",
-    image: "https://i.ibb.co/MyGKGzQC/tenow.png",
-    country: "Cameroon",
-    genres: ["Hip Hop", "Afropop", "Rap"],
-    bio: "MTV Africa Music Award winner and one of Cameroon’s most internationally recognized rappers. Famous for 'Hein Père'."
-  },
-  {
-    id: "pascal",
-    name: "Pascal",
-    image: "https://i.ibb.co/ZRsqkkBd/pascal.png",
-    country: "Cameroon",
-    genres: ["Afrobeats", "Pop", "Alternative"],
-    bio: "Singer and songwriter from New Bell Music known for his smooth vocals and modern Afro-fusion sound."
-  },
-  {
-    id: "mic-monsta",
-    name: "Mic Monsta",
-    image: "https://i.ibb.co/jvRHyzLp/mmonsta.png",
-    country: "Cameroon",
-    genres: ["Hip Hop", "Rap", "Trap"],
-    bio: "Cameroonian rapper recognized for powerful lyricism, freestyle skills, and projects like 'Heart'."
-  },
-  {
-    id: "lady-ponce",
-    name: "Lady Ponce",
-    image: "https://i.ibb.co/KctwKR6f/lponce.png",
-    country: "Cameroon",
-    genres: ["Makossa", "Afropop", "Traditional"],
-    bio: "One of Cameroon’s most celebrated female artists, blending Makossa rhythms with modern African sounds."
-  }
-];
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

@@ -17,8 +17,10 @@ export default function PWASplashScreen() {
   const reducedMotionRef = useRef(false);
 
   useEffect(() => {
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    const isPageReload = navigation?.type === 'reload';
     try {
-      if (window.sessionStorage.getItem(SESSION_KEY) === '1') {
+      if (window.sessionStorage.getItem(SESSION_KEY) === '1' && !isPageReload) {
         setVisible(false);
         return;
       }
@@ -42,6 +44,8 @@ export default function PWASplashScreen() {
     let animationFrame = 0;
     let fadeTimer = 0;
     let hideTimer = 0;
+    let animatedProgress = 0;
+    let fadeStarted = false;
     const trackedImages = new WeakSet<HTMLImageElement>();
 
     const updateTarget = () => {
@@ -92,13 +96,6 @@ export default function PWASplashScreen() {
       } catch {
         // Continue without session persistence when storage is blocked.
       }
-      fadeTimer = window.setTimeout(() => {
-        if (disposed) return;
-        setFading(true);
-        hideTimer = window.setTimeout(() => {
-          if (!disposed) setVisible(false);
-        }, reducedMotionRef.current ? 0 : 280);
-      }, reducedMotionRef.current ? 0 : 120);
     };
 
     const onDomReady = () => updateTarget();
@@ -123,12 +120,23 @@ export default function PWASplashScreen() {
 
     const animate = () => {
       if (disposed) return;
-      setProgress((current) => {
-        const target = targetProgressRef.current;
-        if (current >= target) return current;
-        if (reducedMotionRef.current) return target;
-        return Math.min(target, current + Math.max(0.2, (target - current) * 0.07));
-      });
+      const target = targetProgressRef.current;
+      if (animatedProgress < target) {
+        animatedProgress = reducedMotionRef.current
+          ? target
+          : Math.min(target, animatedProgress + Math.max(0.2, (target - animatedProgress) * 0.07));
+        setProgress(animatedProgress);
+      }
+      if (completed && animatedProgress >= 100 && !fadeStarted) {
+        fadeStarted = true;
+        fadeTimer = window.setTimeout(() => {
+          if (disposed) return;
+          setFading(true);
+          hideTimer = window.setTimeout(() => {
+            if (!disposed) setVisible(false);
+          }, reducedMotionRef.current ? 0 : 280);
+        }, reducedMotionRef.current ? 0 : 180);
+      }
       animationFrame = window.requestAnimationFrame(animate);
     };
     animationFrame = window.requestAnimationFrame(animate);
@@ -173,7 +181,7 @@ export default function PWASplashScreen() {
               </svg>
             </span>
             <div
-              className="h-[3px] flex-1 overflow-hidden rounded-full bg-[color:var(--surface-hover)]"
+              className="relative h-2 flex-1 overflow-hidden rounded-full border border-black/5 bg-black/10 shadow-inner dark:bg-white/15"
               role="progressbar"
               aria-label="App loading progress"
               aria-valuemin={0}
@@ -181,8 +189,8 @@ export default function PWASplashScreen() {
               aria-valuenow={Math.round(progress)}
             >
               <div
-                className={`h-full rounded-full bg-[#E50914] ${reducedMotion ? '' : 'transition-[width] duration-150 ease-out'}`}
-                style={{ width: `${Math.min(100, progress)}%` }}
+                className="h-full rounded-full bg-[#e50914] shadow-[0_0_10px_rgba(229,9,20,0.55)]"
+                style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
               />
             </div>
           </div>
