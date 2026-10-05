@@ -129,7 +129,7 @@ export async function getUnifiedFeedAction() {
     const url = `${API_BASE_URL}/api/content/unified-feed`;
     try {
         const response = await fetchWithTimeout(url);
-        return handleResponse(response);
+        return await handleResponse(response);
     } catch (error: any) {
         console.warn('getUnifiedFeedAction error:', error.message);
         if (error.code === 'BACKEND_UNREACHABLE' || 
@@ -326,7 +326,7 @@ export async function searchVideosAction(
         const response = await fetchWithTimeout(url, {
             next: { revalidate: 3600 }
         });
-        return handleResponse(response);
+        return await handleResponse(response);
     } catch (error: any) {
         // Gracefully handle quota exhaustion and rate limiting — never crash the dashboard
         if (error.code === 'BACKEND_UNREACHABLE' ||
@@ -352,7 +352,7 @@ export async function getVideoDetailsAction(videoId: string): Promise<VideoDetai
         const response = await fetchWithTimeout(url, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
         });
-        return handleResponse(response);
+        return await handleResponse(response);
     } catch (error: any) {
         console.error('getVideoDetailsAction error:', error);
         if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
@@ -382,7 +382,7 @@ export async function getVideoCommentsAction(videoId: string): Promise<Comment[]
     
     try {
         const response = await fetchWithTimeout(url);
-        return handleResponse(response);
+        return await handleResponse(response);
     } catch (error: any) {
         console.error('getVideoCommentsAction error:', error);
         if (error.code === 'BACKEND_UNREACHABLE' || error.message?.includes('Too Many Requests') || error.message?.includes('quota')) {
