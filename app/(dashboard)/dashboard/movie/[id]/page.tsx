@@ -122,6 +122,13 @@ export default function MovieDetailsPage() {
 
   const firstEpisode = seriesEpisodes[0];
 
+  const nextEpisode = useMemo(() => {
+    if (!selectedMovie || selectedMovie.mediaKind !== 'episode') return null;
+    const currentIndex = seriesEpisodes.findIndex(e => e.id === selectedMovie.id);
+    if (currentIndex === -1 || currentIndex === seriesEpisodes.length - 1) return null;
+    return seriesEpisodes[currentIndex + 1];
+  }, [selectedMovie, seriesEpisodes]);
+
   const handleSelectEpisode = useCallback((episode: Movie) => {
     selectMovieInPlace(episode);
   }, [selectMovieInPlace]);
@@ -212,7 +219,6 @@ export default function MovieDetailsPage() {
     );
   }
 
-  const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableMovie = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
   const playableId = playableMovie.id;
   const title = playableMovie.episodeTitle || playableMovie.title;
