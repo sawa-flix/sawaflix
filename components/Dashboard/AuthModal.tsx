@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 
@@ -146,7 +145,24 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
             {/* Google Sign In Button — GIS Client-Side Popup with ID Token */}
             <div className="relative w-full mb-5 overflow-hidden rounded-xl border border-[color:var(--border)] shadow-sm">
               {/* Styled visible button */}
-              <div className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-[color:var(--surface)] text-[color:var(--foreground)] font-bold text-sm shadow-sm transition-all duration-200 pointer-events-none hover:bg-[color:var(--surface-hover)]">
+              <button 
+                onClick={async () => {
+                  setIsGoogleLoading(true);
+                  const supabase = createClient();
+                  await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+                      queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                      },
+                    },
+                  });
+                }}
+                disabled={isGoogleLoading}
+                className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-[color:var(--surface)] text-[color:var(--foreground)] font-bold text-sm shadow-sm transition-all duration-200 hover:bg-[color:var(--surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isGoogleLoading ? (
                   <>
                     <Loader2 size={18} className="animate-spin text-[color:var(--muted-foreground)]" />
@@ -163,20 +179,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
                     <span>Continue with Google</span>
                   </>
                 )}
-              </div>
-
-              {/* Real Google Identity Services interactive button on top, scaled to cover entire button bounds */}
-              {!isGoogleLoading && (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 cursor-pointer overflow-hidden z-20 transform scale-[1.35] origin-center [&>div]:w-full! [&_iframe]:cursor-pointer">
-                  <GoogleLogin
-                    onSuccess={handleGoogleCredential}
-                    onError={() => setError('Unable to continue with Google right now. Please try again.')}
-                    width="400"
-                    theme="outline"
-                    shape="rectangular"
-                  />
-                </div>
-              )}
+              </button>
             </div>
 
             {/* Terms and Privacy Footer */}
