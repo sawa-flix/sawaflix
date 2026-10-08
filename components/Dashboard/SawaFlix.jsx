@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import {
   Play, Pause, ChevronLeft, ChevronRight,
   Volume2, VolumeX, MessageCircle, Share2, Heart, Loader2,
-  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize, MoreHorizontal
+  X, Send, ThumbsUp, ThumbsDown, RotateCcw, Maximize, Minimize, MoreHorizontal, CheckCheck, Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -1214,6 +1214,31 @@ function SawaFlixContent({ videoId: videoIdProp }) {
                   />
                 </div>
               ))}
+
+              {/* Infinite Scroll Loader */}
+              {loading && hasMore && (
+                <div className="h-screen w-full flex items-center justify-center bg-black/50 backdrop-blur-sm snap-start">
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 text-white animate-spin" />
+                    <p className="text-white/70 text-sm font-medium">Loading more content...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* End of Feed Message */}
+              {!hasMore && videos.length > 10 && (
+                <div className="h-screen w-full flex items-center justify-center bg-gradient-to-b from-black via-black/95 to-black snap-start">
+                  <div className="flex flex-col items-center gap-4 max-w-md text-center px-6">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                      <CheckCheck className="w-8 h-8 text-white/40" />
+                    </div>
+                    <h3 className="text-white text-lg font-bold">You've reached the end</h3>
+                    <p className="text-white/50 text-sm">
+                      That's all the content for now. Check back later for more authentic Cameroonian entertainment!
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
