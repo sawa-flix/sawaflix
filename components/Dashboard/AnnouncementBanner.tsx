@@ -67,12 +67,14 @@ export default function AnnouncementBanner() {
                         src="/logos_and_pwas/headerLogo..png"
                         alt="SawaFlix"
                         fill
+                        sizes="48px"
                         className="object-contain block [[data-theme=light]_&]:hidden"
                       />
                       <Image
                         src="/logos_and_pwas/sawa.svg"
                         alt="SawaFlix"
                         fill
+                        sizes="48px"
                         className="object-contain hidden [[data-theme=light]_&]:block"
                       />
                     </div>

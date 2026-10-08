@@ -167,71 +167,7 @@ export default function MoviePage(): React.ReactElement {
 
   return (
     <>
-      {/* Announcement Banner */}
-      <AnimatePresence>
-        {showAnnouncement && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-16 left-0 right-0 z-50 mx-auto max-w-7xl px-4"
-          >
-            <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-red-500/10 backdrop-blur-xl shadow-2xl">
-              <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 mix-blend-overlay" />
-              <div className="relative px-6 py-4 sm:px-8 sm:py-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
-                      <Sparkles className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-[color:var(--foreground)] sm:text-xl">
-                          Coming Soon: "The Lion's Heart"
-                        </h3>
-                        <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                          Premiere
-                        </span>
-                      </div>
-                      <p className="text-sm text-[color:var(--muted-foreground)] sm:text-base">
-                        A powerful tale of courage and tradition. Be among the first to watch this epic Cameroonian production.
-                      </p>
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="flex gap-2 sm:gap-3">
-                          {[
-                            { label: 'Days', value: countdown.days },
-                            { label: 'Hours', value: countdown.hours },
-                            { label: 'Min', value: countdown.minutes },
-                            { label: 'Sec', value: countdown.seconds }
-                          ].map((item) => (
-                            <div key={item.label} className="flex flex-col items-center">
-                              <span className="text-xl font-black tabular-nums text-[color:var(--foreground)] sm:text-2xl">
-                                {String(item.value).padStart(2, '0')}
-                              </span>
-                              <span className="text-[9px] font-medium uppercase tracking-wide text-[color:var(--muted-foreground)] sm:text-[10px]">
-                                {item.label}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleDismissAnnouncement}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[color:var(--muted-foreground)] transition-colors hover:bg-white/10 hover:text-[color:var(--foreground)]"
-                    aria-label="Dismiss announcement"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className={`movie-page-root mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-6 pb-20 text-[color:var(--foreground)] lg:gap-8 ${showAnnouncement ? 'pt-28 sm:pt-32' : ''}`}>
+      <div className="movie-page-root mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-6 pb-20 text-[color:var(--foreground)] lg:gap-8">
         <div className="sticky top-0 z-40 -mx-4 flex items-center gap-2 overflow-x-auto border-b border-[color:var(--border)] bg-[color:var(--background)]/90 px-4 py-3 backdrop-blur-md sm:mx-0 sm:px-0">
           {genres.map((filter) => (
             <button
