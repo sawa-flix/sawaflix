@@ -60,22 +60,15 @@ export default function AnnouncementBanner() {
             <div className="relative px-6 py-4 sm:px-8 sm:py-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  {/* SawaFlix Logo */}
+                  {/* SawaFlix Loader Logo */}
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--primary)]/10 p-2 shadow-lg">
                     <div className="relative h-full w-full">
                       <Image
-                        src="/logos_and_pwas/headerLogo..png"
+                        src="/sawaplay.png"
                         alt="SawaFlix"
                         fill
                         sizes="48px"
-                        className="object-contain block [[data-theme=light]_&]:hidden"
-                      />
-                      <Image
-                        src="/logos_and_pwas/sawa.svg"
-                        alt="SawaFlix"
-                        fill
-                        sizes="48px"
-                        className="object-contain hidden [[data-theme=light]_&]:block"
+                        className="object-contain"
                       />
                     </div>
                   </div>
