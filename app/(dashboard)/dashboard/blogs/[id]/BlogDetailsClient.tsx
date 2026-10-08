@@ -64,7 +64,7 @@ const portableTextComponents = {
       <h3 className="text-lg font-bold text-[color:var(--foreground)] mt-8 mb-3 tracking-tight">{children}</h3>
     ),
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-2 border-red-600 pl-4 my-6 text-[color:var(--muted-foreground)] italic text-sm">
+      <blockquote className="border-l-2 border-[color:var(--primary)] pl-4 my-6 text-[color:var(--muted-foreground)] italic text-sm">
         {children}
       </blockquote>
     ),
@@ -81,7 +81,7 @@ const portableTextComponents = {
         href={value?.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-red-500 hover:text-red-400 underline underline-offset-2 transition-colors"
+        className="text-blue-500 hover:text-blue-400 underline underline-offset-2 transition-colors"
       >
         {children}
       </a>
