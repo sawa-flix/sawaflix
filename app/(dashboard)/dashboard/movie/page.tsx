@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Play } from 'lucide-react';
+import { Loader2, Play, X } from 'lucide-react';
 import {
   MovieCard,
   RightSidebarContent,
@@ -13,7 +13,7 @@ import {
 } from '@/components/Movie';
 import MovieHeroBanner from '@/components/Movie/MovieHeroBanner';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
-import { formatMovieTime, getLastMovieProgress, MOVIE_PROGRESS_EVENT, type MovieProgressEntry } from '@/components/Movie/movieProgress';
+import { formatMovieTime, getLastMovieProgress, MOVIE_PROGRESS_EVENT, clearMovieProgress, type MovieProgressEntry } from '@/components/Movie/movieProgress';
 
 export default function MoviePage(): React.ReactElement {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function MoviePage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastProgress, setLastProgress] = useState<MovieProgressEntry | null>(null);
+  const [dismissedContinueWatching, setDismissedContinueWatching] = useState(false);
 
   const movieDetailsHref = useCallback((movie: Movie) => `/dashboard/movie/${encodeURIComponent(movie.id)}`, []);
   const handleWatchMovie = useCallback((movie: Movie) => {
@@ -119,6 +120,51 @@ export default function MoviePage(): React.ReactElement {
   }, [movies, selectedMovie]);
   const sidebarMovie = selectedMovie || featuredMovie;
 
+  // Countdown timer for announcement
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const targetDate = new Date('2026-11-01T00:00:00').getTime();
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+        return;
+      }
+
+      setCountdown({
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((distance % (1000 * 60)) / 1000)
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Check if announcement was dismissed
+  useEffect(() => {
+    const dismissed = localStorage.getItem('movie-announcement-dismissed');
+    if (dismissed) setShowAnnouncement(false);
+  }, []);
+
+  const handleDismissAnnouncement = () => {
+    setShowAnnouncement(false);
+    localStorage.setItem('movie-announcement-dismissed', 'true');
+  };
+
+  const handleRemoveContinueWatching = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (lastProgress?.movieId) {
+      clearMovieProgress(lastProgress.movieId);
+      setDismissedContinueWatching(true);
+      setLastProgress(null);
+    }
+  };
+
   return (
     <>
       <div className="movie-page-root mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-6 pb-20 text-[color:var(--foreground)] lg:gap-8">
@@ -146,57 +192,71 @@ export default function MoviePage(): React.ReactElement {
           />
         )}
 
-        {continueMovie && lastProgress && (
-          <section className="space-y-3">
+        {continueMovie && lastProgress && !dismissedContinueWatching && (
+          <section className="space-y-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--muted-foreground)]">Pick up where you left off</p>
               <h2 className="mt-1 text-xl font-bold text-[color:var(--foreground)]">Continue watching</h2>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push(movieDetailsHref(continueMovie))}
-              className="group flex w-full max-w-2xl cursor-pointer items-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-2 text-left transition-colors hover:bg-[color:var(--surface-hover)] sm:gap-4 sm:p-3"
-            >
-              <span className="relative block aspect-video w-32 shrink-0 overflow-hidden rounded-lg bg-black sm:w-48">
-                <Image src={continueMovie.image} alt={continueMovie.title} fill sizes="192px" unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white"><Play size={25} fill="currentColor" /></span>
-                <span className="absolute inset-x-0 bottom-0 h-1 bg-white/30">
-                  <span className="block h-full bg-[color:var(--primary)]" style={{ width: `${lastProgress.duration > 0 ? Math.min(100, lastProgress.currentTime / lastProgress.duration * 100) : 0}%` }} />
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => router.push(movieDetailsHref(continueMovie))}
+                className="flex w-full max-w-3xl cursor-pointer items-center gap-4 rounded-2xl border border-[color:var(--border)] bg-gradient-to-br from-[color:var(--surface)] to-[color:var(--surface)]/80 p-3 text-left shadow-lg backdrop-blur-sm transition-all hover:shadow-xl hover:border-[color:var(--foreground)]/20 sm:gap-5 sm:p-4"
+              >
+                <span className="relative block aspect-video w-36 shrink-0 overflow-hidden rounded-xl bg-black shadow-md sm:w-56">
+                  <Image
+                    src={continueMovie.image}
+                    alt={continueMovie.title}
+                    fill
+                    sizes="224px"
+                    unoptimized
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-lg transition-transform group-hover:scale-110">
+                      <Play size={24} fill="currentColor" className="ml-1 text-black" />
+                    </span>
+                  </span>
+                  <span className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20 backdrop-blur-sm">
+                    <span
+                      className="block h-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                      style={{ width: `${lastProgress.duration > 0 ? Math.min(100, lastProgress.currentTime / lastProgress.duration * 100) : 0}%` }}
+                    />
+                  </span>
                 </span>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block line-clamp-2 text-sm font-bold text-[color:var(--foreground)] sm:text-base">{continueMovie.episodeTitle || continueMovie.title}</span>
-                <span className="mt-1 block text-xs text-[color:var(--muted-foreground)]">Resume from {formatMovieTime(lastProgress.currentTime)}{lastProgress.duration > 0 ? ` · ${formatMovieTime(lastProgress.duration - lastProgress.currentTime)} left` : ''}</span>
-              </span>
-              <span className="hidden shrink-0 rounded-lg bg-[color:var(--primary)] px-3 py-2 text-xs font-bold text-white sm:inline-flex">Resume</span>
-            </button>
-          </section>
-        )}
+                <span className="min-w-0 flex-1 space-y-2">
+                  <span className="block line-clamp-2 text-base font-bold text-[color:var(--foreground)] sm:text-lg">
+                    {continueMovie.episodeTitle || continueMovie.title}
+                  </span>
+                  <span className="flex items-center gap-2 text-xs text-[color:var(--muted-foreground)]">
+                    <span className="rounded-full bg-blue-500/10 px-2.5 py-1 font-semibold text-blue-400">
+                      {Math.round((lastProgress.currentTime / lastProgress.duration) * 100)}% watched
+                    </span>
+                    <span>•</span>
+                    <span>Resume from {formatMovieTime(lastProgress.currentTime)}</span>
+                    {lastProgress.duration > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{formatMovieTime(lastProgress.duration - lastProgress.currentTime)} left</span>
+                      </>
+                    )}
+                  </span>
+                </span>
+                <span className="hidden shrink-0 rounded-xl bg-[color:var(--foreground)] px-5 py-3 text-sm font-bold text-[color:var(--background)] shadow-lg transition-transform hover:scale-105 sm:inline-flex">
+                  Resume
+                </span>
+              </button>
 
-        {continueMovie && lastProgress && (
-          <section className="space-y-3" aria-label="Continue watching">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--muted-foreground)]">Pick up where you left off</p>
-              <h2 className="mt-1 text-xl font-bold text-[color:var(--foreground)]">Continue watching</h2>
+              {/* Close button */}
+              <button
+                onClick={handleRemoveContinueWatching}
+                className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--muted-foreground)] shadow-lg backdrop-blur-sm transition-all hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 hover:scale-110"
+                aria-label="Remove from continue watching"
+              >
+                <X size={16} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push(movieDetailsHref(continueMovie))}
-              className="group flex w-full max-w-2xl cursor-pointer items-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] p-2 text-left transition-colors hover:bg-[color:var(--surface-hover)] sm:gap-4 sm:p-3"
-            >
-              <span className="relative block aspect-video w-32 shrink-0 overflow-hidden rounded-lg bg-black sm:w-48">
-                <Image src={continueMovie.image} alt={continueMovie.title} fill sizes="192px" unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-white"><span className="text-lg font-black">▶</span></span>
-                <span className="absolute inset-x-0 bottom-0 h-1 bg-white/30">
-                  <span className="block h-full bg-[color:var(--primary)]" style={{ width: `${lastProgress.duration > 0 ? Math.min(100, lastProgress.currentTime / lastProgress.duration * 100) : 0}%` }} />
-                </span>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block line-clamp-2 text-sm font-bold text-[color:var(--foreground)] sm:text-base">{continueMovie.episodeTitle || continueMovie.title}</span>
-                <span className="mt-1 block text-xs text-[color:var(--muted-foreground)]">Resume from {formatMovieTime(lastProgress.currentTime)}{lastProgress.duration > 0 ? ` · ${formatMovieTime(lastProgress.duration - lastProgress.currentTime)} left` : ''}</span>
-              </span>
-              <span className="hidden shrink-0 rounded-lg bg-[color:var(--primary)] px-3 py-2 text-xs font-bold text-white sm:inline-flex">Resume</span>
-            </button>
           </section>
         )}
 
