@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 interface GoogleIdTokenPayload {
   name?: string;
@@ -25,7 +31,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleCredential = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleCredential = async (credentialResponse: any) => {
     setError(null);
 
     if (!credentialResponse.credential) {
@@ -69,6 +75,51 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
       setIsGoogleLoading(false);
     }
   };
+
+  // Initialize Google Sign-In button when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const initializeGoogleSignIn = () => {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (!clientId || !window.google) return;
+
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          {
+            theme: 'outline',
+            size: 'large',
+            width: 350,
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'left',
+          }
+        );
+      } catch (err) {
+        console.error('Failed to initialize Google Sign-In:', err);
+      }
+    };
+
+    // Load Google Sign-In script if not already loaded
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogleSignIn;
+      document.body.appendChild(script);
+    } else {
+      initializeGoogleSignIn();
+    }
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -142,45 +193,12 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
               </div>
             )}
 
-            {/* Google Sign In Button — GIS Client-Side Popup with ID Token */}
-            <div className="relative w-full mb-5 overflow-hidden rounded-xl border border-[color:var(--border)] shadow-sm">
-              {/* Styled visible button */}
-              <button 
-                onClick={async () => {
-                  setIsGoogleLoading(true);
-                  const supabase = createClient();
-                  await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-                      scopes: 'openid email profile https://www.googleapis.com/auth/youtube.force-ssl',
-                      queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                      },
-                    },
-                  });
-                }}
-                disabled={isGoogleLoading}
-                className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-[color:var(--surface)] text-[color:var(--foreground)] font-bold text-sm shadow-sm transition-all duration-200 hover:bg-[color:var(--surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGoogleLoading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin text-[color:var(--muted-foreground)]" />
-                    <span>Signing in…</span>
-                  </>
-                ) : (
-                  <>
-                    <svg width="20" height="20" viewBox="0 0 18 18" fill="none" className="shrink-0">
-                      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908C16.612 14.417 17.64 12 17.64 9.2z" fill="#4285F4" />
-                      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853" />
-                      <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A9.009 9.009 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05" />
-                      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335" />
-                    </svg>
-                    <span>Continue with Google</span>
-                  </>
-                )}
-              </button>
+            {/* Google Sign In Button — Native Google Popup */}
+            <div className="relative w-full mb-5">
+              <div
+                id="google-signin-button"
+                className="w-full"
+              />
             </div>
 
             {/* Terms and Privacy Footer */}
