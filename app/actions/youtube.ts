@@ -135,6 +135,8 @@ export async function getUnifiedFeedAction() {
         if (error.code === 'BACKEND_UNREACHABLE' || 
             error.status === 429 || 
             error.status === 500 ||
+            error.message?.includes('WRONGPASS') ||
+            error.message?.includes('auth token') ||
             error.message?.includes('Too Many Requests') ||
             error.message?.includes('quota')) {
             return { data: { sawaflix: [], youtube: MOCK_VIDEOS } };

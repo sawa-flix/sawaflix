@@ -13,11 +13,23 @@ export async function GET(request) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+    const errorParam = requestUrl.searchParams.get('error')
+    const errorDescription = requestUrl.searchParams.get('error_description')
+
     if (isDev) {
       console.log('🔵 CALLBACK RECEIVED:', {
         code: code ? 'YES' : 'NO',
         type: type || 'none',
+        error: errorParam,
+        errorDescription: errorDescription,
       })
+    }
+
+    // If provider returned an error query parameter (e.g. Supabase code exchange failure)
+    if (errorParam || errorDescription) {
+      console.error('🔴 Auth callback received error from provider:', errorParam, errorDescription)
+      const message = errorDescription || errorParam || 'google_auth_failed'
+      return NextResponse.redirect(new URL(`/dashboard?error=${encodeURIComponent(message)}`, request.url))
     }
 
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -72,7 +84,7 @@ export async function GET(request) {
     // ── STEP 1: Require a code ─────────────────────────────────────────────
     if (!code) {
       if (isDev) console.log('🔴 No code in callback URL')
-      return redirectWithCookies('/dashboard?error=invalid_reset_link')
+      return redirectWithCookies('/dashboard')
     }
 
     // ── STEP 2: Password reset → /update-password ──────────────────────────
@@ -94,7 +106,8 @@ export async function GET(request) {
 
       if (exchangeError || !session?.user) {
         console.error('🔴 Exchange failed:', exchangeError?.message || 'No session')
-        return redirectWithCookies('/dashboard?error=auth_failed')
+        const errMsg = exchangeError?.message || 'auth_failed'
+        return redirectWithCookies(`/dashboard?error=${encodeURIComponent(errMsg)}`)
       }
 
       const user = session.user

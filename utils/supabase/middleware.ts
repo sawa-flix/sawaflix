@@ -10,8 +10,19 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Skip middleware completely for the auth callback to prevent cookie interference during PKCE exchange
-  if (pathname.startsWith('/auth/callback')) {
+  // Skip middleware for static files, PWA scripts, icons, logos, and auth callback
+  const isStaticAsset =
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/push-sw.js' ||
+    pathname === '/favicon.ico' ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/logos_and_pwas/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    /\.[a-zA-Z0-9]+$/.test(pathname);
+
+  if (isStaticAsset || pathname.startsWith('/auth/callback')) {
     return supabaseResponse;
   }
 

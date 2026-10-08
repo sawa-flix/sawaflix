@@ -153,6 +153,7 @@ export default function AuthModal({ isOpen, onClose, promptMessage = 'to continu
                     provider: 'google',
                     options: {
                       redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+                      scopes: 'openid email profile https://www.googleapis.com/auth/youtube.force-ssl',
                       queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',
