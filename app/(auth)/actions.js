@@ -15,7 +15,7 @@ export async function signInWithPassword(formData) {
     }
 
     const isDev = process.env.NODE_ENV === 'development';
-    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://api.sawaflix.com';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
     const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 
@@ -171,7 +171,7 @@ export async function resetPassword(formData) {
 
     // Smart environment routing: Use localhost:5000 in dev, fallback to Render in prod
     const isDev = process.env.NODE_ENV === 'development';
-    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://api.sawaflix.com';
+    const fallbackUrl = isDev ? 'http://localhost:5000' : 'https://sawaflix-backend.onrender.com';
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || fallbackUrl;
     const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
 

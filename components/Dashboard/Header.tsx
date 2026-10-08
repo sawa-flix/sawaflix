@@ -112,14 +112,6 @@ const Header = ({
       return;
     }
 
-    // Set immediate initial profile from currentUser auth session metadata
-    const meta = currentUser.user_metadata || {};
-    setUserProfile({
-      username: meta.full_name || meta.name || meta.username || currentUser.email?.split('@')[0] || 'User',
-      email: currentUser.email || null,
-      profile_image_url: meta.avatar_url || meta.picture || null,
-    });
-
     const fetchUserProfile = async () => {
       const supabase = createClient();
       const { data: profileData, error } = await supabase
@@ -131,11 +123,7 @@ const Header = ({
       if (error) {
         console.error('Error fetching user profile:', error.message);
       } else if (profileData) {
-        setUserProfile((prev) => ({
-          username: profileData.username || prev?.username || 'User',
-          email: profileData.email || prev?.email || currentUser.email || null,
-          profile_image_url: profileData.profile_image_url || prev?.profile_image_url || null,
-        }));
+        setUserProfile(profileData);
       }
     };
 
