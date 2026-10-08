@@ -39,7 +39,7 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
 
   return (
     <div
-      className="group relative isolate mx-auto mb-6 aspect-[16/9] min-h-[560px] w-full max-w-[1920px] overflow-hidden rounded-[34px] border border-white/10 bg-black shadow-[0_40px_120px_-35px_rgba(0,0,0,0.9)] sm:min-h-0 sm:aspect-[2.1/1] lg:aspect-[22/9] lg:max-h-[980px]"
+      className="group relative isolate mx-auto mb-6 aspect-[16/9] min-h-[560px] w-full max-w-[1920px] overflow-hidden rounded-[34px] border border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl sm:min-h-0 sm:aspect-[2.1/1] lg:aspect-[22/9] lg:max-h-[980px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onPointerDown={(event) => { pointerStartX.current = event.clientX; }}
@@ -62,8 +62,8 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
         unoptimized
         sizes="100vw"
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_30%,rgba(255,255,255,0.18),transparent_12%),linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.62)_26%,rgba(0,0,0,0.28)_55%,rgba(0,0,0,0.7)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/20" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
 
       <div
         aria-hidden="true"
