@@ -14,6 +14,7 @@ import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import { AuthModalProvider } from '../../contexts/AuthModalContext';
 import BottomPlayer from '../BottomPlayer';
 import { ReelsBackdrop } from '../reels/ReelsBackdrop';
+import AnnouncementBanner from './AnnouncementBanner';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
@@ -156,6 +157,9 @@ const DashboardWrapper = ({ children }) => {
             search is suppressed there to avoid two search UIs fighting
             over the same keystrokes and navigating away from /dashboard/reels. */}
         <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
+
+        {/* Global Announcement Banner */}
+        <AnnouncementBanner />
 
         {/* No top padding reserved on phones while on Reels — Header renders
             transparent there (just floating back/search/mute buttons), so

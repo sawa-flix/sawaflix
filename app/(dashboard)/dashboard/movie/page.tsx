@@ -3,8 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Play, X, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, Play, X } from 'lucide-react';
 import {
   MovieCard,
   RightSidebarContent,
@@ -28,7 +27,6 @@ export default function MoviePage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastProgress, setLastProgress] = useState<MovieProgressEntry | null>(null);
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [dismissedContinueWatching, setDismissedContinueWatching] = useState(false);
 
   const movieDetailsHref = useCallback((movie: Movie) => `/dashboard/movie/${encodeURIComponent(movie.id)}`, []);
@@ -309,7 +307,7 @@ export default function MoviePage(): React.ReactElement {
                     )}
                   </span>
                 </span>
-                <span className="hidden shrink-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 sm:inline-flex">
+                <span className="hidden shrink-0 rounded-xl bg-[color:var(--foreground)] px-5 py-3 text-sm font-bold text-[color:var(--background)] shadow-lg transition-transform hover:scale-105 sm:inline-flex">
                   Resume
                 </span>
               </button>
