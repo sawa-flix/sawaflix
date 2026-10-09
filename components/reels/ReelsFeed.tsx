@@ -362,9 +362,17 @@ export function ReelsFeed({ initialVideos, initialHasMore, initialVideoId, initi
         // confirming it active (scroll + IntersectionObserver) — once this
         // clears, the now-active ReelCard's own spinner takes over for the
         // remaining "player initializing" stretch.
-        <ReelLoading />
+        <div className="relative h-full w-full snap-y snap-mandatory overflow-hidden scroll-smooth
+                     lg:h-full lg:w-auto lg:aspect-[9/16] lg:max-h-full
+                     lg:rounded-[1.75rem] lg:ring-1 lg:ring-[color:var(--border)] lg:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)] bg-black">
+          <ReelLoading />
+        </div>
       ) : loading && videos.length === 0 ? (
-        <ReelLoading />
+        <div className="relative h-full w-full snap-y snap-mandatory overflow-hidden scroll-smooth
+                     lg:h-full lg:w-auto lg:aspect-[9/16] lg:max-h-full
+                     lg:rounded-[1.75rem] lg:ring-1 lg:ring-[color:var(--border)] lg:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.85)] bg-black">
+          <ReelLoading />
+        </div>
       ) : error && videos.length === 0 ? (
         // viewingSearchResult can never have 0 videos (it only ever opens
         // from an already-populated dropdown row), so this is always the
