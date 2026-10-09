@@ -1,4 +1,4 @@
-import { ReelLoading } from '@/components/reels/ReelLoading';
+import { ReelCardSkeleton } from '@/components/reels/ReelCardSkeleton';
 
 /**
  * Route-level loading UI (Next.js App Router convention) — shown while
@@ -7,8 +7,8 @@ import { ReelLoading } from '@/components/reels/ReelLoading';
  */
 export default function ReelsLoading() {
   return (
-    <div className="relative isolate h-[calc(100vh-7rem)] min-h-[500px] w-full overflow-hidden bg-transparent">
-      <ReelLoading />
+    <div className="relative isolate h-[calc(100vh-7rem)] min-h-[500px] w-full overflow-hidden">
+      <ReelCardSkeleton />
     </div>
   );
 }

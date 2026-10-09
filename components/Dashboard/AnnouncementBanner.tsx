@@ -53,39 +53,38 @@ export default function AnnouncementBanner() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="fixed top-16 left-0 right-0 z-[45] mx-auto max-w-7xl px-4 lg:px-8"
+          className="fixed top-[4.5rem] left-0 right-0 z-[45] mx-auto max-w-7xl px-4 lg:px-8 scale-90"
         >
-          <div className="relative overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl backdrop-blur-xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary)]/5 via-transparent to-[color:var(--primary)]/5 opacity-50" />
-            <div className="relative px-6 py-4 sm:px-8 sm:py-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  {/* SawaFlix Loader Logo (same as Reels in sidebar) */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--primary)]/10 p-2 shadow-lg">
+          <div className="relative overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] shadow-lg backdrop-blur-sm">
+            <div className="relative px-5 py-3 sm:px-6 sm:py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  {/* SawaFlix Loader Logo */}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[color:var(--surface-hover)] p-2">
                     <div className="relative h-full w-full">
                       <Image
                         src="/logos_and_pwas/loaderLogo.png"
                         alt="SawaFlix"
                         fill
-                        sizes="48px"
+                        sizes="40px"
                         className="object-contain"
                       />
                     </div>
                   </div>
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-[color:var(--foreground)] sm:text-xl">
+                      <h3 className="text-base font-bold text-[color:var(--foreground)] sm:text-lg">
                         Coming Soon: "The Lion's Heart"
                       </h3>
-                      <span className="rounded-full bg-[color:var(--primary)]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--primary)]">
+                      <span className="rounded-full bg-[color:var(--primary)]/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[color:var(--primary)]">
                         Premiere
                       </span>
                     </div>
-                    <p className="text-sm text-[color:var(--muted-foreground)] sm:text-base">
+                    <p className="text-xs text-[color:var(--muted-foreground)] sm:text-sm">
                       A powerful tale of courage and tradition. Be among the first to watch this epic Cameroonian production.
                     </p>
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="flex gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex gap-2">
                         {[
                           { label: 'Days', value: countdown.days },
                           { label: 'Hours', value: countdown.hours },
@@ -93,10 +92,10 @@ export default function AnnouncementBanner() {
                           { label: 'Sec', value: countdown.seconds }
                         ].map((item) => (
                           <div key={item.label} className="flex flex-col items-center">
-                            <span className="text-xl font-black tabular-nums text-[color:var(--foreground)] sm:text-2xl">
+                            <span className="text-lg font-black tabular-nums text-[color:var(--foreground)] sm:text-xl">
                               {String(item.value).padStart(2, '0')}
                             </span>
-                            <span className="text-[9px] font-medium uppercase tracking-wide text-[color:var(--muted-foreground)] sm:text-[10px]">
+                            <span className="text-[8px] font-medium uppercase tracking-wide text-[color:var(--muted-foreground)] sm:text-[9px]">
                               {item.label}
                             </span>
                           </div>
@@ -107,10 +106,10 @@ export default function AnnouncementBanner() {
                 </div>
                 <button
                   onClick={handleDismiss}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[color:var(--muted-foreground)] transition-colors hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[color:var(--muted-foreground)] transition-colors hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
                   aria-label="Dismiss announcement"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
             </div>

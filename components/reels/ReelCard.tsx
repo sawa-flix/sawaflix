@@ -14,7 +14,7 @@ import { ReelOverlay } from './ReelOverlay';
 import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
-import { ReelProgressBar } from './ReelProgressBar';
+import { ReelLoading } from './ReelLoading';
 import { ReelControls } from './ReelControls';
 import { ReelsBackdrop } from './ReelsBackdrop';
 import { useAuthSession } from '@/hooks/useAuthSession';
@@ -266,11 +266,9 @@ export function ReelCard({ video, isActive, isPaused, isMuted, isDesktop, deskto
         )}
       </div>
 
-      {/* Keep the poster visible and limit buffering feedback to a small spinner. */}
+      {/* Keep the poster visible and show progress loader while buffering */}
       {isActive && !isPlayerReady && (
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 justify-center">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/25 border-t-white/90 shadow-lg" />
-        </div>
+        <ReelLoading />
       )}
 
       <AnimatePresence>
