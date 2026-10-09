@@ -257,7 +257,7 @@ const Header = ({
           </div>
         )}
 
-        <div className={`${isReelsRoute ? 'hidden' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
+        <div className={`${isReelsRoute ? 'hidden md:flex' : 'flex'} items-center justify-between h-full pl-3 pr-3 sm:pr-5 lg:pr-7`}>
           <div className="flex items-center">
             {isReelsRoute ? (
               <button

@@ -14,6 +14,7 @@ import { ReelOverlay } from './ReelOverlay';
 import { ReelActions } from './ReelActions';
 import { ReelComments } from './ReelComments';
 import { ReelScrubIndicator } from './ReelScrubIndicator';
+import { ReelProgressBar } from './ReelProgressBar';
 import { ReelLoading } from './ReelLoading';
 import { ReelControls } from './ReelControls';
 import { ReelsBackdrop } from './ReelsBackdrop';

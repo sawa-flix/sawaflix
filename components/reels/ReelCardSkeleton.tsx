@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MessageCircle, MoreHorizontal, Heart } from 'lucide-react';
 
 /**
@@ -10,37 +10,41 @@ import { MessageCircle, MoreHorizontal, Heart } from 'lucide-react';
 export function ReelCardSkeleton() {
   const [progress, setProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const animationFrameRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animatedProgressRef = useRef(0);
+  const targetProgressRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
-    let animatedProgress = 0;
-    let targetProgress = 0;
-    let animationFrame = 0;
-    let progressInterval: NodeJS.Timeout | undefined;
 
     // Simulate loading progress
-    progressInterval = setInterval(() => {
-      if (targetProgress < 90) {
-        targetProgress = Math.min(90, targetProgress + Math.random() * 15 + 5);
+    intervalRef.current = setInterval(() => {
+      if (targetProgressRef.current < 90) {
+        targetProgressRef.current = Math.min(90, targetProgressRef.current + Math.random() * 15 + 5);
       }
     }, 200);
 
     const animate = () => {
-      if (animatedProgress < targetProgress) {
-        animatedProgress = Math.min(
-          targetProgress,
-          animatedProgress + Math.max(0.5, (targetProgress - animatedProgress) * 0.1)
+      if (animatedProgressRef.current < targetProgressRef.current) {
+        animatedProgressRef.current = Math.min(
+          targetProgressRef.current,
+          animatedProgressRef.current + Math.max(0.5, (targetProgressRef.current - animatedProgressRef.current) * 0.1)
         );
-        setProgress(animatedProgress);
+        setProgress(animatedProgressRef.current);
       }
-      animationFrame = requestAnimationFrame(animate);
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    animationFrame = requestAnimationFrame(animate);
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (progressInterval) clearInterval(progressInterval);
-      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
