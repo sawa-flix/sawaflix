@@ -109,7 +109,11 @@ export function mapYoutubeItem(item: any): Video {
 export function mapSawaflixItem(item: any): Video {
   const id = String(item.id || item._id || item.videoId || '');
   const mediaUrl = item.media_url || item.video_url || item.videoUrl || item.media_path || '';
-  const thumb = item.thumbnail_url || item.cover_url || item.thumbnail || (item.snippet?.thumbnails?.high?.url) || 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
+  let thumb = item.thumbnail_url || item.cover_url || item.thumbnail || (item.snippet?.thumbnails?.high?.url) || '';
+
+  if (!thumb || typeof thumb !== 'string' || thumb.includes('vercel.app') || thumb.includes('localhost') || thumb.includes('127.0.0.1')) {
+    thumb = 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png';
+  }
 
   return {
     id,

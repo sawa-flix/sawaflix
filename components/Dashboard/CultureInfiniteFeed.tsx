@@ -286,61 +286,13 @@ export default function CultureInfiniteFeed({ activeCategory = 'all' }: CultureI
 
       {/* Main Grid of Culture Videos */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-        {videos.map((video, idx) => {
-          const thumbnail = video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`;
-
-          return (
-            <div
-              key={`${video.id}-${idx}`}
-              onClick={() => handleVideoClick(video)}
-              className="relative w-full group/card cursor-pointer transition-all duration-300"
-            >
-              {/* Thumbnail Container */}
-              <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
-                <Image
-                  src={thumbnail}
-                  alt={video.title}
-                  fill
-                  className="object-contain sm:object-cover group-hover/card:scale-105 transition-transform duration-500"
-                  unoptimized
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                />
-                
-                {/* Gradient vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-
-                {/* Center Play Button on hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/50 backdrop-blur-sm transform scale-90 group-hover/card:scale-100 transition-all">
-                    <Play size={20} className="text-white fill-white ml-0.5" />
-                  </div>
-                </div>
-
-                {/* Cultural Badge */}
-                <div className="absolute top-2.5 left-2.5">
-                  <span className="bg-[#009639]/90 backdrop-blur-md text-white border border-[#009639]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
-                    Sawa Culture
-                  </span>
-                </div>
-
-                {/* Views indicator */}
-                <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 backdrop-blur-md rounded text-[11px] font-semibold text-white/90">
-                  {formatCount(video.viewCount)} views
-                </div>
-              </div>
-
-              <div className="px-1">
-                <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
-                    {video.title}
-                </h3>
-                <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)] gap-2">
-                  <span className="truncate">{video.channelTitle || 'Sawa Culture'}</span>
-                  <span className="shrink-0">{formatRelativeTime(video.publishedAt)}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {videos.map((video, idx) => (
+          <CultureFeedCard
+            key={`${video.id}-${idx}`}
+            video={video}
+            onVideoClick={handleVideoClick}
+          />
+        ))}
 
         {(loading || loadingMore) &&
           Array.from({ length: loading ? 8 : 4 }).map((_, i) => (
@@ -363,5 +315,72 @@ export default function CultureInfiniteFeed({ activeCategory = 'all' }: CultureI
       {/* Infinite Scroll Sentinel */}
       <div ref={sentinelRef} className="h-8 w-full flex items-center justify-center my-2 pointer-events-none" />
     </section>
+  );
+}
+
+function CultureFeedCard({ video, onVideoClick }: { video: Video; onVideoClick: (v: Video) => void }) {
+  const initialThumb = video.thumbnail || (video.id ? `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg` : 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png');
+  const [imgSrc, setImgSrc] = useState(initialThumb);
+
+  useEffect(() => {
+    setImgSrc(initialThumb);
+  }, [initialThumb]);
+
+  return (
+    <div
+      onClick={() => onVideoClick(video)}
+      className="relative w-full group/card cursor-pointer transition-all duration-300"
+    >
+      {/* Thumbnail Container */}
+      <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
+        <Image
+          src={imgSrc}
+          alt={video.title || 'Video'}
+          fill
+          className="object-contain sm:object-cover group-hover/card:scale-105 transition-transform duration-500"
+          unoptimized
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          onError={() => {
+            if (imgSrc.includes('maxresdefault.jpg')) {
+              setImgSrc(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`);
+            } else if (imgSrc !== 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png') {
+              setImgSrc('https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png');
+            }
+          }}
+        />
+        
+        {/* Gradient vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+
+        {/* Center Play Button on hover */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/50 backdrop-blur-sm transform scale-90 group-hover/card:scale-100 transition-all">
+            <Play size={20} className="text-white fill-white ml-0.5" />
+          </div>
+        </div>
+
+        {/* Cultural Badge */}
+        <div className="absolute top-2.5 left-2.5">
+          <span className="bg-[#009639]/90 backdrop-blur-md text-white border border-[#009639]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+            Sawa Culture
+          </span>
+        </div>
+
+        {/* Views indicator */}
+        <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 backdrop-blur-md rounded text-[11px] font-semibold text-white/90">
+          {formatCount(video.viewCount)} views
+        </div>
+      </div>
+
+      <div className="px-1">
+        <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
+          {video.title}
+        </h3>
+        <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)] gap-2">
+          <span className="truncate">{video.channelTitle || 'Sawa Culture'}</span>
+          <span className="shrink-0">{formatRelativeTime(video.publishedAt)}</span>
+        </div>
+      </div>
+    </div>
   );
 }

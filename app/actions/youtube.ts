@@ -219,6 +219,16 @@ export async function getCultureFeedAction(page: number = 1, limit: number = 20)
     if (feedResult?.pagination) paginationData = feedResult.pagination;
     adminReels = adminResult;
 
+    // Direct fallback if backend /api/feed/culture fails (e.g. 500 Redis error)
+    if (youtubeFeed.length === 0) {
+        try {
+            const searchResp = await searchVideosAction('Cameroon culture entertainment 2026', null, limit, true);
+            youtubeFeed = searchResp?.items || [];
+        } catch (ytErr: any) {
+            console.warn('[getCultureFeedAction] Live YouTube fallback failed:', ytErr?.message);
+        }
+    }
+
     // Fallback: If admin backend endpoint didn't return reels, query Supabase directly
     if (adminReels.length === 0) {
         try {

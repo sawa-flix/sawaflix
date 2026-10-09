@@ -256,30 +256,55 @@ const RightSidebar = () => {
         ) : (
            <div className="flex flex-col gap-2">
              {aiRecommendations.map((video) => (
-               <div
+               <SidebarVideoItem
                  key={video.id}
-                 onClick={() => handleItemClick(video, videos)}
-                 className="flex gap-3 p-2 rounded-xl hover:bg-[color:var(--surface)]/10 border border-transparent hover:border-[color:var(--border)]/40 transition-all duration-200 cursor-pointer group"
-               >
-                 <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
-                   <Image
-                     src={activeCategory === 'music' ? MUSIC_CARD_THUMB : video.thumbnail}
-                     alt={video.title}
-                     fill
-                     sizes="56px"
-                     className="object-cover group-hover:scale-110 transition-transform duration-500"
-                     unoptimized
-                   />
-                   <div className="absolute inset-0 bg-[color:var(--border)]/20 group-hover:bg-transparent transition-colors" />
-                 </div>
-                 <div className="flex-1 min-w-0 py-0.5">
-                   <h4 className="text-xs font-bold text-[color:var(--foreground)] line-clamp-2 mb-1 leading-tight group-hover:text-[color:var(--foreground)]/90">{video.title}</h4>
-                   <p className="text-[10px] text-[color:var(--muted-foreground)] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
-                 </div>
-               </div>
+                 video={video}
+                 activeCategory={activeCategory}
+                 videos={videos}
+                 handleItemClick={handleItemClick}
+               />
              ))}
            </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+const SidebarVideoItem = ({ video, activeCategory, videos, handleItemClick }) => {
+  const initialThumb = activeCategory === 'music' ? MUSIC_CARD_THUMB : (video.thumbnail || (video.id ? `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg` : MUSIC_CARD_THUMB));
+  const [imgSrc, setImgSrc] = useState(initialThumb);
+
+  React.useEffect(() => {
+    setImgSrc(initialThumb);
+  }, [initialThumb]);
+
+  return (
+    <div
+      onClick={() => handleItemClick(video, videos)}
+      className="flex gap-3 p-2 rounded-xl hover:bg-[color:var(--surface)]/10 border border-transparent hover:border-[color:var(--border)]/40 transition-all duration-200 cursor-pointer group"
+    >
+      <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
+        <Image
+          src={imgSrc}
+          alt={video.title}
+          fill
+          sizes="56px"
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          unoptimized
+          onError={() => {
+            if (imgSrc.includes('maxresdefault.jpg')) {
+              setImgSrc(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`);
+            } else if (imgSrc !== MUSIC_CARD_THUMB) {
+              setImgSrc(MUSIC_CARD_THUMB);
+            }
+          }}
+        />
+        <div className="absolute inset-0 bg-[color:var(--border)]/20 group-hover:bg-transparent transition-colors" />
+      </div>
+      <div className="flex-1 min-w-0 py-0.5">
+        <h4 className="text-xs font-bold text-[color:var(--foreground)] line-clamp-2 mb-1 leading-tight group-hover:text-[color:var(--foreground)]/90">{video.title}</h4>
+        <p className="text-[10px] text-[color:var(--muted-foreground)] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
       </div>
     </div>
   );

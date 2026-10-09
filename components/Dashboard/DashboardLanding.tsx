@@ -52,6 +52,55 @@ function formatRelativeTime(dateString: string): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
+function ReelPreviewCardItem({ reel, activeCategory }: { reel: any; activeCategory: string }) {
+  const initialThumb = reel.thumbnail || (reel.id ? `https://i.ytimg.com/vi/${reel.id}/hqdefault.jpg` : 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png');
+  const [imgSrc, setImgSrc] = useState(initialThumb);
+
+  useEffect(() => {
+    setImgSrc(initialThumb);
+  }, [initialThumb]);
+
+  return (
+    <Link
+      key={reel.id}
+      href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(reel.id)}`}
+      onClick={() => stashReelForHandoff(reel)}
+      className="relative w-[210px] sm:w-[240px] lg:w-[280px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+    >
+      <Image
+        src={imgSrc}
+        alt={reel.title || 'Reel'}
+        fill
+        className="object-cover group-hover/card:scale-105 transition-transform duration-500"
+        unoptimized
+        onError={() => {
+          if (imgSrc.includes('maxresdefault.jpg')) {
+            setImgSrc(`https://i.ytimg.com/vi/${reel.id}/hqdefault.jpg`);
+          } else if (imgSrc !== 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png') {
+            setImgSrc('https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png');
+          }
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
+          <Play size={24} className="text-white fill-white ml-1" />
+        </div>
+      </div>
+
+      <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
+        <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
+          {reel.title}
+        </h3>
+        <p className="text-white/70 text-xs truncate">
+          @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase() || 'sawaflix'}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 interface DashboardLandingProps {
   onPlayReel: (video: any) => void;
   reels: any[];
@@ -466,44 +515,11 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                 className="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar pb-4"
               >
                 {reelsPreview.map((reel: any) => (
-                  <Link
+                  <ReelPreviewCardItem
                     key={reel.id}
-                    href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(reel.id)}`}
-                    // Hands the already-fetched video straight to the Reels
-                    // page (same mechanism the right sidebar and home search
-                    // use) — needed for search results specifically, since
-                    // they usually won't be in the Reels page's own
-                    // server-fetched culture feed for a plain ?id= lookup
-                    // to find on its own.
-                    onClick={() => stashReelForHandoff(reel)}
-                    className="relative w-[210px] sm:w-[240px] lg:w-[280px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                  >
-                    <Image
-                      src={reel.thumbnail || `https://i.ytimg.com/vi/${reel.id}/maxresdefault.jpg`}
-                      alt={reel.title}
-                      fill
-                      className="object-cover group-hover/card:scale-105 transition-transform duration-500"
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
-                        <Play size={24} className="text-white fill-white ml-1" />
-                      </div>
-                    </div>
-
-                  {/* Intentionally white — sits on a photo overlay rather than a themed surface */}
-                  <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
-                    <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">
-                      {reel.title}
-                    </h3>
-                    <p className="text-white/70 text-xs truncate">
-                      @{reel.channelTitle?.replace(/\s+/g, '_').toLowerCase()}
-                    </p>
-                  </div>
-
-                  </Link>
+                    reel={reel}
+                    activeCategory={activeCategory}
+                  />
                 ))}
             </div>
 
