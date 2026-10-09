@@ -24,10 +24,16 @@ export function ReelControls({
   onTogglePlay,
 }: ReelControlsProps) {
   const [time, setTime] = useState({ current: 0, duration: 0 });
-  const reqRef = useRef<number | null>(null);
+  const reqRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      if (reqRef.current) {
+        cancelAnimationFrame(reqRef.current);
+        reqRef.current = 0;
+      }
+      return;
+    }
 
     const updateTime = () => {
       const player = getPlayer();
@@ -49,8 +55,12 @@ export function ReelControls({
     };
 
     reqRef.current = requestAnimationFrame(updateTime);
+
     return () => {
-      if (reqRef.current) cancelAnimationFrame(reqRef.current);
+      if (reqRef.current) {
+        cancelAnimationFrame(reqRef.current);
+        reqRef.current = 0;
+      }
     };
   }, [getPlayer, isActive]);
 
@@ -58,7 +68,7 @@ export function ReelControls({
     <>
       {/* Central Big Play Icon when Paused */}
       {isActive && isPaused && (
-        <div 
+        <div
           onClick={onTogglePlay}
           className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-[1px] transition-all cursor-pointer"
         >
