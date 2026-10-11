@@ -409,18 +409,18 @@ export default function MovieDetailsPage() {
                   isDownloaded
                     ? 'bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/40'
                     : isDownloading
-                    ? 'bg-transparent text-[color:var(--primary)]'
+                    ? 'bg-[color:var(--surface)] text-[color:var(--foreground)] border border-[color:var(--border)]'
                     : 'bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)]'
                 }`}>
                   {isDownloading ? (
-                    <CircularProgress progress={downloadProgress} size={32} strokeWidth={3.5} showPercent={false} />
+                    <CircularProgress progress={downloadProgress} size={30} strokeWidth={3} showPercent={false} />
                   ) : isDownloaded ? (
                     <CheckCircle2 size={20} className="text-emerald-500" />
                   ) : (
                     <Download size={20} className="text-[color:var(--foreground)] group-hover:scale-105 transition-transform" />
                   )}
                 </div>
-                <span className={`text-xs font-semibold ${isDownloaded ? 'text-emerald-500' : isDownloading ? 'text-[color:var(--primary)]' : 'text-[color:var(--foreground)]'}`}>
+                <span className={`text-xs font-semibold ${isDownloaded ? 'text-emerald-500' : 'text-[color:var(--foreground)]'}`}>
                   {isDownloading ? `${downloadProgress}%` : isDownloaded ? 'Downloaded' : 'Download'}
                 </span>
               </button>

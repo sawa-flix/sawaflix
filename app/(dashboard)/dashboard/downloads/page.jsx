@@ -165,7 +165,7 @@ export default function DownloadsPage() {
             </p>
             <Link
               href="/dashboard/movie"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[color:var(--primary)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 hover:opacity-90 transition-opacity"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[color:var(--foreground)] px-6 py-2.5 text-sm font-bold text-[color:var(--background)] shadow-md hover:opacity-90 transition-opacity"
             >
               <Play size={16} fill="currentColor" />
               <span>Browse Movies to Download</span>

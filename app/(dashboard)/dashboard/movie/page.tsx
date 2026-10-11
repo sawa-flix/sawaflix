@@ -222,7 +222,7 @@ export default function MoviePage(): React.ReactElement {
                   </span>
                   <span className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20 backdrop-blur-sm">
                     <span
-                      className="block h-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                      className="block h-full bg-[color:var(--primary)] shadow-[0_0_8px_rgba(229,9,20,0.6)]"
                       style={{ width: `${lastProgress.duration > 0 ? Math.min(100, lastProgress.currentTime / lastProgress.duration * 100) : 0}%` }}
                     />
                   </span>
@@ -232,7 +232,7 @@ export default function MoviePage(): React.ReactElement {
                     {continueMovie.episodeTitle || continueMovie.title}
                   </span>
                   <span className="flex items-center gap-2 text-xs text-[color:var(--muted-foreground)]">
-                    <span className="rounded-full bg-blue-500/10 px-2.5 py-1 font-semibold text-blue-400">
+                    <span className="rounded-full bg-[color:var(--primary)]/15 px-2.5 py-1 font-semibold text-[color:var(--primary)]">
                       {Math.round((lastProgress.currentTime / lastProgress.duration) * 100)}% watched
                     </span>
                     <span>•</span>
