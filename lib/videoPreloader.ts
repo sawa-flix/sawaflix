@@ -137,6 +137,121 @@ export async function getCachedVideoMetadata() {
     return await getAllOfflineVideosMeta();
 }
 
-export async function removeCachedVideo(videoId: string, videoUrl: string) {
+export async function removeCachedVideo(videoId: string, videoUrl?: string) {
     await removeVideoFromIDB(videoId);
 }
+
+/**
+ * Downloads a specific video (e.g. Movie) to IndexedDB for offline in-app watching.
+ * Emits 'video-download-progress' custom event for reactive UI updates.
+ */
+export async function downloadVideoById(
+    video: {
+        id: string;
+        title: string;
+        thumbnail?: string;
+        videoUrl?: string;
+        category?: string;
+        duration?: string;
+    },
+    onProgress?: (percent: number) => void
+): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+
+    const alreadyOffline = await isVideoOffline(video.id);
+    if (alreadyOffline) {
+        onProgress?.(100);
+        return true;
+    }
+
+    // Determine target URL for fetching the media stream
+    const targetUrl = video.videoUrl && (video.videoUrl.startsWith('http://') || video.videoUrl.startsWith('https://'))
+        ? video.videoUrl
+        : `/api/videos/proxy?videoId=${encodeURIComponent(video.id)}`;
+
+    try {
+        const response = await fetch(targetUrl, { mode: 'cors' });
+        if (!response.ok) {
+            throw new Error(`Failed to download stream: HTTP ${response.status}`);
+        }
+
+        const contentLength = response.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        let loaded = 0;
+        let lastPercent = -1;
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+            // Fallback if readable stream is not available
+            const blob = await response.blob();
+            await saveVideoToIDB({
+                id: video.id,
+                title: video.title,
+                thumbnail: video.thumbnail || '',
+                videoUrl: targetUrl,
+                category: video.category || 'Movie',
+                duration: video.duration,
+                cachedAt: Date.now()
+            }, blob);
+            onProgress?.(100);
+            window.dispatchEvent(new CustomEvent('video-download-progress', {
+                detail: { id: video.id, progress: 100, complete: true }
+            }));
+            return true;
+        }
+
+        const chunks: BlobPart[] = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            if (value) {
+                const array = value instanceof Uint8Array ? value : new Uint8Array(value);
+                const buffer = array.buffer.slice(array.byteOffset, array.byteOffset + array.byteLength);
+                chunks.push(buffer);
+                loaded += array.length;
+
+                if (total) {
+                    const percent = Math.min(99, Math.floor((loaded / total) * 100));
+                    if (percent >= lastPercent + 2 || percent === 99) {
+                        lastPercent = percent;
+                        onProgress?.(percent);
+                        window.dispatchEvent(new CustomEvent('video-download-progress', {
+                            detail: {
+                                id: video.id,
+                                progress: percent,
+                                loaded,
+                                total
+                            }
+                        }));
+                    }
+                }
+            }
+        }
+
+        const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/mp4' });
+        await saveVideoToIDB({
+            id: video.id,
+            title: video.title,
+            thumbnail: video.thumbnail || '',
+            videoUrl: targetUrl,
+            category: video.category || 'Movie',
+            duration: video.duration,
+            cachedAt: Date.now()
+        }, blob);
+
+        onProgress?.(100);
+        window.dispatchEvent(new CustomEvent('video-download-progress', {
+            detail: { id: video.id, progress: 100, complete: true }
+        }));
+
+        return true;
+    } catch (error) {
+        console.error(`[VideoPreloader] Failed to download video ${video.id}:`, error);
+        window.dispatchEvent(new CustomEvent('video-download-error', {
+            detail: { id: video.id, error }
+        }));
+        throw error;
+    }
+}
+

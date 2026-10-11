@@ -11,6 +11,7 @@ const ReactPlayerClient = dynamic(() => import('react-player/lazy'), { ssr: fals
 
 interface MovieVideoPlayerProps {
   videoId: string;
+  videoUrl?: string;
   title: string;
   poster: string;
   playing: boolean;
@@ -34,6 +35,7 @@ function formatTime(seconds: number): string {
 
 export default function MovieVideoPlayer({
   videoId,
+  videoUrl,
   title,
   poster,
   playing,
@@ -158,9 +160,9 @@ export default function MovieVideoPlayer({
     >
       <div className="absolute inset-0 z-0">
         <ReactPlayerClient
-          key={videoId}
+          key={videoUrl || videoId}
           ref={playerRef}
-          url={`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`}
+          url={videoUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`}
           width="100%"
           height="100%"
           playing={playing && isPlaying}
@@ -177,7 +179,10 @@ export default function MovieVideoPlayer({
           onDuration={handleDuration}
           onEnded={() => { clearMovieProgress(videoId); setIsPlaying(false); onPlaybackStateChange(false); onEnded(); }}
           onError={() => setPlaybackError(true)}
-          config={{ youtube: { playerVars: { controls: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1 } } }}
+          config={{
+            youtube: { playerVars: { controls: 0, modestbranding: 1, rel: 0, iv_load_policy: 3, playsinline: 1 } },
+            file: { forceVideo: Boolean(videoUrl) },
+          }}
         />
       </div>
 
