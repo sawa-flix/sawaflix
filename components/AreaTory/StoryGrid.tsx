@@ -112,10 +112,13 @@ export default function StoryGrid() {
 
     // Add any dynamic categories from Sanity
     categories.forEach((cat) => {
-      const slug = cat.slug?.current || cat.title.toLowerCase();
+      const catTitleStr = typeof cat.title === 'object'
+        ? ((cat.title as any)?.en || (cat.title as any)?.fr || '')
+        : (cat.title || '');
+      const slug = cat.slug?.current || catTitleStr.toLowerCase();
       if (!seen.has(slug)) {
         seen.add(slug);
-        list.push({ id: cat._id, label: cat.title, slug });
+        list.push({ id: cat._id, label: catTitleStr, slug });
       }
     });
 
@@ -138,9 +141,13 @@ export default function StoryGrid() {
       if (catSlug && map[catSlug]) {
         map[catSlug].stories.push(story);
       } else if (catSlug) {
+        const catTitle = story.category?.title;
+        const catTitleStr = typeof catTitle === 'object'
+          ? (catTitle?.en || catTitle?.fr || catSlug.charAt(0).toUpperCase() + catSlug.slice(1))
+          : (catTitle || catSlug.charAt(0).toUpperCase() + catSlug.slice(1));
         if (!map[catSlug]) {
           map[catSlug] = {
-            title: story.category?.title || catSlug.charAt(0).toUpperCase() + catSlug.slice(1),
+            title: catTitleStr,
             stories: [],
           };
         }

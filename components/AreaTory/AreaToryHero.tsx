@@ -196,10 +196,18 @@ export default function AreaToryHero() {
                   className="inline-block px-2 py-0.5 text-white text-[9px] font-bold rounded-md mb-2 tracking-widest transition-transform group-hover:scale-105"
                   style={{ backgroundColor: featured?.category?.color || "#E50914" }}
                 >
-                  {loaded ? (featured?.category?.title || "Featured") : "Loading..."}
+                  {loaded ? (
+                    typeof featured?.category?.title === 'object'
+                      ? (featured.category.title?.en || featured.category.title?.fr || "Featured")
+                      : (featured?.category?.title || "Featured")
+                  ) : "Loading..."}
                 </span>
                 <h3 className="text-lg font-bold text-white mb-1 leading-tight group-hover:text-red-500 transition-colors">
-                  {loaded ? (featured?.title || "Explore our latest stories") : "Loading..."}
+                  {loaded ? (
+                    typeof featured?.title === 'object'
+                      ? (featured.title?.en || featured.title?.fr || "Explore our latest stories")
+                      : (featured?.title || "Explore our latest stories")
+                  ) : "Loading..."}
                 </h3>
               </div>
             </div>

@@ -6,13 +6,15 @@ import AreaToryHero from "@/components/AreaTory/AreaToryHero";
 import StoryGrid from "@/components/AreaTory/StoryGrid";
 import { Send, Bell, MessageSquare } from "lucide-react";
 import { CommentSidebarProvider } from '@/components/AreaTory/CommentSidebarContext';
+import { TranslationProvider } from '@/lib/i18n/TranslationProvider';
 
 export default function AreaToryPage() {
   return (
-    <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">
-      <Navbar />
-      
-      <AreaToryHero />
+    <TranslationProvider>
+      <main className="min-h-screen bg-[#0B0E14] text-white overflow-hidden">
+        <Navbar />
+        
+        <AreaToryHero />
 
       {/* Community Quick Updates / Announcements */}
       <section className="py-20 border-y border-white/5 bg-black/20">
@@ -81,5 +83,6 @@ export default function AreaToryPage() {
       
       <Footer />
     </main>
+    </TranslationProvider>
   );
 }

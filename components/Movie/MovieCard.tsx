@@ -8,8 +8,7 @@ import { MovieCardProps } from './types';
 
 /**
  * MovieCard Component
- * Renders a single movie card for the grid display
- * Features: hover effects, play overlay, premium badge, rating display
+ * Stunning, modern movie card with smooth interactions
  */
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
@@ -29,9 +28,11 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   };
 
   return (
-    <div
-      className={`relative w-full group/card cursor-pointer transition-all duration-300 ${
-        isActive ? 'scale-[1.02] ring-2 ring-[color:var(--primary)] rounded-xl' : ''
+    <motion.div
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className={`relative w-full group/card cursor-pointer ${
+        isActive ? 'ring-2 ring-[color:var(--primary)]/60 ring-offset-2 ring-offset-[color:var(--background)] rounded-2xl' : ''
       }`}
       onClick={onClick}
       role="button"
@@ -44,57 +45,76 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       }}
     >
       {/* Movie Image Container */}
-      <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-lg group-hover/card:shadow-2xl">
+      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-md group-hover/card:shadow-2xl transition-shadow duration-300 border border-[color:var(--border)]/50">
         <Image
           src={movie.image}
           alt={movie.title}
           fill
-          className="object-contain sm:object-cover group-hover/card:scale-105 transition-transform duration-500"
+          className="object-cover group-hover/card:scale-110 transition-transform duration-700 ease-out"
           unoptimized
           loading="lazy"
         />
 
+        {/* Gradient Overlay - Always visible for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/20 opacity-60 group-hover/card:opacity-40 transition-opacity duration-300" />
+
         {/* Play Overlay on Hover */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center bg-black/50 backdrop-blur-sm transform scale-90 group-hover/card:scale-100 transition-all">
-            <Play size={20} fill="currentColor" className="text-white ml-1" />
-          </div>
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            className="w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.4)] group-hover/card:scale-100 group-hover/card:opacity-100 opacity-0 transition-all duration-300"
+          >
+            <Play size={24} fill="currentColor" className="text-black ml-1" />
+          </motion.div>
         </div>
 
-        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
+        {/* Like Button */}
+        <div className="absolute bottom-3 right-3 z-10">
           <motion.button
             type="button"
             onClick={toggleLike}
             aria-label={isLiked ? 'Unlike movie' : 'Like movie'}
             aria-pressed={isLiked}
-            whileTap={{ scale: 0.9 }}
-            className={`group flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-md transition-all ${isLiked ? 'border-red-400/50 bg-red-500/20' : 'border-white/20 bg-black/65 hover:bg-black/80'}`}
+            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.05 }}
+            className={`group flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-bold shadow-lg backdrop-blur-xl transition-all duration-300 ${
+              isLiked
+                ? 'bg-gradient-to-br from-pink-500 to-red-500 text-white border-0'
+                : 'bg-black/70 text-white border border-white/20 hover:bg-black/80 hover:border-white/40'
+            }`}
           >
-            <motion.span animate={isLiked ? { scale: [1, 1.3, 0.92, 1] } : { scale: 1 }} transition={{ duration: 0.32 }} className="flex items-center">
+            <motion.span
+              animate={isLiked ? { scale: [1, 1.3, 0.9, 1] } : { scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="flex items-center"
+            >
               <Image
                 src="/logos_and_pwas/like.png"
                 alt=""
-                width={18}
-                height={18}
-                className={`h-[18px] w-[18px] object-contain transition-transform ${isLiked ? 'scale-110 drop-shadow-[0_0_6px_rgba(239,68,68,.55)]' : 'opacity-85 group-hover:scale-105 group-hover:opacity-100'}`}
+                width={16}
+                height={16}
+                className={`h-4 w-4 object-contain transition-all ${
+                  isLiked ? 'brightness-0 invert drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'opacity-90'
+                }`}
               />
             </motion.span>
-            {likesCount}
+            <span className="font-mono">{likesCount}</span>
           </motion.button>
         </div>
 
         {/* Premium/Free Badge */}
-        <div className="absolute top-2 left-2 z-10">
+        <div className="absolute top-3 left-3 z-10">
           {isPremium ? (
-            <span className="bg-[#111]/90 backdrop-blur-md text-[#FCD116] border border-[#FCD116]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg flex items-center gap-1 uppercase tracking-wider">
+            <span className="bg-gradient-to-br from-[#FCD116] to-[#E5B800] text-black text-[10px] font-black px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1 uppercase tracking-wider">
               <Star size={10} fill="currentColor" /> Premium
             </span>
           ) : movie.mediaKind !== 'movie' ? (
-            <span className="bg-[color:var(--surface)]/90 backdrop-blur-md text-[color:var(--foreground)] border border-[color:var(--border)] text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+            <span className="bg-black/80 backdrop-blur-xl text-white border border-white/20 text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
               {movie.mediaKind === 'episode' ? `S${movie.seasonNumber || 1} · E${movie.episodeNumber || 1}` : 'Series'}
             </span>
           ) : (
-            <span className="bg-[#009639]/90 backdrop-blur-md text-white border border-[#009639]/30 text-[10px] font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+            <span className="bg-gradient-to-br from-[#009639] to-[#007A2E] text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg uppercase tracking-wider">
               Free
             </span>
           )}
@@ -103,20 +123,20 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
       {/* Movie Info Below Card */}
       <div className="px-1">
-        <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
+        <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors duration-200 mb-1.5">
           {movie.title}
         </h3>
         <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)]">
-          <span>
+          <span className="truncate mr-2">
             {movie.year} • {movie.genres?.[0] || 'N/A'}
           </span>
-          <span className="flex items-center gap-1 text-[#FCD116]">
-            <Star size={12} fill="currentColor" />
-            <span className="text-[color:var(--foreground)]">{movie.rating || '4.5'}</span>
+          <span className="flex items-center gap-1 flex-shrink-0">
+            <Star size={12} fill="#FCD116" className="text-[#FCD116]" />
+            <span className="text-[color:var(--foreground)] font-mono">{movie.rating || '4.5'}</span>
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

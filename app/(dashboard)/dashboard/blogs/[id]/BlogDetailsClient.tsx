@@ -11,24 +11,26 @@ import { PortableText } from "@portabletext/react";
 import { sanityFetch, urlFor } from "@/lib/sanity/client";
 import StoryInteractionBar from "@/components/AreaTory/StoryInteractionBar";
 import { CommentSidebarProvider, useCommentSidebar } from "@/components/AreaTory/CommentSidebarContext";
+import { useTranslations } from "@/lib/i18n/TranslationProvider";
+import { getLocalizedField, getLocalizedArray } from "@/lib/sanity/localization";
 
 
 interface StoryDetail {
   _id: string;
-  title: string;
+  title: any; // localized: { en?: string; fr?: string } | string
   slug: { current: string };
-  excerpt: string;
+  excerpt: any; // localized: { en?: string; fr?: string } | string
   mainImage: any;
   publishedAt: string;
   readTime: string;
   featured: boolean;
   likes: number;
   views: number;
-  body: any[];
+  body: any; // localized: { en?: any[]; fr?: any[] } | any[]
   videoUrl?: string;
   category: {
     _id: string;
-    title: string;
+    title: any; // localized: { en?: string; fr?: string } | string
     slug: { current: string };
     color: string;
   };
@@ -43,11 +45,12 @@ interface StoryDetail {
 
 interface RelatedStory {
   _id: string;
-  title: string;
+  title: any; // localized: { en?: string; fr?: string } | string
   slug: { current: string };
   mainImage: any;
-  category: { title: string };
+  category: { title: any }; // localized
 }
+
 
 // Portable Text custom components
 const portableTextComponents = {
@@ -353,6 +356,13 @@ function BlogDetailsContent({
   router: any;
 }) {
   const { isOpen, toggle } = useCommentSidebar();
+  const { locale } = useTranslations();
+
+  // Safely extract localized strings from Sanity multilingual fields
+  const storyTitle = getLocalizedField(story.title, locale);
+  const storyExcerpt = getLocalizedField(story.excerpt, locale);
+  const storyBody = getLocalizedArray(story.body, locale);
+  const storyCategoryTitle = getLocalizedField(story.category?.title, locale);
 
   return (
     <div className={`min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] transition-all duration-300 ${isOpen ? 'lg:pr-[380px] xl:pr-[400px]' : ''}`}>
@@ -371,7 +381,7 @@ function BlogDetailsContent({
               className="px-2 py-0.5 text-white text-[8px] font-black rounded-md uppercase tracking-[0.2em]"
               style={{ backgroundColor: story.category?.color || "#E50914" }}
             >
-              {story.category?.title || "Culture"}
+              {storyCategoryTitle || "Culture"}
             </span>
             <div className="flex items-center gap-2 text-[color:var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest">
               <Clock className="w-3 h-3" />
@@ -380,7 +390,7 @@ function BlogDetailsContent({
           </div>
 
           <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-[color:var(--foreground)] mb-4 leading-[1.2]">
-            {story.title}
+            {storyTitle}
           </h1>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-y border-[color:var(--border)] py-4">
@@ -409,7 +419,7 @@ function BlogDetailsContent({
 
             <StoryInteractionBar
               storyId={story._id || slug}
-              storyTitle={story.title}
+              storyTitle={storyTitle}
               initialLikes={stats.likesCount || story.likes || 0}
               initialComments={stats.commentsCount || 0}
               initialIsLiked={stats.isLiked}
@@ -429,12 +439,13 @@ function BlogDetailsContent({
               story.mainImage,
               "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop"
             )}
-            alt={story.mainImage?.alt || story.title}
+            alt={story.mainImage?.alt || storyTitle}
             fill
             className="object-cover"
             priority
           />
         </motion.div>
+
 
         {story.videoUrl && hasMounted && (
           <motion.div
@@ -499,11 +510,11 @@ function BlogDetailsContent({
         )}
 
         <div className="prose prose-sm max-w-none px-4 md:px-0">
-          {story.body && story.body.length > 0 ? (
-            <PortableText value={story.body} components={portableTextComponents} />
+          {storyBody && storyBody.length > 0 ? (
+            <PortableText value={storyBody} components={portableTextComponents} />
           ) : (
             <div className="text-[color:var(--foreground-secondary)] font-medium leading-relaxed space-y-6 text-sm">
-              <p className="opacity-80">{story.excerpt}</p>
+              <p className="opacity-80">{storyExcerpt}</p>
             </div>
           )}
         </div>
@@ -551,7 +562,7 @@ function BlogDetailsContent({
 
             <button
               type="button"
-              onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
+              onClick={() => toggle(story._id || slug, storyTitle, stats.commentsCount)}
               className={`px-5 py-2.5 rounded-full font-bold text-xs transition-all cursor-pointer shadow-md flex items-center gap-2 active:scale-95 shrink-0 ${
                 isOpen
                   ? 'bg-[color:var(--surface-hover)] text-[color:var(--foreground)] border border-[color:var(--border)] hover:bg-[color:var(--surface)]'
@@ -568,28 +579,31 @@ function BlogDetailsContent({
           <div className="mt-20 mb-12">
             <h3 className="text-lg font-bold text-[color:var(--foreground)] mb-6 tracking-tight">Related stories</h3>
             <div className="grid md:grid-cols-2 gap-6">
-              {relatedStories.map((related) => (
-                <Link
-                  key={related._id}
-                  href={`/dashboard/blogs/${related.slug?.current || related._id}`}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-[color:var(--border)]">
-                    <Image
-                      src={getImageUrl(
-                        related.mainImage,
-                        "https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070"
-                      )}
-                      alt={related.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <h4 className="text-sm font-bold text-[color:var(--foreground)] group-hover:text-red-600 transition-colors">
-                    {related.title}
-                  </h4>
-                </Link>
-              ))}
+              {relatedStories.map((related) => {
+                const relatedTitle = getLocalizedField(related.title, locale);
+                return (
+                  <Link
+                    key={related._id}
+                    href={`/dashboard/blogs/${related.slug?.current || related._id}`}
+                    className="group cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-3 border border-[color:var(--border)]">
+                      <Image
+                        src={getImageUrl(
+                          related.mainImage,
+                          "https://images.unsplash.com/photo-1542601906990-b4d3fb852ba3?q=80&w=2070"
+                        )}
+                        alt={relatedTitle}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <h4 className="text-sm font-bold text-[color:var(--foreground)] group-hover:text-red-600 transition-colors">
+                      {relatedTitle}
+                    </h4>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
@@ -604,7 +618,7 @@ function BlogDetailsContent({
           exit={{ opacity: 0, scale: 0.8 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => toggle(story._id || slug, story.title, stats.commentsCount)}
+          onClick={() => toggle(story._id || slug, storyTitle, stats.commentsCount)}
           className="fixed bottom-6 right-6 z-30 flex items-center gap-2.5 px-4 py-3 rounded-full shadow-2xl bg-[color:var(--surface)] text-[color:var(--foreground)] border border-[color:var(--border)] backdrop-blur-md hover:bg-[color:var(--surface-hover)] transition-all cursor-pointer group"
           aria-label="Open comments panel"
           title="Open comments"

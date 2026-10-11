@@ -669,11 +669,15 @@ const Header = ({
                                 className="flex items-center gap-3 w-full px-4 py-2 hover:bg-[color:var(--surface)]/10 transition-colors text-left group"
                               >
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-[color:var(--surface)]/10">
-                                  <Image src={getImageUrl(story.mainImage, idx)} alt={story.title} fill className="object-cover" unoptimized />
+                                  <Image src={getImageUrl(story.mainImage, idx)} alt={typeof story.title === 'object' ? (story.title?.en || story.title?.fr || '') : (story.title || '')} fill className="object-cover" unoptimized />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-[13px] font-semibold text-[color:var(--foreground)]/85 truncate group-hover:text-[color:var(--foreground)] transition-colors">{story.title}</h4>
-                                  <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5">{story.category?.title || 'Story'}</p>
+                                  <h4 className="text-[13px] font-semibold text-[color:var(--foreground)]/85 truncate group-hover:text-[color:var(--foreground)] transition-colors">
+                                    {typeof story.title === 'object' ? (story.title?.en || story.title?.fr || '') : story.title}
+                                  </h4>
+                                  <p className="text-[11px] text-[color:var(--muted-foreground)] truncate mt-0.5">
+                                    {typeof story.category?.title === 'object' ? (story.category.title?.en || story.category.title?.fr || 'Story') : (story.category?.title || 'Story')}
+                                  </p>
                                 </div>
                                 <ArrowLeft size={12} className="text-[color:var(--muted-foreground)]/50 group-hover:text-[color:var(--foreground)]/60 transition-colors rotate-180 flex-shrink-0" />
                               </button>

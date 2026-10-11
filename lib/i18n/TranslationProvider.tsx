@@ -90,7 +90,11 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
 export function useTranslations() {
   const context = useContext(TranslationContext);
   if (!context) {
-    throw new Error('useTranslations must be used within TranslationProvider');
+    return {
+      locale: 'en' as Locale,
+      setLocale: () => {},
+      t: (key: string) => key,
+    };
   }
   return context;
 }

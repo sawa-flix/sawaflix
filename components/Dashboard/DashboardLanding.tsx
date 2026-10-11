@@ -211,11 +211,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         if (s.mainImage) imgUrl = urlFor(s.mainImage).width(1200).height(600).url();
       } catch (e) {}
 
+      const sTitle = typeof s.title === 'object' ? (s.title?.en || s.title?.fr || 'Area Tory Story') : (s.title || 'Area Tory Story');
+      const sExcerpt = typeof s.excerpt === 'object' ? (s.excerpt?.en || s.excerpt?.fr || 'Read the full cultural story on SawaFlix') : (s.excerpt || 'Read the full cultural story on SawaFlix');
+
       pool.push({
         id: s._id,
         type: 'blog',
-        title: s.title || 'Area Tory Story',
-        subtitle: s.excerpt || 'Read the full cultural story on SawaFlix',
+        title: sTitle,
+        subtitle: sExcerpt,
         image: imgUrl,
         badge: 'Area Tory Story',
         targetUrl: `/dashboard/blogs/${s.slug?.current || s._id}`
@@ -319,9 +322,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   // Filter stories by global activeCategory
   const filteredStories = useMemo(() => {
     if (activeCategory === 'all') return stories;
-    return stories.filter(
-      (s) => s.category?.slug?.current === activeCategory || s.category?.title?.toLowerCase() === activeCategory
-    );
+    return stories.filter((s) => {
+      const catTitle = s.category?.title;
+      const catTitleStr = typeof catTitle === 'object'
+        ? (catTitle?.en || catTitle?.fr || '')
+        : (catTitle || '');
+      return s.category?.slug?.current === activeCategory || catTitleStr.toLowerCase() === activeCategory;
+    });
   }, [stories, activeCategory]);
 
   const topStoriesByComments = useMemo(
@@ -639,7 +646,9 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
                           className="px-2 py-0.5 text-white text-[9px] font-bold rounded-md tracking-widest backdrop-blur-md uppercase"
                           style={{ backgroundColor: (story.category?.color || "#555") + "D0" }}
                         >
-                          {story.category?.title || "Story"}
+                          {typeof story.category?.title === 'object'
+                            ? (story.category.title?.en || story.category.title?.fr || "Story")
+                            : (story.category?.title || "Story")}
                         </span>
                       </div>
 
@@ -653,7 +662,9 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
 
                     <div className="px-1">
                       <h3 className="text-sm lg:text-base font-bold text-[color:var(--foreground)] tracking-tight truncate group-hover/card:text-[color:var(--primary)] transition-colors mb-1">
-                        {story.title}
+                        {typeof story.title === 'object'
+                          ? (story.title?.en || story.title?.fr || '')
+                          : (story.title || '')}
                       </h3>
 
                       <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--muted-foreground)] gap-2">
