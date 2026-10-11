@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Eye, MessageSquare, Clock, ArrowUpRight } from 'lucide-react';
 import { urlFor } from '@/lib/sanity/client';
 import { formatCount } from '@/utils/formatCount';
+import { useTranslations } from '@/lib/i18n/TranslationProvider';
+import { getLocalizedField } from '@/lib/sanity/localization';
 
 export interface StoryItem {
   _id: string;
@@ -50,6 +52,12 @@ interface StoryCardProps {
 
 export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
   const [imgError, setImgError] = useState(false);
+  const { t, locale } = useTranslations();
+
+  // Get localized content
+  const title = getLocalizedField(story.title, locale);
+  const excerpt = getLocalizedField(story.excerpt, locale);
+  const categoryTitle = getLocalizedField(story.category?.title, locale) || t('stories.story');
 
   // Determine image URL
   const getCardImage = (): string => {
@@ -66,16 +74,16 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
 
   // Format relative date or display "Recently"
   const getDisplayDate = (dateStr?: string): string => {
-    if (!dateStr) return 'Recently';
+    if (!dateStr) return t('stories.recently');
     try {
       const date = new Date(dateStr);
       const now = new Date();
       const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays <= 3) return 'Recently';
-      if (diffDays <= 30) return `${diffDays}d ago`;
+      if (diffDays <= 3) return t('stories.recently');
+      if (diffDays <= 30) return `${diffDays}${t('stories.daysAgo')}`;
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     } catch {
-      return 'Recently';
+      return t('stories.recently');
     }
   };
 
@@ -93,7 +101,7 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
       <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-zinc-900">
         <img
           src={getCardImage()}
-          alt={story.title}
+          alt={title}
           loading="lazy"
           onError={() => setImgError(true)}
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
@@ -105,7 +113,7 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
         {/* Top-Left: Story Pill Badge */}
         <div className="absolute top-3 left-3">
           <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[color:var(--background)]/80 backdrop-blur-md text-[color:var(--foreground)] rounded-md border border-[color:var(--border)]">
-            {story.category?.title || 'Story'}
+            {categoryTitle}
           </span>
         </div>
 
@@ -122,7 +130,7 @@ export default function StoryCard({ story, index = 0, stats }: StoryCardProps) {
         <div>
           {/* Title */}
           <h3 className="text-sm sm:text-[15px] font-bold text-[color:var(--foreground)] leading-snug line-clamp-2 group-hover:text-[color:var(--primary)] transition-colors mb-2">
-            {story.title}
+            {title}
           </h3>
 
           {/* Published relative time */}

@@ -26,6 +26,7 @@ import { createClient } from '../../utils/supabase/client';
 import { usePathname } from 'next/navigation';
 import { useAuthSession } from '../../hooks/useAuthSession';
 import { useAuthModal } from '../../contexts/AuthModalContext';
+import { useTranslations } from '../../lib/i18n/TranslationProvider';
 
 // Define a type for the user profile data from your 'users' table
 type UserProfileData = {
@@ -48,6 +49,7 @@ export default function LeftSidebar({
   const pathname = usePathname();
   const { isAuthenticated } = useAuthSession();
   const { openAuthModal } = useAuthModal();
+  const { t } = useTranslations();
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(propProfile || null);
   const [verificationStatus, setVerificationStatus] = useState<string>(propStatus || 'none');
   const [userRole, setUserRole] = useState<string | null>(propUserRole || null);
@@ -115,23 +117,23 @@ export default function LeftSidebar({
   }, [propStatus, propProfile]);
 
   const topItems = [
-    { name: 'Home', icon: Home, id: 'feed', route: '/dashboard', badge: null },
-    { name: 'Reels', icon: Clapperboard, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'reels', route: '/dashboard/reels', badge: null },
+    { name: t('nav.home'), icon: Home, id: 'feed', route: '/dashboard', badge: null },
+    { name: t('nav.reels'), icon: Clapperboard, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'reels', route: '/dashboard/reels', badge: null },
   ];
 
   const exploreItems = [
-    { name: 'Movies', icon: Film, id: 'movies', route: '/dashboard/movie', badge: null, requiresAuth: true },
-    { name: 'Music', icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New', requiresAuth: true },
-    { name: 'Live TV', icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: 'Live', requiresAuth: true },
-    { name: 'Series', icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null, requiresAuth: true },
-    { name: 'Education', icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null, requiresAuth: true },
-    { name: 'Artists', icon: User, id: 'artists', route: '/dashboard/artists', badge: null, requiresAuth: true },
-    { name: 'Area Tory', icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null, requiresAuth: true },
+    { name: t('nav.movies'), icon: Film, id: 'movies', route: '/dashboard/movie', badge: null, requiresAuth: true },
+    { name: t('nav.music'), icon: Music, id: 'music', route: '/dashboard/musicpage', badge: 'New', requiresAuth: true },
+    { name: t('nav.livetv'), icon: Tv, id: 'livetv', route: '/dashboard/livetv', badge: 'Live', requiresAuth: true },
+    { name: t('nav.series'), icon: MonitorPlay, id: 'series', route: '/dashboard/series', badge: null, requiresAuth: true },
+    { name: t('nav.education'), icon: BookOpen, id: 'education', route: '/dashboard/education', badge: null, requiresAuth: true },
+    { name: t('nav.artists'), icon: User, id: 'artists', route: '/dashboard/artists', badge: null, requiresAuth: true },
+    { name: t('nav.blogs'), icon: FileText, id: 'blogs', route: '/dashboard/blogs', badge: null, requiresAuth: true },
   ];
 
   const youItems: any[] = [
     {
-      name: 'Your profile',
+      name: t('nav.profile'),
       icon: userProfile?.profile_image_url ? null : User,
       imageUrl: userProfile?.profile_image_url,
       id: 'profile',
@@ -139,8 +141,8 @@ export default function LeftSidebar({
       badge: null,
       requiresAuth: true,
     },
-    { name: 'Favorites', icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null, requiresAuth: true },
-    { name: 'Downloads', icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null, requiresAuth: true },
+    { name: t('nav.favorites'), icon: Heart, id: 'favorites', route: '/dashboard/favorites', badge: null, requiresAuth: true },
+    { name: t('nav.downloads'), icon: Download, id: 'downloads', route: '/dashboard/downloads', badge: null, requiresAuth: true },
     { name: 'Wallet', icon: Wallet, id: 'wallet', route: '/dashboard/wallet', badge: null, requiresAuth: true },
     { name: 'Sawai', icon: null, imageUrl: '/logos_and_pwas/loaderLogo.png', id: 'sawai', route: '/dashboard/sawai', badge: null, requiresAuth: true },
   ];

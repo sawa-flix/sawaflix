@@ -70,7 +70,7 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
 
   if (phase === 'sponsored') {
     return (
-      <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-black/30 p-4 sm:p-8">
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/30 p-4 sm:p-8">
         <div className="mb-3 flex w-full max-w-3xl items-center justify-between gap-3 text-white">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">SawaFlix · Sponsored</p>
@@ -112,7 +112,7 @@ export default function PremiumPreviewCheckout(props: PremiumPreviewCheckoutProp
   }
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/25 p-0 sm:items-center sm:p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/25 p-0 sm:items-center sm:p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="premium-checkout-title" className="relative w-full max-w-md scale-[0.88] rounded-t-2xl border border-[color:var(--border)] bg-[color:var(--surface)] p-5 text-[color:var(--foreground)] shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:rounded-2xl sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>

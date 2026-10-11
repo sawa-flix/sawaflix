@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Play, Star, MessageCircle, Send, X } from 'lucide-react';
+import { Play, Star } from 'lucide-react';
 import { MovieCardProps } from './types';
 
 /**
@@ -19,8 +19,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(128);
-  const [showComments, setShowComments] = useState(false);
-  const [commentDraft, setCommentDraft] = useState('');
 
   const toggleLike = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -83,18 +81,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             </motion.span>
             {likesCount}
           </motion.button>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setShowComments((visible) => !visible);
-            }}
-            aria-label={`Show comments for ${movie.title}`}
-            aria-expanded={showComments}
-            className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-white/20 bg-black/65 px-2.5 text-[11px] font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/80"
-          >
-            <MessageCircle size={14} /> 24
-          </button>
         </div>
 
         {/* Premium/Free Badge */}
@@ -130,52 +116,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </span>
         </div>
       </div>
-
-      {showComments && (
-        <div
-          role="dialog"
-          aria-label={`Comments for ${movie.title}`}
-          onClick={(event) => event.stopPropagation()}
-          className="absolute bottom-16 left-2 right-2 z-30 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-elevated)] p-3 shadow-2xl"
-        >
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-bold text-[color:var(--foreground)]">Movie discussion</p>
-              <p className="text-[10px] text-[color:var(--muted-foreground)]">24 comments</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowComments(false)}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] hover:text-[color:var(--foreground)]"
-              aria-label="Close comments"
-            >
-              <X size={14} />
-            </button>
-          </div>
-          <div className="space-y-2 border-y border-[color:var(--border)] py-2">
-            <p className="text-[11px] leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Nadia:</strong> A beautiful story. The cast was excellent.</p>
-            <p className="text-[11px] leading-relaxed text-[color:var(--foreground-secondary)]"><strong className="text-[color:var(--foreground)]">Kevin:</strong> More Cameroon cinema like this, please.</p>
-          </div>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              setCommentDraft('');
-            }}
-            className="mt-2 flex items-center gap-2"
-          >
-            <input
-              value={commentDraft}
-              onChange={(event) => setCommentDraft(event.target.value)}
-              placeholder="Add a comment"
-              className="min-w-0 flex-1 bg-transparent text-[11px] text-[color:var(--foreground)] outline-none placeholder:text-[color:var(--muted-foreground)]"
-              aria-label="Add a comment"
-            />
-            <button type="submit" aria-label="Post comment" className="cursor-pointer text-[color:var(--primary)] disabled:cursor-not-allowed disabled:opacity-40" disabled={!commentDraft.trim()}>
-              <Send size={14} />
-            </button>
-          </form>
-        </div>
-      )}
     </div>
   );
 };

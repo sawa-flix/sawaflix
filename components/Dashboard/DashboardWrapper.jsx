@@ -12,9 +12,11 @@ import { MusicProvider } from '../MusicContext';
 import { NotificationProvider } from '../../contexts/NotificationContext';
 import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import { AuthModalProvider } from '../../contexts/AuthModalContext';
+import { TranslationProvider } from '../../lib/i18n/TranslationProvider';
 import BottomPlayer from '../BottomPlayer';
 import { ReelsBackdrop } from '../reels/ReelsBackdrop';
 import AnnouncementBanner from './AnnouncementBanner';
+import { LanguageDetectionBanner } from './LanguageDetectionBanner';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
@@ -23,7 +25,7 @@ const DashboardWrapper = ({ children }) => {
   // Disable right sidebar for movie and profile pages. Reels renders inside
   // the normal dashboard shell like every other page — header, left
   // sidebar, and right sidebar all stay visible.
-  const hideRightSidebarPaths = ['/profile', '/edit-profile', '/livetv', '/sawai'];
+  const hideRightSidebarPaths = ['/profile', '/edit-profile', '/livetv', '/sawai', '/movie'];
   const hasRightSidebar = !hideRightSidebarPaths.some(p => pathname?.includes(p));
   // Every other page uses pb-40 as trailing scroll space below flowing
   // content. Reels is a fixed-height video panel, not flowing content —
@@ -141,11 +143,12 @@ const DashboardWrapper = ({ children }) => {
   }, []);
 
   return (
-    <MusicProvider>
-      <NotificationProvider>
-        <FavoriteProvider>
-        <AuthModalProvider>
-        <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] relative overflow-hidden">
+    <TranslationProvider>
+      <MusicProvider>
+        <NotificationProvider>
+          <FavoriteProvider>
+          <AuthModalProvider>
+          <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
@@ -157,6 +160,9 @@ const DashboardWrapper = ({ children }) => {
             search is suppressed there to avoid two search UIs fighting
             over the same keystrokes and navigating away from /dashboard/reels. */}
         <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
+
+        {/* Language Detection Banner */}
+        <LanguageDetectionBanner />
 
         {/* Global Announcement Banner */}
         <AnnouncementBanner />
@@ -245,6 +251,7 @@ const DashboardWrapper = ({ children }) => {
         </FavoriteProvider>
       </NotificationProvider>
     </MusicProvider>
+    </TranslationProvider>
   );
 };
 

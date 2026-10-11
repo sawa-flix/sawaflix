@@ -39,7 +39,7 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
 
   return (
     <div
-      className="group relative isolate mx-auto mb-6 aspect-[16/9] min-h-[560px] w-full max-w-[1920px] overflow-hidden rounded-[34px] border border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl sm:min-h-0 sm:aspect-[2.1/1] lg:aspect-[22/9] lg:max-h-[980px]"
+      className="group relative isolate mx-auto mb-6 aspect-[2/1] min-h-[560px] w-full max-w-[1920px] overflow-hidden rounded-[34px] border border-[color:var(--border)] bg-[color:var(--surface)] shadow-2xl sm:min-h-0 sm:aspect-[2.1/1] lg:aspect-[22/9] lg:max-h-[980px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onPointerDown={(event) => { pointerStartX.current = event.clientX; }}
@@ -104,7 +104,7 @@ export const MovieHeroBanner: React.FC<MovieHeroBannerProps> = ({
 
       <div className="absolute inset-0 z-20 flex items-end p-5 sm:p-8 lg:p-12">
           <div className="flex max-w-3xl flex-col items-start justify-end">
-            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-[color:var(--primary)]/90 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_32px_rgba(0,0,0,0.35)] sm:text-[10px]">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_32px_rgba(0,0,0,0.35)] backdrop-blur-md sm:text-[10px]">
               <span className="h-1.5 w-1.5 rounded-full bg-white" />
               {movie.mediaKind === 'episode'
                 ? `${movie.seriesTitle || 'Series'} · Season ${movie.seasonNumber || 1}, Episode ${movie.episodeNumber || 1}`

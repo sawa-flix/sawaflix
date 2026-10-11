@@ -151,7 +151,7 @@ import withSerwistInit from "@serwist/next";
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
+  disable: true, // Disabled to debug segfault
 });
 
 export default withSerwist(nextConfig);

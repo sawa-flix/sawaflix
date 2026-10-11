@@ -8,21 +8,31 @@ export const story = defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      type: "object",
+      fields: [
+        { name: "en", type: "string", title: "Title (English)" },
+        { name: "fr", type: "string", title: "Titre (Français)" },
+      ],
+      validation: (Rule) => Rule.required().custom((value: any) => {
+        if (!value?.en) return "English title is required";
+        return true;
+      }),
     }),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: { source: "title" },
+      options: { source: "title.en" },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "excerpt",
       title: "Excerpt",
-      type: "text",
-      rows: 3,
+      type: "object",
+      fields: [
+        { name: "en", type: "text", title: "Excerpt (English)", rows: 3 },
+        { name: "fr", type: "text", title: "Extrait (Français)", rows: 3 },
+      ],
     }),
     defineField({
       name: "mainImage",
@@ -78,9 +88,29 @@ export const story = defineType({
     }),
     defineField({
       name: "body",
-      title: "Body",
-      type: "array",
-      of: [{ type: "block" }, { type: "image" }],
+      title: "Body Content",
+      type: "object",
+      fields: [
+        {
+          name: "en",
+          type: "array",
+          title: "Content (English)",
+          of: [{ type: "block" }, { type: "image" }],
+        },
+        {
+          name: "fr",
+          type: "array",
+          title: "Contenu (Français)",
+          of: [{ type: "block" }, { type: "image" }],
+        },
+      ],
     }),
   ],
+  preview: {
+    select: {
+      title: "title.en",
+      media: "mainImage",
+      subtitle: "category.title",
+    },
+  },
 });

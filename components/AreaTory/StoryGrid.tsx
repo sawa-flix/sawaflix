@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import StoryHorizontalRow from './StoryHorizontalRow';
 import { StoryItem } from './StoryCard';
 import { getStories, getCategories } from '@/lib/sanity/queries';
+import { useTranslations } from '@/lib/i18n/TranslationProvider';
 
 interface CategoryItem {
   _id: string;
@@ -13,18 +14,8 @@ interface CategoryItem {
   color?: string;
 }
 
-// Fixed category pill presets matching user screenshot
-const PRESET_PILLS = [
-  { id: 'for-you', label: 'For You', slug: 'for-you' },
-  { id: 'cinema', label: 'Cinema', slug: 'cinema' },
-  { id: 'music', label: 'Music', slug: 'music' },
-  { id: 'culture', label: 'Culture', slug: 'culture' },
-  { id: 'heritage', label: 'Heritage', slug: 'heritage' },
-  { id: 'tourism', label: 'Tourism', slug: 'tourism' },
-  { id: 'announcement', label: 'Announcement', slug: 'announcement' },
-];
-
 export default function StoryGrid() {
+  const { t } = useTranslations();
   const [stories, setStories] = useState<StoryItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('for-you');
@@ -32,6 +23,17 @@ export default function StoryGrid() {
   const [statsMap, setStatsMap] = useState<
     Record<string, { likesCount: number; viewsCount: number; commentsCount: number }>
   >({});
+
+  // Fixed category pill presets with translations
+  const PRESET_PILLS = useMemo(() => [
+    { id: 'for-you', label: t('stories.forYou'), slug: 'for-you' },
+    { id: 'cinema', label: t('stories.cinema'), slug: 'cinema' },
+    { id: 'music', label: t('stories.music'), slug: 'music' },
+    { id: 'culture', label: t('stories.culture'), slug: 'culture' },
+    { id: 'heritage', label: t('stories.heritage'), slug: 'heritage' },
+    { id: 'tourism', label: t('stories.tourism'), slug: 'tourism' },
+    { id: 'announcement', label: t('stories.announcement'), slug: 'announcement' },
+  ], [t]);
 
   // Fetch stories & categories
   useEffect(() => {
@@ -123,12 +125,12 @@ export default function StoryGrid() {
   // Group stories by category
   const categorizedStories = useMemo(() => {
     const map: Record<string, { title: string; stories: StoryItem[] }> = {
-      cinema: { title: 'Cinema & Movies', stories: [] },
-      music: { title: 'Music & Sounds', stories: [] },
-      culture: { title: 'Culture & Traditions', stories: [] },
-      heritage: { title: 'Heritage & History', stories: [] },
-      tourism: { title: 'Tourism & Travel', stories: [] },
-      announcement: { title: 'Announcements & Community', stories: [] },
+      cinema: { title: t('stories.cinemaMovies'), stories: [] },
+      music: { title: t('stories.musicSounds'), stories: [] },
+      culture: { title: t('stories.cultureTraditions'), stories: [] },
+      heritage: { title: t('stories.heritageHistory'), stories: [] },
+      tourism: { title: t('stories.tourismTravel'), stories: [] },
+      announcement: { title: t('stories.announcementsCommunity'), stories: [] },
     };
 
     stories.forEach((story) => {
@@ -147,7 +149,7 @@ export default function StoryGrid() {
     });
 
     return map;
-  }, [stories]);
+  }, [stories, t]);
 
   // Handle pill click
   const handlePillClick = (slug: string) => {
@@ -189,7 +191,7 @@ export default function StoryGrid() {
         <div className="flex flex-col items-center justify-center py-24 space-y-3">
           <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
           <p className="text-zinc-500 text-xs font-medium tracking-wide">
-            Loading stories from Area Tory...
+            {t('stories.loading')}
           </p>
         </div>
       )}
@@ -197,9 +199,9 @@ export default function StoryGrid() {
       {/* No stories empty state */}
       {!loading && stories.length === 0 && (
         <div className="text-center py-20 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8 shadow-sm">
-          <h3 className="text-[color:var(--foreground)] font-bold text-base mb-1">No stories available</h3>
+          <h3 className="text-[color:var(--foreground)] font-bold text-base mb-1">{t('stories.noStories')}</h3>
           <p className="text-[color:var(--muted-foreground)] text-xs">
-            Stories will appear here once published from the admin panel.
+            {t('stories.noStoriesDescription')}
           </p>
         </div>
       )}
@@ -210,8 +212,8 @@ export default function StoryGrid() {
           {/* Section 1: Top Stories (Latest Stories from Admin) */}
           <StoryHorizontalRow
             id="section-top-stories"
-            title="Top Stories"
-            subtitle="Stay updated with what matters in our culture, community and country."
+            title={t('stories.topStories')}
+            subtitle={t('stories.topStoriesSubtitle')}
             stories={stories.slice(0, 16)}
             statsMap={statsMap}
           />
@@ -221,7 +223,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-cinema"
               title={categorizedStories.cinema.title}
-              subtitle="Behind the scenes, premieres, and the rise of Cameroonian cinema."
+              subtitle={t('stories.cinemaSubtitle')}
               stories={categorizedStories.cinema.stories}
               statsMap={statsMap}
             />
@@ -232,7 +234,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-music"
               title={categorizedStories.music.title}
-              subtitle="Sounds, artists, and musical journeys from across Cameroon."
+              subtitle={t('stories.musicSubtitle')}
               stories={categorizedStories.music.stories}
               statsMap={statsMap}
             />
@@ -243,7 +245,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-culture"
               title={categorizedStories.culture.title}
-              subtitle="Preserving identity, traditions, and sacred cultural celebrations."
+              subtitle={t('stories.cultureSubtitle')}
               stories={categorizedStories.culture.stories}
               statsMap={statsMap}
             />
@@ -254,7 +256,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-heritage"
               title={categorizedStories.heritage.title}
-              subtitle="Historical deep dives and generational wisdom."
+              subtitle={t('stories.heritageSubtitle')}
               stories={categorizedStories.heritage.stories}
               statsMap={statsMap}
             />
@@ -265,7 +267,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-tourism"
               title={categorizedStories.tourism.title}
-              subtitle="Discover breathtaking destinations and cultural landmarks."
+              subtitle={t('stories.tourismSubtitle')}
               stories={categorizedStories.tourism.stories}
               statsMap={statsMap}
             />
@@ -276,7 +278,7 @@ export default function StoryGrid() {
             <StoryHorizontalRow
               id="section-announcement"
               title={categorizedStories.announcement.title}
-              subtitle="Official announcements, community updates, and creator programs."
+              subtitle={t('stories.announcementsSubtitle')}
               stories={categorizedStories.announcement.stories}
               statsMap={statsMap}
             />

@@ -47,6 +47,8 @@ import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { useReelsMuteStore } from '@/store/reelsMuteStore';
 import { useSawaiStore } from '@/store/sawaiStore';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useTranslations } from '../../lib/i18n/TranslationProvider';
 
 const youtubeApi = new YouTubeApiService();
 
@@ -83,6 +85,7 @@ const Header = ({
   const [isSearching, setIsSearching] = useState(false);
   const { isMuted, toggleMute } = useReelsMuteStore();
   const { toggleSawai } = useSawaiStore();
+  const { t } = useTranslations();
 
   // Notifications logic
   const adminNotificationContext = useAdminNotifications();
@@ -388,6 +391,8 @@ const Header = ({
               <Settings size={18} />
             </Link>
 
+            {/* Language Switcher */}
+            <LanguageSwitcher />
 
             <div className="relative">
               <button
@@ -546,7 +551,7 @@ const Header = ({
               onFocus={() => {
                 document.getElementById('discover-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              placeholder="Search titles, people, genres..."
+              placeholder={t('search.placeholder')}
               className="w-full pl-10 pr-4 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-sm
                          text-[color:var(--foreground)] placeholder-[color:var(--muted-foreground)] focus:outline-none focus:ring-1 
                          focus:ring-[color:var(--foreground)] transition-all duration-200"
@@ -613,7 +618,7 @@ const Header = ({
                       setSearchValue(e.target.value);
                       if (!e.target.value.trim()) useHomeSearchStore.getState().clear();
                     }}
-                    placeholder="Search videos, stories, movies..."
+                    placeholder={t('search.placeholder')}
                     className="w-full pl-11 sm:pl-13 pr-11 py-3.5 sm:py-4 bg-transparent
                              text-[color:var(--foreground)] text-[15px] sm:text-base placeholder-[color:var(--muted-foreground)]/70 focus:outline-none tracking-wide"
                   />

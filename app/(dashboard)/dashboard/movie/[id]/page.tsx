@@ -16,7 +16,10 @@ import {
   Users,
   Volume2,
   Eye,
-  Check
+  Check,
+  Heart,
+  MessageCircle,
+  Download
 } from 'lucide-react';
 import type { Movie } from '@/components/Movie';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
@@ -49,6 +52,9 @@ export default function MovieDetailsPage() {
   const [playerResumeToken, setPlayerResumeToken] = useState(0);
   const [savedProgress, setSavedProgress] = useState<MovieProgressEntry | null>(null);
   const [startFromSeconds, setStartFromSeconds] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(342);
+  const [showComments, setShowComments] = useState(false);
 
   const episodeScrollRef = useRef<HTMLDivElement>(null);
   const autoAdvanceStartedRef = useRef(false);
@@ -259,7 +265,7 @@ export default function MovieDetailsPage() {
           <div className="w-full">
             <div className="w-full">
               <div
-                className="relative aspect-video w-full overflow-hidden rounded-md bg-black shadow-[0_22px_70px_rgba(0,0,0,0.28)] sm:rounded-xl"
+                className="relative aspect-video w-full overflow-hidden rounded-md bg-black shadow-[0_22px_70px_rgba(0,0,0,0.28)] sm:rounded-xl min-h-[280px] sm:min-h-0"
               >
               <MovieVideoPlayer
                 videoId={playableId}
@@ -277,6 +283,61 @@ export default function MovieDetailsPage() {
               />
               <MovieViewerPresence movieId={playableId} mode="track-display" active={isPlaying && isVideoPlaying} />
               </div>
+            </div>
+
+            {/* Action Buttons - Like, Comment, Download (YouTube style) */}
+            <div className="mt-4 flex items-center gap-3 px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLiked(!isLiked);
+                  setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+                }}
+                className="flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+                  isLiked
+                    ? 'bg-red-500/20'
+                    : 'bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)]'
+                }`}>
+                  <Image
+                    src="/logos_and_pwas/like.png"
+                    alt="Like"
+                    width={20}
+                    height={20}
+                    className={`object-contain transition-transform ${
+                      isLiked
+                        ? 'scale-110 drop-shadow-[0_0_6px_rgba(239,68,68,.55)]'
+                        : 'opacity-85 group-hover:scale-105'
+                    }`}
+                  />
+                </div>
+                <span className={`text-xs font-semibold ${isLiked ? 'text-red-500' : 'text-[color:var(--foreground)]'}`}>
+                  {likesCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowComments(!showComments)}
+                className="flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] transition-colors">
+                  <MessageCircle size={20} className="text-[color:var(--foreground)]" />
+                </div>
+                <span className="text-xs font-semibold text-[color:var(--foreground)]">Comment</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPremiumCheckout(true)}
+                className="flex flex-col items-center gap-1 cursor-pointer group"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] transition-colors">
+                  <Download size={20} className="text-[color:var(--foreground)]" />
+                </div>
+                <span className="text-xs font-semibold text-[color:var(--foreground)]">Download</span>
+              </button>
             </div>
 
             {/* Episode Description Section */}
@@ -607,6 +668,70 @@ export default function MovieDetailsPage() {
                         {showDescriptionFull ? 'Show less' : 'Read more'}
                       </button>
                     )}
+                  </section>
+                )}
+
+                {/* Comments Section */}
+                {showComments && (
+                  <section className="rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/80 p-5 shadow-lg backdrop-blur-md sm:p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-[color:var(--foreground)]">Comments</h2>
+                      <button
+                        type="button"
+                        onClick={() => setShowComments(false)}
+                        className="text-sm font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]"
+                      >
+                        Hide
+                      </button>
+                    </div>
+
+                    <div className="mb-4 space-y-4">
+                      <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
+                        <div className="mb-2 flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-[color:var(--surface)] flex items-center justify-center">
+                            <span className="text-sm font-bold">N</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[color:var(--foreground)]">Nadia</p>
+                            <p className="text-xs text-[color:var(--muted-foreground)]">2 hours ago</p>
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]">
+                          A beautiful story. The cast was excellent and the cinematography was stunning!
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
+                        <div className="mb-2 flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-[color:var(--surface)] flex items-center justify-center">
+                            <span className="text-sm font-bold">K</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[color:var(--foreground)]">Kevin</p>
+                            <p className="text-xs text-[color:var(--muted-foreground)]">5 hours ago</p>
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed text-[color:var(--foreground-secondary)]">
+                          More Cameroon cinema like this, please. This was absolutely fantastic!
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg border border-[color:var(--border)] bg-[color:var(--background)] p-4">
+                      <textarea
+                        placeholder="Add a comment..."
+                        rows={3}
+                        className="w-full resize-none bg-transparent text-sm text-[color:var(--foreground)] outline-none placeholder:text-[color:var(--muted-foreground)]"
+                      />
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-sm font-bold text-[color:var(--background)] transition-opacity hover:opacity-85"
+                        >
+                          Post Comment
+                        </button>
+                      </div>
+                    </div>
                   </section>
                 )}
 
