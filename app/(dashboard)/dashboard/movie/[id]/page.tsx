@@ -733,35 +733,6 @@ export default function MovieDetailsPage() {
                       Start over
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={handleDownloadToggle}
-                    disabled={isDownloading}
-                    className={`ml-2 inline-flex cursor-pointer items-center gap-2 rounded-lg px-4 py-3 text-sm font-bold backdrop-blur-sm transition-all ${
-                      isDownloaded
-                        ? 'border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                        : isDownloading
-                        ? 'border border-[color:var(--primary)]/50 bg-[color:var(--primary)]/10 text-[color:var(--foreground)]'
-                        : 'border border-white/45 bg-black/25 text-white hover:bg-white/15'
-                    }`}
-                  >
-                    {isDownloading ? (
-                      <>
-                        <CircularProgress progress={downloadProgress} size={18} strokeWidth={2.5} />
-                        <span>Downloading {downloadProgress}%</span>
-                      </>
-                    ) : isDownloaded ? (
-                      <>
-                        <CheckCircle2 size={16} className="text-emerald-400" />
-                        <span>Downloaded</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download size={16} />
-                        <span>Download</span>
-                      </>
-                    )}
-                  </button>
                 </div>
               </div>
             </section>
