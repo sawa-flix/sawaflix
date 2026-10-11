@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Play, Star } from 'lucide-react';
+import { Play, Star, CheckCircle2 } from 'lucide-react';
 import { MovieCardProps } from './types';
+import CircularProgress from '@/components/CircularProgress';
 
 /**
  * MovieCard Component
@@ -15,6 +16,9 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   isPremium,
   onClick,
   isActive,
+  isDownloading = false,
+  downloadProgress = 0,
+  isDownloaded = false,
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(128);
@@ -29,34 +33,53 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
   return (
     <motion.div
-      whileHover={{ y: -8 }}
+      whileHover={isDownloading ? undefined : { y: -8 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={`relative w-full group/card cursor-pointer ${
+      className={`relative w-full group/card ${
+        isDownloading ? 'cursor-wait opacity-80' : 'cursor-pointer'
+      } ${
         isActive ? 'ring-2 ring-[color:var(--primary)]/60 ring-offset-2 ring-offset-[color:var(--background)] rounded-2xl' : ''
       }`}
-      onClick={onClick}
+      onClick={isDownloading ? undefined : onClick}
       role="button"
-      tabIndex={0}
+      tabIndex={isDownloading ? -1 : 0}
       aria-label={`Select ${movie.title}`}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (!isDownloading && (e.key === 'Enter' || e.key === ' ')) {
           onClick();
         }
       }}
     >
       {/* Movie Image Container */}
-      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-md group-hover/card:shadow-2xl transition-shadow duration-300 border border-[color:var(--border)]/50">
+      <div className={`relative aspect-[3/4] w-full rounded-2xl overflow-hidden mb-3 bg-[color:var(--surface)] shadow-md group-hover/card:shadow-2xl transition-shadow duration-300 border border-[color:var(--border)]/50 ${
+        isDownloading ? 'ring-1 ring-[color:var(--primary)]/40' : ''
+      }`}>
         <Image
           src={movie.image}
           alt={movie.title}
           fill
-          className="object-cover group-hover/card:scale-110 transition-transform duration-700 ease-out"
+          className={`object-cover transition-transform duration-700 ease-out ${
+            isDownloading ? 'scale-100 grayscale-[35%]' : 'group-hover/card:scale-110'
+          }`}
           unoptimized
           loading="lazy"
         />
 
         {/* Gradient Overlay - Always visible for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/20 opacity-60 group-hover/card:opacity-40 transition-opacity duration-300" />
+
+        {/* Active Downloading Overlay */}
+        {isDownloading && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] p-2 text-center">
+            <CircularProgress progress={downloadProgress} size={48} strokeWidth={4} showPercent={true} />
+            <span className="mt-2 text-[11px] font-bold uppercase tracking-wider text-white drop-shadow">
+              Downloading...
+            </span>
+            <span className="text-[10px] font-medium text-white/80">
+              {downloadProgress}%
+            </span>
+          </div>
+        )}
 
         {/* Play Overlay on Hover */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/card:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
@@ -103,9 +126,13 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </motion.button>
         </div>
 
-        {/* Premium/Free Badge */}
-        <div className="absolute top-3 left-3 z-10">
-          {isPremium ? (
+        {/* Premium/Free/Downloaded Badge */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+          {isDownloaded ? (
+            <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1 uppercase tracking-wider">
+              <CheckCircle2 size={11} className="text-white" /> Saved
+            </span>
+          ) : isPremium ? (
             <span className="bg-gradient-to-br from-[#FCD116] to-[#E5B800] text-black text-[10px] font-black px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1 uppercase tracking-wider">
               <Star size={10} fill="currentColor" /> Premium
             </span>

@@ -14,10 +14,12 @@ import {
 import MovieHeroBanner from '@/components/Movie/MovieHeroBanner';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
 import { formatMovieTime, getLastMovieProgress, MOVIE_PROGRESS_EVENT, clearMovieProgress, type MovieProgressEntry } from '@/components/Movie/movieProgress';
+import { useDownload } from '@/contexts/DownloadContext';
 
 export default function MoviePage(): React.ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isDownloading: checkIsDownloading, isDownloaded: checkIsDownloaded, getDownloadProgress } = useDownload();
   const movieQuery = (searchParams.get('q') || '').trim().toLowerCase();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [genres, setGenres] = useState<string[]>(FILTERS);
@@ -280,6 +282,9 @@ export default function MoviePage(): React.ReactElement {
                       isPremium={Boolean(movie.isPremium)}
                       onClick={() => setSelectedMovie(movie)}
                       isActive={selectedMovie?.id === movie.id}
+                      isDownloading={checkIsDownloading(movie.id)}
+                      downloadProgress={getDownloadProgress(movie.id)}
+                      isDownloaded={checkIsDownloaded(movie.id)}
                     />
                   </div>
                 ))}
@@ -294,7 +299,18 @@ export default function MoviePage(): React.ReactElement {
         <div className="flex flex-col gap-6 lg:gap-8 xl:flex-row">
           <div className="min-w-0 flex-1 pt-2">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-              {filteredMovies.map((movie) => <MovieCard key={movie.id} movie={movie} isPremium={Boolean(movie.isPremium)} onClick={() => setSelectedMovie(movie)} isActive={selectedMovie?.id === movie.id} />)}
+              {filteredMovies.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  isPremium={Boolean(movie.isPremium)}
+                  onClick={() => setSelectedMovie(movie)}
+                  isActive={selectedMovie?.id === movie.id}
+                  isDownloading={checkIsDownloading(movie.id)}
+                  downloadProgress={getDownloadProgress(movie.id)}
+                  isDownloaded={checkIsDownloaded(movie.id)}
+                />
+              ))}
               {filteredMovies.length === 0 && <div className="col-span-full py-20 text-center font-bold text-[color:var(--muted-foreground)]">No movies found for &quot;{activeFilter}&quot;</div>}
             </div>
           </div>

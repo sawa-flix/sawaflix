@@ -270,31 +270,40 @@ export default function DownloadsPage() {
                   {activeDownloadsList.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 rounded-xl border border-[color:var(--primary)]/30 bg-[color:var(--surface)] p-3 shadow-sm"
+                      className="group relative flex cursor-not-allowed select-none items-center gap-3 rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]/70 p-3 shadow-sm opacity-85 transition-opacity"
+                      aria-disabled="true"
                     >
-                      {/* Thumbnail with Circular Progress */}
-                      <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-lg bg-[color:var(--surface-hover)]">
+                      {/* Thumbnail with Circular Progress and Dimming */}
+                      <div className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-lg bg-[color:var(--surface-hover)]">
                         {item.thumbnail ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.thumbnail} alt={item.title} className="h-full w-full object-cover opacity-60" />
+                          <img src={item.thumbnail} alt={item.title} className="h-full w-full object-cover grayscale-[25%] opacity-50" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
                             <Film size={18} className="text-[color:var(--muted-foreground)]" />
                           </div>
                         )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                          <CircularProgress progress={item.progress} size={32} strokeWidth={3} showPercent={true} />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <CircularProgress progress={item.progress} size={36} strokeWidth={3.5} showPercent={true} />
                         </div>
                       </div>
 
-                      {/* Info */}
+                      {/* Info & Linear Progress Bar */}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-[color:var(--foreground)]">
                           {item.title}
                         </p>
-                        <p className="mt-0.5 text-[11px] font-medium text-[color:var(--primary)]">
-                          Downloading {item.progress}%
-                        </p>
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-[color:var(--primary)]">
+                          <span>Downloading {item.progress}%</span>
+                          <span className="text-[color:var(--muted-foreground)]">• Waiting to complete</span>
+                        </div>
+                        {/* Sub linear progress track */}
+                        <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-[color:var(--border)]">
+                          <div
+                            className="h-full bg-[color:var(--primary)] transition-all duration-300 ease-out"
+                            style={{ width: `${Math.max(2, Math.min(100, item.progress))}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -511,47 +511,61 @@ export default function MovieDetailsPage() {
                         const isCurrentEpisode = episode.id === selectedMovie.id;
                         const episodeProgress = isCurrentEpisode ? currentProgress : index < selectedEpisodeIndex ? 100 : 0;
                         const isWatched = episodeProgress === 100;
+                        const episodeDownloading = checkIsDownloading(episode.id);
+                        const epDownloadProgress = getDownloadProgress(episode.id);
 
                         return (
                           <button
                             key={episode.id}
+                            disabled={episodeDownloading}
                             onClick={() => handleSelectEpisode(episode)}
                             className={`group w-36 shrink-0 snap-start rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)] p-1.5 text-left transition-colors hover:bg-[color:var(--surface-hover)] sm:w-44 lg:w-48 ${
-                                isCurrentEpisode ? 'ring-1 ring-[color:var(--foreground)]' : ''
+                              episodeDownloading ? 'cursor-wait opacity-80' : ''
+                            } ${
+                              isCurrentEpisode ? 'ring-1 ring-[color:var(--foreground)]' : ''
                             }`}
                           >
-                              <div className="relative mb-1.5 aspect-video overflow-hidden rounded-md">
+                            <div className="relative mb-1.5 aspect-video overflow-hidden rounded-md">
                               <Image
                                 src={episode.image}
                                 alt={episode.title}
                                 fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                className={`object-cover transition-transform duration-300 ${episodeDownloading ? 'grayscale-[30%]' : 'group-hover:scale-105'}`}
                                 unoptimized
                               />
-                              {isCurrentEpisode && (
-                                <div className="absolute top-2 left-2">
-                                  <span className="rounded bg-[color:var(--foreground)] px-2 py-1 text-[10px] font-bold uppercase text-[color:var(--background)]">
-                                    NOW PLAYING
-                                  </span>
+                              {episodeDownloading ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10 p-1 text-center">
+                                  <CircularProgress progress={epDownloadProgress} size={28} strokeWidth={3} showPercent={false} />
+                                  <span className="mt-1 text-[9px] font-bold text-white">{epDownloadProgress}%</span>
                                 </div>
-                              )}
-                              {!isCurrentEpisode && index === selectedEpisodeIndex + 1 && (
-                                <div className="absolute top-2 left-2">
-                                  <span className="rounded border border-white/30 bg-black/70 px-2 py-1 text-[10px] font-bold uppercase text-white">
-                                    UP NEXT
-                                  </span>
-                                </div>
-                              )}
-                              {isWatched && !isCurrentEpisode && (
-                                <div className="absolute top-2 right-2">
-                                  <div className="p-1 bg-black/80 rounded-full">
-                                    <Check size={16} className="text-emerald-400" />
+                              ) : (
+                                <>
+                                  {isCurrentEpisode && (
+                                    <div className="absolute top-2 left-2">
+                                      <span className="rounded bg-[color:var(--foreground)] px-2 py-1 text-[10px] font-bold uppercase text-[color:var(--background)]">
+                                        NOW PLAYING
+                                      </span>
+                                    </div>
+                                  )}
+                                  {!isCurrentEpisode && index === selectedEpisodeIndex + 1 && (
+                                    <div className="absolute top-2 left-2">
+                                      <span className="rounded border border-white/30 bg-black/70 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                                        UP NEXT
+                                      </span>
+                                    </div>
+                                  )}
+                                  {isWatched && !isCurrentEpisode && (
+                                    <div className="absolute top-2 right-2">
+                                      <div className="p-1 bg-black/80 rounded-full">
+                                        <Check size={16} className="text-emerald-400" />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Play size={28} className="text-white" fill="white" />
                                   </div>
-                                </div>
+                                </>
                               )}
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Play size={28} className="text-white" fill="white" />
-                              </div>
                               {episodeProgress > 0 && episodeProgress < 100 && (
                                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
                                   <div
@@ -577,7 +591,17 @@ export default function MovieDetailsPage() {
                               </div>
                               <div className="flex items-center justify-between text-[10px] text-[color:var(--muted-foreground)]">
                                 <span>{episode.duration || '25m'}</span>
-                                <span>{isWatched ? 'Watched' : episodeProgress > 0 ? `${episodeProgress}% watched` : `Episode ${episode.episodeNumber || index + 1}`}</span>
+                                <span>
+                                  {episodeDownloading ? (
+                                    <span className="text-[color:var(--primary)] font-semibold">Downloading {epDownloadProgress}%</span>
+                                  ) : isWatched ? (
+                                    'Watched'
+                                  ) : episodeProgress > 0 ? (
+                                    `${episodeProgress}% watched`
+                                  ) : (
+                                    `Episode ${episode.episodeNumber || index + 1}`
+                                  )}
+                                </span>
                               </div>
                             </div>
                           </button>
@@ -616,23 +640,39 @@ export default function MovieDetailsPage() {
                       <span className="text-xs text-[color:var(--muted-foreground)]">{similarMovies.length} titles</span>
                     </div>
                     <div className="scrollbar-hide -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
-                      {similarMovies.map((movie) => (
-                        <button
-                          key={movie.id}
-                          type="button"
-                          onClick={() => selectMovieInPlace(movie)}
-                          className="group w-36 shrink-0 snap-start cursor-pointer text-left sm:w-44"
-                        >
-                          <span className="relative mb-2 block aspect-video overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)]">
-                            <Image src={movie.image} alt={movie.title} fill sizes="176px" unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                            <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                              <Play size={24} fill="currentColor" />
+                      {similarMovies.map((movie) => {
+                        const movieDownloading = checkIsDownloading(movie.id);
+                        const movieProgress = getDownloadProgress(movie.id);
+                        return (
+                          <button
+                            key={movie.id}
+                            type="button"
+                            disabled={movieDownloading}
+                            onClick={() => selectMovieInPlace(movie)}
+                            className={`group w-36 shrink-0 snap-start text-left sm:w-44 ${
+                              movieDownloading ? 'cursor-wait opacity-80' : 'cursor-pointer'
+                            }`}
+                          >
+                            <span className="relative mb-2 block aspect-video overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface)]">
+                              <Image src={movie.image} alt={movie.title} fill sizes="176px" unoptimized className={`object-cover transition-transform duration-300 ${movieDownloading ? 'scale-100 grayscale-[30%]' : 'group-hover:scale-105'}`} />
+                              {movieDownloading ? (
+                                <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 p-1 text-center">
+                                  <CircularProgress progress={movieProgress} size={28} strokeWidth={3} showPercent={false} />
+                                  <span className="mt-1 text-[9px] font-bold text-white">{movieProgress}%</span>
+                                </span>
+                              ) : (
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                                  <Play size={24} fill="currentColor" />
+                                </span>
+                              )}
                             </span>
-                          </span>
-                          <span className="block truncate text-xs font-bold text-[color:var(--foreground)] sm:text-sm">{movie.title}</span>
-                          <span className="mt-1 block truncate text-[10px] text-[color:var(--muted-foreground)]">{movie.year} · {movie.genres[0] || 'Movie'}</span>
-                        </button>
-                      ))}
+                            <span className="block truncate text-xs font-bold text-[color:var(--foreground)] sm:text-sm">{movie.title}</span>
+                            <span className="mt-1 block truncate text-[10px] text-[color:var(--muted-foreground)]">
+                              {movieDownloading ? <span className="text-[color:var(--primary)] font-semibold">Downloading {movieProgress}%</span> : `${movie.year} · ${movie.genres[0] || 'Movie'}`}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </section>
                 )}
@@ -868,6 +908,9 @@ export default function MovieDetailsPage() {
                       isPremium={Boolean(movie.isPremium)}
                       isActive={false}
                       onClick={() => selectMovieInPlace(movie)}
+                      isDownloading={checkIsDownloading(movie.id)}
+                      downloadProgress={getDownloadProgress(movie.id)}
+                      isDownloaded={checkIsDownloaded(movie.id)}
                     />
                   ))}
                 </div>

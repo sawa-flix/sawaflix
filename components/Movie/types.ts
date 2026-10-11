@@ -33,6 +33,9 @@ export interface MovieCardProps {
   isPremium: boolean;
   onClick: () => void;
   isActive: boolean;
+  isDownloading?: boolean;
+  downloadProgress?: number;
+  isDownloaded?: boolean;
 }
 
 export interface RightSidebarContentProps {
