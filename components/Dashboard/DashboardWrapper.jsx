@@ -13,6 +13,7 @@ import { NotificationProvider } from '../../contexts/NotificationContext';
 import { FavoriteProvider } from '../../contexts/FavoriteContext';
 import { AuthModalProvider } from '../../contexts/AuthModalContext';
 import { TranslationProvider } from '../../lib/i18n/TranslationProvider';
+import { DownloadProvider } from '../../contexts/DownloadContext';
 import BottomPlayer from '../BottomPlayer';
 import { ReelsBackdrop } from '../reels/ReelsBackdrop';
 import AnnouncementBanner from './AnnouncementBanner';
@@ -144,11 +145,12 @@ const DashboardWrapper = ({ children }) => {
 
   return (
     <TranslationProvider>
-      <MusicProvider>
-        <NotificationProvider>
-          <FavoriteProvider>
-          <AuthModalProvider>
-          <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] relative overflow-hidden">
+      <DownloadProvider>
+        <MusicProvider>
+          <NotificationProvider>
+            <FavoriteProvider>
+            <AuthModalProvider>
+            <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--foreground)] relative overflow-hidden">
         {/* Texture overlay without colored glows */}
         <div className="fixed inset-0 z-0 pointer-events-none">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-[0.03] mix-blend-overlay" />
@@ -251,6 +253,7 @@ const DashboardWrapper = ({ children }) => {
         </FavoriteProvider>
       </NotificationProvider>
     </MusicProvider>
+    </DownloadProvider>
     </TranslationProvider>
   );
 };

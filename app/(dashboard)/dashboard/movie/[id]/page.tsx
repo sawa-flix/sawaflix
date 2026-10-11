@@ -31,8 +31,9 @@ import MovieVideoPlayer from '@/components/Movie/MovieVideoPlayer';
 import { MovieCard, MovieEpisodeGuide } from '@/components/Movie';
 import PremiumPreviewCheckout from '@/components/Movie/PremiumPreviewCheckout';
 import { clearMovieProgress, formatMovieTime, getMovieProgress, type MovieProgressEntry } from '@/components/Movie/movieProgress';
-import { downloadVideoById } from '@/lib/videoPreloader';
-import { isVideoOffline, getOfflineVideoObjectURL, removeVideoFromIDB } from '@/lib/offlineStorage';
+import { useDownload } from '@/contexts/DownloadContext';
+import CircularProgress from '@/components/CircularProgress';
+import { getOfflineVideoObjectURL } from '@/lib/offlineStorage';
 
 const MOVIE_SELECTION_EVENT = 'sawaflix:movie-selection';
 
@@ -60,10 +61,15 @@ export default function MovieDetailsPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(342);
   const [showComments, setShowComments] = useState(false);
-  const [isDownloaded, setIsDownloaded] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [offlineVideoUrl, setOfflineVideoUrl] = useState<string | null>(null);
+
+  const {
+    isDownloaded: checkIsDownloaded,
+    isDownloading: checkIsDownloading,
+    getDownloadProgress,
+    startDownload,
+    deleteDownload,
+  } = useDownload();
 
   const episodeScrollRef = useRef<HTMLDivElement>(null);
   const autoAdvanceStartedRef = useRef(false);
@@ -142,90 +148,57 @@ export default function MovieDetailsPage() {
     : selectedMovie?.mediaKind === 'series' ? firstEpisode : undefined;
   const activePlaybackId = selectedMovie?.mediaKind === 'series' ? firstEpisode?.id : selectedMovie?.id;
 
-  // Check if current active playable video is already downloaded in IndexedDB
+  const isDownloaded = Boolean(activePlaybackId && checkIsDownloaded(activePlaybackId));
+  const isDownloading = Boolean(activePlaybackId && checkIsDownloading(activePlaybackId));
+  const downloadProgress = activePlaybackId ? getDownloadProgress(activePlaybackId) : 0;
+
+  // Resolve offline object URL when video is downloaded
   useEffect(() => {
     let active = true;
     let createdUrl: string | null = null;
 
-    if (!activePlaybackId) {
-      setIsDownloaded(false);
+    if (!activePlaybackId || !isDownloaded) {
       setOfflineVideoUrl(null);
       return;
     }
 
-    isVideoOffline(activePlaybackId).then(async (offline) => {
-      if (!active) return;
-      setIsDownloaded(offline);
-      if (offline) {
-        createdUrl = await getOfflineVideoObjectURL(activePlaybackId);
-        if (active && createdUrl) {
-          setOfflineVideoUrl(createdUrl);
-        }
-      } else {
-        setOfflineVideoUrl(null);
+    getOfflineVideoObjectURL(activePlaybackId).then((url) => {
+      if (active && url) {
+        createdUrl = url;
+        setOfflineVideoUrl(url);
       }
     });
 
-    const handleProgress = (e: Event) => {
-      const customEvent = e as CustomEvent<{ id: string; progress: number; complete?: boolean }>;
-      if (customEvent.detail?.id === activePlaybackId) {
-        setDownloadProgress(customEvent.detail.progress);
-        if (customEvent.detail.complete) {
-          setIsDownloading(false);
-          setIsDownloaded(true);
-          getOfflineVideoObjectURL(activePlaybackId).then((url) => {
-            if (active && url) setOfflineVideoUrl(url);
-          });
-        }
-      }
-    };
-
-    window.addEventListener('video-download-progress', handleProgress);
-
     return () => {
       active = false;
-      window.removeEventListener('video-download-progress', handleProgress);
       if (createdUrl) URL.revokeObjectURL(createdUrl);
     };
-  }, [activePlaybackId]);
+  }, [activePlaybackId, isDownloaded]);
 
   const handleDownloadToggle = async () => {
     if (!activePlaybackId || !selectedMovie) return;
 
     if (isDownloaded) {
-      // Remove from offline storage
-      await removeVideoFromIDB(activePlaybackId);
-      setIsDownloaded(false);
+      await deleteDownload(activePlaybackId);
       setOfflineVideoUrl(null);
-      setDownloadProgress(0);
       return;
     }
 
     if (isDownloading) return;
 
-    setIsDownloading(true);
-    setDownloadProgress(0);
-
     const playable = selectedMovie.mediaKind === 'series' && firstEpisode ? firstEpisode : selectedMovie;
     const titleToSave = playable.episodeTitle || playable.title;
 
     try {
-      await downloadVideoById({
+      await startDownload({
         id: activePlaybackId,
         title: titleToSave,
         thumbnail: playable.image,
         category: playable.genres?.[0] || 'Movie',
         duration: playable.duration,
-      }, (percent) => {
-        setDownloadProgress(percent);
       });
-      setIsDownloaded(true);
-      const url = await getOfflineVideoObjectURL(activePlaybackId);
-      if (url) setOfflineVideoUrl(url);
     } catch (err) {
-      console.error('Failed to download movie:', err);
-    } finally {
-      setIsDownloading(false);
+      console.error('Failed to start download:', err);
     }
   };
 
@@ -434,23 +407,20 @@ export default function MovieDetailsPage() {
               >
                 <div className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-all ${
                   isDownloaded
-                    ? 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500/40'
+                    ? 'bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/40'
                     : isDownloading
-                    ? 'bg-[#FCD116]/20 text-[#FCD116]'
+                    ? 'bg-transparent text-[color:var(--primary)]'
                     : 'bg-[color:var(--surface)] hover:bg-[color:var(--surface-hover)] text-[color:var(--foreground)]'
                 }`}>
                   {isDownloading ? (
-                    <div className="relative flex items-center justify-center">
-                      <Loader2 size={20} className="animate-spin text-[#FCD116]" />
-                      <span className="absolute text-[8px] font-black text-[#FCD116]">{downloadProgress}</span>
-                    </div>
+                    <CircularProgress progress={downloadProgress} size={32} strokeWidth={3.5} showPercent={false} />
                   ) : isDownloaded ? (
                     <CheckCircle2 size={20} className="text-emerald-500" />
                   ) : (
                     <Download size={20} className="text-[color:var(--foreground)] group-hover:scale-105 transition-transform" />
                   )}
                 </div>
-                <span className={`text-xs font-semibold ${isDownloaded ? 'text-emerald-500' : isDownloading ? 'text-[#FCD116]' : 'text-[color:var(--foreground)]'}`}>
+                <span className={`text-xs font-semibold ${isDownloaded ? 'text-emerald-500' : isDownloading ? 'text-[color:var(--primary)]' : 'text-[color:var(--foreground)]'}`}>
                   {isDownloading ? `${downloadProgress}%` : isDownloaded ? 'Downloaded' : 'Download'}
                 </span>
               </button>
@@ -771,13 +741,13 @@ export default function MovieDetailsPage() {
                       isDownloaded
                         ? 'border border-emerald-500/50 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                         : isDownloading
-                        ? 'border border-[#FCD116]/50 bg-[#FCD116]/20 text-[#FCD116]'
+                        ? 'border border-[color:var(--primary)]/50 bg-[color:var(--primary)]/10 text-[color:var(--foreground)]'
                         : 'border border-white/45 bg-black/25 text-white hover:bg-white/15'
                     }`}
                   >
                     {isDownloading ? (
                       <>
-                        <Loader2 size={16} className="animate-spin text-[#FCD116]" />
+                        <CircularProgress progress={downloadProgress} size={18} strokeWidth={2.5} />
                         <span>Downloading {downloadProgress}%</span>
                       </>
                     ) : isDownloaded ? (
