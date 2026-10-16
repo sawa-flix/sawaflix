@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Loader2, MapPin, X } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
@@ -33,6 +34,7 @@ const emptyDraft = (displayName: string): Draft => ({
 });
 
 export default function ProfileCompletionWizard({ userId, email, displayName, onVisibilityChange }: Props) {
+  const router = useRouter();
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(displayName));
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
@@ -93,6 +95,13 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
   });
 
   useEffect(() => {
+    if (!ready || typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).get('completeProfile') === '1' && completion.percent < 100) {
+      setOpen(true);
+    }
+  }, [completion.percent, ready]);
+
+  useEffect(() => {
     if (ready) onVisibilityChange(completion.percent < 100);
     return () => onVisibilityChange(false);
   }, [completion.percent, onVisibilityChange, ready]);
@@ -130,6 +139,10 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
         if (insertError) throw insertError;
       }
       const nextDraft = { ...draft, socialLinks, website: draft.website.trim() };
+      if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('completeProfile') === '1') {
+        router.replace('/dashboard');
+        return;
+      }
       setDraft(nextDraft);
       const nextCompletion = computeProfileCompletion({
         ...nextDraft,
