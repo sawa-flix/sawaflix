@@ -200,7 +200,7 @@ export default function CameroonMapOnboarding() {
 
         <section aria-label="Choose a location in Cameroon" className="order-1 mx-auto w-full max-w-[min(82vw,28rem)] lg:order-2 lg:max-w-[min(44vw,34rem)]">
           <div className="relative aspect-[1107/1421] w-full">
-            <Image src="/sawaflix_cameroon_map.svg" alt="Map of Cameroon with selectable location markers" fill priority sizes="(max-width: 768px) 82vw, 44vw" className="object-contain" />
+            <Image src="/sawaflix_cameroon_map.svg" alt="Map of Cameroon with selectable location markers" fill priority unoptimized sizes="(max-width: 768px) 82vw, 44vw" className="object-contain" />
             {MARKERS.map((marker, index) => {
               const isSelected = selected?.id === marker.id;
               return (
