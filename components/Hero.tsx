@@ -27,17 +27,13 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(16,13,30,0.94)_0%,rgba(16,13,30,0.82)_54%,rgba(16,13,30,0.48)_100%)]" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#100d1e]/35 via-transparent to-[#100d1e]/75" />
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 pb-8 pt-2 lg:flex-row lg:items-end lg:justify-between">
+      <div className="relative mx-auto flex w-full max-w-7xl -translate-y-3 flex-col gap-8 pb-8 pt-2 lg:-translate-y-8 lg:flex-row lg:items-start lg:justify-between">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-[44rem] lg:mt-36 lg:w-[58%] lg:max-w-none lg:flex-none"
         >
-          <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/70 sm:mb-7 sm:text-xs">
-            SawaFlix <span className="px-1.5 text-white/35">/</span> Cameroon
-          </p>
-
           <h1 aria-label="Broken stories, restored." className="max-w-[42rem] text-[2.4rem] font-black leading-[0.9] tracking-[-0.05em] text-white sm:text-6xl lg:max-w-none lg:text-[5.2rem]">
             <span className="block sm:whitespace-nowrap" style={{ color: HERO_ACCENT }} aria-hidden="true">
               <span>Br</span>
@@ -72,7 +68,7 @@ export default function Hero() {
 
           <div className="mt-6 flex items-center justify-start sm:mt-8">
             <Link
-              href="/dashboard"
+              href="/onboarding"
               className="group inline-flex min-h-12 items-center justify-center gap-3 rounded-lg border border-white/70 bg-white px-7 py-3 text-sm font-bold text-[#171326] shadow-[0_8px_30px_rgba(0,0,0,0.16)] transition-[background-color,border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white/90 hover:shadow-[0_12px_36px_rgba(255,255,255,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-8 sm:text-base"
             >
               Get Started
@@ -85,18 +81,18 @@ export default function Hero() {
           initial={{ opacity: 0, x: 32 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
-          className="relative w-full max-w-[700px] self-end lg:-ml-[22%] lg:w-[64%] lg:max-w-none lg:flex-none"
+          className="relative hidden w-full max-w-[760px] self-end lg:block lg:-ml-[12%] lg:w-[62%] lg:max-w-none lg:flex-none"
         >
-          <div className="relative mx-auto aspect-[1.25] w-full max-w-[860px]">
+          <div className="relative mx-auto aspect-[1.18] w-full max-w-[980px]">
             <div className="absolute inset-x-[12%] bottom-4 h-14 rounded-full bg-[#ff5a3d]/18 blur-2xl" aria-hidden="true" />
             <Image
-              src="/child2.png"
+              src="/child.png"
               alt="Smiling child in traditional clothing holding a tablet"
               fill
               priority
               unoptimized
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 42vw"
-              quality={75}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 58vw, 46vw"
+              quality={90}
               className="relative z-10 object-contain object-bottom drop-shadow-[0_32px_80px_rgba(0,0,0,0.72)]"
             />
           </div>
