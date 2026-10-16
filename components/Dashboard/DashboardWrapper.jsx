@@ -18,10 +18,14 @@ import BottomPlayer from '../BottomPlayer';
 import { ReelsBackdrop } from '../reels/ReelsBackdrop';
 import AnnouncementBanner from './AnnouncementBanner';
 import { LanguageDetectionBanner } from './LanguageDetectionBanner';
+import { useAuthSession } from '../../hooks/useAuthSession';
+import ProfileCompletionWizard from './ProfileCompletionWizard';
 
 const DashboardWrapper = ({ children }) => {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const { user: currentUser } = useAuthSession();
   
   // Disable right sidebar for movie and profile pages. Reels renders inside
   // the normal dashboard shell like every other page — header, left
@@ -163,6 +167,15 @@ const DashboardWrapper = ({ children }) => {
             over the same keystrokes and navigating away from /dashboard/reels. */}
         <Header sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} searchDisabled={isReelsRoute} isReelsRoute={isReelsRoute} />
 
+        {currentUser && !isReelsRoute && (
+          <ProfileCompletionWizard
+            userId={currentUser.id}
+            email={currentUser.email || null}
+            displayName={currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User'}
+            onVisibilityChange={setShowProfilePrompt}
+          />
+        )}
+
         {/* Language Detection Banner */}
         <LanguageDetectionBanner />
 
@@ -173,7 +186,7 @@ const DashboardWrapper = ({ children }) => {
             transparent there (just floating back/search/mute buttons), so
             the video itself should run edge-to-edge instead of leaving a
             4rem gap under it. Desktop/tablet keep the normal offset. */}
-        <div className={`relative z-10 ${isReelsRoute ? 'pt-0 md:pt-16' : 'pt-16'}`}>
+        <div className={`relative z-10 ${isReelsRoute ? 'pt-0 md:pt-16' : showProfilePrompt ? 'pt-2' : 'pt-16'}`}>
           {/* Mobile sidebar overlay */}
           {sidebarOpen && (
             <div
