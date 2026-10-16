@@ -27,17 +27,15 @@ export default function Navbar() {
   // Updated hrefs to match section IDs for scrolling
   const navLinks = [
     { name: "Home", href: "#home" },
-    { name: "Music", href: "#music" },
-    { name: "Movies", href: "#movies" },
-    { name: "Traditions", href: "#traditions" },
+    { name: "Explore", href: "/dashboard" },
     { name: "Area Tory", href: "/dashboard/blogs" },
   ];
 
   return (
     <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${isScrolled
-        ? "bg-[#0B0E14]/90 backdrop-blur-md shadow-lg border-b border-[#1F2937]"
-        : "bg-[#0B0E14]/15 backdrop-blur-sm border-b border-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-colors duration-300 ${isScrolled
+        ? "border-white/10 bg-[#100d1e]/85 shadow-lg backdrop-blur-md"
+        : "border-transparent bg-transparent"
         }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -53,7 +51,7 @@ export default function Navbar() {
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               {navLinks.map((link) => {
-                const isActive = link.href === "#home" 
+                const isActive = link.href === "#home"
                   ? pathname === "/" || pathname === "/home"
                   : pathname?.startsWith(link.href);
                 
@@ -62,8 +60,8 @@ export default function Navbar() {
                     key={link.name}
                     href={link.href}
                     scroll={true}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? "text-red-600 font-bold" : "text-white/80 hover:text-white"
+                    className={`rounded-md px-3 py-2 text-sm transition-colors ${
+                      isActive ? "bg-white/15 font-bold text-white" : "font-medium text-white/75 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {link.name}
@@ -75,10 +73,9 @@ export default function Navbar() {
 
           {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Red Sign In Button Feel */}
             <Link 
               href="/dashboard" 
-              className="border border-white/40 bg-white/15 hover:bg-white/25 text-white px-5 py-1.5 rounded font-bold transition-all text-sm shadow-sm"
+              className="rounded-lg border border-white/50 bg-white/95 px-5 py-2 text-sm font-bold text-[#171326] shadow-sm transition-colors hover:bg-white"
             >
               Get Started
             </Link>
@@ -88,7 +85,7 @@ export default function Navbar() {
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white/70 hover:text-white hover:bg-white/5 focus:outline-none"
+              className="inline-flex items-center justify-center rounded-md p-2 text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
             >
               {isOpen ? (
                 <X className="h-6 w-6" />
@@ -104,7 +101,7 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="md:hidden bg-[#0B0E14] border-b border-[#1F2937]"
+            className="border-b border-white/10 bg-[#100d1e]/95 shadow-lg backdrop-blur-md md:hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -114,7 +111,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-white/80 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                  className={`block rounded-md px-3 py-2 text-base transition-colors ${link.href === "#home" ? "bg-white/15 font-bold text-white" : "font-medium text-white/75 hover:bg-white/10 hover:text-white"}`}
                   onClick={() => setIsOpen(false)}
                 >
                   {link.name}
@@ -123,7 +120,7 @@ export default function Navbar() {
               <div className="flex flex-col gap-3 mt-6">
                 <Link
                   href="/dashboard"
-                  className="w-full text-center border border-white/30 bg-white/15 hover:bg-white/25 text-white px-4 py-2.5 rounded font-bold transition-all"
+                  className="w-full rounded-lg border border-white/50 bg-white/95 px-4 py-2.5 text-center font-bold text-[#171326] transition-colors hover:bg-white"
                   onClick={() => setIsOpen(false)}
                 >
                   Sign In
