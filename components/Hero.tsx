@@ -32,7 +32,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[44rem] lg:w-[58%] lg:max-w-none lg:flex-none"
+          className="w-full max-w-[44rem] lg:mt-36 lg:w-[58%] lg:max-w-none lg:flex-none"
         >
           <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/70 sm:mb-7 sm:text-xs">
             SawaFlix <span className="px-1.5 text-white/35">/</span> Cameroon
