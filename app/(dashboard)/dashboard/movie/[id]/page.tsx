@@ -486,13 +486,13 @@ export default function MovieDetailsPage() {
               <ArrowLeft size={17} /> Back to movies
             </button>
 
-            <section className="relative isolate min-h-[360px] overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] sm:min-h-[440px]">
+            <section className="relative isolate h-[190px] overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] sm:h-auto sm:min-h-[380px] lg:min-h-[440px]">
               <Image src={selectedMovie.image} alt="" fill priority unoptimized sizes="100vw" className="-z-20 object-cover" />
               <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/55 to-black/10" />
               <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-transparent to-black/15" />
-              <div className="flex min-h-[360px] items-end p-5 sm:min-h-[440px] sm:p-10 lg:p-14">
+              <div className="flex h-full items-end p-4 sm:p-10 lg:p-14">
                 <div className="max-w-3xl">
-                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <div className="mb-3 hidden flex-wrap items-center gap-2 sm:flex">
                     <span className="rounded bg-[color:var(--foreground)] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-[color:var(--background)]">SawaFlix Cameroon</span>
                     {selectedMovie.mediaKind === 'episode' && (
                       <span className="rounded border border-white/40 bg-black/30 px-2.5 py-1 text-[10px] font-bold text-white">
@@ -503,10 +503,10 @@ export default function MovieDetailsPage() {
                       <span className="rounded border border-white/40 bg-black/30 px-2.5 py-1 text-[10px] font-bold text-white">Series</span>
                     )}
                   </div>
-                  <h1 className="mb-3 text-3xl font-black leading-tight text-white sm:text-5xl">{title}</h1>
-                  {selectedMovie.seriesTitle && <p className="mb-2 text-sm font-semibold text-white/75">{selectedMovie.seriesTitle}</p>}
-                  <p className="mb-5 max-w-2xl line-clamp-3 text-sm leading-relaxed text-white/85 sm:text-base">{shortDescription}</p>
-                  <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-white/80">
+                  <h1 className="mb-3 line-clamp-2 max-w-[min(80vw,720px)] text-xl font-black leading-tight text-white sm:text-5xl">{title}</h1>
+                  {selectedMovie.seriesTitle && <p className="mb-2 hidden text-sm font-semibold text-white/75 sm:block">{selectedMovie.seriesTitle}</p>}
+                  <p className="mb-5 hidden max-w-2xl line-clamp-3 text-sm leading-relaxed text-white/85 sm:block sm:text-base">{shortDescription}</p>
+                  <div className="mb-6 hidden flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-white/80 sm:flex">
                     <span className="inline-flex items-center gap-1.5 text-[#FCD116]">
                       <Star size={14} fill="currentColor" />
                       <span className="text-white">{selectedMovie.rating || 4.8}</span>
@@ -542,8 +542,9 @@ export default function MovieDetailsPage() {
                       setIsPlaying(true);
                     }}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-black shadow-lg transition-transform hover:scale-[1.02] hover:bg-white/90"
+                    aria-label={savedProgress ? `Resume ${title}` : `Watch ${title}`}
                   >
-                    <Play size={18} fill="currentColor" /> {savedProgress ? `Resume from ${formatMovieTime(savedProgress.currentTime)}` : selectedMovie.mediaKind === 'series' ? 'Start series' : 'Watch now'}
+                    <Play size={18} fill="currentColor" /> <span className="hidden sm:inline">{savedProgress ? `Resume from ${formatMovieTime(savedProgress.currentTime)}` : selectedMovie.mediaKind === 'series' ? 'Start series' : 'Watch now'}</span>
                   </button>
                   {savedProgress && (
                     <button
@@ -556,7 +557,7 @@ export default function MovieDetailsPage() {
                         setIsVideoPlaying(true);
                         setIsPlaying(true);
                       }}
-                      className="ml-2 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/45 bg-black/25 px-4 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+                      className="ml-2 hidden cursor-pointer items-center gap-2 rounded-lg border border-white/45 bg-black/25 px-4 py-3 text-sm font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/15 sm:inline-flex"
                     >
                       Start over
                     </button>
