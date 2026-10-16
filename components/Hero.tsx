@@ -94,6 +94,7 @@ export default function Hero() {
               alt="Smiling child in traditional clothing holding a tablet"
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 42vw"
               quality={75}
               className="relative z-10 object-contain object-bottom drop-shadow-[0_32px_80px_rgba(0,0,0,0.72)]"
