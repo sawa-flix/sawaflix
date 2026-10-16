@@ -1,13 +1,7 @@
 import { createClient } from '../utils/supabase/client';
+import { compactFavorites, type FavoriteItem } from '../utils/favorites';
 
-export interface FavoriteItem {
-  id: string;
-  contentId: string;
-  type?: string;
-  title?: string;
-  thumbnail?: string;
-  [key: string]: any;
-}
+export type { FavoriteItem } from '../utils/favorites';
 
 export const favoritesService = {
   async getFavorites(): Promise<FavoriteItem[]> {
@@ -20,15 +14,20 @@ export const favoritesService = {
         return [];
       }
 
-      const favorites = user.user_metadata?.favorites || [];
-      return Array.isArray(favorites) ? favorites : [];
+      const original = user.user_metadata?.favorites || [];
+      const favorites = compactFavorites(original);
+      if (JSON.stringify(original) !== JSON.stringify(favorites)) {
+        const { error: updateError } = await supabase.auth.updateUser({ data: { favorites } });
+        if (updateError) console.warn('Could not compact saved favorites in auth metadata:', updateError.message);
+      }
+      return favorites;
     } catch (err) {
       console.error('getFavorites error:', err);
       return [];
     }
   },
 
-  async addFavorite(content: any): Promise<FavoriteItem[]> {
+  async addFavorite(content: Record<string, unknown>): Promise<FavoriteItem[]> {
     try {
       const supabase = createClient();
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -37,13 +36,13 @@ export const favoritesService = {
         throw new Error('User must be logged in to manage favorites');
       }
 
-      let contentId = content.id || content.contentId || content.videoId || content.title;
-      if (!contentId) throw new Error('Missing contentId');
+      const rawContentId = content.id || content.contentId || content.videoId || content.title;
+      if (!rawContentId) throw new Error('Missing contentId');
       
       // Slugify title if used as ID to avoid URL issues
-      contentId = String(contentId).trim().replace(/\s+/g, '-').toLowerCase();
+      const contentId = String(rawContentId).trim().replace(/\s+/g, '-').toLowerCase();
 
-      const currentFavorites: FavoriteItem[] = user.user_metadata?.favorites || [];
+      const currentFavorites = compactFavorites(user.user_metadata?.favorites);
       
       // Prevent duplicates
       if (currentFavorites.some(f => f.contentId === contentId || f.id === contentId)) {
@@ -51,15 +50,14 @@ export const favoritesService = {
       }
 
       const newFavorite: FavoriteItem = {
-        ...content,
         id: contentId,
         contentId: contentId,
-        title: content.title || '',
-        thumbnail: content.thumbnail || content.poster || '',
-        type: content.type || 'video',
+        title: typeof content.title === 'string' ? content.title : '',
+        thumbnail: typeof (content.thumbnail || content.poster) === 'string' ? String(content.thumbnail || content.poster) : '',
+        type: typeof content.type === 'string' ? content.type : 'video',
       };
 
-      const updatedFavorites = [...currentFavorites, newFavorite];
+      const updatedFavorites = compactFavorites([...currentFavorites, newFavorite]);
 
       const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
         data: { favorites: updatedFavorites }
@@ -69,8 +67,8 @@ export const favoritesService = {
         throw new Error(`Failed to update favorites: ${updateError.message}`);
       }
 
-      return updatedUser.user.user_metadata.favorites;
-    } catch (err: any) {
+      return compactFavorites(updatedUser.user.user_metadata.favorites);
+    } catch (err) {
       console.error('addFavorite error:', err);
       throw err;
     }
@@ -87,8 +85,8 @@ export const favoritesService = {
         throw new Error('User must be logged in to manage favorites');
       }
 
-      const currentFavorites: FavoriteItem[] = user.user_metadata?.favorites || [];
-      const updatedFavorites = currentFavorites.filter(f => f.contentId !== contentId && f.id !== contentId);
+      const currentFavorites = compactFavorites(user.user_metadata?.favorites);
+      const updatedFavorites = compactFavorites(currentFavorites.filter(f => f.contentId !== contentId && f.id !== contentId));
 
       const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
         data: { favorites: updatedFavorites }
@@ -98,8 +96,8 @@ export const favoritesService = {
         throw new Error(`Failed to update favorites: ${updateError.message}`);
       }
 
-      return updatedUser.user.user_metadata.favorites;
-    } catch (err: any) {
+      return compactFavorites(updatedUser.user.user_metadata.favorites);
+    } catch (err) {
       console.error('removeFavorite error:', err);
       throw err;
     }
@@ -114,7 +112,7 @@ export const favoritesService = {
         throw new Error('User must be logged in to manage favorites');
       }
 
-      const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await supabase.auth.updateUser({
         data: { favorites: [] }
       });
 
@@ -123,7 +121,7 @@ export const favoritesService = {
       }
 
       return [];
-    } catch (err: any) {
+    } catch (err) {
       console.error('clearFavorites error:', err);
       throw err;
     }

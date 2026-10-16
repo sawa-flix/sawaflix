@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { BACKEND_URL } from '@/lib/apiConfig'
+import { compactFavorites } from '@/utils/favorites'
 
 export async function GET(request) {
   try {
@@ -43,6 +44,20 @@ export async function GET(request) {
     // We replay them on the final redirect response so the browser receives them.
     const pendingCookies = []
 
+    // Remove old session chunks before writing a new one. Supabase can change
+    // the number of chunks between sessions, and browsers keep old chunks
+    // unless they are explicitly expired.
+    for (const cookie of cookieStore.getAll()) {
+      if (/^sb-.+-auth-token(?:\.\d+)?$/.test(cookie.name)) {
+        pendingCookies.push({
+          name: cookie.name,
+          value: '',
+          options: { path: '/', maxAge: 0 },
+        })
+        try { cookieStore.delete(cookie.name) } catch { /* ok in route handler */ }
+      }
+    }
+
     // @supabase/ssr v0.1.x uses get/set/remove (not getAll/setAll)
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -62,9 +77,13 @@ export async function GET(request) {
       },
     })
 
-    // Apply all captured cookies onto any response
+    // Apply all captured cookies onto any response, deduplicating by name
     const applyPendingCookies = (response) => {
+      const cookieMap = new Map()
       pendingCookies.forEach(({ name, value, options }) => {
+        cookieMap.set(name, { value, options })
+      })
+      cookieMap.forEach(({ value, options }, name) => {
         response.cookies.set(name, value, {
           ...options,
           path: options?.path ?? '/',
@@ -102,7 +121,7 @@ export async function GET(request) {
 
     try {
       // This triggers set() above for each session cookie → they go into pendingCookies
-      const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      let { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
       if (exchangeError || !session?.user) {
         console.error('🔴 Exchange failed:', exchangeError?.message || 'No session')
@@ -110,7 +129,7 @@ export async function GET(request) {
         return redirectWithCookies(`/dashboard?error=${encodeURIComponent(errMsg)}`)
       }
 
-      const user = session.user
+      let user = session.user
       if (isDev) console.log('🟢 Session OK for:', user.email, '| Cookies to set:', pendingCookies.length)
 
       // Google returns provider_token (access_token) on every OAuth login, and
@@ -121,6 +140,35 @@ export async function GET(request) {
       // be persisted here or they're lost.
       const googleAccessToken = session.provider_token || null
       const googleRefreshToken = session.provider_refresh_token || null
+
+      const originalFavorites = user.user_metadata?.favorites
+      if (Array.isArray(originalFavorites) && supabaseServiceRoleKey) {
+        const favorites = compactFavorites(originalFavorites)
+        if (JSON.stringify(originalFavorites) !== JSON.stringify(favorites)) {
+          const supabaseAdmin = createServerClient(supabaseUrl, supabaseServiceRoleKey, {
+            cookies: { get() { return undefined }, set() {}, remove() {} },
+          })
+          const { error: metadataError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: { ...user.user_metadata, favorites },
+          })
+
+          if (metadataError) {
+            console.error('🟡 Could not compact auth favorites:', metadataError.message)
+          } else {
+            const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession({
+              refresh_token: session.refresh_token,
+            })
+            if (refreshError || !refreshedData.session) {
+              console.error('🟡 Could not refresh compacted auth session:', refreshError?.message || 'No session returned')
+            } else {
+              session = refreshedData.session
+              user = refreshedData.user || refreshedData.session.user
+              if (isDev) console.log('🟢 Compacted auth metadata and refreshed session')
+            }
+          }
+        }
+      }
+
       if (isDev) {
         console.log('🟢 Google provider tokens:', {
           access: googleAccessToken ? 'YES' : 'NO',

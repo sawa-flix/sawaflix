@@ -57,8 +57,8 @@ export function ProfileHero({
           </div>
         )}
         {/* Dark Vignette Overlays for contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A] via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent hidden sm:block" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0E121A]/75 via-black/20 to-transparent" />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-black/50 via-black/20 to-transparent sm:block" />
       </div>
 
       {/* Profile Details Bar */}

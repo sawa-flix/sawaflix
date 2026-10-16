@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient, createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -36,6 +36,10 @@ export async function POST(request: NextRequest) {
         { error: 'No category provided' },
         { status: 400 }
       )
+    }
+
+    if (category !== 'profile_image' && category !== 'cover_image') {
+      return NextResponse.json({ error: 'Unsupported image category' }, { status: 400 })
     }
 
     // Log file details for debugging
@@ -98,17 +102,19 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now()
-    const ext = file.name.split('.').pop()
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
     const filename = `${user.id}/${category}/${timestamp}.${ext}`
 
     console.log('Uploading file:', { filename, bucket: 'user-profile-assets' })
 
-    // Upload to Supabase storage (user-profile-assets bucket)
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('user-profile-assets')
-      .upload(filename, file, {
+    const admin = await createAdminClient()
+    const bucket = admin.storage.from('user-profile-assets')
+
+    // Auth is verified above; use the server-only admin client for storage and profile writes.
+    const { data: uploadData, error: uploadError } = await bucket.upload(filename, file, {
         cacheControl: '3600',
-        upsert: true // Overwrite if file exists
+        contentType: file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        upsert: true,
       })
 
     if (uploadError) {
@@ -138,25 +144,49 @@ export async function POST(request: NextRequest) {
     console.log('Upload successful:', { filename, path: uploadData?.path })
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('user-profile-assets')
-      .getPublicUrl(uploadData.path)
+    const { data: urlData } = bucket.getPublicUrl(uploadData.path)
 
     const publicUrl = urlData.publicUrl
     const dbColumn = category === 'cover_image' ? 'cover_image_url' : 'profile_image_url'
 
-    const { error: dbError } = await supabase
+    const { data: updatedProfile, error: dbError } = await admin
       .from('users')
       .update({ [dbColumn]: publicUrl })
       .eq('id', user.id)
+      .select('id')
+      .maybeSingle()
 
     if (dbError) {
       console.error('Failed to save image URL to profile:', dbError)
-      await supabase.storage.from('user-profile-assets').remove([uploadData.path])
+      await bucket.remove([uploadData.path])
       return NextResponse.json(
         { error: 'Image uploaded but failed to save to your profile. Please try again.', details: dbError.message },
         { status: 500 }
       )
+    }
+
+    if (!updatedProfile) {
+      const platformRole = user.user_metadata?.category || user.user_metadata?.role || 'client'
+      const { error: insertError } = await admin.from('users').upsert({
+        id: user.id,
+        email: user.email,
+        username: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        role: platformRole === 'creator' ? 'creator' : 'viewer',
+        platform_role: platformRole === 'creator' ? 'artist' : 'client',
+        profile_image_url: category === 'profile_image' ? publicUrl : user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+        cover_image_url: category === 'cover_image' ? publicUrl : null,
+        verification_status: 'approved',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' })
+
+      if (insertError) {
+        console.error('Failed to create profile row for uploaded image:', insertError)
+        await bucket.remove([uploadData.path])
+        return NextResponse.json(
+          { error: 'Image uploaded but your profile could not be created. Please contact support.', details: insertError.message },
+          { status: 500 }
+        )
+      }
     }
 
     revalidatePath('/dashboard/profile')

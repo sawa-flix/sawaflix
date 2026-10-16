@@ -44,7 +44,7 @@ export default function EditProfilePage() {
           username: row?.username ?? authUser.user_metadata?.full_name ?? 'User',
           email: row?.email ?? authUser.email ?? null,
           bio: row?.bio ?? null,
-          profileImageUrl: row?.profile_image_url ?? null,
+          profileImageUrl: row?.profile_image_url ?? authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? null,
           coverImageUrl: row?.cover_image_url ?? null,
           createdAt: row?.created_at ?? authUser.created_at ?? new Date().toISOString(),
           verified: verificationStatus === 'approved',

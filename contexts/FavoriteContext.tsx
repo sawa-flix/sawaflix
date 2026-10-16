@@ -3,20 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { favoritesService } from '../services/favoritesService';
 import { createClient } from '../utils/supabase/client';
-
-interface FavoriteItem {
-  id: string;
-  contentId: string;
-  type?: string;
-  title?: string;
-  thumbnail?: string;
-  [key: string]: any;
-}
+import { compactFavorites, type FavoriteItem } from '../utils/favorites';
 
 interface FavoriteContextType {
   favorites: FavoriteItem[];
   loading: boolean;
-  toggleFavorite: (content: any) => Promise<void>;
+  toggleFavorite: (content: Record<string, unknown>) => Promise<void>;
   isFavorite: (contentId: string) => boolean;
   refreshFavorites: () => Promise<void>;
 }
@@ -49,7 +41,7 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
         // Use the session user metadata if available directly, or re-fetch
         if (session?.user?.user_metadata?.favorites) {
-          setFavorites(session.user.user_metadata.favorites);
+          setFavorites(compactFavorites(session.user.user_metadata.favorites));
         } else {
           fetchFavorites();
         }
@@ -63,7 +55,7 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const getContentId = (content: any) => {
+  const getContentId = (content: Record<string, unknown>) => {
     const rawId = content.id || content.contentId || content.videoId || content.title;
     if (!rawId) return '';
     return String(rawId).trim().replace(/\s+/g, '-').toLowerCase();
@@ -76,7 +68,7 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const toggleFavorite = async (content: any) => {
+  const toggleFavorite = async (content: Record<string, unknown>) => {
     const contentId = getContentId(content);
     if (!contentId) {
       console.error('Cannot toggle favorite: Missing contentId', content);
@@ -90,7 +82,7 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
     if (currentlyFavorite) {
       setFavorites(favorites.filter(fav => fav.contentId !== contentId && fav.id !== contentId));
     } else {
-      setFavorites([...favorites, { ...content, contentId, id: contentId }]);
+      setFavorites(compactFavorites([...favorites, { ...content, contentId, id: contentId }]));
     }
 
     try {
