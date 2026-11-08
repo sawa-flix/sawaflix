@@ -1,9 +1,11 @@
 'use client'
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { LoaderCircle, Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp, BookOpen, Video as VideoIcon, Heart, MessageCircle, Eye } from 'lucide-react';
 
 import { MOVIES_DATA } from '../Movie/constants';
+import { fetchCuratedMovies } from '../Movie/movieApi';
+import { prepareWatermarkedVideoSource } from '@/lib/reels/ffmpegWatermark';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { getStories, getCategories } from '@/lib/sanity/queries';
 import Link from 'next/link';
@@ -58,6 +60,29 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: Video; activeCate
   const [imgSrc, setImgSrc] = useState(initialThumb);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isPreviewReady, setIsPreviewReady] = useState(false);
+  const nativeVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [processedPreviewSrc, setProcessedPreviewSrc] = useState<string | null>(null);
+  const triggerPreview = useCallback(() => {
+    setIsPreviewReady(false);
+    setIsPreviewing(true);
+    requestAnimationFrame(() => {
+      const video = nativeVideoRef.current;
+      if (!video) return;
+      video.muted = true;
+      video.volume = 0;
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    });
+  }, []);
+  const stopPreview = useCallback(() => {
+    setIsPreviewing(false);
+    setIsPreviewReady(false);
+    const video = nativeVideoRef.current;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, []);
   const videoUrl = reel.videoUrl || reel.embedUrl || '';
   const isYouTube = reel.origin ? reel.origin === 'youtube' : reel.id.length === 11;
   const isNative = !isYouTube;
@@ -81,16 +106,50 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: Video; activeCate
     setImgSrc(initialThumb);
   }, [initialThumb]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let revocableObjectUrl: string | null = null;
+
+    if (!isPreviewing || !isNative || !previewSrc || !previewSrc.startsWith('http')) return;
+
+    prepareWatermarkedVideoSource(previewSrc)
+      .then((source) => {
+        if (cancelled) {
+          if (source.startsWith('blob:')) URL.revokeObjectURL(source);
+          return;
+        }
+        revocableObjectUrl = source.startsWith('blob:') ? source : null;
+        setProcessedPreviewSrc(source);
+      })
+      .catch(() => setProcessedPreviewSrc(previewSrc));
+
+    return () => {
+      cancelled = true;
+      if (revocableObjectUrl) URL.revokeObjectURL(revocableObjectUrl);
+    };
+  }, [isPreviewing, isNative, previewSrc]);
+
+  useEffect(() => {
+    if (!isPreviewing || !nativeVideoRef.current) return;
+
+    const videoElement = nativeVideoRef.current;
+    videoElement.muted = true;
+    videoElement.playsInline = true;
+    videoElement.play().catch(() => {
+      // Autoplay can be blocked until user interaction; the hover state is the interaction.
+    });
+  }, [isPreviewing, processedPreviewSrc]);
+
   return (
     <Link
       key={reel.id}
       href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(reel.id)}`}
       onClick={() => stashReelForHandoff(reel)}
-      onPointerEnter={(event) => { if (canUseHover(event)) { setIsPreviewReady(false); setIsPreviewing(true); } }}
-      onPointerLeave={(event) => { if (canUseHover(event)) { setIsPreviewing(false); setIsPreviewReady(false); } }}
-      onPointerCancel={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
-      onFocus={() => { setIsPreviewReady(false); setIsPreviewing(true); }}
-      onBlur={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
+      onPointerEnter={(event) => { if (canUseHover(event)) triggerPreview(); }}
+      onPointerLeave={(event) => { if (canUseHover(event)) stopPreview(); }}
+      onPointerCancel={stopPreview}
+      onFocus={triggerPreview}
+      onBlur={stopPreview}
       className="relative w-[210px] sm:w-[240px] lg:w-[280px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
       <Image
@@ -109,7 +168,8 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: Video; activeCate
       />
       {isPreviewing && isNative && previewSrc && (
         <video
-          src={previewSrc}
+          ref={nativeVideoRef}
+          src={processedPreviewSrc || previewSrc}
           autoPlay
           muted
           loop
@@ -117,19 +177,20 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: Video; activeCate
           preload="auto"
           aria-hidden="true"
           onLoadedData={() => setIsPreviewReady(true)}
+          onCanPlay={() => setIsPreviewReady(true)}
           onError={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
-          className={`pointer-events-none absolute inset-0 z-[1] h-full w-full bg-black object-cover transition-opacity duration-200 ${isPreviewReady ? 'opacity-100' : 'opacity-0'}`}
+          className={`pointer-events-none absolute inset-0 z-[1] h-full w-full bg-black object-cover transition-opacity duration-200 ${isPreviewReady ? 'opacity-100' : 'opacity-100'}`}
         />
       )}
       {isPreviewing && isYouTube && (
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(reel.id)}?autoplay=1&mute=1&controls=0&rel=0&playsinline=1&loop=1&playlist=${encodeURIComponent(reel.id)}&modestbranding=1`}
           title={`Muted preview: ${reel.title || 'Reel'}`}
-          allow="autoplay; encrypted-media; picture-in-picture"
+          allow="autoplay; encrypted-media; picture-in-picture; clipboard-write"
           tabIndex={-1}
           aria-hidden="true"
           onLoad={() => setIsPreviewReady(true)}
-          className={`pointer-events-none absolute inset-0 z-[1] h-full w-full border-0 bg-black transition-opacity duration-200 ${isPreviewReady ? 'opacity-100' : 'opacity-0'}`}
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full border-0 bg-black opacity-100"
         />
       )}
       {isPreviewing && !isPreviewReady && ((isNative && previewSrc) || isYouTube) && (
@@ -177,11 +238,14 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
     image: string;
     badge: string;
     targetUrl: string;
+    videoId?: string;
   } | null>(null);
   const [adminVideos, setAdminVideos] = useState<any[]>([]);
+  const [curatedMovies, setCuratedMovies] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
   const [storyCategories, setStoryCategories] = useState<any[]>([]);
   const [loadingStories, setLoadingStories] = useState(true);
+  const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(false);
   const [storyStatsMap, setStoryStatsMap] = useState<Record<string, { likesCount: number; viewsCount: number; commentsCount: number }>>({});
 
 
@@ -189,6 +253,22 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   const longFormScrollRef = useRef<HTMLDivElement>(null);
   const reelsPreviewScrollRef = useRef<HTMLDivElement>(null);
   const topStoriesScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchCuratedMovies()
+      .then((movies) => {
+        if (!active) return;
+        setCuratedMovies(movies.slice(0, 8));
+      })
+      .catch(() => {
+        if (active) setCuratedMovies([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Fetch admin uploaded content for the banner pool
   useEffect(() => {
@@ -242,6 +322,7 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
       image: string;
       badge: string;
       targetUrl: string;
+      videoId?: string;
     }> = [];
 
     // 1. Admin Uploaded Videos
@@ -281,24 +362,25 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
       });
     });
 
-    // 3. Movies use the same curated feed and posters as the movie page.
-    const movieItems = MOVIES_DATA
-          .filter((movie) => movie.image && !movie.image.includes('/sawa.png'))
-          .map((movie) => ({
-            id: String(movie.id),
-            title: movie.title,
-            image: movie.image,
-            subtitle: `${movie.genres?.[0] || 'Cameroonian cinema'} • ${movie.year}`,
-          }));
+    // 3. Movies use the real curated movie feed from the movie catalog, with a fallback to the local poster set.
+    const movieItems = (curatedMovies.length > 0 ? curatedMovies : MOVIES_DATA)
+      .filter((movie: any) => movie.image && !movie.image.includes('/sawa.png'))
+      .map((movie: any) => ({
+        id: String(movie.id),
+        title: movie.title,
+        image: movie.image || movie.thumbnail_url,
+        subtitle: `${movie.genres?.[0] || 'Cameroonian cinema'} • ${movie.year || 'Now streaming'}`,
+        videoId: movie.youtube_video_id || movie.videoId || undefined,
+      }));
     const seenMovieImages = new Set<string>();
     movieItems
-      .filter((movie) => {
+      .filter((movie: any) => {
         if (seenMovieImages.has(movie.image)) return false;
         seenMovieImages.add(movie.image);
         return true;
       })
       .slice(0, 6)
-      .forEach((m) => {
+      .forEach((m: any) => {
       pool.push({
         id: m.id,
         type: 'movie',
@@ -306,12 +388,13 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         subtitle: m.subtitle || 'Cameroonian cinema',
         image: m.image,
         badge: 'Trending movie',
-        targetUrl: '/dashboard/movie'
+        targetUrl: `/dashboard/movie/${encodeURIComponent(m.id)}`,
+        videoId: m.videoId,
       });
     });
 
     return pool;
-  }, [adminVideos, stories]);
+  }, [adminVideos, curatedMovies, stories]);
 
   // Pick random banner item and rotate every 3 minutes
   useEffect(() => {
@@ -327,12 +410,12 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
   // Handle banner play/read navigation
   const handleBannerClick = () => {
     if (!heroItem) return;
+    if (heroItem.type === 'movie') {
+      router.push(heroItem.targetUrl || '/dashboard/movie');
+      return;
+    }
     if (!isAuthenticated) {
-      const reason = heroItem.type === 'blog' 
-        ? 'to read this story' 
-        : heroItem.type === 'movie' 
-        ? 'to watch this movie' 
-        : 'to watch this video';
+      const reason = heroItem.type === 'blog' ? 'to read this story' : 'to watch this video';
       openAuthModal(reason);
       return;
     }
@@ -512,13 +595,27 @@ export default function DashboardLanding({ onPlayReel, reels, activeCategory, on
         {heroItem && (
           <section 
             onClick={handleBannerClick}
+            onMouseEnter={() => heroItem.type === 'movie' && setIsHeroVideoPlaying(true)}
+            onMouseLeave={() => heroItem.type === 'movie' && setIsHeroVideoPlaying(false)}
+            onFocus={() => heroItem.type === 'movie' && setIsHeroVideoPlaying(true)}
+            onBlur={() => heroItem.type === 'movie' && setIsHeroVideoPlaying(false)}
             className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-[2rem] overflow-hidden group shadow-2xl border border-[color:var(--border)] bg-[color:var(--surface)] cursor-pointer"
           >
+            {heroItem.videoId && heroItem.type === 'movie' && isHeroVideoPlaying && (
+              <div className="absolute inset-0 z-10 animate-[fadeIn_300ms_ease-out]">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(heroItem.videoId)}?autoplay=1&mute=1&controls=0&rel=0&playsinline=1&loop=1&playlist=${encodeURIComponent(heroItem.videoId)}`}
+                  title={heroItem.title}
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  className="h-full w-full border-0 object-cover"
+                />
+              </div>
+            )}
             <Image
               src={heroItem.image}
               alt={heroItem.title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              className={`object-cover transition-transform duration-700 ${heroItem.videoId && heroItem.type === 'movie' ? `group-hover:scale-[1.08] ${isHeroVideoPlaying ? 'opacity-20' : 'opacity-100'}` : 'group-hover:scale-[1.03]'}`}
               unoptimized
               priority
               sizes="100vw"
