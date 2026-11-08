@@ -188,7 +188,7 @@ export default function CameroonMapOnboarding() {
       <div className="relative mx-auto grid min-h-[calc(100svh-7rem)] max-w-6xl items-center gap-5 lg:grid-cols-[minmax(15rem,0.8fr)_minmax(20rem,1.2fr)] lg:gap-10">
         <section className="order-2 mx-auto w-full max-w-lg text-center lg:order-1 lg:text-left">
           <p className="mb-3 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#85d7f4] sm:text-xs"><span className="h-1.5 w-1.5 rounded-full bg-[#ff5a3d]" /> Cameroon, connected</p>
-          <h1 className="text-3xl font-black leading-tight sm:text-4xl">Where is <span className="text-[#ff5a3d]">your story</span> rooted?</h1>
+          <h1 className="text-3xl font-black leading-tight sm:text-4xl">Where is <span className="text-[#85d7f4]">your story</span> rooted?</h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/70 lg:mx-0">Pick your nearest place on the map. We’ll use it to bring local stories and voices closer to you.</p>
           <button type="button" onClick={detectLocation} disabled={locating || saving} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-semibold text-white transition hover:border-[#85d7f4]/70 hover:bg-white/10 disabled:cursor-wait disabled:opacity-60">
             {locating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4 text-[#85d7f4]" />}
@@ -215,7 +215,7 @@ export default function CameroonMapOnboarding() {
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: index * 0.035, type: 'spring', stiffness: 280, damping: 18 }}
-                  className={`absolute z-10 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50 sm:h-10 sm:w-10 ${isSelected ? 'border-white bg-[#ff5a3d] shadow-[0_0_0_6px_rgba(255,90,61,0.24),0_0_32px_rgba(255,90,61,0.8)]' : 'border-[#dff6ff]/80 bg-[#1688ff]/55 shadow-[0_0_20px_rgba(22,136,255,0.55)] hover:scale-110 hover:bg-[#ff5a3d] hover:shadow-[0_0_26px_rgba(255,90,61,0.7)]'}`}
+                  className={`absolute z-10 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50 sm:h-10 sm:w-10 ${isSelected ? 'border-white bg-[#85d7f4] shadow-[0_0_0_6px_rgba(133,215,244,0.24),0_0_32px_rgba(133,215,244,0.65)]' : 'border-[#dff6ff]/80 bg-[#1688ff]/55 shadow-[0_0_20px_rgba(22,136,255,0.55)] hover:scale-110 hover:bg-[#85d7f4] hover:shadow-[0_0_26px_rgba(133,215,244,0.65)]'}`}
                   style={{ left: `${marker.x / 1107 * 100}%`, top: `${marker.y / 1421 * 100}%` }}
                 >
                   <span className={`h-2.5 w-2.5 rounded-full border border-white ${isSelected ? 'bg-white' : 'bg-[#bceaff]'}`} />
@@ -240,8 +240,8 @@ export default function CameroonMapOnboarding() {
                       <p className="text-xl font-black leading-tight text-white sm:text-2xl">{profileComplete ? 'You’re all set. Where next?' : 'Make this yours?'}</p>
                       <p className="mt-1 text-xs text-white/60">{profileComplete ? 'Your account is ready.' : 'Personalize your local picks or jump in.'}</p>
                       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                        {!profileComplete && <Link href="/dashboard?completeProfile=1" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#ff806a] px-3 text-xs font-extrabold text-[#23110e] shadow-[0_8px_24px_rgba(255,128,106,0.28)] transition hover:bg-[#ff927f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">Personalize <ArrowRight className="h-4 w-4" /></Link>}
-                        <Link href="/dashboard" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#ff806a] px-3 text-xs font-extrabold text-[#23110e] shadow-[0_8px_24px_rgba(255,128,106,0.28)] transition hover:bg-[#ff927f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">Explore <ArrowRight className="h-4 w-4" /></Link>
+                        {!profileComplete && <Link href="/dashboard?completeProfile=1" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#85d7f4] px-3 text-xs font-extrabold text-[#10202a] shadow-[0_8px_24px_rgba(133,215,244,0.2)] transition hover:bg-[#a4e6fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">Personalize <ArrowRight className="h-4 w-4" /></Link>}
+                        <Link href="/dashboard" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#85d7f4] px-3 text-xs font-extrabold text-[#10202a] shadow-[0_8px_24px_rgba(133,215,244,0.2)] transition hover:bg-[#a4e6fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">Explore <ArrowRight className="h-4 w-4" /></Link>
                       </div>
                     </>
                   ) : (
@@ -250,7 +250,7 @@ export default function CameroonMapOnboarding() {
                       <p className="text-xl font-black leading-tight text-white sm:text-2xl">Is {selected.name} your place?</p>
                       <p className="mt-1 text-xs text-white/60">{selected.region} Region · You can change this later.</p>
                       <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
-                        <button type="button" onClick={() => void continueWithLocation()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-3 text-xs font-extrabold text-white shadow-[0_8px_24px_rgba(255,90,61,0.28)] transition hover:bg-[#f34437] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">{signedIn ? 'Continue to SawaFlix' : 'Yes, continue with Google'} <ArrowRight className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => void continueWithLocation()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#85d7f4] px-3 text-xs font-extrabold text-[#10202a] shadow-[0_8px_24px_rgba(133,215,244,0.2)] transition hover:bg-[#a4e6fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm">{signedIn ? 'Continue to SawaFlix' : 'Yes, continue with Google'} <ArrowRight className="h-4 w-4" /></button>
                         <button type="button" aria-label="Choose another location" title="Choose another location" onClick={() => { setSelected(null); setMessage('Choose a place that feels like home.'); localStorage.removeItem(LOCATION_KEY); }} className="grid h-11 w-11 place-items-center rounded-lg border border-white/20 text-white/70 transition hover:border-white/50 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><RotateCcw className="h-4 w-4" /></button>
                       </div>
                     </>

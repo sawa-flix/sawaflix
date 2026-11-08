@@ -131,6 +131,21 @@ const Header = ({
     };
 
     fetchUserProfile();
+
+    const handleProfileUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<{ profileImageUrl?: string; username?: string }>;
+      if (customEvent.detail?.profileImageUrl) {
+        setUserProfile((prev) => prev ? { ...prev, profile_image_url: customEvent.detail.profileImageUrl! } : prev);
+      }
+      if (customEvent.detail?.username) {
+        setUserProfile((prev) => prev ? { ...prev, username: customEvent.detail.username! } : prev);
+      }
+    };
+
+    window.addEventListener('user-profile-updated', handleProfileUpdated);
+    return () => {
+      window.removeEventListener('user-profile-updated', handleProfileUpdated);
+    };
   }, [currentUser]);
 
   // Debounced Search Effect

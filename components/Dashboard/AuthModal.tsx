@@ -1,52 +1,40 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient, clearSupabaseAuthCookies } from '@/utils/supabase/client';
 import Image from 'next/image';
 
 declare global {
   interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (options: {
-            client_id: string;
-            callback: (response: { credential?: string }) => void | Promise<void>;
-            auto_select: boolean;
-            cancel_on_tap_outside: boolean;
-          }) => void;
-          renderButton: (element: HTMLElement, options: {
-            theme: string;
-            size: string;
-            width: number;
-            text: string;
-            shape: string;
-            logo_alignment: string;
-          }) => void;
-        };
-      };
-    };
+    google?: any;
   }
+}
+
+interface GoogleIdTokenPayload {
+  name?: string;
+  given_name?: string;
+  picture?: string;
 }
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthenticated?: (userId: string) => void | Promise<void>;
   /** Optional contextual message, e.g. "to like this video" */
   promptMessage?: string;
 }
 
-export default function AuthModal({ isOpen, onClose, onAuthenticated, promptMessage = 'to continue on SawaFlix' }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, promptMessage = 'to continue on SawaFlix' }: AuthModalProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleGoogleCredential = useCallback(async (credentialResponse: { credential?: string }) => {
+  const handleGoogleCredential = async (credentialResponse: any) => {
     setError(null);
+    clearSupabaseAuthCookies();
+
     if (!credentialResponse.credential) {
       setError('Unable to continue with Google right now. Please try again.');
       return;
@@ -79,19 +67,15 @@ export default function AuthModal({ isOpen, onClose, onAuthenticated, promptMess
       );
       if (syncError) console.error('Profile sync warning:', syncError.message);
 
-      if (onAuthenticated) {
-        await onAuthenticated(data.user.id);
-      } else {
-        router.refresh();
-      }
+      router.refresh();
       onClose();
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Google Sign-In Error:', err);
-      setError(err instanceof Error ? err.message : 'Unable to continue with Google right now. Please try again.');
+      setError(err?.message || 'Unable to continue with Google right now. Please try again.');
     } finally {
       setIsGoogleLoading(false);
     }
-  }, [onAuthenticated, onClose, router]);
+  };
 
   // Initialize Google Sign-In button when modal opens
   useEffect(() => {
@@ -109,11 +93,8 @@ export default function AuthModal({ isOpen, onClose, onAuthenticated, promptMess
           cancel_on_tap_outside: true,
         });
 
-        const button = document.getElementById('google-signin-button');
-        if (!button) return;
-
         window.google.accounts.id.renderButton(
-          button,
+          document.getElementById('google-signin-button'),
           {
             theme: 'outline',
             size: 'large',
@@ -139,7 +120,7 @@ export default function AuthModal({ isOpen, onClose, onAuthenticated, promptMess
     } else {
       initializeGoogleSignIn();
     }
-  }, [handleGoogleCredential, isOpen]);
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -219,7 +200,6 @@ export default function AuthModal({ isOpen, onClose, onAuthenticated, promptMess
                 id="google-signin-button"
                 className="w-full"
               />
-              {isGoogleLoading && <p role="status" className="mt-3 flex items-center justify-center gap-2 text-xs text-[color:var(--muted-foreground)]"><Loader2 size={14} className="animate-spin" /> Signing in with Google</p>}
             </div>
 
             {/* Terms and Privacy Footer */}

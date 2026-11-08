@@ -188,6 +188,14 @@ export function DownloadProvider({ children }: { children: React.ReactNode }) {
           error: err?.message || 'Download failed',
         },
       }));
+      // Auto-clear the error entry after 4 seconds so the card reverts to normal
+      setTimeout(() => {
+        setActiveDownloads((prev) => {
+          const next = { ...prev };
+          if (next[video.id]?.status === 'error') delete next[video.id];
+          return next;
+        });
+      }, 4000);
       throw err;
     }
   }, [refreshDownloads]);

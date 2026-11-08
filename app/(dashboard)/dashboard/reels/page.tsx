@@ -1,6 +1,7 @@
 import { getCategoryReelsAction, getCultureFeedAction } from '@/app/actions/youtube';
 import type { Video } from '@/types/youtube';
 import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
+import { buildBlendedFeedOrder, mergeCategoryVideoResults } from '@/utils/reels/feedPriority';
 import { ReelsFeed } from '@/components/reels/ReelsFeed';
 
 interface ReelsPageProps {
@@ -23,15 +24,30 @@ export default async function ReelsPage({ searchParams }: ReelsPageProps) {
   let nextPageToken: string | null = null;
 
   try {
-    const response = categoryId
-      ? await getCategoryReelsAction(categoryId, null, 20)
-      : await getCultureFeedAction(1, 20);
-    const feedList: RawYoutubeFeedItem[] = response?.feed || [];
-    videos = feedList
-      .filter((item) => !!extractVideoId(item))
-      .map(mapYoutubeItem);
-    hasMore = !!response?.pagination?.next_page;
-    nextPageToken = categoryId && response?.pagination?.next_page ? String(response.pagination.next_page) : null;
+    if (categoryId) {
+      const response = await getCategoryReelsAction(categoryId, null, 20);
+      const feedList: RawYoutubeFeedItem[] = response?.feed || [];
+      videos = feedList
+        .filter((item) => !!extractVideoId(item))
+        .map(mapYoutubeItem);
+      hasMore = !!response?.pagination?.next_page;
+      nextPageToken = response?.pagination?.next_page ? String(response.pagination.next_page) : null;
+    } else {
+      const blendedCategories = buildBlendedFeedOrder(['all']).filter((item) => item !== 'all');
+      const results = await Promise.all(
+        blendedCategories.map(async (feedCategory) => {
+          const response = await getCategoryReelsAction(feedCategory, null, 6);
+          const feedList: RawYoutubeFeedItem[] = response?.feed || [];
+          return feedList
+            .filter((item) => !!extractVideoId(item))
+            .map((item) => ({ ...mapYoutubeItem(item), category: feedCategory }));
+        })
+      );
+
+      videos = mergeCategoryVideoResults(results.flat()).slice(0, 20);
+      hasMore = false;
+      nextPageToken = null;
+    }
   } catch (error) {
     console.error("[ReelsPage] Failed to fetch initial feed:", error);
   }

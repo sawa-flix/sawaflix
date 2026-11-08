@@ -98,6 +98,13 @@ export default function PWASplashScreen() {
       }
     };
 
+    const safeFallback = window.setTimeout(() => {
+      if (!disposed && !completed) {
+        finish();
+        window.dispatchEvent(new Event(APP_READY_EVENT));
+      }
+    }, 1500);
+
     const onDomReady = () => updateTarget();
     document.addEventListener('DOMContentLoaded', onDomReady);
     window.addEventListener('load', finish, { once: true });
@@ -145,6 +152,7 @@ export default function PWASplashScreen() {
       disposed = true;
       imageObserver.disconnect();
       window.clearTimeout(timeout);
+      window.clearTimeout(safeFallback);
       window.clearTimeout(fadeTimer);
       window.clearTimeout(hideTimer);
       window.cancelAnimationFrame(animationFrame);

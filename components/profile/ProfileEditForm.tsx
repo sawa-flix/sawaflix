@@ -14,6 +14,8 @@ export interface ProfileEditableFields {
   languagePreference: string;
   favoredGenres: string[];
   socialLinks: Record<string, string>;
+  profileImageUrl?: string | null;
+  coverImageUrl?: string | null;
 }
 
 interface ProfileEditFormProps {
@@ -60,8 +62,13 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
       const res = await fetch('/api/creator/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
-      if (category === 'profile_image') setAvatarUrl(data.url);
-      else setCoverUrl(data.url);
+      if (category === 'profile_image') {
+        setAvatarUrl(data.url);
+        window.dispatchEvent(new CustomEvent('user-profile-updated', { detail: { profileImageUrl: data.url } }));
+      } else {
+        setCoverUrl(data.url);
+        window.dispatchEvent(new CustomEvent('user-profile-updated', { detail: { coverImageUrl: data.url } }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -76,6 +83,8 @@ export function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormPr
     try {
       await onSave({
         ...fields,
+        profileImageUrl: avatarUrl,
+        coverImageUrl: coverUrl,
         favoredGenres: genresInput
           .split(',')
           .map((g) => g.trim())

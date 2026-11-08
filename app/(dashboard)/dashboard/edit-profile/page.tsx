@@ -78,25 +78,38 @@ export default function EditProfilePage() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) throw new Error('Not authenticated');
 
-    // Persists every field the form actually collects.
+    // Persists every field the form collects, including uploaded avatar and cover URLs
+    const updatePayload: Record<string, any> = {
+      username: fields.username,
+      bio: fields.bio,
+      phone: fields.phone,
+      region: fields.region,
+      village: fields.village,
+      language_preference: fields.languagePreference,
+      favored_genres: fields.favoredGenres,
+      social_links: fields.socialLinks,
+    };
+
+    if (fields.profileImageUrl !== undefined) {
+      updatePayload.profile_image_url = fields.profileImageUrl;
+    }
+    if (fields.coverImageUrl !== undefined) {
+      updatePayload.cover_image_url = fields.coverImageUrl;
+    }
+
     const { error } = await supabase
       .from('users')
-      .update({
-        username: fields.username,
-        bio: fields.bio,
-        phone: fields.phone,
-        region: fields.region,
-        village: fields.village,
-        language_preference: fields.languagePreference,
-        favored_genres: fields.favoredGenres,
-        social_links: fields.socialLinks,
-      })
+      .update(updatePayload)
       .eq('id', authUser.id);
 
     if (error) throw error;
 
+    router.refresh();
     setSuccessMessage('Profile updated successfully!');
-    setTimeout(() => router.push('/dashboard/profile'), 1200);
+    setTimeout(() => {
+      router.refresh();
+      router.push('/dashboard/profile');
+    }, 1200);
   };
 
   if (isLoading) {

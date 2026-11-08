@@ -74,7 +74,7 @@ export default function Navbar() {
           {/* Right Side Buttons - Netflix Style */}
           <div className="hidden md:flex items-center gap-4">
             <Link 
-              href="/dashboard" 
+              href="/onboarding" 
               className="rounded-lg border border-white/50 bg-white/95 px-5 py-2 text-sm font-bold text-[#171326] shadow-sm transition-colors hover:bg-white"
             >
               Get Started

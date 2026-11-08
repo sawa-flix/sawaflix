@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import { Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp, BookOpen, Video as VideoIcon, Heart, MessageCircle, Eye } from 'lucide-react';
+import { LoaderCircle, Play, ChevronRight, ChevronLeft, Film, Search, TrendingUp, BookOpen, Video as VideoIcon, Heart, MessageCircle, Eye } from 'lucide-react';
 
 import { MOVIES_DATA } from '../Movie/constants';
 import { sanityFetch, urlFor } from '@/lib/sanity/client';
@@ -13,6 +13,7 @@ import { useAuthModal } from '@/contexts/AuthModalContext';
 import { useHomeSearchStore } from '@/store/homeSearchStore';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import CultureInfiniteFeed from './CultureInfiniteFeed';
+import type { Video } from '@/types/youtube';
 
 const PILL_TABS = [
   { id: 'all',          label: 'For You' },
@@ -52,9 +53,29 @@ function formatRelativeTime(dateString: string): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-function ReelPreviewCardItem({ reel, activeCategory }: { reel: any; activeCategory: string }) {
+function ReelPreviewCardItem({ reel, activeCategory }: { reel: Video; activeCategory: string }) {
   const initialThumb = reel.thumbnail || (reel.id ? `https://i.ytimg.com/vi/${reel.id}/hqdefault.jpg` : 'https://i.ibb.co/WWhx2c0g/sawaflixmusic-cover.png');
   const [imgSrc, setImgSrc] = useState(initialThumb);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isPreviewReady, setIsPreviewReady] = useState(false);
+  const videoUrl = reel.videoUrl || reel.embedUrl || '';
+  const isYouTube = reel.origin ? reel.origin === 'youtube' : reel.id.length === 11;
+  const isNative = !isYouTube;
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://adminapi.sawaflix.com';
+  let previewSrc = videoUrl && !videoUrl.includes('youtube.com') && !videoUrl.includes('youtu.be')
+    ? videoUrl
+    : reel.id ? `${adminUrl}/api/admin/upload/stream/${reel.id}` : '';
+
+  if (isNative && (previewSrc.includes('localhost:') || previewSrc.includes('127.0.0.1:'))) {
+    try {
+      const parsedUrl = new URL(previewSrc);
+      previewSrc = `${adminUrl}${parsedUrl.pathname}${parsedUrl.search}`;
+    } catch {
+      previewSrc = '';
+    }
+  }
+
+  const canUseHover = (event: React.PointerEvent<HTMLAnchorElement>) => event.pointerType === 'mouse';
 
   useEffect(() => {
     setImgSrc(initialThumb);
@@ -65,6 +86,11 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: any; activeCatego
       key={reel.id}
       href={`/dashboard/reels?cat=${encodeURIComponent(activeCategory)}&id=${encodeURIComponent(reel.id)}`}
       onClick={() => stashReelForHandoff(reel)}
+      onPointerEnter={(event) => { if (canUseHover(event)) { setIsPreviewReady(false); setIsPreviewing(true); } }}
+      onPointerLeave={(event) => { if (canUseHover(event)) { setIsPreviewing(false); setIsPreviewReady(false); } }}
+      onPointerCancel={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
+      onFocus={() => { setIsPreviewReady(false); setIsPreviewing(true); }}
+      onBlur={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
       className="relative w-[210px] sm:w-[240px] lg:w-[280px] aspect-[9/16] flex-shrink-0 snap-start rounded-xl overflow-hidden cursor-pointer group/card border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
       <Image
@@ -81,13 +107,43 @@ function ReelPreviewCardItem({ reel, activeCategory }: { reel: any; activeCatego
           }
         }}
       />
+      {isPreviewing && isNative && previewSrc && (
+        <video
+          src={previewSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          onLoadedData={() => setIsPreviewReady(true)}
+          onError={() => { setIsPreviewing(false); setIsPreviewReady(false); }}
+          className={`pointer-events-none absolute inset-0 z-[1] h-full w-full bg-black object-cover transition-opacity duration-200 ${isPreviewReady ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+      {isPreviewing && isYouTube && (
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(reel.id)}?autoplay=1&mute=1&controls=0&rel=0&playsinline=1&loop=1&playlist=${encodeURIComponent(reel.id)}&modestbranding=1`}
+          title={`Muted preview: ${reel.title || 'Reel'}`}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          tabIndex={-1}
+          aria-hidden="true"
+          onLoad={() => setIsPreviewReady(true)}
+          className={`pointer-events-none absolute inset-0 z-[1] h-full w-full border-0 bg-black transition-opacity duration-200 ${isPreviewReady ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+      {isPreviewing && !isPreviewReady && ((isNative && previewSrc) || isYouTube) && (
+        <div role="status" aria-label="Loading video preview" className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/15">
+          <LoaderCircle className="h-7 w-7 animate-spin text-white drop-shadow-md" />
+        </div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+      {!isPreviewing && <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
         <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
           <Play size={24} className="text-white fill-white ml-1" />
         </div>
-      </div>
+      </div>}
 
       <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-1">
         <h3 className="text-white text-sm font-bold line-clamp-2 leading-tight drop-shadow-md">

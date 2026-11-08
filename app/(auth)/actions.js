@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from '../../utils/supabase/server';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
@@ -48,6 +49,17 @@ export async function signInWithPassword(formData) {
     if (!session?.access_token || !session?.refresh_token) {
       return { error: 'Authentication failed. No session returned.' };
     }
+
+    // Clean up any stale or fragmented sb-* auth cookies before creating the new session to prevent HTTP 431
+    try {
+      const cookieStore = await cookies();
+      const allCookies = cookieStore.getAll();
+      for (const c of allCookies) {
+        if (c.name.startsWith('sb-') && c.name.includes('-auth-token')) {
+          cookieStore.delete(c.name);
+        }
+      }
+    } catch (_) {}
 
     const supabase = await createClient();
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Loader2, MapPin, X } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
@@ -34,7 +33,6 @@ const emptyDraft = (displayName: string): Draft => ({
 });
 
 export default function ProfileCompletionWizard({ userId, email, displayName, onVisibilityChange }: Props) {
-  const router = useRouter();
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(displayName));
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
@@ -42,6 +40,12 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('completeProfile') === '1') {
+      setOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -95,13 +99,6 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
   });
 
   useEffect(() => {
-    if (!ready || typeof window === 'undefined') return;
-    if (new URLSearchParams(window.location.search).get('completeProfile') === '1' && completion.percent < 100) {
-      setOpen(true);
-    }
-  }, [completion.percent, ready]);
-
-  useEffect(() => {
     if (ready) onVisibilityChange(completion.percent < 100);
     return () => onVisibilityChange(false);
   }, [completion.percent, onVisibilityChange, ready]);
@@ -139,10 +136,6 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
         if (insertError) throw insertError;
       }
       const nextDraft = { ...draft, socialLinks, website: draft.website.trim() };
-      if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('completeProfile') === '1') {
-        router.replace('/dashboard');
-        return;
-      }
       setDraft(nextDraft);
       const nextCompletion = computeProfileCompletion({
         ...nextDraft,
@@ -197,7 +190,7 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
             <motion.section role="dialog" aria-modal="true" aria-labelledby="profile-completion-title" initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }} className="relative z-10 flex max-h-[min(720px,92dvh)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
               <header className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] px-5 py-4 sm:px-7">
                 <div>
-                  <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase text-[color:var(--primary)]"><MapPin size={12} /> Local recommendations</p>
+                  <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase text-[color:var(--muted-foreground)]"><MapPin size={12} /> Local recommendations</p>
                   <h2 id="profile-completion-title" className="text-lg font-black">Complete your profile</h2>
                   <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">Tell us what you enjoy and where you are from.</p>
                 </div>
@@ -205,7 +198,7 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
               </header>
               <div className="border-b border-[color:var(--border)] px-5 py-3 sm:px-7">
                 <div className="mb-2 flex justify-between text-[10px] font-semibold text-[color:var(--muted-foreground)]"><span>{STEPS[step]}</span><span>Step {step + 1} of {STEPS.length} · {completion.percent}%</span></div>
-                <div className="flex gap-1.5">{STEPS.map((label, index) => <span key={label} className={`h-1 flex-1 rounded-full ${index <= step ? 'bg-[color:var(--primary)]' : 'bg-[color:var(--border)]'}`} />)}</div>
+                <div className="flex gap-1.5">{STEPS.map((label, index) => <span key={label} className={`h-1 flex-1 rounded-full ${index <= step ? 'bg-[color:var(--foreground)]' : 'bg-[color:var(--border)]'}`} />)}</div>
               </div>
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-7">
                 {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500">{error}</p>}
@@ -217,7 +210,7 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
                 {step === 1 && <>
                   <div className="grid gap-4 sm:grid-cols-2"><Field label="Region"><input value={draft.region || ''} onChange={(event) => setDraft((current) => ({ ...current, region: event.target.value }))} className={inputClass} placeholder="e.g. Littoral" /></Field><Field label="Town or village"><input value={draft.village || ''} onChange={(event) => setDraft((current) => ({ ...current, village: event.target.value }))} className={inputClass} placeholder="e.g. Douala" /></Field></div>
                   <Field label="Preferred language"><select value={draft.languagePreference || 'English'} onChange={(event) => setDraft((current) => ({ ...current, languagePreference: event.target.value }))} className={inputClass}>{['English', 'French', 'Pidgin', 'Douala', 'Bassa', 'Other'].map((language) => <option key={language}>{language}</option>)}</select></Field>
-                  <fieldset><legend className="mb-2 text-[10px] font-bold uppercase text-[color:var(--muted-foreground)]">Favorite genres</legend><div className="flex flex-wrap gap-2">{GENRES.map((genre) => { const selected = draft.favoredGenres.includes(genre); return <button type="button" key={genre} aria-pressed={selected} onClick={() => setDraft((current) => ({ ...current, favoredGenres: selected ? current.favoredGenres.filter((item) => item !== genre) : [...current.favoredGenres, genre] }))} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${selected ? 'border-[color:var(--primary)] bg-[color:var(--primary)] text-white' : 'border-[color:var(--border)] text-[color:var(--foreground-secondary)] hover:bg-[color:var(--surface-hover)]'}`}>{genre}</button>; })}</div></fieldset>
+                  <fieldset><legend className="mb-2 text-[10px] font-bold uppercase text-[color:var(--muted-foreground)]">Favorite genres</legend><div className="flex flex-wrap gap-2">{GENRES.map((genre) => { const selected = draft.favoredGenres.includes(genre); return <button type="button" key={genre} aria-pressed={selected} onClick={() => setDraft((current) => ({ ...current, favoredGenres: selected ? current.favoredGenres.filter((item) => item !== genre) : [...current.favoredGenres, genre] }))} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${selected ? 'border-[color:var(--foreground)] bg-[color:var(--foreground)] text-[color:var(--background)]' : 'border-[color:var(--border)] text-[color:var(--foreground-secondary)] hover:bg-[color:var(--surface-hover)]'}`}>{genre}</button>; })}</div></fieldset>
                 </>}
                 {step === 2 && <>
                   <Field label="Website"><input type="url" value={draft.website || ''} onChange={(event) => setDraft((current) => ({ ...current, website: event.target.value }))} className={inputClass} placeholder="https://yoursite.com" /></Field>
@@ -226,7 +219,7 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
               </div>
               <footer className="flex items-center justify-between gap-3 border-t border-[color:var(--border)] px-5 py-4 sm:px-7">
                 <button type="button" disabled={step === 0 || saving} onClick={() => { setStep((current) => Math.max(0, current - 1)); setSaved(false); }} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-[color:var(--muted-foreground)] hover:bg-[color:var(--surface-hover)] disabled:opacity-40"><ArrowLeft size={14} /> Previous</button>
-                <div className="flex items-center gap-2"><button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-xs font-semibold text-[color:var(--muted-foreground)]">Finish later</button>{step < STEPS.length - 1 ? <button type="button" onClick={() => { setStep((current) => Math.min(STEPS.length - 1, current + 1)); setSaved(false); }} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-xs font-bold text-[color:var(--background)]">Next <ArrowRight size={14} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{saving ? 'Saving' : 'Save profile'}</button>}</div>
+                <div className="flex items-center gap-2"><button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-xs font-semibold text-[color:var(--muted-foreground)]">Finish later</button>{step < STEPS.length - 1 ? <button type="button" onClick={() => { setStep((current) => Math.min(STEPS.length - 1, current + 1)); setSaved(false); }} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-xs font-bold text-[color:var(--background)]">Next <ArrowRight size={14} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--foreground)] px-4 py-2 text-xs font-bold text-[color:var(--background)] disabled:opacity-50">{saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}{saving ? 'Saving' : 'Save profile'}</button>}</div>
               </footer>
             </motion.section>
           </div>
@@ -239,7 +232,7 @@ export default function ProfileCompletionWizard({ userId, email, displayName, on
 function ProgressRing({ percent }: { percent: number }) {
   const radius = 14;
   const circumference = 2 * Math.PI * radius;
-  return <svg width="34" height="34" viewBox="0 0 36 36" className="shrink-0 -rotate-90" role="img" aria-label={`${percent}% profile complete`}><circle cx="18" cy="18" r={radius} fill="none" stroke="var(--border)" strokeWidth="3" /><circle cx="18" cy="18" r={radius} fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - percent / 100)} className="transition-[stroke-dashoffset] duration-500" /><text x="18" y="18" textAnchor="middle" dominantBaseline="central" className="rotate-90 origin-center fill-[color:var(--foreground)] text-[8px] font-bold">{percent}</text></svg>;
+  return <svg width="34" height="34" viewBox="0 0 36 36" className="shrink-0 -rotate-90" role="img" aria-label={`${percent}% profile complete`}><circle cx="18" cy="18" r={radius} fill="none" stroke="var(--border)" strokeWidth="3" /><circle cx="18" cy="18" r={radius} fill="none" stroke="var(--foreground)" strokeWidth="3" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - percent / 100)} className="transition-[stroke-dashoffset] duration-500" /><text x="18" y="18" textAnchor="middle" dominantBaseline="central" className="rotate-90 origin-center fill-[color:var(--foreground)] text-[8px] font-bold">{percent}</text></svg>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

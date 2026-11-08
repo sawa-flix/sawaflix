@@ -254,7 +254,7 @@ const RightSidebar = () => {
              ))}
            </div>
         ) : (
-           <div className="flex flex-col gap-2">
+           <div className="flex flex-col gap-1.5">
              {aiRecommendations.map((video) => (
                <SidebarVideoItem
                  key={video.id}
@@ -274,6 +274,10 @@ const RightSidebar = () => {
 const SidebarVideoItem = ({ video, activeCategory, videos, handleItemClick }) => {
   const initialThumb = activeCategory === 'music' ? MUSIC_CARD_THUMB : (video.thumbnail || (video.id ? `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg` : MUSIC_CARD_THUMB));
   const [imgSrc, setImgSrc] = useState(initialThumb);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const previewVideoUrl = video?.videoUrl || video?.embedUrl || video?.media_url || video?.video_url || '';
+  const isYouTubePreview = !!previewVideoUrl && (previewVideoUrl.includes('youtube.com') || previewVideoUrl.includes('youtu.be') || video.id?.length === 11);
 
   React.useEffect(() => {
     setImgSrc(initialThumb);
@@ -282,29 +286,69 @@ const SidebarVideoItem = ({ video, activeCategory, videos, handleItemClick }) =>
   return (
     <div
       onClick={() => handleItemClick(video, videos)}
-      className="flex gap-3 p-2 rounded-xl hover:bg-[color:var(--surface)]/10 border border-transparent hover:border-[color:var(--border)]/40 transition-all duration-200 cursor-pointer group"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      onFocus={() => setIsHovering(true)}
+      onBlur={() => setIsHovering(false)}
+      className="group relative w-full overflow-hidden rounded-lg border border-transparent bg-[color:var(--surface)]/20 p-0.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--border)]/60 hover:bg-[color:var(--surface)]/30 cursor-pointer"
     >
-      <div className="relative w-[56px] h-[56px] rounded-lg overflow-hidden shrink-0 shadow-lg">
-        <Image
-          src={imgSrc}
-          alt={video.title}
-          fill
-          sizes="56px"
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
-          unoptimized
-          onError={() => {
-            if (imgSrc.includes('maxresdefault.jpg')) {
-              setImgSrc(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`);
-            } else if (imgSrc !== MUSIC_CARD_THUMB) {
-              setImgSrc(MUSIC_CARD_THUMB);
-            }
-          }}
-        />
-        <div className="absolute inset-0 bg-[color:var(--border)]/20 group-hover:bg-transparent transition-colors" />
-      </div>
-      <div className="flex-1 min-w-0 py-0.5">
-        <h4 className="text-xs font-bold text-[color:var(--foreground)] line-clamp-2 mb-1 leading-tight group-hover:text-[color:var(--foreground)]/90">{video.title}</h4>
-        <p className="text-[10px] text-[color:var(--muted-foreground)] font-bold uppercase tracking-wider truncate">{video.channelTitle || 'Artist'}</p>
+      <div className="relative h-[104px] w-full overflow-hidden rounded-md shadow-sm">
+        {isHovering && isYouTubePreview ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.id)}?autoplay=1&mute=1&controls=0&rel=0&playsinline=1&loop=1&playlist=${encodeURIComponent(video.id)}&modestbranding=1`}
+            title={video.title}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen={false}
+            className="absolute inset-0 h-full w-full border-0 bg-black"
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+        ) : isHovering && previewVideoUrl && !isYouTubePreview ? (
+          <video
+            src={previewVideoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <Image
+            src={imgSrc}
+            alt={video.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 180px"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            unoptimized
+            onError={() => {
+              if (imgSrc.includes('maxresdefault.jpg')) {
+                setImgSrc(`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`);
+              } else if (imgSrc !== MUSIC_CARD_THUMB) {
+                setImgSrc(MUSIC_CARD_THUMB);
+              }
+            }}
+          />
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        <div className={`absolute inset-x-0 bottom-0 p-1 transition-all duration-200 ${isHovering ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0 pointer-events-none'}`}>
+          <div className="rounded-md border border-white/10 bg-black/45 p-1 backdrop-blur-sm">
+            <h4 className="line-clamp-2 text-[9px] font-black leading-tight text-white">{video.title}</h4>
+            <p className="mt-0.5 truncate text-[7px] font-bold uppercase tracking-[0.12em] text-white/75">
+              {video.channelTitle || 'Artist'}
+            </p>
+          </div>
+        </div>
+
+        {!isHovering && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 shadow-lg">
+              <span className="ml-0.5 text-lg text-white">▶</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

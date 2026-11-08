@@ -24,16 +24,18 @@ function ProfileHeader({
       {/* Cover Image */}
       <div className="relative w-full h-32 sm:h-48 md:h-64 bg-linear-to-r from-[#CE1126] to-[#8B0A1E] rounded-none md:rounded-b-2xl overflow-hidden">
         <div className="absolute inset-0">
-          {user.coverImage && (
+          {user.coverImage ? (
             <Image
               src={user.coverImage}
               alt="Profile cover"
               fill
+              unoptimized
               className="object-cover"
               priority
             />
+          ) : (
+            <div className="w-full h-full bg-linear-to-r from-[#CE1126] via-[#A00D22] to-[#8B0A1E]" />
           )}
-          <div className="w-full h-full bg-linear-to-r from-[#CE1126] via-[#A00D22] to-[#8B0A1E]" />
         </div>
         <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
       </div>

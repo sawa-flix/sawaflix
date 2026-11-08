@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
+  AlertCircle,
   Calendar,
   ChevronDown,
   ChevronRight,
@@ -22,7 +23,8 @@ import {
   Download,
   CheckCircle2,
   Loader2,
-  Trash2
+  Trash2,
+  X,
 } from 'lucide-react';
 import type { Movie } from '@/components/Movie';
 import { fetchCuratedMovies } from '@/components/Movie/movieApi';
@@ -62,6 +64,7 @@ export default function MovieDetailsPage() {
   const [likesCount, setLikesCount] = useState(342);
   const [showComments, setShowComments] = useState(false);
   const [offlineVideoUrl, setOfflineVideoUrl] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const {
     isDownloaded: checkIsDownloaded,
@@ -197,8 +200,13 @@ export default function MovieDetailsPage() {
         category: playable.genres?.[0] || 'Movie',
         duration: playable.duration,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to start download:', err);
+      const msg = err?.message || 'Download failed. Please try again later.';
+      setDownloadError(msg.includes('Sign in') || msg.includes('bot')
+        ? 'This video cannot be downloaded at this time. Try again later.'
+        : 'Download failed. Please check your connection and try again.');
+      setTimeout(() => setDownloadError(null), 5000);
     }
   };
 
@@ -425,6 +433,17 @@ export default function MovieDetailsPage() {
                 </span>
               </button>
             </div>
+
+            {/* Download error toast */}
+            {downloadError && (
+              <div className="mx-1 mb-2 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500 animate-in fade-in slide-in-from-top-2 duration-300">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <span className="flex-1">{downloadError}</span>
+                <button type="button" onClick={() => setDownloadError(null)} className="shrink-0 opacity-70 hover:opacity-100">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
 
             {/* Episode Description Section */}
             <div className="min-h-0 flex-1 overflow-y-auto border-t border-[color:var(--border)] bg-[color:var(--background)] text-[color:var(--foreground)]">

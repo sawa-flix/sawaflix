@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUpWithPassword } from "@/app/(auth)/actions";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, clearSupabaseAuthCookies } from "@/utils/supabase/client";
 import BrandLoader from "@/components/BrandLoader";
 
 // import { Suspense } from 'react';
@@ -79,6 +79,7 @@ function SignUpContent() {
     setIsGoogleLoading(true);
 
     try {
+      clearSupabaseAuthCookies();
       const supabase = createClient();
       // Always use the exact origin the user is currently on to prevent PKCE cookie domain mismatches.
       const redirectBase = window.location.origin;

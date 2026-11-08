@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { getCultureFeedAction, searchVideosAction } from '@/app/actions/youtube';
 import type { Video } from '@/types/youtube';
 import { mapYoutubeItem, extractVideoId, type RawYoutubeFeedItem } from '@/utils/reels/mapYoutubeItem';
+import { buildBlendedFeedOrder, mergeCategoryVideoResults } from '@/utils/reels/feedPriority';
 import { stashReelForHandoff } from '@/utils/reels/reelHandoff';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthModal } from '@/contexts/AuthModalContext';
@@ -168,11 +169,21 @@ export default function CultureInfiniteFeed({ activeCategory = 'all' }: CultureI
 
       // 2. Query culture feed action or cycling query
       if (activeCategory === 'all') {
-        const response = await getCultureFeedAction(pageToFetch, 12);
-        const feedList: RawYoutubeFeedItem[] = response?.feed || [];
-        newItems = feedList.filter((item) => !!extractVideoId(item)).map(mapYoutubeItem);
-        
-        // If the culture feed pagination runs dry, smoothly cycle complementary queries
+        const blendedCategories = buildBlendedFeedOrder(['all']).filter((category) => category !== 'all');
+        const results = await Promise.all(
+          blendedCategories.map(async (categoryId) => {
+            const query = CATEGORY_QUERIES[categoryId] || CATEGORY_QUERIES.all;
+            const response = await searchVideosAction(query, null, 4, true);
+            const rawList = Array.isArray(response) ? response : (response as any)?.items || [];
+            return rawList
+              .filter((item: any) => !!(typeof item.id === 'object' ? item.id.videoId : item.id))
+              .map((item: any) => ({ ...mapYoutubeItem(item), category: categoryId }));
+          })
+        );
+
+        newItems = mergeCategoryVideoResults(results.flat()).slice(0, 12);
+
+        // If the blended feed still runs dry, smoothly cycle complementary queries
         if (newItems.length === 0) {
           const cycleQuery = CYCLE_QUERIES[queryCycleIndexRef.current % CYCLE_QUERIES.length];
           queryCycleIndexRef.current += 1;

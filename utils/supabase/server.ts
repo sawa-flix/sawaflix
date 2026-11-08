@@ -19,7 +19,7 @@ export async function createClient() {
         },
         remove(name, options) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            cookieStore.set({ name, value: '', ...options, maxAge: 0 })
           } catch (error) {}
         },
         getAll() {
