@@ -1,10 +1,15 @@
 'use client'
-import { useEffect, useState, Suspense } from "react";
-import SawaFlix from "../../../components/Dashboard/SawaFlix";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { createClient } from '../../../utils/supabase/client'
 import { User as SupabseUser } from '@supabase/supabase-js'
 import { useRouter } from "next/navigation";
 import { FeedSkeleton } from "../../../components/Dashboard/Skeletons";
+
+const SawaFlix = dynamic(() => import('../../../components/Dashboard/SawaFlix'), {
+  ssr: false,
+  loading: () => <FeedSkeleton />,
+});
 
 type UserData = {
   username:string | null;
@@ -46,9 +51,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-full">
-      <Suspense fallback={<FeedSkeleton />}>
-        <SawaFlix />
-      </Suspense>
+      <SawaFlix />
     </div>
   );
 }
