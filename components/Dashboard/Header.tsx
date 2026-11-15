@@ -484,7 +484,7 @@ const Header = ({
                     </Link>
 
                     <Link
-                      href="/creator-dashboard"
+                      href="/creator/verify"
                       onClick={() => setShowProfileMenu(false)}
                       className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] hover:bg-[color:var(--surface)]/10 transition-colors group"
                     >
