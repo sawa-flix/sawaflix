@@ -13,7 +13,8 @@ import {
   Bookmark, 
   Edit3, 
   BookOpen, 
-  HelpCircle 
+  HelpCircle,
+  Sparkles
 } from 'lucide-react';
 import { handleSignOut } from '@/app/(auth)/actions';
 
@@ -126,6 +127,20 @@ export default function UserDropdown({ profile }) {
                   <Video size={15} />
                 </div>
                 <span>Creator Dashboard</span>
+              </div>
+              <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
+            </Link>
+
+            <Link
+              href="/creator/verify"
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-colors group"
+              onClick={() => setIsOpen(false)}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-white/[0.04] text-zinc-400 group-hover:text-white group-hover:bg-white/10 transition-colors">
+                  <Sparkles size={15} />
+                </div>
+                <span>Creator Studio</span>
               </div>
               <ChevronRight size={13} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
             </Link>

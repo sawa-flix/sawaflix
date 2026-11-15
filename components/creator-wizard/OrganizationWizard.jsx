@@ -241,7 +241,7 @@ export default function OrganizationWizard() {
     setIsSubmitting(true);
     try {
       await submitOrganizationApplication(formData);
-      router.push('/creator/organization/status');
+      router.push('/org-dashboard');
     } catch (err) {
       alert(err.message || 'Submission failed');
     } finally {
