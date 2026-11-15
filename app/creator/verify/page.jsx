@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import CreatorWizard from '@/components/creator-wizard/CreatorWizard';
+import VerificationChoiceContainer from '@/components/creator-wizard/VerificationChoiceContainer';
 import { redirect } from "next/navigation";
 import { getUserProfile } from "@/lib/getUserProfile"; 
 import DashboardWrapper from '@/components/Dashboard/DashboardWrapper';
@@ -8,13 +8,12 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
     title: 'Creator Verification | SawaFlix',
-    description: 'Join SawaFlix as a verified creator and share your cultural story.',
+    description: 'Join SawaFlix as a verified creator or organization and share your cultural story.',
 };
 
 export default async function CreatorVerifyPage() {
     const profile = await getUserProfile();
     
-    // Debug logging removed, logic simplified for production
     const status = profile?.verificationStatus || 'none';
 
     if (!profile) {
@@ -29,10 +28,9 @@ export default async function CreatorVerifyPage() {
         redirect("/creator-dashboard");
     }
 
-
     return (
         <DashboardWrapper>
-            <CreatorWizard />
+            <VerificationChoiceContainer />
         </DashboardWrapper>
     );
 }
